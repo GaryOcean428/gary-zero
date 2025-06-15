@@ -1,0 +1,15 @@
+.copy-link-button, .refresh-link-button {
+    margin-left: 5px;
+}
+
+.stop-tunnel-container {
+    margin-top: 10px;
+}
+
+.scheduler-task-action {
+    margin-right: 5px;
+}
+
+.scheduler-add-todo-button svg {
+    margin-right: 4px;
+}

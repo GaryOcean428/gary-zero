@@ -1,0 +1,252 @@
+"""This module runs the Flask web UI and initializes the application."""
+
+import os
+import socket
+import struct
+import threading
+import time
+from functools import wraps
+
+from flask import Flask, Response, request
+from flask_basicauth import BasicAuth
+
+import initialize
+from python.helpers import dotenv, files, git, mcp_server, process, runtime
+from python.helpers.api import ApiHandler
+from python.helpers.extract_tools import load_classes_from_folder
+from python.helpers.files import get_abs_path
+from python.helpers.print_style import PrintStyle
+
+# Set the new timezone to 'UTC'
+os.environ["TZ"] = "UTC"
+# Apply the timezone change
+time.tzset()
+
+# initialize the internal Flask server
+webapp = Flask("app", static_folder=get_abs_path("./webui"), static_url_path="/")
+webapp.config["JSON_SORT_KEYS"] = False  # Disable key sorting in jsonify
+
+lock = threading.Lock()
+
+# Set up basic authentication for UI and API but not MCP
+basic_auth = BasicAuth(webapp)
+
+
+def is_loopback_address(address):
+    """Check if the given address is a loopback address."""
+    loopback_checker = {
+        socket.AF_INET: lambda x: struct.unpack("!I", socket.inet_aton(x))[0] >> (32 - 8) == 127,
+        socket.AF_INET6: lambda x: x == "::1",
+    }
+    address_type = "hostname"
+    try:
+        socket.inet_pton(socket.AF_INET6, address)
+        address_type = "ipv6"
+    except OSError:
+        try:
+            socket.inet_pton(socket.AF_INET, address)
+            address_type = "ipv4"
+        except OSError:
+            address_type = "hostname"
+
+    if address_type == "ipv4":
+        return loopback_checker[socket.AF_INET](address)
+    elif address_type == "ipv6":
+        return loopback_checker[socket.AF_INET6](address)
+    else:
+        for family in (socket.AF_INET, socket.AF_INET6):
+            try:
+                r = socket.getaddrinfo(address, None, family, socket.SOCK_STREAM)
+            except socket.gaierror:
+                return False
+            for family, _, _, _, sockaddr in r:
+                if not loopback_checker[family](sockaddr[0]):
+                    return False
+        return True
+
+
+def requires_api_key(f):
+    @wraps(f)
+    async def decorated(*args, **kwargs):
+        valid_api_key = dotenv.get_dotenv_value("API_KEY")
+        if api_key := request.headers.get("X-API-KEY"):
+            if api_key != valid_api_key:
+                return Response("API key required", 401)
+        elif request.json and request.json.get("api_key"):
+            api_key = request.json.get("api_key")
+            if api_key != valid_api_key:
+                return Response("API key required", 401)
+        else:
+            return Response("API key required", 401)
+        return await f(*args, **kwargs)
+
+    return decorated
+
+
+# allow only loopback addresses
+def requires_loopback(f):
+    """Decorator to ensure a request is from a loopback address."""
+
+    @wraps(f)
+    async def decorated(*args, **kwargs):
+        if not is_loopback_address(request.remote_addr):
+            return Response(
+                "Access denied.",
+                403,
+                {},
+            )
+        return await f(*args, **kwargs)
+
+    return decorated
+
+
+# require authentication for handlers
+def requires_auth(f):
+    """Decorator to require basic authentication for a route."""
+
+    @wraps(f)
+    async def decorated(*args, **kwargs):
+        user = dotenv.get_dotenv_value("AUTH_LOGIN")
+        password = dotenv.get_dotenv_value("AUTH_PASSWORD")
+        if user and password:
+            auth = request.authorization
+            if not auth or not (auth.username == user and auth.password == password):
+                return Response(
+                    "Could not verify your access level for that URL.\n"
+                    "You have to login with proper credentials",
+                    401,
+                    {"WWW-Authenticate": 'Basic realm="Login Required"'},
+                )
+        return await f(*args, **kwargs)
+
+    return decorated
+
+
+# handle default address, load index
+@webapp.route("/", methods=["GET"])
+@requires_auth
+async def serve_index():
+    """Serve the main index.html file."""
+    gitinfo = None
+    try:
+        gitinfo = git.get_git_info()
+    except Exception:
+        gitinfo = {
+            "version": "unknown",
+            "commit_time": "unknown",
+        }
+    return files.read_file(
+        "./webui/index.html",
+        version_no=gitinfo["version"],
+        version_time=gitinfo["commit_time"],
+    )
+
+
+def run():
+    """Run the Flask server."""
+    PrintStyle().print("Initializing framework...")
+
+    # Suppress only request logs but keep the startup messages
+    from a2wsgi import ASGIMiddleware
+    from werkzeug.middleware.dispatcher import DispatcherMiddleware
+    from werkzeug.serving import WSGIRequestHandler, make_server
+
+    PrintStyle().print("Starting server...")
+
+    class NoRequestLoggingWSGIRequestHandler(WSGIRequestHandler):
+        def log_request(self, code="-", size="-"):
+            pass  # Override to suppress request logging
+
+    # Get configuration from environment
+    port = runtime.get_web_ui_port()
+    host = runtime.get_arg("host") or dotenv.get_dotenv_value("WEB_UI_HOST") or "localhost"
+    server = None
+
+    def register_api_handler(app, handler: type[ApiHandler]):
+        """Register an API handler with the Flask app."""
+        name = handler.__module__.split(".")[-1]
+        instance = handler(app, lock)
+
+        if handler.requires_loopback():
+
+            @requires_loopback
+            async def handle_request():
+                return await instance.handle_request(request=request)
+
+        elif handler.requires_auth():
+
+            @requires_auth
+            async def handle_request():
+                return await instance.handle_request(request=request)
+
+        elif handler.requires_api_key():
+
+            @requires_api_key
+            async def handle_request():
+                return await instance.handle_request(request=request)
+
+        else:
+            # Fallback to requires_auth
+            @requires_auth
+            async def handle_request():
+                return await instance.handle_request(request=request)
+
+        app.add_url_rule(
+            f"/{name}",
+            f"/{name}",
+            handle_request,
+            methods=["POST", "GET"],
+        )
+
+    # initialize and register API handlers
+    handlers = load_classes_from_folder("python/api", "*.py", ApiHandler)
+    for handler in handlers:
+        register_api_handler(webapp, handler)
+
+    # add the webapp and mcp to the app
+    app = DispatcherMiddleware(
+        webapp,
+        {
+            "/mcp": ASGIMiddleware(app=mcp_server.DynamicMcpProxy.get_instance()),  # type: ignore
+        },
+    )
+    PrintStyle().debug("Registered middleware for MCP and MCP token")
+
+    PrintStyle().debug(f"Starting server at {host}:{port}...")
+
+    server = make_server(
+        host=host,
+        port=port,
+        app=app,
+        request_handler=NoRequestLoggingWSGIRequestHandler,
+        threaded=True,
+    )
+    process.set_server(server)
+    server.log_startup()
+
+    # Start init_a0 in a background thread when server starts
+    # threading.Thread(target=init_a0, daemon=True).start()
+    init_a0()
+
+    # run the server
+    server.serve_forever()
+
+
+def init_a0():
+    """Initialize all application components."""
+    # initialize contexts and MCP
+    init_chats_task = initialize.initialize_chats()
+    init_mcp_task = initialize.initialize_mcp()  # Store the DeferredTask
+    # start job loop
+    initialize.initialize_job_loop()
+
+    # only wait for init chats, otherwise they would seem to dissapear for a while on restart
+    init_chats_task.result_sync()
+    init_mcp_task.result_sync()  # Wait for MCP initialization to complete
+
+
+# run the internal server
+if __name__ == "__main__":
+    runtime.initialize()
+    dotenv.load_dotenv()
+    run()

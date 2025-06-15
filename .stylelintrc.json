@@ -1,0 +1,26 @@
+{
+  "extends": ["stylelint-config-standard"],
+  "rules": {
+    "indentation": 2,
+    "max-line-length": 100,
+    "declaration-colon-space-after": "always",
+    "declaration-colon-space-before": "never",
+    "block-closing-brace-newline-after": "always",
+    "block-closing-brace-newline-before": "always-multi-line",
+    "block-opening-brace-newline-after": "always-multi-line",
+    "block-opening-brace-space-before": "always",
+    "selector-combinator-space-after": "always",
+    "selector-combinator-space-before": "always",
+    "string-quotes": "double",
+    "color-hex-case": "lower",
+    "color-hex-length": "short",
+    "font-family-name-quotes": "always-where-recommended"
+  },
+  "ignoreFiles": [
+    "**/*.min.css",
+    "**/node_modules/**",
+    "**/.venv/**",
+    "**/build/**",
+    "**/dist/**"
+  ]
+}

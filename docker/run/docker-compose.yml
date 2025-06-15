@@ -1,0 +1,10 @@
+services:
+  gary-zero:
+    container_name: gary-zero
+    image: frdel/gary-zero:latest
+    volumes:
+      - ./gary-zero:/a0
+    ports:
+      - "50001:50001"
+    environment:
+      - PORT=50001

@@ -1,0 +1,21 @@
+services:
+  gary-zero-cuda:
+    container_name: gary-zero-cuda
+    image: frdel/gary-zero-run-cuda:testing
+    volumes:
+      - ./gary-zero:/a0
+      - ./gary-zero/work_dir:/root
+    ports:
+      - "50001:50001"
+    environment:
+      - PORT=50001
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - PYTHONUNBUFFERED=1
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

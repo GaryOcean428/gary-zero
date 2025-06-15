@@ -1,0 +1,114 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "zero"
+version = "0.1.0"
+description = "Zero AI Assistant"
+readme = "README.md"
+requires-python = ">=3.9"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["python*"]
+exclude = ["webui*", "docker*", "docs*", "lib*", "logs*", "memory*", "prompts*", "knowledge*", "instruments*", "tmp*"]
+
+[tool.black]
+line-length = 100
+target-version = ['py39']
+extend-exclude = '''
+(
+  \.eggs
+  | \.git
+  | \.mypy_cache
+  | \.venv
+  | _build
+  | build
+  | dist
+  | __pycache__
+)
+'''
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "T20", # flake8-print
+    "SIM", # flake8-simplify
+]
+ignore = [
+    "E203",  # whitespace before ':'
+    "B008",  # do not perform function calls in argument defaults
+    "T201",  # print found
+    "T203",  # pprint found
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["python"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false  # Start lenient, can tighten later
+ignore_missing_imports = true
+exclude = [
+    "build/",
+    "dist/",
+    ".venv/",
+    "__pycache__/",
+]
+
+[tool.pylint.messages_control]
+disable = [
+    "import-error",
+    "missing-module-docstring",
+    "missing-class-docstring", 
+    "missing-function-docstring",
+    "too-few-public-methods",
+    "too-many-arguments",
+    "too-many-locals",
+    "too-many-branches",
+    "too-many-statements",
+    "line-too-long",  # Let black handle this
+]
+
+[tool.pylint.format]
+max-line-length = 100
+
+[dependency-groups]
+dev = [
+    "black>=25.1.0",
+    "detect-secrets>=1.5.0",
+    "mypy>=1.16.0",
+    "ruff>=0.11.13",
+]
+
+# Frontend linting tools (install separately with npm/yarn)
+# npm install -g markdownlint-cli2 stylelint htmlhint prettier
+
+# detect-secrets configuration will be handled via command line args
+# to avoid TOML regex escape issues

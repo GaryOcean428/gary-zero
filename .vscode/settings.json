@@ -1,0 +1,86 @@
+{
+  "python.defaultInterpreterPath": "./.venv/bin/python",
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": true,
+  "python.linting.flake8Enabled": false,
+  "python.linting.mypyEnabled": true,
+  "python.formatting.provider": "black",
+  "python.formatting.blackArgs": ["--line-length=100"],
+  "python.sortImports.args": ["--profile", "black"],
+  
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    },
+    "editor.rulers": [100]
+  },
+  
+  "[markdown]": {
+    "editor.formatOnSave": true,
+    "editor.rulers": [100],
+    "editor.wordWrap": "wordWrapColumn",
+    "editor.wordWrapColumn": 100
+  },
+  
+  "[css]": {
+    "editor.formatOnSave": true,
+    "editor.rulers": [100]
+  },
+  
+  "[html]": {
+    "editor.formatOnSave": true,
+    "editor.rulers": [100]
+  },
+  
+  "[json]": {
+    "editor.formatOnSave": true
+  },
+  
+  "files.associations": {
+    "*.md": "markdown"
+  },
+  
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/.mypy_cache": true,
+    "**/node_modules": true,
+    "**/.venv": true,
+    "**/build": true,
+    "**/dist": true
+  },
+  
+  "search.exclude": {
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/.mypy_cache": true,
+    "**/node_modules": true,
+    "**/.venv": true,
+    "**/build": true,
+    "**/dist": true
+  },
+  
+  "mypy.dmypyExecutable": "./.venv/bin/dmypy",
+  "mypy.runUsingActiveInterpreter": true,
+  
+  // Ruff native server configuration (replaces ruff-lsp)
+  "ruff.configuration": "./pyproject.toml",
+  "ruff.lineLength": 100,
+  "ruff.lint.select": ["E", "W", "F", "I", "N", "UP", "B", "C4", "T20", "SIM"],
+  "ruff.lint.ignore": ["E203", "B008", "T201", "T203"],
+  
+  "markdownlint.config": {
+    "extends": ".markdownlint.json"
+  },
+  
+  "css.validate": true,
+  "html.validate.html": true,
+  "html.validate.scripts": true,
+  "html.validate.styles": true,
+  
+  "editor.rulers": [100],
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false
+}

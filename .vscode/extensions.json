@@ -1,0 +1,17 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.mypy-type-checker",
+    "ms-python.black-formatter",
+    "charliermarsh.ruff",
+    "ms-python.pylint",
+    "davidanson.vscode-markdownlint",
+    "stylelint.vscode-stylelint",
+    "mkaufman.htmlhint",
+    "esbenp.prettier-vscode",
+    "ms-vscode.vscode-json"
+  ],
+  "unwantedRecommendations": [
+    "ms-python.flake8"
+  ]
+}
