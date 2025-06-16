@@ -5,12 +5,12 @@ from python.helpers.file_browser import FileBrowser
 
 
 class DeleteWorkDirFile(ApiHandler):
-    async def process(self, input: Input, request: Request) -> Output:
-        file_path = input.get("path", "")
+    async def process(self, input_data: Input, request: Request) -> Output:
+        file_path = input_data.get("path", "")
         if not file_path.startswith("/"):
             file_path = f"/{file_path}"
 
-        current_path = input.get("currentPath", "")
+        current_path = input_data.get("currentPath", "")
 
         # browser = FileBrowser()
         res = await runtime.call_development_function(delete_file, file_path)

@@ -4,7 +4,7 @@ from python.helpers.file_browser import FileBrowser
 
 
 class GetWorkDirFiles(ApiHandler):
-    async def process(self, input: Input, request: Request) -> Output:
+    async def process(self, input_data: Input, request: Request) -> Output:
         current_path = request.args.get("path", "")
         if current_path == "$WORK_DIR":
             # if runtime.is_development():

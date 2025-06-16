@@ -7,12 +7,18 @@ from __future__ import annotations
 
 import json
 import os
-from typing import TypeVar, cast
+from typing import TYPE_CHECKING
 
 from . import files
-from .settings import Settings, get_default_settings, normalize_settings
 
-T = TypeVar('T')
+if TYPE_CHECKING:
+    from .settings import get_default_settings, normalize_settings
+    from .settings_types import Settings
+else:
+    # These will be imported locally at runtime to avoid circular imports
+    get_default_settings = None  # type: ignore
+    normalize_settings = None  # type: ignore
+    Settings = dict  # type: ignore
 
 
 class SettingsManager:
@@ -40,11 +46,20 @@ class SettingsManager:
         return cls._instance
 
     def get_settings(self) -> Settings:
-        """Get the current settings, loading them if necessary."""
+        """Get the current settings.
+
+        Returns:
+            The current settings, loaded from file or default if not set.
+        """
         if self._settings is None:
-            self._settings = self._read_settings_file() or get_default_settings()
-            self._settings = normalize_settings(self._settings)
-        return self._settings
+            from .settings import get_default_settings, normalize_settings  # type: ignore
+            default_settings = get_default_settings()
+            loaded_settings = self._read_settings_file()
+            self._settings = (
+                normalize_settings(loaded_settings)
+                if loaded_settings else default_settings
+            )
+        return self._settings  # type: ignore[return-value]
 
     def set_settings(self, settings: Settings, apply: bool = True) -> None:
         """Update the current settings and optionally apply them.
@@ -53,23 +68,29 @@ class SettingsManager:
             settings: The new settings to apply
             apply: If True, apply the settings immediately
         """
+        from .settings import normalize_settings  # type: ignore
         previous = self._settings
-        self._settings = normalize_settings(settings)
+        self._settings = normalize_settings(settings)  # type: ignore[assignment]
         self._write_settings_file(self._settings)
 
         if apply and previous is not None:
-            from .settings import _apply_settings
+            from .settings import _apply_settings  # type: ignore
             _apply_settings(previous)
 
     def _read_settings_file(self) -> Settings | None:
-        """Read settings from the settings file."""
+        """Read settings from the settings file.
+
+        Returns:
+            The loaded settings if successful, None otherwise.
+        """
         if not os.path.exists(self._settings_file):
             return None
 
         try:
             with open(self._settings_file, encoding='utf-8') as f:
-                data = json.load(f)
-                return cast(Settings, data)
+                settings = json.load(f)
+                from .settings import normalize_settings  # type: ignore
+                return normalize_settings(settings)  # type: ignore[return-value]
         except (json.JSONDecodeError, OSError):
             return None
 
@@ -81,7 +102,8 @@ class SettingsManager:
 
     def reset_to_defaults(self) -> None:
         """Reset settings to their default values."""
-        self._settings = get_default_settings()
+        from .settings import get_default_settings  # type: ignore
+        self._settings = get_default_settings()  # type: ignore[assignment]
         self._write_settings_file(self._settings)
 
 

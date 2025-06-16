@@ -9,7 +9,7 @@ from python.helpers.file_browser import FileBrowser
 
 
 class UploadWorkDirFiles(ApiHandler):
-    async def process(self, input: Input, request: Request) -> Output:
+    async def process(self, input_data: Input, request: Request) -> Output:
         if "files[]" not in request.files:
             raise Exception("No files uploaded")
 

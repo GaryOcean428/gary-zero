@@ -10,8 +10,8 @@ from python.helpers.print_style import PrintStyle
 
 
 class Message(ApiHandler):
-    async def process(self, input: Input, request: Request) -> Output:
-        task, context = await self.communicate(input=input, request=request)
+    async def process(self, input_data: Input, request: Request) -> Output:
+        task, context = await self.communicate(input=input_data, request=request)
         return await self.respond(task, context)
 
     async def respond(self, task: DeferredTask, context: AgentContext):

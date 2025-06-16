@@ -6,13 +6,17 @@ methods, ensuring type-safe filtering and consistent response messages.
 
 import asyncio
 import json
-import random
+import logging
 import re
-from datetime import datetime
+import secrets
+from datetime import datetime, timezone
 
 from agent import AgentContext
-from python.helpers import persist_chat
-from python.helpers.task_scheduler import (
+
+# Use zero package imports
+from zero.helpers import persist_chat
+from zero.helpers.response import Response
+from zero.helpers.task_scheduler import (
     AdHocTask,
     PlannedTask,
     ScheduledTask,
@@ -20,11 +24,13 @@ from python.helpers.task_scheduler import (
     TaskSchedule,
     TaskScheduler,
     TaskState,
-    parse_datetime,
     serialize_datetime,
     serialize_task,
 )
-from python.helpers.tool import Response, Tool
+from zero.helpers.tool import Tool
+
+# Initialize logger
+logger = logging.getLogger(__name__)
 
 DEFAULT_WAIT_TIMEOUT = 300
 
@@ -120,11 +126,13 @@ class SchedulerTool(Tool):
         if not task:
             return Response(message=f"Task not found: {task_uuid}", break_loop=False)
         await TaskScheduler.get().run_task_by_uuid(task_uuid, task_context)
-        if task.context_id == self.agent.context.id:
-            break_loop = True  # break loop if task is running in the same context, otherwise it would start two conversations in one window
-        else:
-            break_loop = False
-        return Response(message=f"Task started: {task_uuid}", break_loop=break_loop)
+        # Break loop if task is running in the same context
+        # otherwise it would start two conversations in one window
+        break_loop = task.context_id == self.agent.context.id
+        return Response(
+            message=f"Task started: {task_uuid}",
+            break_loop=break_loop
+        )
 
     async def delete_task(self, **kwargs) -> Response:
         task_uuid: str = kwargs.get("uuid")
@@ -185,10 +193,15 @@ class SchedulerTool(Tool):
         )
 
         # Validate cron expression, agent might hallucinate
-        cron_regex = r"^((((\d+,)+\d+|(\d+(\/|-|#)\d+)|\d+L?|\*(\/\d+)?|L(-\d+)?|\?|[A-Z]{3}(-[A-Z]{3})?) ?){5,7})$"
-        if not re.match(cron_regex, task_schedule.to_crontab()):
+        cron_regex = (
+            r"^((((\d+,)+\d+|(\d+(\/|-|#)\d+)|\d+L?"
+            r"|\*(\/\d+)?|L(-\d+)?|\?"
+            r"|[A-Z]{3}(-[A-Z]{3})?) ?){5,7})$"
+        )
+        crontab = task_schedule.to_crontab()
+        if not re.match(cron_regex, crontab):
             return Response(
-                message="Invalid cron expression: " + task_schedule.to_crontab(),
+                message=f"Invalid cron expression: {crontab}",
                 break_loop=False,
             )
 
@@ -208,7 +221,7 @@ class SchedulerTool(Tool):
         system_prompt: str = kwargs.get("system_prompt")
         prompt: str = kwargs.get("prompt")
         attachments: list[str] = kwargs.get("attachments", [])
-        token: str = str(random.randint(1000000000000000000, 9999999999999999999))
+        token: str = str(secrets.randbits(64))
         dedicated_context: bool = kwargs.get("dedicated_context", False)
 
         task = AdHocTask.create(
@@ -222,36 +235,83 @@ class SchedulerTool(Tool):
         await TaskScheduler.get().add_task(task)
         return Response(message=f"Adhoc task '{name}' created: {task.uuid}", break_loop=False)
 
-    async def create_planned_task(self, **kwargs) -> Response:  # TODO: Implement
-        name: str = kwargs.get("name")
-        system_prompt: str = kwargs.get("system_prompt")
-        prompt: str = kwargs.get("prompt")
-        attachments: list[str] = kwargs.get("attachments", [])
-        plan: list[str] = kwargs.get("plan", [])
-        dedicated_context: bool = kwargs.get("dedicated_context", False)
+    async def create_planned_task(self, **kwargs) -> Response:
+        """Create a new planned task with scheduled execution times.
+        
+        Args:
+            name: Name of the task
+            system_prompt: System prompt for the task
+            prompt: User prompt for the task
+            attachments: List of file attachments
+            plan: List of ISO format datetime strings for scheduled execution
+            dedicated_context: Whether to use a dedicated context
+            
+        Returns:
+            Response with success/error message
+        """
+        name = kwargs.get("name")
+        system_prompt = kwargs.get("system_prompt")
+        prompt = kwargs.get("prompt")
+        attachments = kwargs.get("attachments", [])
+        plan = kwargs.get("plan", [])
+        dedicated_context = kwargs.get("dedicated_context", False)
+
+        if not all([name, system_prompt, prompt]):
+            return Response(
+                "Name, system_prompt, and prompt are required parameters",
+                success=False
+            )
 
         # Convert plan to list of datetimes in UTC
-        todo: list[datetime] = []
+        todo = []
         for item in plan:
-            dt = parse_datetime(item)
-            if dt is None:
-                return Response(message=f"Invalid datetime: {item}", break_loop=False)
-            todo.append(dt)
+            try:
+                # Parse and ensure timezone-aware datetime in UTC
+                dt = datetime.fromisoformat(item)
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                else:
+                    dt = dt.astimezone(timezone.utc)
+                todo.append(dt)
+            except (ValueError, TypeError):
+                return Response(
+                    f"Invalid datetime format in plan: {item}. Use ISO format.",
+                    success=False
+                )
+
+        if not todo:
+            return Response(
+                "At least one valid execution time must be provided in the plan",
+                success=False
+            )
 
         # Create task plan with todo list
         task_plan = TaskPlan.create(todo=todo, in_progress=None, done=[])
-
-        # Create planned task with task plan
-        task = PlannedTask.create(
+        # Create and schedule the task
+        task = PlannedTask(
             name=name,
             system_prompt=system_prompt,
             prompt=prompt,
             attachments=attachments,
             plan=task_plan,
-            context_id=None if dedicated_context else self.agent.context.id,
+            context_id=(
+                None if dedicated_context
+                else self.agent.context.id
+            )
         )
-        await TaskScheduler.get().add_task(task)
-        return Response(message=f"Planned task '{name}' created: {task.uuid}", break_loop=False)
+
+        try:
+            await TaskScheduler.get().add_task(task)
+            return Response(
+                f"Planned task '{name}' created with {len(todo)} "
+                f"scheduled executions: {task.uuid}",
+                break_loop=False
+            )
+        except Exception as e:
+            return Response(
+                f"Failed to create planned task: {str(e)}",
+                success=False
+            )
 
     async def wait_for_task(self, **kwargs) -> Response:
         task_uuid: str = kwargs.get("uuid")
@@ -263,9 +323,23 @@ class SchedulerTool(Tool):
         if not task:
             return Response(message=f"Task not found: {task_uuid}", break_loop=False)
 
+        if not (self.agent and self.agent.context):
+            logger.warning(
+                "No agent context available for task %s. "
+                "Task will run in a dedicated context.",
+                task.name
+            )
+            return Response(
+                message="Cannot wait for task: No agent context available",
+                break_loop=False
+            )
+
         if task.context_id == self.agent.context.id:
             return Response(
-                message="You can only wait for tasks running in a different chat context (dedicated_context=True).",
+                message=(
+                    "You can only wait for tasks running in a different "
+                    "chat context (dedicated_context=True)."
+                ),
                 break_loop=False,
             )
 
@@ -288,7 +362,21 @@ class SchedulerTool(Tool):
             else:
                 done = True
 
-        return Response(
-            message=f"*Task*: {task_uuid}\n*State*: {task.state}\n*Last run*: {serialize_datetime(task.last_run)}\n*Result*:\n{task.last_result}",
-            break_loop=False,
+        last_run = (
+            serialize_datetime(task.last_run)
+            if hasattr(task, 'last_run') and task.last_run
+            else "Never"
         )
+        result = (
+            task.last_result
+            if hasattr(task, 'last_result')
+            else "No result yet"
+        )
+
+        message = (
+            f"*Task*: {task_uuid}\n"
+            f"*State*: {task.state}\n"
+            f"*Last run*: {last_run}\n"
+            f"*Result*:\n{result}"
+        )
+        return Response(message=message, break_loop=False)

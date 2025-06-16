@@ -10,9 +10,9 @@ readme = "README.md"
 requires-python = ">=3.9"
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["python*"]
-exclude = ["webui*", "docker*", "docs*", "lib*", "logs*", "memory*", "prompts*", "knowledge*", "instruments*", "tmp*"]
+where = ["python"]
+include = ["*"]
+exclude = ["tests*", "webui*", "docker*", "docs*", "lib*", "logs*", "memory*", "prompts*", "knowledge*", "instruments*", "tmp*"]
 
 [tool.black]
 line-length = 100

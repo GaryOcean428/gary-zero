@@ -142,6 +142,7 @@ def run():
 
 if __name__ == "__main__":
     PrintStyle.standard(
-        "\n\n!!! run_cli.py is now discontinued. run_ui.py serves as both UI and API endpoint !!!\n\n"
+        "\n\n!!! run_cli.py is now discontinued. !!!"
+        " run_ui.py serves as both UI and API endpoint !!!\n\n"
     )
     run()

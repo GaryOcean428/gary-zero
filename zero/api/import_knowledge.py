@@ -7,7 +7,7 @@ from python.helpers.api import ApiHandler, Input, Output, Request
 
 
 class ImportKnowledge(ApiHandler):
-    async def process(self, input: Input, request: Request) -> Output:
+    async def process(self, input_data: Input, request: Request) -> Output:
         if "files[]" not in request.files:
             raise Exception("No files part")
 
@@ -18,7 +18,7 @@ class ImportKnowledge(ApiHandler):
         context = self.get_context(ctxid)
 
         file_list = request.files.getlist("files[]")
-        KNOWLEDGE_FOLDER = files.get_abs_path(
+        knowledge_folder = files.get_abs_path(
             memory.get_custom_knowledge_subdir_abs(context.agent0), "main"
         )
 
@@ -27,7 +27,7 @@ class ImportKnowledge(ApiHandler):
         for file in file_list:
             if file:
                 filename = secure_filename(file.filename)  # type: ignore
-                file.save(os.path.join(KNOWLEDGE_FOLDER, filename))
+                file.save(os.path.join(knowledge_folder, filename))
                 saved_filenames.append(filename)
 
         # reload memory to re-import knowledge

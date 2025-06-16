@@ -10,70 +10,13 @@ from python.helpers import defer, runtime
 from python.helpers.print_style import PrintStyle
 
 from . import dotenv, files, settings_manager
+from .settings_types import DEFAULT_SETTINGS, Settings
 
-
-class Settings(TypedDict):
-    chat_model_provider: str
-    chat_model_name: str
-    chat_model_kwargs: dict[str, str]
-    chat_model_ctx_length: int
-    chat_model_ctx_history: float
-    chat_model_vision: bool
-    chat_model_rl_requests: int
-    chat_model_rl_input: int
-    chat_model_rl_output: int
-
-    util_model_provider: str
-    util_model_name: str
-    util_model_kwargs: dict[str, str]
-    util_model_ctx_length: int
-    util_model_ctx_input: float
-    util_model_rl_requests: int
-    util_model_rl_input: int
-    util_model_rl_output: int
-
-    embed_model_provider: str
-    embed_model_name: str
-    embed_model_kwargs: dict[str, str]
-    embed_model_rl_requests: int
-    embed_model_rl_input: int
-
-    browser_model_provider: str
-    browser_model_name: str
-    browser_model_vision: bool
-    browser_model_kwargs: dict[str, str]
-
-    agent_prompts_subdir: str
-    agent_memory_subdir: str
-    agent_knowledge_subdir: str
-
-    api_keys: dict[str, str]
-
-    auth_login: str
-    auth_password: str
-    root_password: str
-
-    rfc_auto_docker: bool
-    rfc_url: str
-    rfc_password: str
-    rfc_port_http: int
-    rfc_port_ssh: int
-
-    stt_model_size: str
-    stt_language: str
-    stt_silence_threshold: float
-    stt_silence_duration: int
-    stt_waiting_timeout: int
-
-    mcp_servers: str
-    mcp_client_init_timeout: int
-    mcp_client_tool_timeout: int
-    mcp_server_enabled: bool
-    mcp_server_token: str
-
-
-class PartialSettings(Settings, total=False):
-    pass
+# Constants for repeated descriptions
+MODEL_PARAMS_DESCRIPTION = (
+    "Any other parameters supported by the model. Format is KEY=VALUE "
+    "on individual lines, just like .env file."
+)
 
 
 class FieldOption(TypedDict):
@@ -85,7 +28,10 @@ class SettingsField(TypedDict, total=False):
     id: str
     title: str
     description: str
-    type: Literal["text", "number", "select", "range", "textarea", "password", "switch", "button"]
+    type: Literal[
+        "text", "number", "select", "range",
+        "textarea", "password", "switch", "button"
+    ]
     value: Any
     min: float
     max: float
@@ -104,6 +50,10 @@ class SettingsSection(TypedDict, total=False):
 
 class SettingsOutput(TypedDict):
     sections: list[SettingsSection]
+
+
+class PartialSettings(Settings, total=False):
+    pass
 
 
 PASSWORD_PLACEHOLDER = "****PSWD****"
@@ -140,7 +90,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "chat_model_ctx_length",
             "title": "Chat model context length",
-            "description": "Maximum number of tokens in the context window for LLM. System prompt, chat history, RAG and response all count towards this limit.",
+            "description": (
+                "Maximum number of tokens in the context window for LLM. System "
+                "prompt, chat history, RAG and response all count towards this limit."
+            ),
             "type": "number",
             "value": settings["chat_model_ctx_length"],
         }
@@ -150,7 +103,12 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "chat_model_ctx_history",
             "title": "Context window space for chat history",
-            "description": "Portion of context window dedicated to chat history visible to the agent. Chat history will automatically be optimized to fit. Smaller size will result in shorter and more summarized history. The remaining space will be used for system prompt, RAG and response.",
+            "description": (
+                "Portion of context window dedicated to chat history visible to the agent. "
+                "Chat history will automatically be optimized to fit. Smaller size will "
+                "result in shorter and more summarized history. The remaining space will "
+                "be used for system prompt, RAG and response."
+            ),
             "type": "range",
             "min": 0.01,
             "max": 1,
@@ -163,7 +121,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "chat_model_vision",
             "title": "Supports Vision",
-            "description": "Models capable of Vision can for example natively see the content of image attachments.",
+            "description": (
+                "Models capable of Vision can for example natively see the content of "
+                "image attachments."
+            ),
             "type": "switch",
             "value": settings["chat_model_vision"],
         }
@@ -173,7 +134,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "chat_model_rl_requests",
             "title": "Requests per minute limit",
-            "description": "Limits the number of requests per minute to the chat model. Waits if the limit is exceeded. Set to 0 to disable rate limiting.",
+            "description": (
+                "Limits the number of requests per minute to the chat model. "
+                "Waits if the limit is exceeded. Set to 0 to disable rate limiting."
+            ),
             "type": "number",
             "value": settings["chat_model_rl_requests"],
         }
@@ -183,7 +147,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "chat_model_rl_input",
             "title": "Input tokens per minute limit",
-            "description": "Limits the number of input tokens per minute to the chat model. Waits if the limit is exceeded. Set to 0 to disable rate limiting.",
+            "description": (
+                "Limits the number of input tokens per minute to the chat model. "
+                "Waits if the limit is exceeded. Set to 0 to disable rate limiting."
+            ),
             "type": "number",
             "value": settings["chat_model_rl_input"],
         }
@@ -193,7 +160,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "chat_model_rl_output",
             "title": "Output tokens per minute limit",
-            "description": "Limits the number of output tokens per minute to the chat model. Waits if the limit is exceeded. Set to 0 to disable rate limiting.",
+            "description": (
+                "Limits the number of output tokens per minute to the chat model. "
+                "Waits if the limit is exceeded. Set to 0 to disable rate limiting."
+            ),
             "type": "number",
             "value": settings["chat_model_rl_output"],
         }
@@ -203,7 +173,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "chat_model_kwargs",
             "title": "Chat model additional parameters",
-            "description": "Any other parameters supported by the model. Format is KEY=VALUE on individual lines, just like .env file.",
+            "description": MODEL_PARAMS_DESCRIPTION,
             "type": "textarea",
             "value": _dict_to_env(settings["chat_model_kwargs"]),
         }
@@ -436,7 +406,9 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "description": "Set user password for web UI",
             "type": "password",
             "value": (
-                PASSWORD_PLACEHOLDER if dotenv.get_dotenv_value(dotenv.KEY_AUTH_PASSWORD) else ""
+                PASSWORD_PLACEHOLDER
+                if dotenv.get_dotenv_value(dotenv.KEY_AUTH_PASSWORD)
+                else ""
             ),
         }
     )
@@ -446,7 +418,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
             {
                 "id": "root_password",
                 "title": "root Password",
-                "description": "Change linux root password in docker container. This password can be used for SSH access. Original password was randomly generated during setup.",
+                "description": (
+                    "Change linux root password in docker container. This password can be "
+                    "used for SSH access. Original password was randomly generated during setup."
+                ),
                 "type": "password",
                 "value": "",
             }
@@ -799,7 +774,7 @@ def convert_in(settings: dict) -> Settings:
 
 def get_settings() -> Settings:
     """Get the current settings.
-    
+
     Returns:
         The current settings, loaded from file or default if not set.
     """
@@ -807,8 +782,8 @@ def get_settings() -> Settings:
 
 
 def set_settings(settings: Settings, apply: bool = True) -> None:
-    """Update the current settings.
-    
+    """Apply settings to the running application.
+
     Args:
         settings: The new settings to apply
         apply: If True, apply the settings immediately
@@ -849,10 +824,13 @@ def normalize_settings(settings: Settings) -> Settings:
 
 def _read_settings_file() -> Settings | None:
     """Read settings from the settings file.
-    
+
     Note: This is kept for backward compatibility but delegates to SettingsManager.
+
+    Returns:
+        The current settings or None if no settings are available.
     """
-    return settings_manager.SettingsManager()._read_settings_file()  # type: ignore
+    return settings_manager.SettingsManager().get_settings()
 
 
 def _write_settings_file(settings: Settings):
@@ -890,58 +868,47 @@ def _write_sensitive_settings(settings: Settings):
 
 
 def get_default_settings() -> Settings:
-    from models import ModelProvider
+    """Get the default settings.
 
-    return Settings(
-        chat_model_provider=ModelProvider.OPENAI.name,
-        chat_model_name="gpt-4.1",
-        chat_model_kwargs={"temperature": "0"},
-        chat_model_ctx_length=100000,
-        chat_model_ctx_history=0.7,
-        chat_model_vision=True,
-        chat_model_rl_requests=0,
-        chat_model_rl_input=0,
-        chat_model_rl_output=0,
-        util_model_provider=ModelProvider.OPENAI.name,
-        util_model_name="gpt-4.1-nano",
-        util_model_ctx_length=100000,
-        util_model_ctx_input=0.7,
-        util_model_kwargs={"temperature": "0"},
-        util_model_rl_requests=0,
-        util_model_rl_input=0,
-        util_model_rl_output=0,
-        embed_model_provider=ModelProvider.HUGGINGFACE.name,
-        embed_model_name="sentence-transformers/all-MiniLM-L6-v2",
-        embed_model_kwargs={},
-        embed_model_rl_requests=0,
-        embed_model_rl_input=0,
-        browser_model_provider=ModelProvider.OPENAI.name,
-        browser_model_name="gpt-4.1",
-        browser_model_vision=True,
-        browser_model_kwargs={"temperature": "0"},
-        api_keys={},
-        auth_login="",
-        auth_password="",
-        root_password="",
-        agent_prompts_subdir="default",
-        agent_memory_subdir="default",
-        agent_knowledge_subdir="custom",
-        rfc_auto_docker=True,
-        rfc_url="localhost",
-        rfc_password="",
-        rfc_port_http=55080,
-        rfc_port_ssh=55022,
-        stt_model_size="base",
-        stt_language="en",
-        stt_silence_threshold=0.3,
-        stt_silence_duration=1000,
-        stt_waiting_timeout=2000,
-        mcp_servers='{\n    "mcpServers": {}\n}',
-        mcp_client_init_timeout=5,
-        mcp_client_tool_timeout=120,
-        mcp_server_enabled=False,
-        mcp_server_token=create_auth_token(),
-    )
+    Returns:
+        A copy of the default settings with additional default values.
+    """
+    default_settings = DEFAULT_SETTINGS.copy()
+    # Add additional default settings that aren't in the base Settings type
+    default_settings.update({
+        "embed_model_rl_requests": 0,
+        "embed_model_rl_input": 0,
+        "browser_model_provider": "openai",
+        "browser_model_name": "gpt-4.1-vision-preview",
+        "browser_model_vision": True,
+        "browser_model_kwargs": {"temperature": "0"},
+        "agent_prompts_subdir": "prompts",
+        "agent_memory_subdir": "memory",
+        "agent_knowledge_subdir": "knowledge",
+        "api_keys": {},
+        "auth_login": "admin",
+        "auth_password": hashlib.sha256(b"admin").hexdigest(),
+        "root_password": hashlib.sha256(b"").hexdigest(),
+        "rfc_auto_docker": True,
+        "rfc_url": "http://localhost:8000",
+        "rfc_password": "",
+        "rfc_port_http": 8000,
+        "rfc_port_ssh": 8022,
+        "stt_model_size": "base",
+        "stt_language": "en",
+        "stt_silence_threshold": 0.5,
+        "stt_silence_duration": 1000,
+        "stt_waiting_timeout": 5000,
+        "mcp_servers": (
+            "filesystem,github,github.com/pashpashpash/mcp-taskmanager,"
+            "mcp-browserbase,mcp-playwright,memory"
+        ),
+        "mcp_client_init_timeout": 30,
+        "mcp_client_tool_timeout": 300,
+        "mcp_server_enabled": True,
+        "mcp_server_token": create_auth_token(),
+    })
+    return default_settings
 
 
 def _apply_settings(previous: Settings | None):
@@ -974,9 +941,7 @@ def _apply_settings(previous: Settings | None):
             from python.helpers.mcp_handler import MCPConfig
 
             async def update_mcp_settings(mcp_servers: str):
-                PrintStyle(background_color="black", font_color="white", padding=True).print(
-                    "Updating MCP config..."
-                )
+                PrintStyle(background_color="black", font_color="white", padding=True).print("Updating MCP config...")
                 AgentContext.log_to_all(type="info", content="Updating MCP settings...", temp=True)
 
                 mcp_config = MCPConfig.get_instance()

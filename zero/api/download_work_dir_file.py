@@ -10,8 +10,8 @@ from python.helpers.api import ApiHandler, Input, Output, Request
 
 
 class DownloadFile(ApiHandler):
-    async def process(self, input: Input, request: Request) -> Output:
-        file_path = request.args.get("path", input.get("path", ""))
+    async def process(self, input_data: Input, request: Request) -> Output:
+        file_path = request.args.get("path", input_data.get("path", ""))
         if not file_path:
             raise ValueError("No file path provided")
         if not file_path.startswith("/"):

@@ -32,7 +32,7 @@ class ApiHandler:
         return True
 
     @abstractmethod
-    async def process(self, input: Input, request: Request) -> Output:
+    async def process(self, input_data: Input, request: Request) -> Output:
         pass
 
     async def handle_request(self, request: Request) -> Response:

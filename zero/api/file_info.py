@@ -6,8 +6,8 @@ from python.helpers.api import ApiHandler, Input, Output, Request
 
 
 class FileInfoApi(ApiHandler):
-    async def process(self, input: Input, request: Request) -> Output:
-        path = input.get("path", "")
+    async def process(self, input_data: Input, request: Request) -> Output:
+        path = input_data.get("path", "")
         info = await runtime.call_development_function(get_file_info, path)
         return info
 
