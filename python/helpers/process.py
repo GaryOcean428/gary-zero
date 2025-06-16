@@ -1,43 +1,14 @@
-import os
-import sys
+"""Process management for the application.
 
-from python.helpers import runtime
-from python.helpers.print_style import PrintStyle
+This module provides backward compatibility for code that imports directly from process.
+New code should use ProcessManager from process_manager.py instead.
+"""
+from .process_manager import process_manager as _process_manager
 
-_server = None
-
-
-def set_server(server):
-    global _server
-    _server = server
-
-
-def get_server(server):
-    global _server
-    return _server
-
-
-def stop_server():
-    global _server
-    if _server:
-        _server.shutdown()
-        _server = None
-
-
-def reload():
-    stop_server()
-    if runtime.is_dockerized():
-        exit_process()
-    else:
-        restart_process()
-
-
-def restart_process():
-    PrintStyle.standard("Restarting process...")
-    python = sys.executable
-    os.execv(python, [python] + sys.argv)
-
-
-def exit_process():
-    PrintStyle.standard("Exiting process...")
-    sys.exit(0)
+# Backward compatibility functions
+set_server = _process_manager.set_server
+get_server = _process_manager.get_server
+stop_server = _process_manager.stop_server
+reload = _process_manager.reload
+restart_process = _process_manager.restart_process
+exit_process = _process_manager.exit_process

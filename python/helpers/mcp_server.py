@@ -218,9 +218,10 @@ async def _run_chat(context: AgentContext, message: str, attachments: list[str] 
                         if url.scheme in ["http", "https", "ftp", "ftps", "sftp"]:
                             attachment_filenames.append(attachment)
                         else:
-                            _PRINTER.print(f"Skipping attachment: [{attachment}]")
-                    except Exception:
-                        _PRINTER.print(f"Skipping attachment: [{attachment}]")
+                            _PRINTER.print(
+                                f"Skipping attachment (unsupported scheme): [{attachment}]")
+                    except (ValueError, AttributeError) as e:
+                        _PRINTER.print(f"Skipping malformed attachment URL [{attachment}]: {e}")
 
         _PRINTER.print("User message:")
         _PRINTER.print(f"> {message}")
@@ -239,11 +240,16 @@ async def _run_chat(context: AgentContext, message: str, attachments: list[str] 
 
         return result
 
+    except (RuntimeError, ValueError, AttributeError, ConnectionError) as e:
+        # Specific errors we expect from chat operations
+        error_msg = f"Failed to process chat message: {e}"
+        _PRINTER.print(f"MCP Chat message failed: {error_msg}")
+        raise RuntimeError(error_msg) from e
     except Exception as e:
-        # Error
-        _PRINTER.print(f"MCP Chat message failed: {e}")
-
-        raise RuntimeError(f"MCP Chat message failed: {e}") from e
+        # Catch-all for unexpected errors with more context
+        error_msg = f"Unexpected error processing chat message: {e}"
+        _PRINTER.print(f"MCP Chat message failed: {error_msg}")
+        raise RuntimeError(error_msg) from e
 
 
 class DynamicMcpProxy:

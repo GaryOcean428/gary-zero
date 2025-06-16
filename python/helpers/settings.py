@@ -1,7 +1,6 @@
 import base64
 import hashlib
 import json
-import os
 import re
 import subprocess
 from typing import Any, Literal, TypedDict
@@ -10,7 +9,7 @@ import models
 from python.helpers import defer, runtime
 from python.helpers.print_style import PrintStyle
 
-from . import dotenv, files
+from . import dotenv, files, settings_manager
 
 
 class Settings(TypedDict):
@@ -110,7 +109,6 @@ class SettingsOutput(TypedDict):
 PASSWORD_PLACEHOLDER = "****PSWD****"
 
 SETTINGS_FILE = files.get_abs_path("tmp/settings.json")
-_settings: Settings | None = None
 
 
 def convert_out(settings: Settings) -> SettingsOutput:
@@ -800,22 +798,22 @@ def convert_in(settings: dict) -> Settings:
 
 
 def get_settings() -> Settings:
-    global _settings
-    if not _settings:
-        _settings = _read_settings_file()
-    if not _settings:
-        _settings = get_default_settings()
-    norm = normalize_settings(_settings)
-    return norm
+    """Get the current settings.
+    
+    Returns:
+        The current settings, loaded from file or default if not set.
+    """
+    return settings_manager.SettingsManager().get_settings()
 
 
-def set_settings(settings: Settings, apply: bool = True):
-    global _settings
-    previous = _settings
-    _settings = normalize_settings(settings)
-    _write_settings_file(_settings)
-    if apply:
-        _apply_settings(previous)
+def set_settings(settings: Settings, apply: bool = True) -> None:
+    """Update the current settings.
+    
+    Args:
+        settings: The new settings to apply
+        apply: If True, apply the settings immediately
+    """
+    settings_manager.SettingsManager().set_settings(settings, apply=apply)
 
 
 def set_settings_delta(delta: dict, apply: bool = True):
@@ -850,10 +848,11 @@ def normalize_settings(settings: Settings) -> Settings:
 
 
 def _read_settings_file() -> Settings | None:
-    if os.path.exists(SETTINGS_FILE):
-        content = files.read_file(SETTINGS_FILE)
-        parsed = json.loads(content)
-        return normalize_settings(parsed)
+    """Read settings from the settings file.
+    
+    Note: This is kept for backward compatibility but delegates to SettingsManager.
+    """
+    return settings_manager.SettingsManager()._read_settings_file()  # type: ignore
 
 
 def _write_settings_file(settings: Settings):
@@ -983,7 +982,7 @@ def _apply_settings(previous: Settings | None):
                 mcp_config = MCPConfig.get_instance()
                 try:
                     MCPConfig.update(mcp_servers)
-                except Exception as e:
+                except (RuntimeError, ValueError, AttributeError) as e:
                     AgentContext.log_to_all(
                         type="error",
                         content=f"Failed to update MCP settings: {e}",
