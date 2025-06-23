@@ -11,7 +11,7 @@ def initialize_agent():
 
     # chat model from user settings
     chat_llm = ModelConfig(
-        provider=models.ModelProvider[current_settings["chat_model_provider"]],
+        provider=models.ModelProvider[current_settings["chat_model_provider"].upper()],
         name=current_settings["chat_model_name"],
         ctx_length=current_settings["chat_model_ctx_length"],
         vision=current_settings["chat_model_vision"],
@@ -23,7 +23,7 @@ def initialize_agent():
 
     # utility model from user settings
     utility_llm = ModelConfig(
-        provider=models.ModelProvider[current_settings["util_model_provider"]],
+        provider=models.ModelProvider[current_settings["util_model_provider"].upper()],
         name=current_settings["util_model_name"],
         ctx_length=current_settings["util_model_ctx_length"],
         limit_requests=current_settings["util_model_rl_requests"],
@@ -33,14 +33,14 @@ def initialize_agent():
     )
     # embedding model from user settings
     embedding_llm = ModelConfig(
-        provider=models.ModelProvider[current_settings["embed_model_provider"]],
+        provider=models.ModelProvider[current_settings["embed_model_provider"].upper()],
         name=current_settings["embed_model_name"],
         limit_requests=current_settings["embed_model_rl_requests"],
         kwargs=current_settings["embed_model_kwargs"],
     )
     # browser model from user settings
     browser_llm = ModelConfig(
-        provider=models.ModelProvider[current_settings["browser_model_provider"]],
+        provider=models.ModelProvider[current_settings["browser_model_provider"].upper()],
         name=current_settings["browser_model_name"],
         vision=current_settings["browser_model_vision"],
         kwargs=current_settings["browser_model_kwargs"],
@@ -115,7 +115,8 @@ def initialize_job_loop() -> DeferredTask:
 
 def _args_override(config):
     # update config with runtime args
-    for key, value in runtime.args.items():
+    args = runtime.RuntimeState.get_instance().args
+    for key, value in args.items():
         if hasattr(config, key):
             # conversion based on type of config[key]
             if isinstance(getattr(config, key), bool):

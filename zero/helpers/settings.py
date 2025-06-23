@@ -876,6 +876,9 @@ def get_default_settings() -> Settings:
     default_settings = DEFAULT_SETTINGS.copy()
     # Add additional default settings that aren't in the base Settings type
     default_settings.update({
+        "embed_model_provider": "openai",
+        "embed_model_name": "text-embedding-ada-002",
+        "embed_model_kwargs": {},
         "embed_model_rl_requests": 0,
         "embed_model_rl_input": 0,
         "browser_model_provider": "openai",
@@ -907,6 +910,9 @@ def get_default_settings() -> Settings:
         "mcp_client_tool_timeout": 300,
         "mcp_server_enabled": True,
         "mcp_server_token": create_auth_token(),
+        "util_model_rl_requests": 0,
+        "util_model_rl_input": 0,
+        "util_model_rl_output": 0,
     })
     return default_settings
 
