@@ -918,8 +918,8 @@ def get_default_settings() -> Settings:
 
 
 def _apply_settings(previous: Settings | None):
-    global _settings
-    if _settings:
+    current_settings = get_settings()
+    if current_settings:
         from agent import AgentContext
         from initialize import initialize_agent
 
@@ -934,16 +934,16 @@ def _apply_settings(previous: Settings | None):
 
         # force memory reload on embedding model change
         if not previous or (
-            _settings["embed_model_name"] != previous["embed_model_name"]
-            or _settings["embed_model_provider"] != previous["embed_model_provider"]
-            or _settings["embed_model_kwargs"] != previous["embed_model_kwargs"]
+            current_settings["embed_model_name"] != previous["embed_model_name"]
+            or current_settings["embed_model_provider"] != previous["embed_model_provider"]
+            or current_settings["embed_model_kwargs"] != previous["embed_model_kwargs"]
         ):
             from zero.helpers.memory import reload as memory_reload
 
             memory_reload()
 
         # update mcp settings if necessary
-        if not previous or _settings["mcp_servers"] != previous["mcp_servers"]:
+        if not previous or current_settings["mcp_servers"] != previous["mcp_servers"]:
             from zero.helpers.mcp_handler import MCPConfig
 
             async def update_mcp_settings(mcp_servers: str):
