@@ -1,5 +1,5 @@
-from python.helpers.tool import Tool
-from python.tools.code_execution_tool import CodeExecution
+from zero.helpers.tool import Tool
+from zero.tools.code_execution_tool import CodeExecution
 
 
 class Input(Tool):

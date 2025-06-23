@@ -1,9 +1,9 @@
 import asyncio
 import time
 
-from python.helpers import errors, runtime
-from python.helpers.print_style import PrintStyle
-from python.helpers.task_scheduler import TaskScheduler
+from zero.helpers import errors, runtime
+from zero.helpers.print_style import PrintStyle
+from zero.helpers.task_scheduler import TaskScheduler
 
 SLEEP_TIME = 60
 

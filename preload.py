@@ -1,8 +1,8 @@
 import asyncio
 
 import models
-from python.helpers import runtime, settings, whisper
-from python.helpers.print_style import PrintStyle
+from zero.helpers import runtime, settings, whisper
+from zero.helpers.print_style import PrintStyle
 
 PrintStyle().print("Running preload...")
 runtime.initialize()

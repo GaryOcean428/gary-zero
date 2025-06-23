@@ -4,8 +4,8 @@ import requests
 from bs4 import BeautifulSoup
 from newspaper import Article
 
-from python.helpers.errors import handle_error
-from python.helpers.tool import Response, Tool
+from zero.helpers.errors import handle_error
+from zero.helpers.tool import Response, Tool
 
 
 class WebpageContentTool(Tool):

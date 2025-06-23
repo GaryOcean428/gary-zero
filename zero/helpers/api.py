@@ -7,8 +7,8 @@ from flask import Flask, Request, Response
 
 from agent import AgentContext
 from initialize import initialize_agent
-from python.helpers.errors import format_error
-from python.helpers.print_style import PrintStyle
+from zero.helpers.errors import format_error
+from zero.helpers.print_style import PrintStyle
 
 Input = dict
 Output = Union[dict[str, Any], Response, TypedDict]  # type: ignore

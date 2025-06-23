@@ -1,6 +1,6 @@
 import aiohttp
 
-from python.helpers import runtime
+from zero.helpers import runtime
 
 URL = "http://localhost:55510/search"
 

@@ -6,8 +6,8 @@ from typing import Any
 
 from agent import Agent, AgentConfig, AgentContext, AgentContextType
 from initialize import initialize_agent
-from python.helpers import files, history
-from python.helpers.log import Log, LogItem
+from zero.helpers import files, history
+from zero.helpers.log import Log, LogItem
 
 CHATS_FOLDER = "tmp/chats"
 LOG_SIZE = 1000

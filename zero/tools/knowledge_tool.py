@@ -1,11 +1,11 @@
 import asyncio
 
-from python.helpers import dotenv, duckduckgo_search, memory, perplexity_search
-from python.helpers.errors import handle_error
-from python.helpers.print_style import PrintStyle
-from python.helpers.searxng import search as searxng
-from python.helpers.tool import Response, Tool
-from python.tools.memory_load import DEFAULT_THRESHOLD as DEFAULT_MEMORY_THRESHOLD
+from zero.helpers import dotenv, duckduckgo_search, memory, perplexity_search
+from zero.helpers.errors import handle_error
+from zero.helpers.print_style import PrintStyle
+from zero.helpers.searxng import search as searxng
+from zero.helpers.tool import Response, Tool
+from zero.tools.memory_load import DEFAULT_THRESHOLD as DEFAULT_MEMORY_THRESHOLD
 
 SEARCH_ENGINE_RESULTS = 10
 

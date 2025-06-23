@@ -33,9 +33,9 @@ from mcp.shared.message import SessionMessage
 from mcp.types import CallToolResult, ListToolsResult
 from pydantic import BaseModel, Discriminator, Field, PrivateAttr, Tag
 
-from python.helpers import dirty_json, errors, settings
-from python.helpers.print_style import PrintStyle
-from python.helpers.tool import Response, Tool
+from zero.helpers import dirty_json, errors, settings
+from zero.helpers.print_style import PrintStyle
+from zero.helpers.tool import Response, Tool
 
 
 def normalize_name(name: str) -> str:

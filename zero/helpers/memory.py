@@ -23,9 +23,9 @@ import models
 from agent import Agent, ModelConfig
 
 # faiss needs to be patched for python 3.12 on arm #TODO remove once not needed
-from python.helpers import knowledge_import
-from python.helpers.log import LogItem
-from python.helpers.print_style import PrintStyle
+from zero.helpers import knowledge_import
+from zero.helpers.log import LogItem
+from zero.helpers.print_style import PrintStyle
 
 from . import files
 

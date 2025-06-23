@@ -1,8 +1,8 @@
 import asyncio
 
 from agent import LoopData
-from python.helpers.extension import Extension
-from python.helpers.memory import Memory
+from zero.helpers.extension import Extension
+from zero.helpers.memory import Memory
 
 DATA_NAME_TASK = "_recall_solutions_task"
 

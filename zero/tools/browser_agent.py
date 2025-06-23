@@ -7,13 +7,13 @@ from pydantic import BaseModel
 
 import models
 from agent import Agent, InterventionException
-from python.extensions.message_loop_start._10_iteration_no import get_iter_no
-from python.helpers import defer, files, persist_chat, strings
-from python.helpers.browser_use import browser_use
-from python.helpers.dirty_json import DirtyJson
-from python.helpers.playwright import ensure_playwright_binary
-from python.helpers.print_style import PrintStyle
-from python.helpers.tool import Response, Tool
+from zero.extensions.message_loop_start._10_iteration_no import get_iter_no
+from zero.helpers import defer, files, persist_chat, strings
+from zero.helpers.browser_use import browser_use
+from zero.helpers.dirty_json import DirtyJson
+from zero.helpers.playwright import ensure_playwright_binary
+from zero.helpers.print_style import PrintStyle
+from zero.helpers.tool import Response, Tool
 
 
 class State:

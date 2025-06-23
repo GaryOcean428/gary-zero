@@ -6,7 +6,7 @@ from typing import Optional
 from PIL import Image
 from werkzeug.utils import secure_filename
 
-from python.helpers.print_style import PrintStyle
+from zero.helpers.print_style import PrintStyle
 
 
 class AttachmentManager:

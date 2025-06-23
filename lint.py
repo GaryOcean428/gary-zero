@@ -42,7 +42,7 @@ def main():
         ],
         help="Action to perform",
     )
-    parser.add_argument("--path", default="python/", help="Path to lint (default: python/)")
+    parser.add_argument("--path", default="zero/", help="Path to lint (default: python/)")
 
     args = parser.parse_args()
 

@@ -30,11 +30,11 @@ from pydantic import BaseModel, Field, PrivateAttr
 
 from agent import AgentContext, UserMessage
 from initialize import initialize_agent
-from python.helpers.defer import DeferredTask
-from python.helpers.files import get_abs_path, make_dirs, read_file, write_file
-from python.helpers.localization import Localization
-from python.helpers.persist_chat import save_tmp_chat
-from python.helpers.print_style import PrintStyle
+from zero.helpers.defer import DeferredTask
+from zero.helpers.files import get_abs_path, make_dirs, read_file, write_file
+from zero.helpers.localization import Localization
+from zero.helpers.persist_chat import save_tmp_chat
+from zero.helpers.print_style import PrintStyle
 
 SCHEDULER_FOLDER = "tmp/scheduler"
 

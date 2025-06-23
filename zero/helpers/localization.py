@@ -2,8 +2,8 @@ from datetime import datetime
 
 import pytz  # type: ignore
 
-from python.helpers.dotenv import get_dotenv_value, save_dotenv_value
-from python.helpers.print_style import PrintStyle
+from zero.helpers.dotenv import get_dotenv_value, save_dotenv_value
+from zero.helpers.print_style import PrintStyle
 
 
 class Localization:

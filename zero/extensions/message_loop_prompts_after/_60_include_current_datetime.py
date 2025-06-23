@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
 
 from agent import LoopData
-from python.helpers.extension import Extension
-from python.helpers.localization import Localization
+from zero.helpers.extension import Extension
+from zero.helpers.localization import Localization
 
 
 class IncludeCurrentDatetime(Extension):

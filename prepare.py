@@ -1,8 +1,8 @@
 import random
 import string
 
-from python.helpers import dotenv, runtime, settings
-from python.helpers.print_style import PrintStyle
+from zero.helpers import dotenv, runtime, settings
+from zero.helpers.print_style import PrintStyle
 
 PrintStyle.standard("Preparing environment...")
 

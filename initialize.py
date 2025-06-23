@@ -2,8 +2,8 @@ import asyncio
 
 import models
 from agent import AgentConfig, ModelConfig
-from python.helpers import runtime, settings
-from python.helpers.defer import DeferredTask
+from zero.helpers import runtime, settings
+from zero.helpers.defer import DeferredTask
 
 
 def initialize_agent():
@@ -62,8 +62,8 @@ def initialize_agent():
 
     # initialize MCP in deferred task to prevent blocking the main thread
     import agent as agent_helper
-    import python.helpers.mcp_handler as mcp_helper
-    import python.helpers.print_style as print_style_helper
+    import zero.helpers.mcp_handler as mcp_helper
+    import zero.helpers.print_style as print_style_helper
 
     if not mcp_helper.MCPConfig.get_instance().is_initialized():
         try:
@@ -86,7 +86,7 @@ def initialize_agent():
 
 def initialize_mcp() -> DeferredTask:
     """Initializes MCP servers in a deferred task."""
-    from python.helpers.mcp_handler import initialize_mcp as mcp_init_servers
+    from zero.helpers.mcp_handler import initialize_mcp as mcp_init_servers
 
     async def deferred_initialize_mcp_async():
         current_settings = settings.get_settings()
@@ -99,7 +99,7 @@ def initialize_mcp() -> DeferredTask:
 
 
 def initialize_chats() -> DeferredTask:
-    from python.helpers import persist_chat
+    from zero.helpers import persist_chat
 
     async def initialize_chats_async():
         persist_chat.load_tmp_chats()
@@ -108,7 +108,7 @@ def initialize_chats() -> DeferredTask:
 
 
 def initialize_job_loop() -> DeferredTask:
-    from python.helpers.job_loop import run_loop
+    from zero.helpers.job_loop import run_loop
 
     return DeferredTask("JobLoop").start_task(run_loop)
 

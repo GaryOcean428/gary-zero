@@ -1,6 +1,6 @@
-from python.helpers import runtime
-from python.helpers.api import ApiHandler, Input, Output, Request
-from python.helpers.file_browser import FileBrowser
+from zero.helpers import runtime
+from zero.helpers.api import ApiHandler, Input, Output, Request
+from zero.helpers.file_browser import FileBrowser
 
 
 class GetWorkDirFiles(ApiHandler):

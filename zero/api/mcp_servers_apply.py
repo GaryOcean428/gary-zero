@@ -1,8 +1,8 @@
 import time
 
-from python.helpers.api import ApiHandler, Input, Output, Request
-from python.helpers.mcp_handler import MCPConfig
-from python.helpers.settings import set_settings_delta
+from zero.helpers.api import ApiHandler, Input, Output, Request
+from zero.helpers.mcp_handler import MCPConfig
+from zero.helpers.settings import set_settings_delta
 
 
 class McpServersApply(ApiHandler):

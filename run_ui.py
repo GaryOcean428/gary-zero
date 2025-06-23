@@ -11,11 +11,11 @@ from flask import Flask, Response, request
 from flask_basicauth import BasicAuth
 
 import initialize
-from python.helpers import dotenv, files, git, mcp_server, process, runtime
-from python.helpers.api import ApiHandler
-from python.helpers.extract_tools import load_classes_from_folder
-from python.helpers.files import get_abs_path
-from python.helpers.print_style import PrintStyle
+from zero.helpers import dotenv, files, git, mcp_server, process, runtime
+from zero.helpers.api import ApiHandler
+from zero.helpers.extract_tools import load_classes_from_folder
+from zero.helpers.files import get_abs_path
+from zero.helpers.print_style import PrintStyle
 
 # Set the new timezone to 'UTC'
 os.environ["TZ"] = "UTC"
@@ -199,7 +199,7 @@ def run():
         )
 
     # initialize and register API handlers
-    handlers = load_classes_from_folder("python/api", "*.py", ApiHandler)
+    handlers = load_classes_from_folder("zero/api", "*.py", ApiHandler)
     for handler in handlers:
         register_api_handler(webapp, handler)
 

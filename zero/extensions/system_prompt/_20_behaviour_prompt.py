@@ -1,6 +1,6 @@
 from agent import Agent, LoopData
-from python.helpers import files, memory
-from python.helpers.extension import Extension
+from zero.helpers import files, memory
+from zero.helpers.extension import Extension
 
 
 class BehaviourPrompt(Extension):

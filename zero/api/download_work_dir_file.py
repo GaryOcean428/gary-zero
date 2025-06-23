@@ -4,9 +4,9 @@ from io import BytesIO
 
 from flask import send_file
 
-from python.api import file_info
-from python.helpers import files, runtime
-from python.helpers.api import ApiHandler, Input, Output, Request
+from zero.api import file_info
+from zero.helpers import files, runtime
+from zero.helpers.api import ApiHandler, Input, Output, Request
 
 
 class DownloadFile(ApiHandler):

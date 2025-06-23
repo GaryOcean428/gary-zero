@@ -1,5 +1,5 @@
-from python.helpers import settings
-from python.helpers.api import ApiHandler, Input, Output, Request
+from zero.helpers import settings
+from zero.helpers.api import ApiHandler, Input, Output, Request
 
 
 class SetSettings(ApiHandler):

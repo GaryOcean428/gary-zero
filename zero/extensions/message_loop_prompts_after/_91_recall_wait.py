@@ -1,11 +1,11 @@
 from agent import LoopData
-from python.extensions.message_loop_prompts_after._50_recall_memories import (
+from zero.extensions.message_loop_prompts_after._50_recall_memories import (
     DATA_NAME_TASK as DATA_NAME_TASK_MEMORIES,
 )
-from python.extensions.message_loop_prompts_after._51_recall_solutions import (
+from zero.extensions.message_loop_prompts_after._51_recall_solutions import (
     DATA_NAME_TASK as DATA_NAME_TASK_SOLUTIONS,
 )
-from python.helpers.extension import Extension
+from zero.helpers.extension import Extension
 
 
 class RecallWait(Extension):

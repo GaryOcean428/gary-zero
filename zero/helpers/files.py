@@ -7,7 +7,7 @@ import tempfile
 import zipfile
 from fnmatch import fnmatch
 
-from python.helpers.strings import sanitize_string
+from zero.helpers.strings import sanitize_string
 
 
 def parse_file(_relative_path, _backup_dirs=None, _encoding="utf-8", **kwargs):

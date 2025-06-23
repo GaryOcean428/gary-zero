@@ -26,9 +26,9 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from pydantic import SecretStr
 from pydantic.v1.types import SecretStr
 
-from python.helpers import dotenv, runtime
-from python.helpers.dotenv import load_dotenv
-from python.helpers.rate_limiter import RateLimiter
+from zero.helpers import dotenv, runtime
+from zero.helpers.dotenv import load_dotenv
+from zero.helpers.rate_limiter import RateLimiter
 
 # environment variables
 load_dotenv()

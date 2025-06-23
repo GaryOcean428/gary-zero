@@ -1,5 +1,5 @@
-from python.helpers.api import ApiHandler, Input, Output, Request
-from python.helpers.mcp_handler import MCPConfig
+from zero.helpers.api import ApiHandler, Input, Output, Request
+from zero.helpers.mcp_handler import MCPConfig
 
 
 class McpServersStatus(ApiHandler):

@@ -14,9 +14,9 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 
 from agent import AgentContext, AgentContextType, UserMessage
 from initialize import initialize_agent
-from python.helpers import settings
-from python.helpers.persist_chat import remove_chat
-from python.helpers.print_style import PrintStyle
+from zero.helpers import settings
+from zero.helpers.persist_chat import remove_chat
+from zero.helpers.print_style import PrintStyle
 
 _PRINTER = PrintStyle(italic=True, font_color="green", padding=False)
 

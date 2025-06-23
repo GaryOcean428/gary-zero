@@ -1,4 +1,4 @@
-from python.helpers.tool import Response, Tool
+from zero.helpers.tool import Response, Tool
 
 
 class TaskDone(Tool):

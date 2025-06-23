@@ -1,8 +1,8 @@
 import asyncio
 
 from agent import LoopData
-from python.helpers import persist_chat, tokens
-from python.helpers.extension import Extension
+from zero.helpers import persist_chat, tokens
+from zero.helpers.extension import Extension
 
 
 class RenameChat(Extension):

@@ -18,12 +18,12 @@ from langchain_core.prompts import (
 )
 
 import models
-import python.helpers.log as Log
-from python.helpers import dirty_json, errors, extract_tools, files, history, tokens
-from python.helpers.defer import DeferredTask
-from python.helpers.dirty_json import DirtyJson
-from python.helpers.localization import Localization
-from python.helpers.print_style import PrintStyle
+import zero.helpers.log as Log
+from zero.helpers import dirty_json, errors, extract_tools, files, history, tokens
+from zero.helpers.defer import DeferredTask
+from zero.helpers.dirty_json import DirtyJson
+from zero.helpers.localization import Localization
+from zero.helpers.print_style import PrintStyle
 
 
 class AgentContextType(Enum):
@@ -704,7 +704,7 @@ class Agent:
 
             # Try getting tool from MCP first
             try:
-                import python.helpers.mcp_handler as mcp_helper
+                import zero.helpers.mcp_handler as mcp_helper
 
                 mcp_tool_candidate = mcp_helper.MCPConfig.get_instance().get_tool(self, tool_name)
                 if mcp_tool_candidate:
@@ -760,20 +760,20 @@ class Agent:
             pass
 
     def get_tool(self, name: str, method: str | None, args: dict, message: str, **kwargs):
-        from python.helpers.tool import Tool
-        from python.tools.unknown import Unknown
+        from zero.helpers.tool import Tool
+        from zero.tools.unknown import Unknown
 
-        classes = extract_tools.load_classes_from_folder("python/tools", name + ".py", Tool)
+        classes = extract_tools.load_classes_from_folder("zero/tools", name + ".py", Tool)
         tool_class = classes[0] if classes else Unknown
         return tool_class(
             agent=self, name=name, method=method, args=args, message=message, **kwargs
         )
 
     async def call_extensions(self, folder: str, **kwargs) -> Any:
-        from python.helpers.extension import Extension
+        from zero.helpers.extension import Extension
 
         classes = extract_tools.load_classes_from_folder(
-            "python/extensions/" + folder, "*", Extension
+            "zero/extensions/" + folder, "*", Extension
         )
         for cls in classes:
             await cls(agent=self).execute(**kwargs)

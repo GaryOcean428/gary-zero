@@ -7,8 +7,8 @@ from typing import Any
 
 from werkzeug.utils import secure_filename
 
-from python.helpers import files
-from python.helpers.print_style import PrintStyle
+from zero.helpers import files
+from zero.helpers.print_style import PrintStyle
 
 
 class FileBrowser:

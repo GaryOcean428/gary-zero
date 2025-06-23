@@ -1,5 +1,5 @@
-from python.helpers.memory import Memory
-from python.helpers.tool import Response, Tool
+from zero.helpers.memory import Memory
+from zero.helpers.tool import Response, Tool
 
 
 class MemorySave(Tool):

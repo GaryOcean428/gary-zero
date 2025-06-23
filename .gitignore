@@ -18,6 +18,7 @@ docker/run/gary-zero/
 
 # Ignore all contents of the virtual environment directory
 .venv/
+venv/
 
 # Handle bundle directory
 bundle/*/

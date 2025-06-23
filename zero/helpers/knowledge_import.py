@@ -10,8 +10,8 @@ from langchain_community.document_loaders import (
     UnstructuredHTMLLoader,
 )
 
-from python.helpers.log import LogItem
-from python.helpers.print_style import PrintStyle
+from zero.helpers.log import LogItem
+from zero.helpers.print_style import PrintStyle
 
 text_loader_kwargs = {"autodetect_encoding": True}
 
@@ -40,7 +40,7 @@ def load_knowledge(
     filename_pattern: str = "**/*",
 ) -> dict[str, KnowledgeImport]:
 
-    # from python.helpers.memory import Memory
+    # from zero.helpers.memory import Memory
 
     # Mapping file extensions to corresponding loader classes
     if metadata is None:

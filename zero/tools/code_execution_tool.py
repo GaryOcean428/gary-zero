@@ -4,13 +4,13 @@ import shlex
 import time
 from dataclasses import dataclass
 
-from python.helpers import rfc_exchange
-from python.helpers.docker import DockerContainerManager
-from python.helpers.messages import truncate_text
-from python.helpers.print_style import PrintStyle
-from python.helpers.shell_local import LocalInteractiveSession
-from python.helpers.shell_ssh import SSHInteractiveSession
-from python.helpers.tool import Response, Tool
+from zero.helpers import rfc_exchange
+from zero.helpers.docker import DockerContainerManager
+from zero.helpers.messages import truncate_text
+from zero.helpers.print_style import PrintStyle
+from zero.helpers.shell_local import LocalInteractiveSession
+from zero.helpers.shell_ssh import SSHInteractiveSession
+from zero.helpers.tool import Response, Tool
 
 
 @dataclass

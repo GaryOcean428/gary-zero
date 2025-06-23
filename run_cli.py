@@ -7,11 +7,11 @@ import time
 from ansio import application_keypad
 from ansio.input import InputEvent, get_input_event
 
-import python.helpers.timed_input as timed_input
+import zero.helpers.timed_input as timed_input
 from agent import AgentContext, UserMessage
 from initialize import initialize_agent
-from python.helpers.dotenv import load_dotenv
-from python.helpers.print_style import PrintStyle
+from zero.helpers.dotenv import load_dotenv
+from zero.helpers.print_style import PrintStyle
 
 context: AgentContext = None  # type: ignore
 input_lock = threading.Lock()

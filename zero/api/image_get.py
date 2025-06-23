@@ -2,8 +2,8 @@ import os
 
 from flask import send_file
 
-from python.helpers import files
-from python.helpers.api import ApiHandler, Input, Output, Request
+from zero.helpers import files
+from zero.helpers.api import ApiHandler, Input, Output, Request
 
 
 class ImageGet(ApiHandler):

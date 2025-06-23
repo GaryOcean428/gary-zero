@@ -2,8 +2,8 @@ import os
 
 from werkzeug.utils import secure_filename
 
-from python.helpers import files, memory
-from python.helpers.api import ApiHandler, Input, Output, Request
+from zero.helpers import files, memory
+from zero.helpers.api import ApiHandler, Input, Output, Request
 
 
 class ImportKnowledge(ApiHandler):

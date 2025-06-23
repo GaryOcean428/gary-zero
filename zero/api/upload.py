@@ -1,7 +1,7 @@
 from werkzeug.utils import secure_filename
 
-from python.helpers import files
-from python.helpers.api import ApiHandler, Input, Output, Request
+from zero.helpers import files
+from zero.helpers.api import ApiHandler, Input, Output, Request
 
 
 class UploadFile(ApiHandler):

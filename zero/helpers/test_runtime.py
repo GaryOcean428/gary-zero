@@ -23,7 +23,7 @@ with patch.dict('sys.modules', {
     'dotenv': MagicMock(),
     'rfc': MagicMock(),
 }):
-    from python.helpers import runtime
+    from zero.helpers import runtime
 
 
 class TestRuntimeState(unittest.TestCase):

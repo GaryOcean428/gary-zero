@@ -1,5 +1,5 @@
-from python.helpers import persist_chat
-from python.helpers.api import ApiHandler, Input, Output, Request
+from zero.helpers import persist_chat
+from zero.helpers.api import ApiHandler, Input, Output, Request
 
 
 class Reset(ApiHandler):

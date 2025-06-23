@@ -1,10 +1,10 @@
 import asyncio
 
 from agent import LoopData
-from python.helpers.dirty_json import DirtyJson
-from python.helpers.extension import Extension
-from python.helpers.log import LogItem
-from python.helpers.memory import Memory
+from zero.helpers.dirty_json import DirtyJson
+from zero.helpers.extension import Extension
+from zero.helpers.log import LogItem
+from zero.helpers.memory import Memory
 
 
 class MemorizeSolutions(Extension):

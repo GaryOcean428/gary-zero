@@ -1,7 +1,7 @@
 import requests
 
-from python.helpers import dotenv, runtime
-from python.helpers.api import ApiHandler, Input, Output, Request
+from zero.helpers import dotenv, runtime
+from zero.helpers.api import ApiHandler, Input, Output, Request
 
 
 class TunnelProxy(ApiHandler):
@@ -33,6 +33,6 @@ class TunnelProxy(ApiHandler):
                 return {"error": str(e)}
         else:
             # forward to API handler directly
-            from python.api.tunnel import Tunnel
+            from zero.api.tunnel import Tunnel
 
             return await Tunnel(self.app, self.thread_lock).process(input, request)
