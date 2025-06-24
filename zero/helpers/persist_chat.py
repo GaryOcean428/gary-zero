@@ -5,7 +5,8 @@ from datetime import datetime
 from typing import Any
 
 from agent import Agent, AgentConfig, AgentContext, AgentContextType
-from initialize import initialize_agent
+# Lazy import to avoid circular imports
+# from initialize import initialize_agent  # Imported inside functions as needed
 from zero.helpers import files, history
 from zero.helpers.log import Log, LogItem
 
@@ -181,7 +182,19 @@ def _deserialize_context(data):
 
 def _deserialize_agents(
     agents: list[dict[str, Any]], config: AgentConfig, context: AgentContext
-) -> Agent:
+):
+    """Deserialize a list of agents.
+
+    Args:
+        agents: List of serialized agents
+        config: Agent configuration
+        context: Agent context
+
+    Returns:
+        List of deserialized agents
+    """
+    from agent import Agent  # Moved here to avoid circular imports
+
     prev: Agent | None = None
     zero: Agent | None = None
 

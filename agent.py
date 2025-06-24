@@ -1,9 +1,7 @@
+"""Agent module for handling agent interactions and configurations."""
+
+# Standard library imports
 import asyncio
-
-import nest_asyncio
-
-nest_asyncio.apply()
-
 import uuid
 from collections import OrderedDict
 from collections.abc import Awaitable, Coroutine
@@ -12,11 +10,12 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict
 
+# Third-party imports
+import nest_asyncio
 from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
-from langchain_core.prompts import (
-    ChatPromptTemplate,
-)
+from langchain_core.prompts import ChatPromptTemplate
 
+# Local application imports
 import models
 import zero.helpers.log as Log
 from zero.helpers import dirty_json, errors, extract_tools, files, history, tokens
@@ -24,6 +23,9 @@ from zero.helpers.defer import DeferredTask
 from zero.helpers.dirty_json import DirtyJson
 from zero.helpers.localization import Localization
 from zero.helpers.print_style import PrintStyle
+
+# Apply nest_asyncio to allow nested event loops
+nest_asyncio.apply()
 
 
 class AgentContextType(Enum):

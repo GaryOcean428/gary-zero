@@ -1,7 +1,10 @@
 """Setup configuration for the Zero project."""
 
+# Standard library imports
 from pathlib import Path
-from setuptools import setup, find_packages
+
+# Third-party imports
+from setuptools import find_packages, setup
 
 # Read the contents of README.md
 this_directory = Path(__file__).parent

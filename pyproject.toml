@@ -42,10 +42,10 @@ exclude = [
     "dist",
 ]
 
-[tool.ruff.lint]
+# Lint rules
 select = [
     "E",   # pycodestyle errors
-    "W",   # pycodestyle warnings
+    "W",   # pyflakes warnings
     "F",   # pyflakes
     "I",   # isort
     "N",   # pep8-naming
@@ -62,12 +62,11 @@ ignore = [
     "T203",  # pprint found
 ]
 
-[tool.ruff.lint.isort]
-known-first-party = ["python"]
-section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+# isort configuration
+isort = { known-first-party = ["python"], section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"] }
 
-[tool.ruff.lint.mccabe]
-max-complexity = 10
+# McCabe complexity
+mccabe = { max-complexity = 10 }
 
 [tool.mypy]
 python_version = "3.9"

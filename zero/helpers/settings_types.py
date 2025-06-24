@@ -27,33 +27,33 @@ class Settings(TypedDict):
 # Default settings values that can be used across modules
 DEFAULT_SETTINGS: Settings = {
     # Chat model settings
-    "chat_model_provider": "openai",
-    "chat_model_name": "gpt-4-turbo-preview",
+    "chat_model_provider": "groq",
+    "chat_model_name": "meta-llama/llama-4-maverick-17b-128e-instruct",
     "chat_model_kwargs": {},
-    "chat_model_ctx_length": 128000,
+    "chat_model_ctx_length": 131072, # 128K tokens
     "chat_model_ctx_history": 0.9,
-    "chat_model_vision": True,
-    "chat_model_rl_requests": 200,
-    "chat_model_rl_input": 1000000,
-    "chat_model_rl_output": 1000000,
-    
+    "chat_model_vision": True, # Llama 4 Maverick supports vision
+    "chat_model_rl_requests": 0, # Set to 0 to disable rate limiting by default
+    "chat_model_rl_input": 0,
+    "chat_model_rl_output": 0,
+
     # Utility model settings
-    "util_model_provider": "openai",
-    "util_model_name": "gpt-4-turbo-preview",
+    "util_model_provider": "groq",
+    "util_model_name": "meta-llama/llama-4-maverick-17b-128e-instruct",
     "util_model_kwargs": {},
-    "util_model_ctx_length": 128000,
+    "util_model_ctx_length": 131072,
     "util_model_ctx_input": 0.9,
     "util_model_rl_requests": 0,
     "util_model_rl_input": 0,
     "util_model_rl_output": 0,
-    
+
     # Embedding model settings
     "embed_model_provider": "openai",
     "embed_model_name": "text-embedding-ada-002",
     "embed_model_kwargs": {},
     "embed_model_rl_requests": 0,
     "embed_model_rl_input": 0,
-    
+
     # Browser model settings
     "browser_model_provider": "openai",
     "browser_model_name": "gpt-4.1-vision-preview",

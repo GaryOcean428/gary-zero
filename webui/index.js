@@ -1,12 +1,18 @@
 import * as msgs from "./js/messages.js";
 import { speech } from "./js/speech.js";
 
-const leftPanel = document.getElementById('left-panel');
-const rightPanel = document.getElementById('right-panel');
-const container = document.querySelector('.container');
-const chatInput = document.getElementById('chat-input');
-const chatHistory = document.getElementById('chat-history');
-const sendButton = document.getElementById('send-button');
+// Global functions that need to be available early for Alpine.js
+window.newChat = async function() {
+    try {
+        setContext(generateGUID());
+        updateAfterScroll();
+    } catch (e) {
+        window.toastFetchError("Error creating new chat", e);
+    }
+};
+
+// These will be initialized after DOM is loaded
+let leftPanel, rightPanel, container, chatInput, sendButton, chatHistory;
 const inputSection = document.getElementById('input-section');
 const statusSection = document.getElementById('status-section');
 const chatsSection = document.getElementById('chats-section');
@@ -14,7 +20,6 @@ const tasksSection = document.getElementById('tasks-section');
 const progressBar = document.getElementById('progress-bar');
 const autoScrollSwitch = document.getElementById('auto-scroll-switch');
 const timeDate = document.getElementById('time-date-container');
-
 
 let autoScroll = true;
 let context = "";
@@ -56,8 +61,7 @@ function handleResize() {
     }
 }
 
-window.addEventListener('load', handleResize);
-window.addEventListener('resize', handleResize);
+// Moved to DOMContentLoaded
 
 document.addEventListener('DOMContentLoaded', () => {
     const overlay = document.getElementById('sidebar-overlay');
@@ -178,14 +182,7 @@ function toastFetchError(text, error) {
 }
 window.toastFetchError = toastFetchError
 
-chatInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-    }
-});
-
-sendButton.addEventListener('click', sendMessage);
+// Moved to DOMContentLoaded
 
 
 export function updateChatInput(text) {
@@ -204,12 +201,17 @@ export function updateChatInput(text) {
 }
 
 function updateUserTime() {
+    // Get the current date and time
     const now = new Date();
-    const hours = now.getHours();
+    let hours = now.getHours();
     const minutes = now.getMinutes();
     const seconds = now.getSeconds();
-    const ampm = hours >= 12 ? 'pm' : 'am';
-    const formattedHours = hours % 12 || 12;
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+
+    // Convert to 12-hour format
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    const formattedHours = hours < 10 ? '0' + hours : hours;
 
     // Format the time
     const timeString = `${formattedHours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} ${ampm}`;
@@ -218,9 +220,11 @@ function updateUserTime() {
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     const dateString = now.toLocaleDateString(undefined, options);
 
-    // Update the HTML
+    // Safely update the HTML if element exists
     const userTimeElement = document.getElementById('time-date');
-    userTimeElement.innerHTML = `${timeString}<br><span id="user-date">${dateString}</span>`;
+    if (userTimeElement) {
+        userTimeElement.innerHTML = `${timeString}<br><span id="user-date">${dateString}</span>`;
+    }
 }
 
 updateUserTime();
@@ -330,9 +334,19 @@ function getConnectionStatus() {
 }
 
 function setConnectionStatus(connected) {
-    connectionStatus = connected
-    const statusIcon = Alpine.$data(timeDate.querySelector('.status-icon'));
-    statusIcon.connected = connected
+    connectionStatus = connected;
+    try {
+        // Safely get the status icon if it exists
+        const timeDateEl = document.getElementById('time-date');
+        if (timeDateEl) {
+            const statusIcon = timeDateEl.querySelector('.status-icon');
+            if (statusIcon && statusIcon.__x) {
+                statusIcon.__x.$data.connected = connected;
+            }
+        }
+    } catch (error) {
+        console.error('Error updating connection status:', error);
+    }
 }
 
 let lastLogVersion = 0;
@@ -364,7 +378,9 @@ async function poll() {
         if (response.context != context) return //skip late polls after context change
 
         if (lastLogGuid != response.log_guid) {
-            chatHistory.innerHTML = ""
+            if (chatHistory) {
+                chatHistory.innerHTML = ""
+            }
             lastLogVersion = 0
         }
 
@@ -383,8 +399,9 @@ async function poll() {
         updateProgress(response.log_progress, response.log_progress_active)
 
         //set ui model vars from backend
-        const inputAD = Alpine.$data(inputSection);
-        inputAD.paused = response.paused;
+        if (inputSection && inputSection.__x) {
+            inputSection.__x.$data.paused = response.paused;
+        }
 
         // Update status icon state
         setConnectionStatus(true)
@@ -1046,9 +1063,7 @@ function updateAfterScroll() {
     scrollChanged(isAtBottom);
 }
 
-chatHistory.addEventListener('scroll', updateAfterScroll);
-
-chatInput.addEventListener('input', adjustTextareaHeight);
+// Moved to DOMContentLoaded
 
 // setInterval(poll, 250);
 
@@ -1161,6 +1176,38 @@ window.handleFileUpload = function(event) {
 
 // Setup event handlers once the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize DOM elements
+    leftPanel = document.getElementById('left-panel');
+    rightPanel = document.getElementById('right-panel');
+    container = document.querySelector('.container');
+    chatInput = document.getElementById('chat-input');
+    sendButton = document.getElementById('send-button');
+    chatHistory = document.getElementById('chat-history');
+    
+    // Setup event listeners
+    if (chatInput) {
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        chatInput.addEventListener('input', adjustTextareaHeight);
+    }
+
+    if (sendButton) {
+        sendButton.addEventListener('click', sendMessage);
+    }
+
+    if (chatHistory) {
+        chatHistory.addEventListener('scroll', updateAfterScroll);
+    }
+
+    // Setup window event listeners
+    window.addEventListener('load', handleResize);
+    window.addEventListener('resize', handleResize);
+    
+    // Initialize components
     setupSidebarToggle();
     setupTabs();
     initializeActiveTab();

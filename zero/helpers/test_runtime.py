@@ -1,8 +1,10 @@
 """Test script for the refactored runtime module."""
+
+# Standard library imports
 import os
 import sys
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 # Mock external dependencies before importing the module
 sys.modules['langchain_anthropic'] = MagicMock()
@@ -23,6 +25,7 @@ with patch.dict('sys.modules', {
     'dotenv': MagicMock(),
     'rfc': MagicMock(),
 }):
+    # Local application imports
     from zero.helpers import runtime
 
 

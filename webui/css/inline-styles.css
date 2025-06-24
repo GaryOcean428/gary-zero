@@ -1,3 +1,8 @@
+/* Tasks section */
+#tasks-section {
+    display: none;
+}
+
 .copy-link-button, .refresh-link-button {
     margin-left: 5px;
 }

@@ -344,25 +344,51 @@ async function initializeMicrophoneInput() {
     return await microphoneInput.initialize();
 }
 
-microphoneButton.addEventListener('click', async () => {
-    if (isProcessingClick) return;
-    isProcessingClick = true;
+// Wait for the DOM to be fully loaded before adding event listeners
+document.addEventListener('DOMContentLoaded', () => {
+    const microphoneButton = document.getElementById('microphone-button');
+    if (microphoneButton) {
+        microphoneButton.addEventListener('click', async () => {
+            if (isProcessingClick) return;
+            isProcessingClick = true;
 
-    const hasPermission = await requestMicrophonePermission();
-    if (!hasPermission) return;
+            const hasPermission = await requestMicrophonePermission();
+            if (!hasPermission) {
+                isProcessingClick = false;
+                return;
+            }
 
-    try {
-        if (!microphoneInput && !await initializeMicrophoneInput()) {
-            return;
-        }
+            try {
+                if (!microphoneInput && !await initializeMicrophoneInput()) {
+                    isProcessingClick = false;
+                    return;
+                }
 
-        // Simply toggle between INACTIVE and LISTENING states
-        microphoneInput.status =
-            (microphoneInput.status === Status.INACTIVE || microphoneInput.status === Status.ACTIVATING) ? Status.LISTENING : Status.INACTIVE;
-    } finally {
-        setTimeout(() => {
-            isProcessingClick = false;
-        }, 300);
+                // Simply toggle between INACTIVE and LISTENING states
+                microphoneInput.status =
+                    (microphoneInput.status === Status.INACTIVE || microphoneInput.status === Status.ACTIVATING) ? Status.LISTENING : Status.INACTIVE;
+
+                // Update UI based on the new status
+                if (microphoneInput.status === Status.LISTENING) {
+                    // Start listening
+                    microphoneButton.classList.add('listening');
+                    await microphoneInput.startAudioAnalysis();
+                } else {
+                    // Stop listening
+                    microphoneButton.classList.remove('listening');
+                    await microphoneInput.stopAudioAnalysis();
+                }
+            } catch (error) {
+                console.error('Error in microphone click handler:', error);
+                // Reset microphone state on error
+                if (microphoneInput) {
+                    microphoneInput.status = Status.INACTIVE;
+                    microphoneButton.classList.remove('listening');
+                }
+            } finally {
+                isProcessingClick = false;
+            }
+        });
     }
 });
 

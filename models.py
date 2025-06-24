@@ -23,7 +23,6 @@ from langchain_huggingface import (
 from langchain_mistralai import ChatMistralAI
 from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from pydantic import SecretStr
 from pydantic.v1.types import SecretStr
 
 from zero.helpers import dotenv, runtime
@@ -71,22 +70,42 @@ def get_api_key(service) -> str | None:
     return None
 
 
-def get_model(type: ModelType, provider: ModelProvider, name: str, **kwargs):
-    fnc_name = f"get_{provider.name.lower()}_{type.name.lower()}"  # function name of model getter
-    model = globals()[fnc_name](name, **kwargs)  # call function by name
+def get_model(model_type: ModelType, provider: ModelProvider, name: str, **kwargs):
+    # Construct the function name for the model getter
+    fnc_name = (
+        f"get_{provider.name.lower()}_"
+        f"{model_type.name.lower()}"
+    )
+    model = globals()[fnc_name](name, **kwargs)
     return model
 
 
 def get_rate_limiter(
-    provider: ModelProvider, name: str, requests: int, input: int, output: int
+    provider: ModelProvider, name: str, requests: int, input_tokens: int, output_tokens: int
 ) -> RateLimiter:
-    # get or create
+    """Get or create a rate limiter for the specified model.
+
+    Args:
+        provider: The model provider
+        name: The model name
+        requests: Maximum number of requests per minute
+        input_tokens: Maximum input tokens per minute
+        output_tokens: Maximum output tokens per minute
+
+    Returns:
+        RateLimiter: Configured rate limiter instance
+    """
     key = f"{provider.name}\\{name}"
-    rate_limiters[key] = limiter = rate_limiters.get(key, RateLimiter(seconds=60))
-    # always update
+    if key not in rate_limiters:
+        rate_limiters[key] = RateLimiter(
+            requests=requests,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens
+        )
+    limiter = rate_limiters[key]
     limiter.limits["requests"] = requests or 0
-    limiter.limits["input"] = input or 0
-    limiter.limits["output"] = output or 0
+    limiter.limits["input"] = input_tokens or 0
+    limiter.limits["output"] = output_tokens or 0
     return limiter
 
 
@@ -365,15 +384,24 @@ def get_groq_chat(model_name: str, api_key: str | None = None, **kwargs) -> Chat
     if api_key:  # User provided a string for the function's api_key parameter
         final_api_key_for_constructor = SecretStr(api_key)
     else:
+        # get_api_key returns pydantic.v1.types.SecretStr | None
         v1_secret_key = get_api_key("groq")
         if v1_secret_key:
             final_api_key_for_constructor = SecretStr(v1_secret_key.get_secret_value())
-    return ChatGroq(model=model_name, api_key=final_api_key_for_constructor, **kwargs)
+    model = ChatGroq(
+        model=model_name,
+        api_key=final_api_key_for_constructor,
+        **kwargs
+    )
+    return model
 
 
 # DeepSeek models
 def get_deepseek_chat(
-    model_name: str, api_key: str | None = None, base_url: str | None = None, **kwargs
+    model_name: str,
+    api_key: str | None = None,
+    base_url: str | None = None,
+    **kwargs
 ) -> ChatOpenAI:
     """Get a DeepSeek chat model."""
     final_api_key_for_constructor: SecretStr | None = None
@@ -515,7 +543,10 @@ def get_other_chat(
 
 
 def get_other_embedding(
-    model_name: str, api_key: str | None = None, base_url: str | None = None, **kwargs
+    model_name: str,
+    api_key: str | None = None,
+    base_url: str | None = None,
+    **kwargs
 ) -> OpenAIEmbeddings:
     """Get any other OpenAI-compatible embedding model."""
     # This function assumes api_key is either a string or None.
@@ -525,11 +556,17 @@ def get_other_embedding(
     if isinstance(api_key, str):
         final_api_key = SecretStr(api_key)
     elif api_key is None:
-        # If no API key is provided, some models might work without one (e.g. local), or expect it from env vars.
-        # Passing None is the standard way for ChatOpenAI/OpenAIEmbeddings to handle this.
+        # If no API key is provided, some models might work without one
+        # (e.g. local), or expect it from env vars. Passing None is the
+        # standard way for ChatOpenAI/OpenAIEmbeddings to handle this.
         pass
 
-    return OpenAIEmbeddings(model=model_name, api_key=final_api_key, base_url=base_url, **kwargs)
+    return OpenAIEmbeddings(
+        model=model_name,
+        api_key=final_api_key,
+        base_url=base_url,
+        **kwargs
+    )
 
 
 # Chutes models

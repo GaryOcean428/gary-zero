@@ -237,7 +237,7 @@ class SchedulerTool(Tool):
 
     async def create_planned_task(self, **kwargs) -> Response:
         """Create a new planned task with scheduled execution times.
-        
+
         Args:
             name: Name of the task
             system_prompt: System prompt for the task
@@ -245,7 +245,7 @@ class SchedulerTool(Tool):
             attachments: List of file attachments
             plan: List of ISO format datetime strings for scheduled execution
             dedicated_context: Whether to use a dedicated context
-            
+
         Returns:
             Response with success/error message
         """

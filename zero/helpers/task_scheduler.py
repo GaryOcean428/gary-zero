@@ -1,3 +1,6 @@
+"""Task scheduler for managing and executing scheduled, ad-hoc, and planned tasks."""
+
+# Standard library imports
 import asyncio
 import os
 import random
@@ -7,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from os.path import exists
 from typing import (
+    Annotated,
     Any,
     Callable,
     ClassVar,
@@ -18,23 +22,22 @@ from typing import (
 )
 from urllib.parse import urlparse
 
+# Third-party imports
 import nest_asyncio
-
-nest_asyncio.apply()
-
-from typing import Annotated
-
 import pytz
 from crontab import CronTab
 from pydantic import BaseModel, Field, PrivateAttr
 
+# Local application imports
 from agent import AgentContext, UserMessage
-from initialize import initialize_agent
 from zero.helpers.defer import DeferredTask
 from zero.helpers.files import get_abs_path, make_dirs, read_file, write_file
 from zero.helpers.localization import Localization
 from zero.helpers.persist_chat import save_tmp_chat
 from zero.helpers.print_style import PrintStyle
+
+# Apply nest_asyncio to allow nested event loops
+nest_asyncio.apply()
 
 SCHEDULER_FOLDER = "tmp/scheduler"
 
@@ -788,6 +791,9 @@ class TaskScheduler:
         if not task.context_id:
             raise ValueError(f"Task {task.name} has no context ID")
 
+        # Import here to avoid circular imports
+        from initialize import initialize_agent
+        
         config = initialize_agent()
         context: AgentContext = AgentContext(config, id=task.context_id, name=task.name)
         # context.id = task.context_id

@@ -1,10 +1,16 @@
+"""Print styling utilities for console and HTML output."""
+
+# Standard library imports
+import atexit
 import html
 import os
 import sys
 from datetime import datetime
 
+# Third-party imports
 import webcolors
 
+# Local application imports
 from . import files
 
 
@@ -166,6 +172,4 @@ class PrintStyle:
 
 
 # Ensure HTML file is closed properly when the program exits
-import atexit
-
 atexit.register(PrintStyle._close_html_log)

@@ -71,7 +71,7 @@ class ProcessManager:
         PrintStyle.standard("Restarting process...")
         python = sys.executable
         os.execv(python, [python] + sys.argv)
-    
+
     @staticmethod
     def exit_process() -> None:
         """Exit the current process."""

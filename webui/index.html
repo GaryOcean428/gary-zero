@@ -5,6 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Gary-Zero</title>
+    <script>
+        // Expose newChat function early for Alpine.js
+        window.newChat = function() {
+            if (window.safeCall) {
+                window.safeCall('newChat');
+            }
+        };
+    </script>
     <link rel="icon" type="image/svg+xml" href="public/favicon.svg">
     <link rel="stylesheet" href="css/inline-styles.css">
     <link rel="stylesheet" href="index.css">
@@ -155,8 +163,7 @@
                     openTaskDetail(taskId) {
                         window.openTaskDetail(taskId);
                     }
-                }"
-                    style="display: none;">
+                }">
                     <div class="tasks-list-container">
                         <ul class="config-list" x-show="tasks.length > 0">
                             <template x-for="task in tasks">

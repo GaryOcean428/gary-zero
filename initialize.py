@@ -1,9 +1,21 @@
+# Standard library imports
 import asyncio
+import logging
 
+# Third-party imports
 import models
+import zero.helpers.mcp_handler as mcp_helper
+
+# Local application imports
 from agent import AgentConfig, ModelConfig
-from zero.helpers import runtime, settings
+from zero.helpers import persist_chat, runtime, settings
 from zero.helpers.defer import DeferredTask
+from zero.helpers.job_loop import run_loop as job_loop_run_loop
+from zero.helpers.mcp_handler import initialize_mcp as mcp_init_servers
+from zero.helpers.print_style import PrintStyle
+from zero.helpers.settings_types import Settings
+
+logger = logging.getLogger(__name__)
 
 
 def initialize_agent():
@@ -61,33 +73,31 @@ def initialize_agent():
     _args_override(config)
 
     # initialize MCP in deferred task to prevent blocking the main thread
-    import agent as agent_helper
-    import zero.helpers.mcp_handler as mcp_helper
-    import zero.helpers.print_style as print_style_helper
-
     if not mcp_helper.MCPConfig.get_instance().is_initialized():
         try:
             mcp_helper.MCPConfig.update(config.mcp_servers)
-        except Exception as e:
-            first_context = agent_helper.AgentContext.first()
-            if first_context:
+        except (ValueError, RuntimeError) as e:
+            error_msg = f"Failed to update MCP settings: {e}"
+            first_context = getattr(settings, "context", None)
+            if first_context and hasattr(first_context, "log"):
                 first_context.log.log(
                     type="warning",
-                    content=f"Failed to update MCP settings: {e}",
+                    content=error_msg,
                     temp=False,
                 )
-                print_style_helper.PrintStyle(
-                    background_color="black", font_color="red", padding=True
-                ).print(f"Failed to update MCP settings: {e}")
+            PrintStyle(
+                background_color="black",
+                font_color="red",
+                padding=True
+            ).print(error_msg)
+            logger.warning("Failed to update MCP settings", exc_info=e)
 
     # return config object
     return config
 
 
 def initialize_mcp() -> DeferredTask:
-    """Initializes MCP servers in a deferred task."""
-    from zero.helpers.mcp_handler import initialize_mcp as mcp_init_servers
-
+    """Initialize MCP servers in a deferred task."""
     async def deferred_initialize_mcp_async():
         current_settings = settings.get_settings()
         mcp_servers_config = current_settings.get("mcp_servers")
@@ -99,8 +109,7 @@ def initialize_mcp() -> DeferredTask:
 
 
 def initialize_chats() -> DeferredTask:
-    from zero.helpers import persist_chat
-
+    """Initialize chat sessions in a deferred task."""
     async def initialize_chats_async():
         persist_chat.load_tmp_chats()
 
@@ -108,9 +117,8 @@ def initialize_chats() -> DeferredTask:
 
 
 def initialize_job_loop() -> DeferredTask:
-    from zero.helpers.job_loop import run_loop
-
-    return DeferredTask("JobLoop").start_task(run_loop)
+    """Initialize the job loop in a deferred task."""
+    return DeferredTask("JobLoop").start_task(job_loop_run_loop)
 
 
 def _args_override(config):
@@ -128,31 +136,25 @@ def _args_override(config):
             elif isinstance(getattr(config, key), str):
                 value = str(value)
             else:
-                raise Exception(
-                    f"Unsupported argument type of '{key}': " f"{type(getattr(config, key))}"
+                error_msg = (
+                    f"Unsupported argument type for '{key}': "
+                    f"{type(getattr(config, key)).__name__}"
                 )
+                raise TypeError(error_msg)
 
             setattr(config, key, value)
 
 
-def _set_runtime_config(config: AgentConfig, set: settings.Settings):
-    ssh_conf = settings.get_runtime_config(set)
-    for key, value in ssh_conf.items():
+def _set_runtime_config(config: AgentConfig, settings_data: Settings) -> None:
+    """Update runtime configuration from settings.
+
+    Args:
+        config: Agent configuration to update
+        settings_data: Settings data containing runtime config
+    """
+    runtime_config = settings_data.get("runtime_config", {})
+    for key, value in runtime_config.items():
         if hasattr(config, key):
             setattr(config, key, value)
 
-    # if config.code_exec_docker_enabled:
-    #     config.code_exec_docker_ports["22/tcp"] = ssh_conf["code_exec_ssh_port"]
-    #     config.code_exec_docker_ports["80/tcp"] = ssh_conf["code_exec_http_port"]
-    #     config.code_exec_docker_name = f"{config.code_exec_docker_name}-{ssh_conf['code_exec_ssh_port']}-{ssh_conf['code_exec_http_port']}"
-
-    #     dman = docker.DockerContainerManager(
-    #         logger=log.Log(),
-    #         name=config.code_exec_docker_name,
-    #         image=config.code_exec_docker_image,
-    #         ports=config.code_exec_docker_ports,
-    #         volumes=config.code_exec_docker_volumes,
-    #     )
-    #     dman.start_container()
-
-    # config.code_exec_ssh_pass = asyncio.run(rfc_exchange.get_root_password())
+    # Docker configuration is handled elsewhere in the codebase

@@ -13,18 +13,18 @@ from initialize import initialize_agent
 from zero.helpers.dotenv import load_dotenv
 from zero.helpers.print_style import PrintStyle
 
-context: AgentContext = None  # type: ignore
-input_lock = threading.Lock()
+_global_context: AgentContext = None  # type: ignore
+_input_lock = threading.Lock()
 
 
 # Main conversation loop
-async def chat(context: AgentContext):
+async def chat(agent_context: AgentContext):
 
     # start the conversation loop
     while True:
         # ask user for message
-        with input_lock:
-            timeout = context.agent0.get_data("timeout")  # how long the agent is willing to wait
+        with _input_lock:
+            timeout = agent_context.agent0.get_data("timeout")  # how long the agent is willing to wait
             if not timeout:  # if agent wants to wait for user input forever
                 PrintStyle(
                     background_color="#6C3483",
@@ -52,7 +52,7 @@ async def chat(context: AgentContext):
                 user_input = timeout_input("> ", timeout=timeout)
 
                 if not user_input:
-                    user_input = context.agent0.read_prompt("fw.msg_timeout.md")
+                    user_input = agent_context.agent0.read_prompt("fw.msg_timeout.md")
                     PrintStyle(font_color="white", padding=False).stream(f"{user_input}")
                 else:
                     user_input = user_input.strip()
@@ -62,24 +62,24 @@ async def chat(context: AgentContext):
                         f"> {user_input}"
                     )
 
-        # exit the conversation when the user types 'exit'
+        # exit the conversation when the user types 'e'
         if user_input.lower() == "e":
             break
 
         # send message to agent0,
-        assistant_response = await context.communicate(UserMessage(user_input, [])).result()
+        assistant_response = await agent_context.communicate(UserMessage(user_input, [])).result()
 
         # print agent0 response
         PrintStyle(font_color="white", background_color="#1D8348", bold=True, padding=True).print(
-            f"{context.agent0.agent_name}: reponse:"
+            f"{agent_context.agent0.agent_name}: reponse:"
         )
         PrintStyle(font_color="white").print(f"{assistant_response}")
 
 
 # User intervention during agent streaming
 def intervention():
-    if context.streaming_agent and not context.paused:
-        context.paused = True  # stop agent streaming
+    if _global_context.streaming_agent and not _global_context.paused:
+        _global_context.paused = True  # stop agent streaming
         PrintStyle(background_color="#6C3483", font_color="white", bold=True, padding=True).print(
             "User intervention ('e' to leave, empty to continue):"
         )
@@ -92,15 +92,14 @@ def intervention():
         if user_input.lower() == "e":
             os._exit(0)  # exit the conversation when the user types 'exit'
         if user_input:
-            context.streaming_agent.intervention = UserMessage(
+            _global_context.streaming_agent.intervention = UserMessage(
                 user_input, []
             )  # set intervention message if non-empty
-        context.paused = False  # continue agent streaming
+        _global_context.paused = False  # continue agent streaming
 
 
 # Capture keyboard input to trigger user intervention
 def capture_keys():
-    global input_lock
     intervent = False
     while True:
         if intervent:
@@ -108,9 +107,9 @@ def capture_keys():
         intervent = False
         time.sleep(0.1)
 
-        if context.streaming_agent:
+        if _global_context.streaming_agent:
             # with raw_input, application_keypad, mouse_input:
-            with input_lock, application_keypad:
+            with _input_lock, application_keypad:
                 event: InputEvent | None = get_input_event(timeout=0.1)
                 if event and (event.shortcut.isalpha() or event.shortcut.isspace()):
                     intervent = True
@@ -123,7 +122,7 @@ def timeout_input(prompt, timeout=10):
 
 
 def run():
-    global context
+    global _global_context
     PrintStyle.standard("Initializing framework...")
 
     # load env vars
@@ -131,18 +130,17 @@ def run():
 
     # initialize context
     config = initialize_agent()
-    context = AgentContext(config)
+    _global_context = AgentContext(config)
 
     # Start the key capture thread for user intervention during agent streaming
     threading.Thread(target=capture_keys, daemon=True).start()
 
     # start the chat
-    asyncio.run(chat(context))
+    asyncio.run(chat(_global_context))
 
 
 if __name__ == "__main__":
     PrintStyle.standard(
-        "\n\n!!! run_cli.py is now discontinued. !!!"
-        " run_ui.py serves as both UI and API endpoint !!!\n\n"
+        "!!! run_cli.py is now discontinued. run_ui.py serves as both UI and API endpoint !!!"
     )
     run()

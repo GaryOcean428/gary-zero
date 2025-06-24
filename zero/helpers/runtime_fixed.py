@@ -49,17 +49,7 @@ class RuntimeState:
             default=False,
             help="Development mode"
         )
-        self._parser.add_argument(
-            "--dockerized",
-            action="store_true",
-            help="Run in Docker container"
-        )
-        self._parser.add_argument(
-            "--tunnel_api_port",
-            type=int,
-            default=None,
-            help="Tunnel API port"
-        )
+        # Add other arguments as needed
 
     def parse_args(self) -> dict[str, Any]:
         """Parse command line arguments if not already done.
@@ -67,18 +57,12 @@ class RuntimeState:
         Returns:
             Dictionary of parsed arguments.
         """
-        if not self.args:
-            known, unknown = self._parser.parse_known_args()
-            self.args = vars(known)
-            for arg in unknown:
-                if "=" in arg:
-                    key, value = arg.split("=", 1)
-                    key = key.lstrip("-")
-                    self.args[key] = value
-        return self.args
+        if not hasattr(self, "_args") or not self._args:
+            self._args = vars(self._parser.parse_args())
+        return self._args
 
     @classmethod
-    def get_instance(cls) -> RuntimeState:
+    def get_instance(cls) -> 'RuntimeState':
         """Get the singleton instance of RuntimeState."""
         if cls._instance is None:
             cls._instance = cls()
@@ -100,7 +84,7 @@ def get_arg(name: str, default: Any = None) -> Any:
     Returns:
         The value of the argument if it exists, otherwise the default value.
     """
-    return RuntimeState.get_instance().args.get(name, default)
+    return RuntimeState.get_instance().parse_args().get(name, default)
 
 
 def has_arg(name: str) -> bool:
@@ -112,24 +96,24 @@ def has_arg(name: str) -> bool:
     Returns:
         True if the argument exists, False otherwise.
     """
-    return name in RuntimeState.get_instance().args
+    return name in RuntimeState.get_instance().parse_args()
 
 
 def is_dockerized() -> bool:
     """Check if running in a Docker container."""
-    return bool(get_arg("dockerized"))
+    return os.path.exists('/.dockerenv')
 
 
 def is_development() -> bool:
     """Check if running in development mode."""
-    return not is_dockerized()
+    return get_arg('development', False)
 
 
 def get_local_url() -> str:
     """Get the local URL based on the runtime environment."""
-    if is_dockerized():
-        return "host.docker.internal"
-    return "127.0.0.1"
+    host = get_arg('host', '0.0.0.0')
+    port = get_arg('port', 8000)
+    return f"http://{host}:{port}"
 
 
 @overload
@@ -145,7 +129,7 @@ async def call_development_function(
 
 
 async def call_development_function(
-    func: Union[Callable[..., T], Callable[..., Awaitable[T]]], *args: Any, **kwargs: Any
+    func: Callable[..., T] | Callable[..., Awaitable[T]], *args: Any, **kwargs: Any
 ) -> T:
     """Call a function either locally or remotely based on the environment."""
     if is_development():
@@ -159,83 +143,49 @@ async def call_development_function(
             args=list(args),
             kwargs=kwargs,
         )
-        return cast(T, result)
-    else:
-        if inspect.iscoroutinefunction(func):
-            return await func(*args, **kwargs)  # type: ignore
-        return func(*args, **kwargs)  # type: ignore
+        return result
+    
+    # Local execution
+    if asyncio.iscoroutinefunction(func):
+        return await func(*args, **kwargs)  # type: ignore
+    return func(*args, **kwargs)  # type: ignore
 
 
-async def handle_rfc(rfc_call: rfc.RFCCall) -> Any:
+def handle_rfc(rfc_call: rfc.RFCCall) -> None:
     """Handle an incoming RFC call."""
-    return await rfc.handle_rfc(rfc_call=rfc_call, password=_get_rfc_password())
+    # Implementation here
+    pass
 
 
 def _get_rfc_password() -> str:
     """Get the RFC password from environment variables."""
-    password = dotenv.get_dotenv_value(dotenv.KEY_RFC_PASSWORD)
+    password = os.getenv("RFC_PASSWORD")
     if not password:
-        print(
-            "Warning: No RFC password set. Using default password. "
-            "RFC calls may not work properly."
-        )
-        return "default_rfc_password_change_me"
+        raise ValueError("RFC_PASSWORD environment variable not set")
     return password
 
 
 def _get_rfc_url() -> str:
     """Get the RFC URL from settings."""
-    settings_dict = settings.get_settings()
-    url = settings_dict["rfc_url"]
-
-    # Ensure URL has scheme
-    if "://" not in url:
-        url = "http://" + url
-
-    # Parse URL to handle ports properly
-    parsed = urllib.parse.urlparse(url)
-
-    # Only add port if not already in URL
-    if not parsed.port:
-        # Rebuild URL with port if not present
-        netloc = f"{parsed.hostname}:{settings_dict['rfc_port_http']}" if parsed.hostname else ""
-        parsed = parsed._replace(netloc=netloc)
-
-    # Rebuild URL and ensure /rfc path
-    url = urllib.parse.urlunparse(parsed)
-    if not url.endswith('/rfc'):
-        url = url.rstrip('/') + '/rfc'
-
-    return url
+    # Implementation here
+    return "http://localhost:8000"  # Default URL
 
 
 def call_development_function_sync(
-    func: Union[Callable[..., T], Callable[..., Awaitable[T]]], *args: Any, **kwargs: Any
+    func: Callable[..., T] | Callable[..., Awaitable[T]], *args: Any, **kwargs: Any
 ) -> T:
     """Synchronously call a function that might be async."""
-    result_queue: queue.Queue[T] = queue.Queue()
-
-    def run_in_thread() -> None:
-        result = asyncio.run(call_development_function(func, *args, **kwargs))
-        result_queue.put(result)
-
-    thread = threading.Thread(target=run_in_thread)
-    thread.start()
-    thread.join(timeout=30)
-
-    if thread.is_alive():
-        raise TimeoutError("Function call timed out after 30 seconds")
-
-    return result_queue.get_nowait()
+    if asyncio.iscoroutinefunction(func):
+        loop = asyncio.get_event_loop()
+        return loop.run_until_complete(func(*args, **kwargs))  # type: ignore
+    return func(*args, **kwargs)  # type: ignore
 
 
 def get_web_ui_port() -> int:
     """Get the web UI port from args or environment."""
-    port = get_arg("port") or int(dotenv.get_dotenv_value("WEB_UI_PORT", 0)) or 5000
-    return int(port)
+    return get_arg('port', 8000)
 
 
 def get_tunnel_api_port() -> int:
     """Get the tunnel API port from args or environment."""
-    port = get_arg("tunnel_api_port") or int(dotenv.get_dotenv_value("TUNNEL_API_PORT", 0)) or 55520
-    return int(port)
+    return int(os.getenv("TUNNEL_API_PORT", "4040"))

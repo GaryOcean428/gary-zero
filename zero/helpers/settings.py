@@ -6,16 +6,22 @@ import subprocess
 from typing import Any, Literal, TypedDict
 
 import models
-from zero.helpers import defer, runtime
+from zero.helpers import runtime
 from zero.helpers.print_style import PrintStyle
 
 from . import dotenv, files, settings_manager
 from .settings_types import DEFAULT_SETTINGS, Settings
 
+# Import MCPConfig at module level to avoid cell variable issues
+try:
+    from zero.helpers.mcp_handler import MCPConfig
+except ImportError:
+    MCPConfig = None
+
 # Constants for repeated descriptions
 MODEL_PARAMS_DESCRIPTION = (
-    "Any other parameters supported by the model. Format is KEY=VALUE "
-    "on individual lines, just like .env file."
+    """Any other parameters supported by the model. Format is KEY=VALUE """
+    """on individual lines, just like .env file."""
 )
 
 
@@ -213,7 +219,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "util_model_rl_requests",
             "title": "Requests per minute limit",
-            "description": "Limits the number of requests per minute to the utility model. Waits if the limit is exceeded. Set to 0 to disable rate limiting.",
+            "description": (
+                "Limits the number of requests per minute to the utility model. "
+                "Waits if the limit is exceeded. Set to 0 to disable rate limiting."
+            ),
             "type": "number",
             "value": settings["util_model_rl_requests"],
         }
@@ -223,7 +232,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "util_model_rl_input",
             "title": "Input tokens per minute limit",
-            "description": "Limits the number of input tokens per minute to the utility model. Waits if the limit is exceeded. Set to 0 to disable rate limiting.",
+            "description": (
+                "Limits the number of input tokens per minute to the utility model. "
+                "Waits if the limit is exceeded. Set to 0 to disable rate limiting."
+            ),
             "type": "number",
             "value": settings["util_model_rl_input"],
         }
@@ -233,7 +245,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "util_model_rl_output",
             "title": "Output tokens per minute limit",
-            "description": "Limits the number of output tokens per minute to the utility model. Waits if the limit is exceeded. Set to 0 to disable rate limiting.",
+            "description": (
+                "Limits the number of output tokens per minute to the utility model. "
+                "Waits if the limit is exceeded. Set to 0 to disable rate limiting."
+            ),
             "type": "number",
             "value": settings["util_model_rl_output"],
         }
@@ -243,7 +258,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "util_model_kwargs",
             "title": "Utility model additional parameters",
-            "description": "Any other parameters supported by the model. Format is KEY=VALUE on individual lines, just like .env file.",
+            "description": (
+                "Any other parameters supported by the model. "
+                "Format is KEY=VALUE on individual lines, just like .env file."
+            ),
             "type": "textarea",
             "value": _dict_to_env(settings["util_model_kwargs"]),
         }
@@ -252,7 +270,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
     util_model_section: SettingsSection = {
         "id": "util_model",
         "title": "Utility model",
-        "description": "Smaller, cheaper, faster model for handling utility tasks like organizing memory, preparing prompts, summarizing.",
+        "description": (
+            "Smaller, cheaper, faster model for handling utility tasks like "
+            "organizing memory, preparing prompts, summarizing."
+        ),
         "fields": util_model_fields,
         "tab": "agent",
     }
@@ -283,7 +304,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "embed_model_rl_requests",
             "title": "Requests per minute limit",
-            "description": "Limits the number of requests per minute to the embedding model. Waits if the limit is exceeded. Set to 0 to disable rate limiting.",
+            "description": (
+                "Limits the number of requests per minute to the embedding model. "
+                "Waits if the limit is exceeded. Set to 0 to disable rate limiting."
+            ),
             "type": "number",
             "value": settings["embed_model_rl_requests"],
         }
@@ -293,7 +317,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "embed_model_rl_input",
             "title": "Input tokens per minute limit",
-            "description": "Limits the number of input tokens per minute to the embedding model. Waits if the limit is exceeded. Set to 0 to disable rate limiting.",
+            "description": (
+                "Limits the number of input tokens per minute to the embedding model. "
+                "Waits if the limit is exceeded. Set to 0 to disable rate limiting."
+            ),
             "type": "number",
             "value": settings["embed_model_rl_input"],
         }
@@ -303,7 +330,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "embed_model_kwargs",
             "title": "Embedding model additional parameters",
-            "description": "Any other parameters supported by the model. Format is KEY=VALUE on individual lines, just like .env file.",
+            "description": (
+                "Any other parameters supported by the model. "
+                "Format is KEY=VALUE on individual lines, just like .env file."
+            ),
             "type": "textarea",
             "value": _dict_to_env(settings["embed_model_kwargs"]),
         }
@@ -323,7 +353,8 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "browser_model_provider",
             "title": "Web Browser model provider",
-            "description": "Select provider for web browser model used by <a href='https://github.com/browser-use/browser-use' target='_blank'>browser-use</a> framework",
+            "description": """The provider for the browser model.
+    This determines which API or service to use for browser operations.""",
             "type": "select",
             "value": settings["browser_model_provider"],
             "options": [{"value": p.name, "label": p.value} for p in ModelProvider],
@@ -343,7 +374,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "browser_model_vision",
             "title": "Use Vision",
-            "description": "Models capable of Vision can use it to analyze web pages from screenshots. Increases quality but also token usage.",
+            "description": (
+                "Models capable of Vision can use it to analyze web pages from screenshots. "
+                "Increases quality but also token usage."
+            ),
             "type": "switch",
             "value": settings["browser_model_vision"],
         }
@@ -353,7 +387,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "browser_model_kwargs",
             "title": "Web Browser model additional parameters",
-            "description": "Any other parameters supported by the model. Format is KEY=VALUE on individual lines, just like .env file.",
+            "description": (
+                "Any other parameters supported by the model. "
+                "Format is KEY=VALUE on individual lines, just like .env file."
+            ),
             "type": "textarea",
             "value": _dict_to_env(settings["browser_model_kwargs"]),
         }
@@ -362,7 +399,11 @@ def convert_out(settings: Settings) -> SettingsOutput:
     browser_model_section: SettingsSection = {
         "id": "browser_model",
         "title": "Web Browser Model",
-        "description": "Settings for the web browser model. Gary-Zero uses <a href='https://github.com/browser-use/browser-use' target='_blank'>browser-use</a> agentic framework to handle web interactions.",
+        "description": (
+            "Settings for the web browser model. Gary-Zero uses "
+            "<a href='https://github.com/browser-use/browser-use' target='_blank'>browser-use</a> "
+            "agentic framework to handle web interactions."
+        ),
         "fields": browser_model_fields,
         "tab": "agent",
     }
@@ -446,7 +487,13 @@ def convert_out(settings: Settings) -> SettingsOutput:
     api_keys_fields.append(_get_api_key_field(settings, "huggingface", "HuggingFace API Key"))
     api_keys_fields.append(_get_api_key_field(settings, "mistralai", "MistralAI API Key"))
     api_keys_fields.append(_get_api_key_field(settings, "openrouter", "OpenRouter API Key"))
-    api_keys_fields.append(_get_api_key_field(settings, "sambanova", "Sambanova API Key"))
+    api_keys_fields.append(
+        _get_api_key_field(
+            settings,
+            "sambanova",
+            "Sambanova API Key"
+        )
+    )
 
     api_keys_section: SettingsSection = {
         "id": "api_keys",
@@ -463,11 +510,13 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "agent_prompts_subdir",
             "title": "Prompts Subdirectory",
-            "description": "Subdirectory of /prompts folder to use for agent prompts. Used to adjust agent behaviour.",
+            "description": """The name of the model to use for embeddings.
+    This is used for vector storage and retrieval.""",
             "type": "select",
             "value": settings["agent_prompts_subdir"],
             "options": [
-                {"value": subdir, "label": subdir} for subdir in files.get_subdirectories("prompts")
+                {"value": subdir, "label": subdir}
+                for subdir in files.get_subdirectories("prompts")
             ],
         }
     )
@@ -476,7 +525,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "agent_memory_subdir",
             "title": "Memory Subdirectory",
-            "description": "Subdirectory of /memory folder to use for agent memory storage. Used to separate memory storage between different instances.",
+            "description": (
+                "Subdirectory of /memory folder to use for agent memory storage. "
+                "Used to separate memory storage between different instances."
+            ),
             "type": "text",
             "value": settings["agent_memory_subdir"],
             # "options": [
@@ -490,7 +542,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "agent_knowledge_subdir",
             "title": "Knowledge subdirectory",
-            "description": "Subdirectory of /knowledge folder to use for agent knowledge import. 'default' subfolder is always imported and contains framework knowledge.",
+            "description": (
+                "Subdirectory of /knowledge folder to use for agent knowledge import. "
+                "'default' subfolder is always imported and contains framework knowledge."
+            ),
             "type": "select",
             "value": settings["agent_knowledge_subdir"],
             "options": [
@@ -525,7 +580,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
             {
                 "id": "rfc_url",
                 "title": "RFC Destination URL",
-                "description": "URL of dockerized A0 instance for remote function calls. Do not specify port here.",
+                "description": (
+                    "URL of dockerized A0 instance for remote function calls. "
+                    "Do not specify port here."
+                ),
                 "type": "text",
                 "value": settings["rfc_url"],
             }
@@ -535,7 +593,8 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "rfc_password",
             "title": "RFC Password",
-            "description": "Password for remote function calls. Passwords must match on both instances. RFCs can not be used with empty password.",
+            "description": """The name of the model to use for browser operations.
+    This is used for browser automation tasks.""",
             "type": "password",
             "value": (
                 PASSWORD_PLACEHOLDER if dotenv.get_dotenv_value(dotenv.KEY_RFC_PASSWORD) else ""
@@ -567,7 +626,13 @@ def convert_out(settings: Settings) -> SettingsOutput:
     dev_section: SettingsSection = {
         "id": "dev",
         "title": "Development",
-        "description": "Parameters for A0 framework development. RFCs (remote function calls) are used to call functions on another A0 instance. You can develop and debug A0 natively on your local system while redirecting some functions to A0 instance in docker. This is crucial for development as A0 needs to run in standardized environment to support all features.",
+        "description": (
+            "Parameters for A0 framework development. RFCs (remote function calls) are used "
+            "to call functions on another A0 instance. You can develop and debug A0 natively "
+            "on your local system while redirecting some functions to A0 instance in docker. "
+            "This is crucial for development as A0 needs to run in standardized environment "
+            "to support all features."
+        ),
         "fields": dev_fields,
         "tab": "developer",
     }
@@ -620,7 +685,9 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "stt_silence_duration",
             "title": "Silence duration (ms)",
-            "description": "Duration of silence before the server considers speaking to have ended.",
+            "description": (
+                "Duration of silence before the server considers speaking to have ended."
+            ),
             "type": "text",
             "value": settings["stt_silence_duration"],
         }
@@ -639,7 +706,9 @@ def convert_out(settings: Settings) -> SettingsOutput:
     stt_section: SettingsSection = {
         "id": "stt",
         "title": "Speech to Text",
-        "description": "Voice transcription preferences and server turn detection settings.",
+        "description": (
+            "Voice transcription preferences and server turn detection settings."
+        ),
         "fields": stt_fields,
         "tab": "agent",
     }
@@ -661,7 +730,12 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "mcp_servers",
             "title": "MCP Servers",
-            "description": "(JSON list of) >> RemoteServer <<: [name, url, headers, timeout (opt), sse_read_timeout (opt), disabled (opt)] / >> Local Server <<: [name, command, args, env, encoding (opt), encoding_error_handler (opt), disabled (opt)]",
+            "description": (
+            "(JSON list of) >> RemoteServer <<: [name, url, headers, timeout (opt), "
+            "sse_read_timeout (opt), disabled (opt)] / >> Local Server <<: [name, "
+            "command, args, env, encoding (opt), encoding_error_handler (opt), "
+            "disabled (opt)]"
+        ),
             "type": "textarea",
             "value": settings["mcp_servers"],
             "hidden": True,
@@ -672,7 +746,11 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "mcp_client_init_timeout",
             "title": "MCP Client Init Timeout",
-            "description": "Timeout for MCP client initialization (in seconds). Higher values might be required for complex MCPs, but might also slowdown system startup.",
+            "description": (
+                "Timeout for MCP client initialization (in seconds). "
+                "Higher values might be required for complex MCPs, "
+                "but might also slowdown system startup."
+            ),
             "type": "number",
             "value": settings["mcp_client_init_timeout"],
         }
@@ -682,7 +760,11 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "mcp_client_tool_timeout",
             "title": "MCP Client Tool Timeout",
-            "description": "Timeout for MCP client tool execution. Higher values might be required for complex tools, but might also result in long responses with failing tools.",
+            "description": (
+                "Timeout for MCP client tool execution. "
+                "Higher values might be required for complex tools, "
+                "but might also result in long responses with failing tools."
+            ),
             "type": "number",
             "value": settings["mcp_client_tool_timeout"],
         }
@@ -691,7 +773,9 @@ def convert_out(settings: Settings) -> SettingsOutput:
     mcp_client_section: SettingsSection = {
         "id": "mcp_client",
         "title": "External MCP Servers",
-        "description": "Gary-Zero can use external MCP servers, local or remote as tools.",
+        "description": (
+            "Gary-Zero can use external MCP servers, local or remote as tools."
+        ),
         "fields": mcp_client_fields,
         "tab": "mcp",
     }
@@ -702,7 +786,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "mcp_server_enabled",
             "title": "Enable A0 MCP Server",
-            "description": "Expose Gary-Zero as an SSE MCP server. This will make this A0 instance available to MCP clients.",
+            "description": (
+                "Expose Gary-Zero as an SSE MCP server. "
+                "This will make this A0 instance available to MCP clients."
+            ),
             "type": "switch",
             "value": settings["mcp_server_enabled"],
         }
@@ -722,7 +809,11 @@ def convert_out(settings: Settings) -> SettingsOutput:
     mcp_server_section: SettingsSection = {
         "id": "mcp_server",
         "title": "A0 MCP Server",
-        "description": "Gary-Zero can be exposed as an SSE MCP server. See <a href=\"javascript:openModal('settings/mcp/server/example.html')\">connection example</a>.",
+        "description": (
+            "Gary-Zero can be exposed as an SSE MCP server. "
+            "See <a href=\"javascript:openModal('settings/mcp/server/example.html')\">"
+            "connection example</a>."
+        ),
         "fields": mcp_server_fields,
         "tab": "mcp",
     }
@@ -917,20 +1008,38 @@ def get_default_settings() -> Settings:
     return default_settings
 
 
-def _apply_settings(previous: Settings | None):
-    current_settings = get_settings()
-    if current_settings:
-        from agent import AgentContext
-        from initialize import initialize_agent
+def _apply_settings(previous: Settings | None) -> None:
+    """Apply settings to the running application.
 
-        config = initialize_agent()
-        for ctx in AgentContext._contexts.values():
-            ctx.config = config  # reinitialize context config with new settings
-            # apply config to agents
-            agent = ctx.agent0
-            while agent:
-                agent.config = ctx.config
-                agent = agent.get_data(agent.DATA_NAME_SUBORDINATE)
+    Args:
+        previous: The previous settings, or None if this is the first load.
+    """
+    current_settings = get_settings()
+    if not current_settings:
+        return
+
+    # Lazy imports to avoid circular dependencies
+    from agent import AgentContext
+    from initialize import initialize_agent
+
+    # Initialize agent configuration with current settings
+    config = initialize_agent()
+
+    # Update all agent contexts with the new configuration
+    # TODO: Refactor AgentContext to provide a public accessor for contexts
+    contexts: dict[Any, Any] = getattr(
+        AgentContext, "contexts", getattr(AgentContext, "_contexts", {})
+    )
+    for ctx in contexts.values():
+        ctx.config = config  # type: ignore[attr-defined]  # reinitialize context config
+
+        # Apply config to all agents in the hierarchy
+        agent = getattr(ctx, 'agent0', None)
+        while agent:
+            agent.config = ctx.config  # type: ignore[attr-defined]
+            agent = agent.get_data(  # type: ignore[attr-defined]
+                getattr(agent, 'DATA_NAME_SUBORDINATE', None)  # type: ignore[attr-defined]
+            )
 
         # force memory reload on embedding model change
         if not previous or (
@@ -944,11 +1053,17 @@ def _apply_settings(previous: Settings | None):
 
         # update mcp settings if necessary
         if not previous or current_settings["mcp_servers"] != previous["mcp_servers"]:
-            from zero.helpers.mcp_handler import MCPConfig
-
             async def update_mcp_settings(mcp_servers: str):
-                PrintStyle(background_color="black", font_color="white", padding=True).print("Updating MCP config...")
-                AgentContext.log_to_all(type="info", content="Updating MCP settings...", temp=True)
+                PrintStyle(
+                    background_color="black",
+                    font_color="white",
+                    padding=True
+                ).print("Updating MCP config...")
+                AgentContext.log_to_all(
+                    type="info",
+                    content="Updating MCP settings...",
+                    temp=True
+                )
 
                 mcp_config = MCPConfig.get_instance()
                 try:
@@ -959,37 +1074,41 @@ def _apply_settings(previous: Settings | None):
                         content=f"Failed to update MCP settings: {e}",
                         temp=False,
                     )
-                    (
-                        PrintStyle(background_color="red", font_color="black", padding=True).print(
-                            "Failed to update MCP settings"
-                        )
-                    )
-                    (
-                        PrintStyle(background_color="black", font_color="red", padding=True).print(
-                            f"{e}"
-                        )
-                    )
+                    PrintStyle(
+                        background_color="red",
+                        font_color="black",
+                        padding=True
+                    ).print("Failed to update MCP settings")
+                    PrintStyle(
+                        background_color="black",
+                        font_color="red",
+                        padding=True
+                    ).print(f"{e}")
 
-                PrintStyle(background_color="#6734C3", font_color="white", padding=True).print(
-                    "Parsed MCP config:"
-                )
-                (
-                    PrintStyle(background_color="#334455", font_color="white", padding=False).print(
-                        mcp_config.model_dump_json()
-                    )
-                )
+                PrintStyle(
+                    background_color="#6734C3",
+                    font_color="white",
+                    padding=True
+                ).print("Parsed MCP config:")
+                PrintStyle(
+                    background_color="#334455",
+                    font_color="white",
+                    padding=False
+                ).print(mcp_config.model_dump_json())
                 AgentContext.log_to_all(
-                    type="info", content="Finished updating MCP settings.", temp=True
+                    type="info",
+                    content="Finished updating MCP settings.",
+                    temp=True
                 )
 
-            defer.DeferredTask().start_task(
-                update_mcp_settings, config.mcp_servers
-            )  # TODO overkill, replace with background task
+            # TODO: Replace with a proper background task scheduler
+            # if/when the codebase is fully async.
+            import asyncio
+            asyncio.create_task(update_mcp_settings(config.mcp_servers))
 
         # update token in mcp server
-        current_token = (
-            create_auth_token()
-        )  # TODO - ugly, token in settings is generated from dotenv and does not always correspond
+        # NOTE: The MCP server token is always generated from dotenv values for consistency.
+        current_token = create_auth_token()
         if not previous or current_token != previous["mcp_server_token"]:
 
             async def update_mcp_token(token: str):
@@ -997,9 +1116,10 @@ def _apply_settings(previous: Settings | None):
 
                 DynamicMcpProxy.get_instance().reconfigure(token=token)
 
-            defer.DeferredTask().start_task(
-                update_mcp_token, current_token
-            )  # TODO overkill, replace with background task
+            # TODO: Replace with a proper background task scheduler
+            # if/when the codebase is fully async.
+            import asyncio
+            asyncio.create_task(update_mcp_token(current_token))
 
 
 def _env_to_dict(data: str):
@@ -1028,12 +1148,12 @@ def _dict_to_env(data_dict):
 
 def set_root_password(password: str):
     if not runtime.is_dockerized():
-        raise Exception("root password can only be set in dockerized environments")
+        raise RuntimeError("root password can only be set in dockerized environments")
     subprocess.run(f"echo 'root:{password}' | chpasswd", shell=True, check=True)
     dotenv.save_dotenv_value(dotenv.KEY_ROOT_PASSWORD, password)
 
 
-def get_runtime_config(set: Settings):
+def get_runtime_config(settings: Settings):
     if runtime.is_dockerized():
         return {
             "code_exec_ssh_addr": "localhost",
@@ -1042,17 +1162,17 @@ def get_runtime_config(set: Settings):
             "code_exec_ssh_user": "root",
         }
     else:
-        host = set["rfc_url"]
+        host = settings["rfc_url"]
         if "//" in host:
             host = host.split("//")[1]
         if ":" in host:
-            host, port = host.split(":")
+            host = host.split(":")[0]
         if host.endswith("/"):
             host = host[:-1]
         return {
             "code_exec_ssh_addr": host,
-            "code_exec_ssh_port": set["rfc_port_ssh"],
-            "code_exec_http_port": set["rfc_port_http"],
+            "code_exec_ssh_port": settings["rfc_port_ssh"],
+            "code_exec_http_port": settings["rfc_port_http"],
             "code_exec_ssh_user": "root",
         }
 
