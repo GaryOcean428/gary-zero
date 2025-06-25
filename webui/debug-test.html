@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Test - Zero UI</title>
+</head>
+<body>
+    <h1>Debug Test Results</h1>
+    <div id="test-results"></div>
+    
+    <script>
+        // Test if we can access the main page and check for errors
+        setTimeout(() => {
+            const results = document.getElementById('test-results');
+            
+            // Try to access the main page in an iframe to capture console messages
+            const iframe = document.createElement('iframe');
+            iframe.src = './index.html';
+            iframe.style.width = '100%';
+            iframe.style.height = '600px';
+            iframe.style.border = '1px solid #ccc';
+            
+            iframe.onload = () => {
+                results.innerHTML = `
+                    <p><strong>Main page loaded successfully!</strong></p>
+                    <p>Check the browser console for any remaining errors.</p>
+                    <p>Expected improvements:</p>
+                    <ul>
+                        <li>✅ Alpine.js initialization should complete before DOM polling</li>
+                        <li>✅ All required DOM elements should be found</li>
+                        <li>✅ No more "Still waiting for" messages in a loop</li>
+                        <li>✅ Reduced _x_dataStack errors</li>
+                    </ul>
+                `;
+            };
+            
+            iframe.onerror = () => {
+                results.innerHTML = '<p style="color: red;">❌ Failed to load main page</p>';
+            };
+            
+            document.body.appendChild(iframe);
+        }, 1000);
+    </script>
+</body>
+</html>

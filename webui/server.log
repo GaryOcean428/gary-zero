@@ -1,0 +1,15 @@
+nohup: ignoring input
+Mock Zero backend server running at http://localhost:8080
+Serving files from: /home/braden/Desktop/Dev/zero/webui
+Supported endpoints:
+  GET  /          - Web UI
+  POST /poll      - Status polling
+  POST /send      - Send messages
+  POST /reset     - Reset chat
+  POST /new_chat  - Create new chat
+
+Press Ctrl+C to stop the server
+[14:10:09] "POST /poll HTTP/1.1" 200 -
+[14:10:09] "POST /send HTTP/1.1" 200 -
+[14:10:09] "POST /reset HTTP/1.1" 200 -
+[14:10:09] "POST /new_chat HTTP/1.1" 200 -

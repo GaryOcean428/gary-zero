@@ -502,7 +502,7 @@ function drawKvps(container, kvps, latex) {
   if (kvps) {
     const table = document.createElement("table");
     table.classList.add("msg-kvps");
-    for (let [key, value] of Object.entries(kvps)) {
+    for (const [key, value] of Object.entries(kvps)) {
       const row = table.insertRow();
       row.classList.add("kvps-row");
       if (key === "thoughts" || key === "reflection")
@@ -641,7 +641,7 @@ function convertPathsToLinks(str) {
     if (!parts[0]) parts.shift();
     let conc = "";
     let html = "";
-    for (let part of parts) {
+    for (const part of parts) {
       conc += "/" + part;
       html += `/<a href="#" class="path-link" onclick="openFileLink('${conc}');">${part}</a>`;
     }

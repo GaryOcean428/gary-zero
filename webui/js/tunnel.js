@@ -5,6 +5,7 @@ document.addEventListener('alpine:init', () => {
         tunnelLink: '',
         linkGenerated: false,
         loadingText: '',
+        isStopping: false,
 
         init() {
             this.checkTunnelStatus();
@@ -254,8 +255,8 @@ document.addEventListener('alpine:init', () => {
         async stopTunnel() {
             if (confirm("Are you sure you want to stop the tunnel? The URL will no longer be accessible.")) {
                 this.isLoading = true;
+                this.isStopping = true;
                 this.loadingText = 'Stopping tunnel...';
-                
                 
                 try {
                     // Call the backend to stop the tunnel
@@ -280,22 +281,13 @@ document.addEventListener('alpine:init', () => {
                         window.toast("Tunnel stopped successfully", "success", 3000);
                     } else {
                         window.toast("Failed to stop tunnel", "error", 3000);
-                        
-                        // Reset stop button
-                        stopButton.innerHTML = originalStopContent;
-                        stopButton.disabled = false;
-                        stopButton.classList.remove('stopping');
                     }
                 } catch (error) {
                     window.toast("Error stopping tunnel", "error", 3000);
                     console.error("Error stopping tunnel:", error);
-                    
-                    // Reset stop button
-                    stopButton.innerHTML = originalStopContent;
-                    stopButton.disabled = false;
-                    stopButton.classList.remove('stopping');
                 } finally {
                     this.isLoading = false;
+                    this.isStopping = false;
                     this.loadingText = '';
                 }
             }

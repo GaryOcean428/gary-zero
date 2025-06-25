@@ -197,12 +197,12 @@ export async function loadComponents(roots = [document.documentElement]) {
 // Function to traverse parents and collect x-component attributes
 export function getParentAttributes(el) {
   let element = el;
-  let attrs = {};
+  const attrs = {};
 
   while (element) {
     if (element.tagName.toLowerCase() === 'x-component') {
       // Get all attributes
-      for (let attr of element.attributes) {
+      for (const attr of element.attributes) {
         try {
           // Try to parse as JSON first
           attrs[attr.name] = JSON.parse(attr.value);

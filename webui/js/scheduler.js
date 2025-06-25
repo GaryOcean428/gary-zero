@@ -491,7 +491,7 @@ const fullComponentImplementation = function() {
             // Always initialize schedule to prevent UI errors
             // All task types need this structure for the form to work properly
             if (!this.editingTask.schedule || typeof this.editingTask.schedule === 'string') {
-                let scheduleObj = {
+                const scheduleObj = {
                     minute: '*',
                     hour: '*',
                     day: '*',
