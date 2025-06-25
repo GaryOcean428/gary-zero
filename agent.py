@@ -17,12 +17,12 @@ from langchain_core.prompts import ChatPromptTemplate
 
 # Local application imports
 import models
-import zero.helpers.log as Log
-from zero.helpers import dirty_json, errors, extract_tools, files, history, tokens
-from zero.helpers.defer import DeferredTask
-from zero.helpers.dirty_json import DirtyJson
-from zero.helpers.localization import Localization
-from zero.helpers.print_style import PrintStyle
+import framework.helpers.log as Log
+from framework.helpers import dirty_json, errors, extract_tools, files, history, tokens
+from framework.helpers.defer import DeferredTask
+from framework.helpers.dirty_json import DirtyJson
+from framework.helpers.localization import Localization
+from framework.helpers.print_style import PrintStyle
 
 # Apply nest_asyncio to allow nested event loops
 nest_asyncio.apply()
@@ -706,7 +706,7 @@ class Agent:
 
             # Try getting tool from MCP first
             try:
-                import zero.helpers.mcp_handler as mcp_helper
+                import framework.helpers.mcp_handler as mcp_helper
 
                 mcp_tool_candidate = mcp_helper.MCPConfig.get_instance().get_tool(self, tool_name)
                 if mcp_tool_candidate:
@@ -762,20 +762,20 @@ class Agent:
             pass
 
     def get_tool(self, name: str, method: str | None, args: dict, message: str, **kwargs):
-        from zero.helpers.tool import Tool
-        from zero.tools.unknown import Unknown
+        from framework.helpers.tool import Tool
+        from framework.tools.unknown import Unknown
 
-        classes = extract_tools.load_classes_from_folder("zero/tools", name + ".py", Tool)
+        classes = extract_tools.load_classes_from_folder("framework/tools", name + ".py", Tool)
         tool_class = classes[0] if classes else Unknown
         return tool_class(
             agent=self, name=name, method=method, args=args, message=message, **kwargs
         )
 
     async def call_extensions(self, folder: str, **kwargs) -> Any:
-        from zero.helpers.extension import Extension
+        from framework.helpers.extension import Extension
 
         classes = extract_tools.load_classes_from_folder(
-            "zero/extensions/" + folder, "*", Extension
+            "framework/extensions/" + folder, "*", Extension
         )
         for cls in classes:
             await cls(agent=self).execute(**kwargs)

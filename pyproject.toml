@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.9"
 
 [tool.setuptools.packages.find]
-where = ["python"]
+where = ["framework"]
 include = ["*"]
 exclude = ["tests*", "webui*", "docker*", "docs*", "lib*", "logs*", "memory*", "prompts*", "knowledge*", "instruments*", "tmp*"]
 
@@ -63,7 +63,7 @@ ignore = [
 ]
 
 # isort configuration
-isort = { known-first-party = ["python"], section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"] }
+isort = { known-first-party = ["framework"], section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"] }
 
 # McCabe complexity
 mccabe = { max-complexity = 10 }

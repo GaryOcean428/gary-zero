@@ -4,16 +4,16 @@ import logging
 
 # Third-party imports
 import models
-import zero.helpers.mcp_handler as mcp_helper
+import framework.helpers.mcp_handler as mcp_helper
 
 # Local application imports
 from agent import AgentConfig, ModelConfig
-from zero.helpers import persist_chat, runtime, settings
-from zero.helpers.defer import DeferredTask
-from zero.helpers.job_loop import run_loop as job_loop_run_loop
-from zero.helpers.mcp_handler import initialize_mcp as mcp_init_servers
-from zero.helpers.print_style import PrintStyle
-from zero.helpers.settings_types import Settings
+from framework.helpers import persist_chat, runtime, settings
+from framework.helpers.defer import DeferredTask
+from framework.helpers.job_loop import run_loop as job_loop_run_loop
+from framework.helpers.mcp_handler import initialize_mcp as mcp_init_servers
+from framework.helpers.print_style import PrintStyle
+from framework.helpers.settings_types import Settings
 
 logger = logging.getLogger(__name__)
 

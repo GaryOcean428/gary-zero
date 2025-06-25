@@ -25,9 +25,9 @@ from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from pydantic.v1.types import SecretStr
 
-from zero.helpers import dotenv, runtime
-from zero.helpers.dotenv import load_dotenv
-from zero.helpers.rate_limiter import RateLimiter
+from framework.helpers import dotenv, runtime
+from framework.helpers.dotenv import load_dotenv
+from framework.helpers.rate_limiter import RateLimiter
 
 # environment variables
 load_dotenv()
