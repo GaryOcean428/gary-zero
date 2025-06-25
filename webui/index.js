@@ -19,7 +19,6 @@ let autoScroll = true;
 let context = "";
 let connectionStatus = false
 
-
 // Initialize the toggle button
 setupSidebarToggle();
 // Initialize tabs
@@ -270,7 +269,7 @@ window.loadKnowledge = async function () {
     input.onchange = async () => {
         try{
         const formData = new FormData();
-        for (let file of input.files) {
+        for (const file of input.files) {
             formData.append('files[]', file);
         }
 
@@ -321,8 +320,8 @@ window.sendJsonData = sendJsonData
 
 function generateGUID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        var r = Math.random() * 16 | 0;
-        var v = c === 'x' ? r : (r & 0x3 | 0x8);
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
     });
 }
@@ -396,101 +395,53 @@ async function poll() {
 
         updateProgress(response.log_progress, response.log_progress_active)
 
-        //set ui model vars from backend
-        if (inputSection && inputSection.__x) {
+        //set ui model vars from backend - with Alpine.js safety check
+        if (inputSection && inputSection.__x && inputSection.__x.$data) {
             inputSection.__x.$data.paused = response.paused;
         }
 
         // Update status icon state
         setConnectionStatus(true)
 
-        // Update chats list and sort by created_at time (newer first)
-        const chatsAD = Alpine.$data(chatsSection);
-        const contexts = response.contexts || [];
-        chatsAD.contexts = contexts.sort((a, b) =>
-            (b.created_at || 0) - (a.created_at || 0)
-        );
-
-        // Update tasks list and sort by creation time (newer first)
-        const tasksSection = document.getElementById('tasks-section');
-        if (tasksSection) {
-            const tasksAD = Alpine.$data(tasksSection);
-            let tasks = response.tasks || [];
-
-            // Always update tasks to ensure state changes are reflected
-            if (tasks.length > 0) {
-                // Sort the tasks by creation time
-                const sortedTasks = [...tasks].sort((a, b) =>
-                    (b.created_at || 0) - (a.created_at || 0)
-                );
-
-                // Assign the sorted tasks to the Alpine data
-                tasksAD.tasks = sortedTasks;
-            } else {
-                // Make sure to use a new empty array instance
-                tasksAD.tasks = [];
+        // Update chats list and sort by created_at time (newer first) - with Alpine.js safety check
+        if (chatsSection && typeof Alpine !== 'undefined' && Alpine.$data) {
+            try {
+                const chatsAD = Alpine.$data(chatsSection);
+                if (chatsAD) {
+                    const contexts = response.contexts || [];
+                    chatsAD.contexts = contexts.sort((a, b) =>
+                        (b.created_at || 0) - (a.created_at || 0)
+                    );
+                }
+            } catch (error) {
+                console.log('Alpine.js not ready for chats section, skipping update');
             }
         }
 
-        // Make sure the active context is properly selected in both lists
-        if (context) {
-            // Update selection in the active tab
-            const activeTab = localStorage.getItem('activeTab') || 'chats';
-
-            if (activeTab === 'chats') {
-                chatsAD.selected = context;
-                localStorage.setItem('lastSelectedChat', context);
-
-                // Check if this context exists in the chats list
-                const contextExists = contexts.some(ctx => ctx.id === context);
-
-                // If it doesn't exist in the chats list but we're in chats tab, try to select the first chat
-                if (!contextExists && contexts.length > 0) {
-                    // Check if the current context is empty before creating a new one
-                    // If there's already a current context and we're just updating UI, don't automatically
-                    // create a new context by calling setContext
-                    const firstChatId = contexts[0].id;
-
-                    // Only create a new context if we're not currently in an existing context
-                    // This helps prevent duplicate contexts when switching tabs
-                    setContext(firstChatId);
-                    chatsAD.selected = firstChatId;
-                    localStorage.setItem('lastSelectedChat', firstChatId);
-                }
-            } else if (activeTab === 'tasks' && tasksSection) {
+        // Update tasks list and sort by creation time (newer first) - with Alpine.js safety check
+        const tasksSection = document.getElementById('tasks-section');
+        if (tasksSection && typeof Alpine !== 'undefined' && Alpine.$data) {
+            try {
                 const tasksAD = Alpine.$data(tasksSection);
-                tasksAD.selected = context;
-                localStorage.setItem('lastSelectedTask', context);
+                if (tasksAD) {
+                    const tasks = response.tasks || [];
 
-                // Check if this context exists in the tasks list
-                const taskExists = response.tasks?.some(task => task.id === context);
+                    // Always update tasks to ensure state changes are reflected
+                    if (tasks.length > 0) {
+                        // Sort the tasks by creation time
+                        const sortedTasks = [...tasks].sort((a, b) =>
+                            (b.created_at || 0) - (a.created_at || 0)
+                        );
 
-                // If it doesn't exist in the tasks list but we're in tasks tab, try to select the first task
-                if (!taskExists && response.tasks?.length > 0) {
-                    const firstTaskId = response.tasks[0].id;
-                    setContext(firstTaskId);
-                    tasksAD.selected = firstTaskId;
-                    localStorage.setItem('lastSelectedTask', firstTaskId);
+                        // Assign the sorted tasks to the Alpine data
+                        tasksAD.tasks = sortedTasks;
+                    } else {
+                        // Make sure to use a new empty array instance
+                        tasksAD.tasks = [];
+                    }
                 }
-            }
-        } else if (response.tasks && response.tasks.length > 0 && localStorage.getItem('activeTab') === 'tasks') {
-            // If we're in tasks tab with no selection but have tasks, select the first one
-            const firstTaskId = response.tasks[0].id;
-            setContext(firstTaskId);
-            if (tasksSection) {
-                const tasksAD = Alpine.$data(tasksSection);
-                tasksAD.selected = firstTaskId;
-                localStorage.setItem('lastSelectedTask', firstTaskId);
-            }
-        } else if (contexts.length > 0 && localStorage.getItem('activeTab') === 'chats') {
-            // If we're in chats tab with no selection but have chats, select the first one
-            const firstChatId = contexts[0].id;
-
-            // Only set context if we don't already have one to avoid duplicates
-            if (!context) {
-                setContext(firstChatId);
-                chatsAD.selected = firstChatId;
-                localStorage.setItem('lastSelectedChat', firstChatId);
+            } catch (error) {
+                console.log('Alpine.js not ready for tasks section, skipping update');
             }
         }
 
@@ -498,7 +449,12 @@ async function poll() {
         lastLogGuid = response.log_guid;
 
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error in polling function:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name,
+            error: error
+        });
         setConnectionStatus(false)
     }
 
@@ -775,6 +731,7 @@ window.restart = async function () {
         }
         // First try to initiate restart
         const resp = await sendJsonData("/restart", {});
+
     } catch (e) {
         // Show restarting message
         toast("Restarting...", "info", 0);
@@ -811,6 +768,93 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleDarkMode(isDarkMode);
 });
 
+// Wait for Alpine.js to be fully ready before starting polling
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded - waiting for Alpine.js and elements to be ready');
+    
+    // Wait for Alpine.js to be fully initialized
+    function waitForAlpine(callback) {
+        if (typeof Alpine !== 'undefined' && Alpine.version) {
+            console.log('Alpine.js is ready, proceeding with element initialization');
+            callback();
+        } else {
+            console.log('Waiting for Alpine.js to initialize...');
+            setTimeout(() => waitForAlpine(callback), 50);
+        }
+    }
+    
+    waitForAlpine(() => {
+        // Additional delay to ensure Alpine.js has processed all x-data components
+        setTimeout(() => {
+            // Define the elements we need
+            const requiredSelectors = {
+                leftPanel: 'left-panel',
+                rightPanel: 'right-panel',
+                container: '.container',
+                chatInput: 'chat-input',
+                sendButton: 'send-button',
+                chatHistory: 'chat-history',
+                inputSection: 'input-section',
+                statusSection: 'progress-bar-box',
+                chatsSection: 'chats-section',
+                tasksSection: 'tasks-section',
+                progressBar: 'progress-bar',
+                autoScrollSwitch: 'auto-scroll-switch',
+                timeDate: 'time-date'
+            };
+            
+            waitForElements(requiredSelectors, function(elements) {
+                // Assign elements to global variables with null checks
+                leftPanel = elements.leftPanel;
+                rightPanel = elements.rightPanel;
+                container = elements.container;
+                chatInput = elements.chatInput;
+                sendButton = elements.sendButton;
+                chatHistory = elements.chatHistory;
+                inputSection = elements.inputSection;
+                statusSection = elements.statusSection;
+                chatsSection = elements.chatsSection;
+                tasksSection = elements.tasksSection;
+                progressBar = elements.progressBar;
+                autoScrollSwitch = elements.autoScrollSwitch;
+                timeDate = elements.timeDate;
+                
+                // Setup event listeners
+                if (chatInput) {
+                    chatInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            sendMessage();
+                        }
+                    });
+                    chatInput.addEventListener('input', adjustTextareaHeight);
+                }
+
+                if (sendButton) {
+                    sendButton.addEventListener('click', sendMessage);
+                }
+
+                if (chatHistory) {
+                    chatHistory.addEventListener('scroll', updateAfterScroll);
+                }
+
+                // Setup window event listeners
+                window.addEventListener('load', handleResize);
+                window.addEventListener('resize', handleResize);
+                
+                // Initialize components
+                setupSidebarToggle();
+                setupTabs();
+                initializeActiveTab();
+                
+                console.log('UI initialization complete');
+                
+                // Start polling after Alpine.js is ready
+                startPolling();
+            });
+        }, 25); // Give time for Alpine.js to process x-data components
+    });
+});
 
 function toggleCssProperty(selector, property, value) {
     // Get the stylesheet that contains the class
@@ -961,97 +1005,6 @@ function removeClassFromElement(element, className) {
 }
 
 
-function toast(text, type = 'info', timeout = 5000) {
-    const toast = document.getElementById('toast');
-    const isVisible = toast.classList.contains('show');
-
-    // Clear any existing timeout immediately
-    if (toast.timeoutId) {
-        clearTimeout(toast.timeoutId);
-        toast.timeoutId = null;
-    }
-
-    // Function to update toast content and show it
-    const updateAndShowToast = () => {
-        // Update the toast content and type
-        const title = type.charAt(0).toUpperCase() + type.slice(1);
-        toast.querySelector('.toast__title').textContent = title;
-        toast.querySelector('.toast__message').textContent = text;
-
-        // Remove old classes and add new ones
-        toast.classList.remove('toast--success', 'toast--error', 'toast--info');
-        toast.classList.add(`toast--${type}`);
-
-        // Show/hide copy button based on toast type
-        const copyButton = toast.querySelector('.toast__copy');
-        copyButton.style.display = type === 'error' ? 'inline-block' : 'none';
-
-        // Add the close button event listener
-        const closeButton = document.querySelector('.toast__close');
-        closeButton.onclick = () => {
-            hideToast();
-        };
-
-        // Add the copy button event listener
-        copyButton.onclick = () => {
-            navigator.clipboard.writeText(text);
-            copyButton.textContent = 'Copied!';
-            setTimeout(() => {
-                copyButton.textContent = 'Copy';
-            }, 2000);
-        };
-
-        // Show the toast
-        toast.style.display = 'flex';
-        // Force a reflow to ensure the animation triggers
-        void toast.offsetWidth;
-        toast.classList.add('show');
-
-        // Set timeout if specified
-        if (timeout) {
-            const minTimeout = Math.max(timeout, 5000);
-            toast.timeoutId = setTimeout(() => {
-                hideToast();
-            }, minTimeout);
-        }
-    };
-
-    if (isVisible) {
-        // If a toast is visible, hide it first then show the new one
-        toast.classList.remove('show');
-        toast.classList.add('hide');
-
-        // Wait for hide animation to complete before showing new toast
-        setTimeout(() => {
-            toast.classList.remove('hide');
-            updateAndShowToast();
-        }, 400); // Match this with CSS transition duration
-    } else {
-        // If no toast is visible, show the new one immediately
-        updateAndShowToast();
-    }
-}
-window.toast = toast
-
-function hideToast() {
-    const toast = document.getElementById('toast');
-
-    // Clear any existing timeout
-    if (toast.timeoutId) {
-        clearTimeout(toast.timeoutId);
-        toast.timeoutId = null;
-    }
-
-    toast.classList.remove('show');
-    toast.classList.add('hide');
-
-    // Wait for the hide animation to complete before removing from display
-    setTimeout(() => {
-        toast.style.display = 'none';
-        toast.classList.remove('hide');
-    }, 400); // Match this with CSS transition duration
-}
-
 function scrollChanged(isAtBottom) {
     const inputAS = Alpine.$data(autoScrollSwitch);
     inputAS.autoScroll = isAtBottom
@@ -1087,7 +1040,12 @@ async function startPolling() {
             if (shortIntervalCount > 0) shortIntervalCount--; // Decrease the counter on each call
             nextInterval = shortIntervalCount > 0 ? shortInterval : longInterval;
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error in polling function:', {
+                message: error.message,
+                stack: error.stack,
+                name: error.name,
+                error: error
+            });
         }
 
         // Call the function again after the selected interval
@@ -1096,190 +1054,6 @@ async function startPolling() {
 
     _doPoll();
 }
-
-document.addEventListener("DOMContentLoaded", startPolling);
-
-document.addEventListener('DOMContentLoaded', () => {
-    const dragDropOverlay = document.getElementById('dragdrop-overlay');
-    const inputSection = document.getElementById('input-section');
-    let dragCounter = 0;
-
-    // Prevent default drag behaviors
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        document.addEventListener(eventName, (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-        }, false);
-    });
-
-    // Handle drag enter
-    document.addEventListener('dragenter', (e) => {
-        dragCounter++;
-        if (dragCounter === 1) {
-            Alpine.$data(dragDropOverlay).isVisible = true;
-        }
-    }, false);
-
-    // Handle drag leave
-    document.addEventListener('dragleave', (e) => {
-        dragCounter--;
-        if (dragCounter === 0) {
-            Alpine.$data(dragDropOverlay).isVisible = false;
-        }
-    }, false);
-
-    // Handle drop
-    dragDropOverlay.addEventListener('drop', (e) => {
-        dragCounter = 0;
-        Alpine.$data(dragDropOverlay).isVisible = false;
-
-        const inputAD = Alpine.$data(inputSection);
-        const files = e.dataTransfer.files;
-        handleFiles(files, inputAD);
-    }, false);
-});
-
-// Separate file handling logic to be used by both drag-drop and file input
-function handleFiles(files, inputAD) {
-    Array.from(files).forEach(file => {
-        const ext = file.name.split('.').pop().toLowerCase();
-
-            const isImage = ['jpg', 'jpeg', 'png', 'bmp'].includes(ext);
-
-            if (isImage) {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    inputAD.attachments.push({
-                        file: file,
-                        url: e.target.result,
-                        type: 'image',
-                        name: file.name,
-                        extension: ext
-                    });
-                    inputAD.hasAttachments = true;
-                };
-                reader.readAsDataURL(file);
-            } else {
-                inputAD.attachments.push({
-                    file: file,
-                    type: 'file',
-                    name: file.name,
-                    extension: ext
-                });
-                inputAD.hasAttachments = true;
-            }
-
-    });
-}
-
-// Modify the existing handleFileUpload to use the new handleFiles function
-window.handleFileUpload = function(event) {
-    const files = event.target.files;
-    const inputAD = Alpine.$data(inputSection);
-    handleFiles(files, inputAD);
-}
-
-// Function to wait for elements to be available
-function waitForElements(selectors, callback, timeout = 5000) {
-    const startTime = Date.now();
-    
-    function checkElements() {
-        const elements = {};
-        let allFound = true;
-        
-        Object.entries(selectors).forEach(([name, selector]) => {
-            const element = document.getElementById(selector) || document.querySelector(selector);
-            elements[name] = element;
-            if (!element) {
-                allFound = false;
-                console.log(`Still waiting for: ${name} (${selector})`);
-            } else {
-                console.log(`Found: ${name}`);
-            }
-        });
-        
-        if (allFound) {
-            console.log('All elements found, initializing...');
-            callback(elements);
-        } else if (Date.now() - startTime < timeout) {
-            setTimeout(checkElements, 50);
-        } else {
-            console.error('Timeout waiting for elements, proceeding with available elements');
-            callback(elements);
-        }
-    }
-    
-    checkElements();
-}
-
-// Setup event handlers once all elements are available
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOMContentLoaded - waiting for elements to be ready');
-    
-    // Define the elements we need
-    const requiredSelectors = {
-        leftPanel: 'left-panel',
-        rightPanel: 'right-panel',
-        container: '.container',
-        chatInput: 'chat-input',
-        sendButton: 'send-button',
-        chatHistory: 'chat-history',
-        inputSection: 'input-section',
-        statusSection: 'progress-bar-box',
-        chatsSection: 'chats-section',
-        tasksSection: 'tasks-section',
-        progressBar: 'progress-bar',
-        autoScrollSwitch: 'auto-scroll-switch',
-        timeDate: 'time-date'
-    };
-    
-    waitForElements(requiredSelectors, function(elements) {
-        // Assign elements to global variables
-        leftPanel = elements.leftPanel;
-        rightPanel = elements.rightPanel;
-        container = elements.container;
-        chatInput = elements.chatInput;
-        sendButton = elements.sendButton;
-        chatHistory = elements.chatHistory;
-        inputSection = elements.inputSection;
-        statusSection = elements.statusSection;
-        chatsSection = elements.chatsSection;
-        tasksSection = elements.tasksSection;
-        progressBar = elements.progressBar;
-        autoScrollSwitch = elements.autoScrollSwitch;
-        timeDate = elements.timeDate;
-        
-        // Setup event listeners
-        if (chatInput) {
-            chatInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                }
-            });
-            chatInput.addEventListener('input', adjustTextareaHeight);
-        }
-
-        if (sendButton) {
-            sendButton.addEventListener('click', sendMessage);
-        }
-
-        if (chatHistory) {
-            chatHistory.addEventListener('scroll', updateAfterScroll);
-        }
-
-        // Setup window event listeners
-        window.addEventListener('load', handleResize);
-        window.addEventListener('resize', handleResize);
-        
-        // Initialize components
-        setupSidebarToggle();
-        setupTabs();
-        initializeActiveTab();
-        
-        console.log('UI initialization complete');
-    });
-});
 
 // Setup tabs functionality
 function setupTabs() {
@@ -1489,3 +1263,310 @@ window.handleFileUploadForAlpine = function(event) {
         }
     });
 };
+
+// Function to wait for elements to be available
+function waitForElements(selectors, callback, timeout = 10000) {
+    const startTime = Date.now();
+    
+    function checkElements() {
+        const elements = {};
+        let allFound = true;
+        
+        Object.entries(selectors).forEach(([name, selector]) => {
+            let element;
+            // Check if selector starts with . or # to determine if it's a class/ID selector
+            if (selector.startsWith('.') || selector.startsWith('#')) {
+                element = document.querySelector(selector);
+            } else {
+                // Assume it's an ID if no prefix
+                element = document.getElementById(selector);
+                if (!element) {
+                    element = document.querySelector(`#${selector}`);
+                }
+            }
+            elements[name] = element;
+            if (!element) {
+                allFound = false;
+                console.log(`Still waiting for: ${name} (${selector})`);
+            } else {
+                console.log(`Found: ${name}`);
+            }
+        });
+        
+        if (allFound) {
+            console.log('All elements found, initializing...');
+            callback(elements);
+        } else if (Date.now() - startTime < timeout) {
+            setTimeout(checkElements, 100);
+        } else {
+            console.warn('Timeout waiting for some elements, proceeding with available elements');
+            // Still call callback but with partial elements
+            callback(elements);
+        }
+    }
+    
+    checkElements();
+}
+
+// Setup event handlers once all elements are available
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded - waiting for Alpine.js and elements to be ready');
+    
+    // Wait for Alpine.js to be fully loaded
+    function waitForAlpine(callback) {
+        if (window.Alpine) {
+            console.log('Alpine.js is ready, proceeding with element initialization');
+            callback();
+        } else {
+            console.log('Waiting for Alpine.js to initialize...');
+            setTimeout(() => waitForAlpine(callback), 50);
+        }
+    }
+    
+    waitForAlpine(() => {
+        // Additional delay to ensure Alpine.js has processed all x-data components
+        setTimeout(() => {
+            // Define the elements we need
+            const requiredSelectors = {
+                leftPanel: 'left-panel',
+                rightPanel: 'right-panel',
+                container: '.container',
+                chatInput: 'chat-input',
+                sendButton: 'send-button',
+                chatHistory: 'chat-history',
+                inputSection: 'input-section',
+                statusSection: 'progress-bar-box',
+                chatsSection: 'chats-section',
+                tasksSection: 'tasks-section',
+                progressBar: 'progress-bar',
+                autoScrollSwitch: 'auto-scroll-switch',
+                timeDate: 'time-date'
+            };
+            
+            waitForElements(requiredSelectors, function(elements) {
+                // Assign elements to global variables with null checks
+                leftPanel = elements.leftPanel;
+                rightPanel = elements.rightPanel;
+                container = elements.container;
+                chatInput = elements.chatInput;
+                sendButton = elements.sendButton;
+                chatHistory = elements.chatHistory;
+                inputSection = elements.inputSection;
+                statusSection = elements.statusSection;
+                chatsSection = elements.chatsSection;
+                tasksSection = elements.tasksSection;
+                progressBar = elements.progressBar;
+                autoScrollSwitch = elements.autoScrollSwitch;
+                timeDate = elements.timeDate;
+                
+                // Setup event listeners
+                if (chatInput) {
+                    chatInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            sendMessage();
+                        }
+                    });
+                    chatInput.addEventListener('input', adjustTextareaHeight);
+                }
+
+                if (sendButton) {
+                    sendButton.addEventListener('click', sendMessage);
+                }
+
+                if (chatHistory) {
+                    chatHistory.addEventListener('scroll', updateAfterScroll);
+                }
+
+                // Setup window event listeners
+                window.addEventListener('load', handleResize);
+                window.addEventListener('resize', handleResize);
+                
+                // Initialize components
+                setupSidebarToggle();
+                setupTabs();
+                initializeActiveTab();
+                
+                console.log('UI initialization complete');
+            });
+        }, 25); // Give time for Alpine.js to process x-data components
+    });
+});
+
+// Setup drag and drop functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const dragDropOverlay = document.getElementById('dragdrop-overlay');
+    const inputSection = document.getElementById('input-section');
+    let dragCounter = 0;
+
+    // Skip drag and drop setup if overlay doesn't exist
+    if (!dragDropOverlay) {
+        console.warn('Drag drop overlay element not found, skipping drag and drop setup');
+        return;
+    }
+
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        document.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        }, false);
+    });
+
+    // Handle drag enter
+    document.addEventListener('dragenter', (e) => {
+        dragCounter++;
+        if (dragCounter === 1 && dragDropOverlay) {
+            Alpine.$data(dragDropOverlay).isVisible = true;
+        }
+    }, false);
+
+    // Handle drag leave
+    document.addEventListener('dragleave', (e) => {
+        dragCounter--;
+        if (dragCounter === 0 && dragDropOverlay) {
+            Alpine.$data(dragDropOverlay).isVisible = false;
+        }
+    }, false);
+
+    // Handle drop
+    dragDropOverlay.addEventListener('drop', (e) => {
+        dragCounter = 0;
+        Alpine.$data(dragDropOverlay).isVisible = false;
+
+        const inputAD = Alpine.$data(inputSection);
+        const files = e.dataTransfer.files;
+        handleFiles(files, inputAD);
+    }, false);
+});
+
+// Separate file handling logic to be used by both drag-drop and file input
+function handleFiles(files, inputAD) {
+    Array.from(files).forEach(file => {
+        const ext = file.name.split('.').pop().toLowerCase();
+
+            const isImage = ['jpg', 'jpeg', 'png', 'bmp'].includes(ext);
+
+            if (isImage) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    inputAD.attachments.push({
+                        file: file,
+                        url: e.target.result,
+                        type: 'image',
+                        name: file.name,
+                        extension: ext
+                    });
+                    inputAD.hasAttachments = true;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                inputAD.attachments.push({
+                    file: file,
+                    type: 'file',
+                    name: file.name,
+                    extension: ext
+                });
+                inputAD.hasAttachments = true;
+            }
+
+    });
+}
+
+// Modify the existing handleFileUpload to use the new handleFiles function
+window.handleFileUpload = function(event) {
+    const files = event.target.files;
+    const inputAD = Alpine.$data(inputSection);
+    handleFiles(files, inputAD);
+}
+
+function toast(text, type = 'info', timeout = 5000) {
+    const toast = document.getElementById('toast');
+    const isVisible = toast.classList.contains('show');
+
+    // Clear any existing timeout immediately
+    if (toast.timeoutId) {
+        clearTimeout(toast.timeoutId);
+        toast.timeoutId = null;
+    }
+
+    // Function to update toast content and show it
+    const updateAndShowToast = () => {
+        // Update the toast content and type
+        const title = type.charAt(0).toUpperCase() + type.slice(1);
+        toast.querySelector('.toast__title').textContent = title;
+        toast.querySelector('.toast__message').textContent = text;
+
+        // Remove old classes and add new ones
+        toast.classList.remove('toast--success', 'toast--error', 'toast--info');
+        toast.classList.add(`toast--${type}`);
+
+        // Show/hide copy button based on toast type
+        const copyButton = toast.querySelector('.toast__copy');
+        copyButton.style.display = type === 'error' ? 'inline-block' : 'none';
+
+        // Add the close button event listener
+        const closeButton = document.querySelector('.toast__close');
+        closeButton.onclick = () => {
+            hideToast();
+        };
+
+        // Add the copy button event listener
+        copyButton.onclick = () => {
+            navigator.clipboard.writeText(text);
+            copyButton.textContent = 'Copied!';
+            setTimeout(() => {
+                copyButton.textContent = 'Copy';
+            }, 2000);
+        };
+
+        // Show the toast
+        toast.style.display = 'flex';
+        // Force a reflow to ensure the animation triggers
+        void toast.offsetWidth;
+        toast.classList.add('show');
+
+        // Set timeout if specified
+        if (timeout) {
+            const minTimeout = Math.max(timeout, 5000);
+            toast.timeoutId = setTimeout(() => {
+                hideToast();
+            }, minTimeout);
+        }
+    };
+
+    if (isVisible) {
+        // If a toast is visible, hide it first then show the new one
+        toast.classList.remove('show');
+        toast.classList.add('hide');
+
+        // Wait for hide animation to complete before showing new toast
+        setTimeout(() => {
+            toast.classList.remove('hide');
+            updateAndShowToast();
+        }, 400); // Match this with CSS transition duration
+    } else {
+        // If no toast is visible, show the new one immediately
+        updateAndShowToast();
+    }
+}
+window.toast = toast
+
+function hideToast() {
+    const toast = document.getElementById('toast');
+
+    // Clear any existing timeout
+    if (toast.timeoutId) {
+        clearTimeout(toast.timeoutId);
+        toast.timeoutId = null;
+    }
+
+    toast.classList.remove('show');
+    toast.classList.add('hide');
+
+    // Wait for the hide animation to complete before removing from display
+    setTimeout(() => {
+        toast.style.display = 'none';
+        toast.classList.remove('hide');
+    }, 400); // Match this with CSS transition duration
+}
