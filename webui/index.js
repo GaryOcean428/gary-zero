@@ -32,11 +32,11 @@ function toggleSidebar(show) {
     const overlay = document.getElementById('sidebar-overlay');
     if (typeof show === 'boolean') {
         leftPanel.classList.toggle('hidden', !show);
-        rightPanel.classList.toggle('expanded', !show);
+        rightPanel.classList.toggle('expanded', show); // Fix the toggle logic here
         overlay.classList.toggle('visible', show);
     } else {
         leftPanel.classList.toggle('hidden');
-        rightPanel.classList.toggle('expanded');
+        rightPanel.classList.toggle('expanded'); // Fix the toggle logic here
         overlay.classList.toggle('visible', !leftPanel.classList.contains('hidden'));
     }
 }
@@ -196,104 +196,6 @@ export function updateChatInput(text) {
 
     console.log('Updated chat input value:', chatInput.value);
 }
-
-function updateUserTime() {
-    // Get the current date and time
-    const now = new Date();
-    let hours = now.getHours();
-    const minutes = now.getMinutes();
-    const seconds = now.getSeconds();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-
-    // Convert to 12-hour format
-    hours = hours % 12;
-    hours = hours ? hours : 12; // the hour '0' should be '12'
-    const formattedHours = hours < 10 ? '0' + hours : hours;
-
-    // Format the time
-    const timeString = `${formattedHours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} ${ampm}`;
-
-    // Format the date
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    const dateString = now.toLocaleDateString(undefined, options);
-
-    // Safely update the HTML if element exists
-    const userTimeElement = document.getElementById('time-date');
-    if (userTimeElement) {
-        userTimeElement.innerHTML = `${timeString}<br><span id="user-date">${dateString}</span>`;
-    }
-}
-
-updateUserTime();
-setInterval(updateUserTime, 1000);
-
-
-function setMessage(id, type, heading, content, temp, kvps = null) {
-    // Search for the existing message container by id
-    let messageContainer = document.getElementById(`message-${id}`);
-
-    if (messageContainer) {
-        // Don't re-render user messages
-        if (type === 'user') {
-            return; // Skip re-rendering
-        }
-        // For other types, update the message
-        messageContainer.innerHTML = '';
-    } else {
-        // Create a new container if not found
-        const sender = type === 'user' ? 'user' : 'ai';
-        messageContainer = document.createElement('div');
-        messageContainer.id = `message-${id}`;
-        messageContainer.classList.add('message-container', `${sender}-container`);
-        if (temp) messageContainer.classList.add("message-temp");
-    }
-
-    const handler = msgs.getHandler(type);
-    handler(messageContainer, id, type, heading, content, temp, kvps);
-
-    // If the container was found, it was already in the DOM, no need to append again
-    if (!document.getElementById(`message-${id}`)) {
-        chatHistory.appendChild(messageContainer);
-    }
-
-    if (autoScroll) chatHistory.scrollTop = chatHistory.scrollHeight;
-}
-
-
-window.loadKnowledge = async function () {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.txt,.pdf,.csv,.html,.json,.md';
-    input.multiple = true;
-
-    input.onchange = async () => {
-        try{
-        const formData = new FormData();
-        for (const file of input.files) {
-            formData.append('files[]', file);
-        }
-
-        formData.append('ctxid', getContext());
-
-        const response = await fetch('/import_knowledge', {
-            method: 'POST',
-            body: formData,
-        });
-
-        if (!response.ok) {
-            toast(await response.text(), "error");
-        } else {
-            const data = await response.json();
-            toast("Knowledge files imported: " + data.filenames.join(", "), "success");
-        }
-        } catch (e) {
-            toastFetchError("Error loading knowledge", e)
-        }
-    };
-
-    input.click();
-}
-
 
 function adjustTextareaHeight() {
     chatInput.style.height = 'auto';
@@ -765,7 +667,7 @@ window.restart = async function () {
 // Modify this part
 document.addEventListener('DOMContentLoaded', () => {
     const isDarkMode = localStorage.getItem('darkMode') !== 'false';
-    toggleDarkMode(isDarkMode);
+    window.toggleDarkMode(isDarkMode);
 });
 
 // Wait for Alpine.js to be fully ready before starting polling
@@ -1261,6 +1163,7 @@ window.handleFileUploadForAlpine = function(event) {
             });
             inputAD.hasAttachments = true;
         }
+
     });
 };
 
@@ -1461,6 +1364,7 @@ function handleFiles(files, inputAD) {
                 };
                 reader.readAsDataURL(file);
             } else {
+                // Handle other file types
                 inputAD.attachments.push({
                     file: file,
                     type: 'file',
@@ -1570,3 +1474,11 @@ function hideToast() {
         toast.classList.remove('hide');
     }, 400); // Match this with CSS transition duration
 }
+
+// Export functions to window object for global access
+window.sendMessage = sendMessage;
+window.updateChatInput = updateChatInput;
+window.sendJsonData = sendJsonData;
+window.setContext = setContext;
+window.getContext = getContext;
+window.switchFromContext = switchFromContext;
