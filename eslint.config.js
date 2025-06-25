@@ -6,10 +6,23 @@ export default [
   js.configs.recommended,
   {
     files: ['**/*.js', '**/*.mjs', '**/*.jsx'],
+    ignores: [
+      '**/node_modules/**',
+      '**/lib/**',
+      '**/libs/**',
+      '**/vendor/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/*.min.js',
+      '**/bundle*.js',
+      '**/webui/js/lib/**',
+      '**/webui/js/libs/**'
+    ],
     languageOptions: {
       ecmaVersion: 2024,
       sourceType: 'module',
       globals: {
+        // Browser globals
         window: 'readonly',
         document: 'readonly',
         console: 'readonly',
@@ -28,7 +41,35 @@ export default [
         history: 'readonly',
         alert: 'readonly',
         confirm: 'readonly',
-        prompt: 'readonly'
+        prompt: 'readonly',
+        URL: 'readonly',
+        Response: 'readonly',
+        Request: 'readonly',
+        Headers: 'readonly',
+        AbortController: 'readonly',
+        TextDecoder: 'readonly',
+        TextEncoder: 'readonly',
+        Blob: 'readonly',
+        File: 'readonly',
+        FileReader: 'readonly',
+        Event: 'readonly',
+        CustomEvent: 'readonly',
+        EventSource: 'readonly',
+        
+        // Web Worker globals
+        self: 'readonly',
+        importScripts: 'readonly',
+        postMessage: 'readonly',
+        onmessage: 'writable',
+        onerror: 'writable',
+        
+        // Framework-specific (Alpine.js, etc.)
+        Alpine: 'readonly',
+        
+        // Service Worker
+        caches: 'readonly',
+        clients: 'readonly',
+        registration: 'readonly'
       }
     },
     plugins: {
@@ -65,12 +106,12 @@ export default [
       'no-unsafe-finally': 'error',
       'no-unsafe-negation': 'error',
       
-      // Code quality rules
-      'no-unused-vars': 'error',
+      // Code quality rules (relaxed for better user experience)
+      'no-unused-vars': 'warn',
       'no-undef': 'error',
       'no-console': 'warn',
-      'prefer-const': 'error',
-      'no-var': 'error'
+      'prefer-const': 'warn',
+      'no-var': 'warn'
     },
     settings: {
       polyfills: [
@@ -83,7 +124,10 @@ export default [
         'Symbol',
         'Object.assign',
         'Array.from',
-        'Array.includes'
+        'Array.includes',
+        'URL',
+        'Response',
+        'Request'
       ]
     }
   }

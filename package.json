@@ -1,6 +1,7 @@
 {
   "name": "zero",
   "version": "1.0.0",
+  "type": "module",
   "description": "AI agent framework with automated issue reporting",
   "main": "index.js",
   "directories": {
@@ -38,12 +39,6 @@
     "url": "https://github.com/GaryOcean428/gary-zero/issues"
   },
   "homepage": "https://github.com/GaryOcean428/gary-zero#readme",
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead",
-    "not ie 11"
-  ],
   "devDependencies": {
     "@eslint/js": "^9.29.0",
     "axe-core": "^4.10.3",
