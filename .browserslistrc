@@ -1,0 +1,13 @@
+# Modern browsers with good accessibility support
+> 1%
+last 2 versions
+not dead
+not ie 11
+not ie_mob 11
+not op_mini all
+
+# Specific accessibility-focused targets
+Chrome >= 88
+Firefox >= 85
+Safari >= 14
+Edge >= 88
