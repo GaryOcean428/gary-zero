@@ -538,16 +538,32 @@ class SchedulerTaskList(BaseModel):
         with self._lock:
             # Debug: check for AdHocTasks with null tokens before saving
             for task in self.tasks:
-                if isinstance(task, AdHocTask):
-                    if task.token is None or task.token == "":
-                        PrintStyle(italic=True, font_color="red", padding=False).print(
-                            f"WARNING: AdHocTask {task.name} ({task.uuid}) has a null or empty token before saving: '{task.token}'"
-                        )
-                        # Generate a new token to prevent errors
-                        task.token = str(random.randint(1000000000000000000, 9999999999999999999))
-                        PrintStyle(italic=True, font_color="red", padding=False).print(
-                            f"Fixed: Generated new token '{task.token}' for task {task.name}"
-                        )
+                if not (isinstance(task, AdHocTask) and
+                      (task.token is None or task.token == "")):
+                    continue
+
+                # Handle missing or empty token
+                PrintStyle(
+                    italic=True,
+                    font_color="red",
+                    padding=False
+                ).print(
+                    f"WARNING: AdHocTask {task.name} ({task.uuid}) has a null or "
+                    f"empty token before saving: '{task.token}'"
+                )
+
+                # Generate a new token to prevent errors
+                task.token = str(random.randint(
+                    1000000000000000000,
+                    9999999999999999999
+                ))
+                PrintStyle(
+                    italic=True,
+                    font_color="red",
+                    padding=False
+                ).print(
+                    f"Fixed: Generated new token for task {task.name}"
+                )
 
             path = get_abs_path(SCHEDULER_FOLDER, "tasks.json")
             if not exists(path):
@@ -586,7 +602,8 @@ class SchedulerTaskList(BaseModel):
         Atomically update a task by UUID using the provided updater function.
 
         The updater_func should take the task as an argument and perform any necessary updates.
-        This method ensures that the task is updated and saved atomically, preventing race conditions.
+        This method ensures that the task is updated and saved atomically, preventing race
+        conditions.
 
         Returns the updated task or None if not found.
         """
@@ -596,7 +613,8 @@ class SchedulerTaskList(BaseModel):
 
             # Find the task
             task = next(
-                (task for task in self.tasks if task.uuid == task_uuid and verify_func(task)),
+                (t for t in self.tasks
+                 if t.uuid == task_uuid and verify_func(t)),
                 None,
             )
             if task is None:
@@ -884,11 +902,15 @@ class TaskScheduler:
                 # This is critical for the polling mechanism to find and stream logs
                 # Dict operations are atomic
                 # AgentContext._contexts[context.id] = context
-                agent = context.streaming_agent or context.agent0
+                agent = (
+                    context.streaming_agent 
+                    or context.agent0
+                )
 
                 # Prepare attachment filenames for logging
                 attachment_filenames = []
                 if current_task.attachments:
+{{ ... }}
                     for attachment in current_task.attachments:
                         if os.path.exists(attachment):
                             attachment_filenames.append(attachment)
@@ -904,9 +926,21 @@ class TaskScheduler:
                                 ]:
                                     attachment_filenames.append(attachment)
                                 else:
-                                    self._printer.print(f"Skipping attachment: [{attachment}]")
-                            except Exception:
-                                self._printer.print(f"Skipping attachment: [{attachment}]")
+                                    self._printer.print(
+                                        f"Skipping attachment: "
+                                        f"[{attachment}]: Not a valid URL"
+                                    )
+                            except (ValueError, AttributeError) as e:
+                                self._printer.print(
+                                    f"Skipping invalid URL attachment "
+                                    f"[{attachment}]: {e}"
+                                )
+                            except Exception as e:
+                                self._printer.print(
+                                    f"Error processing attachment "
+                                    f"[{attachment}]: {e}"
+                                )
+                                raise
 
                 self._printer.print("User message:")
                 self._printer.print(f"> {current_task.prompt}")
@@ -1042,7 +1076,9 @@ def parse_datetime(dt_str: Optional[str]) -> Optional[datetime]:
         # Use the Localization singleton for consistent timezone handling
         return Localization.get().localtime_str_to_utc_dt(dt_str)
     except ValueError as e:
-        raise ValueError(f"Invalid datetime format: {dt_str}. Expected ISO format. Error: {e}")
+        raise ValueError(
+            f"Invalid datetime format: {dt_str}. Expected ISO format. Error: {e}"
+        ) from e
 
 
 def serialize_task_schedule(schedule: TaskSchedule) -> dict[str, str]:

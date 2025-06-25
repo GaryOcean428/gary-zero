@@ -1,14 +1,19 @@
+# Standard library imports
+# Standard library imports
 import json
 import uuid
 from collections import OrderedDict
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
+# Local application imports
 from agent import Agent, AgentConfig, AgentContext, AgentContextType
-# Lazy import to avoid circular imports
-# from initialize import initialize_agent  # Imported inside functions as needed
 from zero.helpers import files, history
 from zero.helpers.log import Log, LogItem
+
+if TYPE_CHECKING:
+    # Import for type checking only to avoid circular imports
+    from initialize import initialize_agent
 
 CHATS_FOLDER = "tmp/chats"
 LOG_SIZE = 1000
@@ -182,7 +187,7 @@ def _deserialize_context(data):
 
 def _deserialize_agents(
     agents: list[dict[str, Any]], config: AgentConfig, context: AgentContext
-):
+) -> Agent:
     """Deserialize a list of agents.
 
     Args:
@@ -191,21 +196,19 @@ def _deserialize_agents(
         context: Agent context
 
     Returns:
-        List of deserialized agents
+        The first agent in the chain, or a new agent if the list is empty
     """
-    from agent import Agent  # Moved here to avoid circular imports
-
     prev: Agent | None = None
     zero: Agent | None = None
 
-    for ag in agents:
+    for agent_data in agents:
         current = Agent(
-            number=ag["number"],
+            number=agent_data["number"],
             config=config,
             context=context,
         )
-        current.data = ag.get("data", {})
-        current.history = history.deserialize_history(ag.get("history", ""), agent=current)
+        current.data = agent_data.get("data", {})
+        current.history = history.deserialize_history(agent_data.get("history", ""), agent=current)
         if not zero:
             zero = current
 
