@@ -8,18 +8,24 @@ import framework.helpers.mcp_handler as mcp_helper
 
 # Local application imports
 from agent import AgentConfig, ModelConfig
-from framework.helpers import persist_chat, runtime, settings
+from framework.helpers import persist_chat, runtime
 from framework.helpers.defer import DeferredTask
 from framework.helpers.job_loop import run_loop as job_loop_run_loop
 from framework.helpers.mcp_handler import initialize_mcp as mcp_init_servers
 from framework.helpers.print_style import PrintStyle
-from framework.helpers.settings_types import Settings
+from framework.helpers.settings import get_settings
+from framework.helpers.settings.types import DEFAULT_SETTINGS
 
 logger = logging.getLogger(__name__)
 
 
 def initialize_agent():
-    current_settings = settings.get_settings()
+    current_settings = get_settings()
+    
+    # Merge with defaults to ensure all required keys exist
+    for key, value in DEFAULT_SETTINGS.items():
+        if key not in current_settings:
+            current_settings[key] = value
 
     # chat model from user settings
     chat_llm = ModelConfig(
@@ -78,13 +84,7 @@ def initialize_agent():
             mcp_helper.MCPConfig.update(config.mcp_servers)
         except (ValueError, RuntimeError) as e:
             error_msg = f"Failed to update MCP settings: {e}"
-            first_context = getattr(settings, "context", None)
-            if first_context and hasattr(first_context, "log"):
-                first_context.log.log(
-                    type="warning",
-                    content=error_msg,
-                    temp=False,
-                )
+            # Log warning (context not available during initialization)
             PrintStyle(
                 background_color="black",
                 font_color="red",
@@ -99,7 +99,13 @@ def initialize_agent():
 def initialize_mcp() -> DeferredTask:
     """Initialize MCP servers in a deferred task."""
     async def deferred_initialize_mcp_async():
-        current_settings = settings.get_settings()
+        current_settings = get_settings()
+        
+        # Merge with defaults to ensure all required keys exist
+        for key, value in DEFAULT_SETTINGS.items():
+            if key not in current_settings:
+                current_settings[key] = value
+                
         mcp_servers_config = current_settings.get("mcp_servers")
         if mcp_servers_config:
             # Run the synchronous mcp_init_servers in a separate thread to avoid blocking
@@ -145,7 +151,7 @@ def _args_override(config):
             setattr(config, key, value)
 
 
-def _set_runtime_config(config: AgentConfig, settings_data: Settings) -> None:
+def _set_runtime_config(config: AgentConfig, settings_data: dict) -> None:
     """Update runtime configuration from settings.
 
     Args:

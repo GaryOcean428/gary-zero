@@ -122,7 +122,7 @@ def is_dockerized() -> bool:
 
 def is_development() -> bool:
     """Check if running in development mode."""
-    return not is_dockerized()
+    return bool(get_arg("development"))
 
 
 def get_local_url() -> str:
@@ -145,7 +145,7 @@ async def call_development_function(
 
 
 async def call_development_function(
-    func: Union[Callable[..., T], Callable[..., Awaitable[T]]], *args: Any, **kwargs: Any
+    func: Callable[..., T] | Callable[..., Awaitable[T]], *args: Any, **kwargs: Any
 ) -> T:
     """Call a function either locally or remotely based on the environment."""
     if is_development():
@@ -210,7 +210,7 @@ def _get_rfc_url() -> str:
 
 
 def call_development_function_sync(
-    func: Union[Callable[..., T], Callable[..., Awaitable[T]]], *args: Any, **kwargs: Any
+    func: Callable[..., T] | Callable[..., Awaitable[T]], *args: Any, **kwargs: Any
 ) -> T:
     """Synchronously call a function that might be async."""
     result_queue: queue.Queue[T] = queue.Queue()

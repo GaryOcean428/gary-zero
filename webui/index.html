@@ -12,6 +12,12 @@
                 window.safeCall('newChat');
             }
         };
+
+        // Expose handleFileUploadForAlpine early for Alpine.js
+        window.handleFileUploadForAlpine = function(event) {
+            console.log('File upload function called early, will be replaced when index.js loads');
+            // This is a placeholder that will be replaced when index.js loads
+        };
     </script>
     <link rel="icon" type="image/svg+xml" href="public/favicon.svg">
     <link rel="stylesheet" href="css/inline-styles.css">
@@ -53,16 +59,14 @@
         };
     </script>
 
-    <!-- Load module scripts first -->
-    <script type="module" src="js/scheduler.js"></script>
-    <script type="module" src="js/speech.js"></script>
-    <script type="module" src="js/history.js"></script>
-    <script type="module" src="index.js"></script>
-
-    <!-- Then load Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.14.3/dist/cdn.min.js"></script>
-    <!-- <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script> -->
-    <script type="module" src="js/initFw.js"></script>
+    <!-- Load Alpine.js first -->
+    <script defer type="module" src="js/initFw.js"></script>
+    
+    <!-- Then load module scripts with defer to ensure DOM is ready -->
+    <script defer type="module" src="js/scheduler.js"></script>
+    <script defer type="module" src="js/speech.js"></script>
+    <script defer type="module" src="js/history.js"></script>
+    <script defer type="module" src="index.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.36.5/src-noconflict/ace.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/ace-builds@1.36.5/css/ace.min.css" rel="stylesheet">
@@ -78,7 +82,6 @@
     <script type="text/javascript" src="js/settings.js"></script>
     <script type="text/javascript" src="js/file_browser.js"></script>
     <script type="text/javascript" src="js/modal.js"></script>
-    <script type="text/javascript" src="js/tunnel.js"></script>
 </head>
 
 <body class="dark-mode">
@@ -341,15 +344,13 @@
             <!--Chat-->
             <div id="time-date-container">
                 <div id="time-date"></div>
-                <div class="status-icon" x-data="{ connected: true }">
+                <div class="status-icon">
                     <svg viewBox="0 0 30 30">
                         <!-- Connected State (filled circle) -->
-                        <circle class="connected-circle" cx="15" cy="15" r="8"
-                            x-bind:fill="connected ? '#00c340' : 'none'" x-bind:opacity="connected ? 1 : 0" />
-
+                        <circle class="connected-circle" cx="15" cy="15" r="8" fill="#00c340" opacity="1" />
                         <!-- Disconnected State (outline circle) -->
                         <circle class="disconnected-circle" cx="15" cy="15" r="12" fill="none" stroke="#e40138"
-                            stroke-width="3" x-bind:opacity="connected ? 0 : 1" />
+                            stroke-width="3" opacity="0" />
                     </svg>
                 </div>
             </div>
@@ -364,54 +365,46 @@
                 <button class="toast__copy" style="display: none;">Copy</button>
                 <button class="toast__close">Close</button>
             </div>
-            <div id="progress-bar-box" x-data="{ isSpeaking: false }" x-init="
-            // Watch the speech synthesis status to update isSpeaking
-            setInterval(() => isSpeaking = window.speech.isSpeaking(), 100)
-        ">
+            <div id="progress-bar-box">
                 <h4 id="progress-bar-h">
                     <span id="progress-bar-i">|></span><span id="progress-bar"></span>
                 </h4>
-                <h4 id="progress-bar-stop-speech" x-show="isSpeaking">
-                    <span id="stop-speech" @click="window.speech.stop()" style="cursor: pointer">Stop Speech</span>
+                <h4 id="progress-bar-stop-speech" style="display: none;">
+                    <span id="stop-speech" onclick="window.speech?.stop()" style="cursor: pointer">Stop Speech</span>
                 </h4>
             </div>
             <div id="input-section" x-data="{
                 paused: false,
                 attachments: [],
                 hasAttachments: false,
-
                 handleFileUpload(event) {
                     const files = event.target.files;
-
                     Array.from(files).forEach(file => {
                         const ext = file.name.split('.').pop().toLowerCase();
+                        const isImage = ['jpg', 'jpeg', 'png', 'bmp'].includes(ext);
 
-                            const isImage = ['jpg', 'jpeg', 'png', 'bmp'].includes(ext);
-
-                            if (isImage) {
-                                // Handle image preview
-                                const reader = new FileReader();
-                                reader.onload = e => {
-                                    this.attachments.push({
-                                        file: file,
-                                        url: e.target.result,
-                                        type: 'image',
-                                        name: file.name,
-                                        extension: ext
-                                    });
-                                    this.hasAttachments = true;
-                                };
-                                reader.readAsDataURL(file);
-                            } else {
-                                // Handle other file types
+                        if (isImage) {
+                            const reader = new FileReader();
+                            reader.onload = e => {
                                 this.attachments.push({
                                     file: file,
-                                    type: 'file',
+                                    url: e.target.result,
+                                    type: 'image',
                                     name: file.name,
                                     extension: ext
                                 });
                                 this.hasAttachments = true;
-                            }
+                            };
+                            reader.readAsDataURL(file);
+                        } else {
+                            this.attachments.push({
+                                file: file,
+                                type: 'file',
+                                name: file.name,
+                                extension: ext
+                            });
+                            this.hasAttachments = true;
+                        }
                     });
                 }
             }">

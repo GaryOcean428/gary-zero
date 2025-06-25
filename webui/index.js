@@ -13,13 +13,7 @@ window.newChat = async function() {
 
 // These will be initialized after DOM is loaded
 let leftPanel, rightPanel, container, chatInput, sendButton, chatHistory;
-const inputSection = document.getElementById('input-section');
-const statusSection = document.getElementById('status-section');
-const chatsSection = document.getElementById('chats-section');
-const tasksSection = document.getElementById('tasks-section');
-const progressBar = document.getElementById('progress-bar');
-const autoScrollSwitch = document.getElementById('auto-scroll-switch');
-const timeDate = document.getElementById('time-date-container');
+let inputSection, statusSection, chatsSection, tasksSection, progressBar, autoScrollSwitch, timeDate;
 
 let autoScroll = true;
 let context = "";
@@ -50,6 +44,10 @@ function toggleSidebar(show) {
 
 function handleResize() {
     const overlay = document.getElementById('sidebar-overlay');
+    
+    // Add null safety checks
+    if (!leftPanel || !rightPanel || !overlay) return;
+    
     if (isMobile()) {
         leftPanel.classList.add('hidden');
         rightPanel.classList.add('expanded');
@@ -529,6 +527,9 @@ function speakMessages(logs) {
 
 function updateProgress(progress, active) {
     if (!progress) progress = ""
+    
+    // Add null safety check
+    if (!progressBar) return;
 
     if (!active) {
         removeClassFromElement(progressBar, "shiny-text")
@@ -948,11 +949,15 @@ function readJsonFiles() {
 }
 
 function addClassToElement(element, className) {
-    element.classList.add(className);
+    if (element && element.classList) {
+        element.classList.add(className);
+    }
 }
 
 function removeClassFromElement(element, className) {
-    element.classList.remove(className);
+    if (element && element.classList) {
+        element.classList.remove(className);
+    }
 }
 
 
@@ -1174,43 +1179,106 @@ window.handleFileUpload = function(event) {
     handleFiles(files, inputAD);
 }
 
-// Setup event handlers once the DOM is fully loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize DOM elements
-    leftPanel = document.getElementById('left-panel');
-    rightPanel = document.getElementById('right-panel');
-    container = document.querySelector('.container');
-    chatInput = document.getElementById('chat-input');
-    sendButton = document.getElementById('send-button');
-    chatHistory = document.getElementById('chat-history');
+// Function to wait for elements to be available
+function waitForElements(selectors, callback, timeout = 5000) {
+    const startTime = Date.now();
     
-    // Setup event listeners
-    if (chatInput) {
-        chatInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
+    function checkElements() {
+        const elements = {};
+        let allFound = true;
+        
+        Object.entries(selectors).forEach(([name, selector]) => {
+            const element = document.getElementById(selector) || document.querySelector(selector);
+            elements[name] = element;
+            if (!element) {
+                allFound = false;
+                console.log(`Still waiting for: ${name} (${selector})`);
+            } else {
+                console.log(`Found: ${name}`);
             }
         });
-        chatInput.addEventListener('input', adjustTextareaHeight);
+        
+        if (allFound) {
+            console.log('All elements found, initializing...');
+            callback(elements);
+        } else if (Date.now() - startTime < timeout) {
+            setTimeout(checkElements, 50);
+        } else {
+            console.error('Timeout waiting for elements, proceeding with available elements');
+            callback(elements);
+        }
     }
-
-    if (sendButton) {
-        sendButton.addEventListener('click', sendMessage);
-    }
-
-    if (chatHistory) {
-        chatHistory.addEventListener('scroll', updateAfterScroll);
-    }
-
-    // Setup window event listeners
-    window.addEventListener('load', handleResize);
-    window.addEventListener('resize', handleResize);
     
-    // Initialize components
-    setupSidebarToggle();
-    setupTabs();
-    initializeActiveTab();
+    checkElements();
+}
+
+// Setup event handlers once all elements are available
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded - waiting for elements to be ready');
+    
+    // Define the elements we need
+    const requiredSelectors = {
+        leftPanel: 'left-panel',
+        rightPanel: 'right-panel',
+        container: '.container',
+        chatInput: 'chat-input',
+        sendButton: 'send-button',
+        chatHistory: 'chat-history',
+        inputSection: 'input-section',
+        statusSection: 'progress-bar-box',
+        chatsSection: 'chats-section',
+        tasksSection: 'tasks-section',
+        progressBar: 'progress-bar',
+        autoScrollSwitch: 'auto-scroll-switch',
+        timeDate: 'time-date'
+    };
+    
+    waitForElements(requiredSelectors, function(elements) {
+        // Assign elements to global variables
+        leftPanel = elements.leftPanel;
+        rightPanel = elements.rightPanel;
+        container = elements.container;
+        chatInput = elements.chatInput;
+        sendButton = elements.sendButton;
+        chatHistory = elements.chatHistory;
+        inputSection = elements.inputSection;
+        statusSection = elements.statusSection;
+        chatsSection = elements.chatsSection;
+        tasksSection = elements.tasksSection;
+        progressBar = elements.progressBar;
+        autoScrollSwitch = elements.autoScrollSwitch;
+        timeDate = elements.timeDate;
+        
+        // Setup event listeners
+        if (chatInput) {
+            chatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            chatInput.addEventListener('input', adjustTextareaHeight);
+        }
+
+        if (sendButton) {
+            sendButton.addEventListener('click', sendMessage);
+        }
+
+        if (chatHistory) {
+            chatHistory.addEventListener('scroll', updateAfterScroll);
+        }
+
+        // Setup window event listeners
+        window.addEventListener('load', handleResize);
+        window.addEventListener('resize', handleResize);
+        
+        // Initialize components
+        setupSidebarToggle();
+        setupTabs();
+        initializeActiveTab();
+        
+        console.log('UI initialization complete');
+    });
 });
 
 // Setup tabs functionality
@@ -1385,3 +1453,39 @@ function openTaskDetail(taskId) {
 
 // Make the function available globally
 window.openTaskDetail = openTaskDetail;
+
+// Handle file upload function for Alpine.js
+window.handleFileUploadForAlpine = function(event) {
+    const files = event.target.files;
+    const inputAD = Alpine.$data(inputSection);
+    
+    Array.from(files).forEach(file => {
+        const ext = file.name.split('.').pop().toLowerCase();
+        const isImage = ['jpg', 'jpeg', 'png', 'bmp'].includes(ext);
+
+        if (isImage) {
+            // Handle image preview
+            const reader = new FileReader();
+            reader.onload = e => {
+                inputAD.attachments.push({
+                    file: file,
+                    url: e.target.result,
+                    type: 'image',
+                    name: file.name,
+                    extension: ext
+                });
+                inputAD.hasAttachments = true;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            // Handle other file types
+            inputAD.attachments.push({
+                file: file,
+                type: 'file',
+                name: file.name,
+                extension: ext
+            });
+            inputAD.hasAttachments = true;
+        }
+    });
+};

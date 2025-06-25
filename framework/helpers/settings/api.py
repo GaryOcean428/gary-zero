@@ -8,13 +8,18 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, cast, List, Dict
 
 from framework.helpers import files
-from framework.helpers.settings.types import Settings, DEFAULT_SETTINGS
+from framework.helpers.settings.types import Settings, DEFAULT_SETTINGS, SettingsOutput, SettingsSection, SettingsField, FieldOption
 
 # Constants
 SETTINGS_FILE = files.get_abs_path("tmp/settings.json")
+MODEL_PARAMS_DESCRIPTION = (
+    """Any other parameters supported by the model. Format is KEY=VALUE """
+    """on individual lines, just like .env file."""
+)
+PASSWORD_PLACEHOLDER = "****PSWD****"
 
 
 def get_settings() -> Settings:
@@ -50,8 +55,6 @@ def set_settings(settings: Settings, apply: bool = True) -> None:
         json.dump(settings, f, indent=2)
     
     if apply:
-        # Import here to avoid circular imports
-        from framework.helpers.settings import _apply_settings
         _apply_settings(settings)
 
 
@@ -65,3 +68,70 @@ def set_settings_delta(delta: dict[str, Any], apply: bool = True) -> None:
     current = get_settings()
     updated = {**current, **delta}
     set_settings(cast(Settings, updated), apply=apply)
+
+
+def convert_out(settings: Settings) -> SettingsOutput:
+    """Convert settings to UI format.
+    
+    Args:
+        settings: The settings to convert
+        
+    Returns:
+        Settings formatted for the UI
+    """
+    # Import models here to avoid circular imports
+    try:
+        import models
+        ModelProvider = models.ModelProvider
+    except ImportError:
+        # Fallback if models not available
+        class ModelProvider:
+            @classmethod
+            def __iter__(cls):
+                return iter([])
+
+    # Main model section
+    chat_model_fields: List[SettingsField] = []
+    chat_model_fields.append({
+        "id": "chat_model_provider",
+        "title": "Chat model provider",
+        "description": "Select provider for main chat model used by Gary-Zero",
+        "type": "select",
+        "value": settings["chat_model_provider"],
+        "options": [{"value": p.name, "label": p.value} for p in ModelProvider],
+    })
+    
+    chat_model_fields.append({
+        "id": "chat_model_name",
+        "title": "Chat model name",
+        "description": "Exact name of model from selected provider",
+        "type": "text",
+        "value": settings["chat_model_name"],
+    })
+
+    chat_model_section: SettingsSection = {
+        "id": "chat_model",
+        "title": "Chat Model",
+        "description": "Selection and settings for main chat model used by Gary-Zero",
+        "fields": chat_model_fields,
+        "tab": "agent",
+    }
+
+    # Add the section to the result
+    result: SettingsOutput = {
+        "sections": [
+            chat_model_section,
+        ]
+    }
+    return result
+
+
+def _apply_settings(settings: Settings) -> None:
+    """Apply settings to the running application.
+    
+    Args:
+        settings: The settings to apply
+    """
+    # For now, this is a placeholder
+    # In the future, this would update the running application
+    pass

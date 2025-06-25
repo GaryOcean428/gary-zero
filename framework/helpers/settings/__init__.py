@@ -13,11 +13,12 @@ if TYPE_CHECKING:
 
 # Re-export the public API
 from .types import Settings  # noqa: F401
-from .api import get_settings, set_settings, set_settings_delta  # noqa: F401
+from .api import get_settings, set_settings, set_settings_delta, convert_out  # noqa: F401
 
 __all__ = [
     'Settings',
     'get_settings',
     'set_settings',
     'set_settings_delta',
+    'convert_out',
 ]

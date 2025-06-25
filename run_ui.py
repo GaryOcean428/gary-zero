@@ -142,6 +142,23 @@ async def serve_index():
     )
 
 
+# handle favicon requests
+@webapp.route("/favicon.ico", methods=["GET"])
+async def serve_favicon():
+    """Serve the favicon file."""
+    try:
+        # Try to serve the SVG favicon as ICO (browsers will handle it)
+        favicon_path = get_abs_path("./webui/public/favicon.svg")
+        if os.path.exists(favicon_path):
+            return webapp.send_static_file("public/favicon.svg")
+        else:
+            # Return a 204 No Content if favicon doesn't exist
+            return Response("", 204)
+    except Exception:
+        # Return a 204 No Content on any error
+        return Response("", 204)
+
+
 def run():
     """Run the Flask server."""
     PrintStyle().print("Initializing framework...")

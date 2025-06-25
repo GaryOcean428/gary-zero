@@ -202,12 +202,17 @@ class BaseTask(BaseModel):
                     self.updated_at = datetime.now(timezone.utc)
 
     def check_schedule(self, frequency_seconds: float = 60.0) -> bool:
+        """Check if task should run based on schedule. Override in subclasses."""
+        # frequency_seconds parameter is used by subclasses
+        del frequency_seconds  # Acknowledge the parameter to avoid unused warning
         return False
 
     def get_next_run(self) -> datetime | None:
+        """Get next scheduled run time. Override in subclasses."""
         return None
 
     def get_next_run_minutes(self) -> int | None:
+        """Get minutes until next run. Works with overridden get_next_run()."""
         next_run = self.get_next_run()
         if next_run is None:
             return None
@@ -321,13 +326,13 @@ class ScheduledTask(BaseTask):
         schedule: TaskSchedule,
         attachments: list[str] = None,
         context_id: str | None = None,
-        timezone: str | None = None,
+        task_timezone: str | None = None,
     ):
         # Set timezone in schedule if provided
         if attachments is None:
             attachments = []
-        if timezone is not None:
-            schedule.timezone = timezone
+        if task_timezone is not None:
+            schedule.timezone = task_timezone
         else:
             schedule.timezone = Localization.get().get_timezone()
 
@@ -538,30 +543,18 @@ class SchedulerTaskList(BaseModel):
         with self._lock:
             # Debug: check for AdHocTasks with null tokens before saving
             for task in self.tasks:
-                if not (isinstance(task, AdHocTask) and
-                      (task.token is None or task.token == "")):
+                if not (isinstance(task, AdHocTask) and (task.token is None or task.token == "")):
                     continue
 
                 # Handle missing or empty token
-                PrintStyle(
-                    italic=True,
-                    font_color="red",
-                    padding=False
-                ).print(
+                PrintStyle(italic=True, font_color="red", padding=False).print(
                     f"WARNING: AdHocTask {task.name} ({task.uuid}) has a null or "
                     f"empty token before saving: '{task.token}'"
                 )
 
                 # Generate a new token to prevent errors
-                task.token = str(random.randint(
-                    1000000000000000000,
-                    9999999999999999999
-                ))
-                PrintStyle(
-                    italic=True,
-                    font_color="red",
-                    padding=False
-                ).print(
+                task.token = str(random.randint(1000000000000000000, 9999999999999999999))
+                PrintStyle(italic=True, font_color="red", padding=False).print(
                     f"Fixed: Generated new token for task {task.name}"
                 )
 
@@ -613,8 +606,7 @@ class SchedulerTaskList(BaseModel):
 
             # Find the task
             task = next(
-                (t for t in self.tasks
-                 if t.uuid == task_uuid and verify_func(t)),
+                (t for t in self.tasks if t.uuid == task_uuid and verify_func(t)),
                 None,
             )
             if task is None:
@@ -811,7 +803,7 @@ class TaskScheduler:
 
         # Import here to avoid circular imports
         from initialize import initialize_agent
-        
+
         config = initialize_agent()
         context: AgentContext = AgentContext(config, id=task.context_id, name=task.name)
         # context.id = task.context_id
@@ -845,7 +837,8 @@ class TaskScheduler:
     ):
         if context.id != task.context_id:
             raise ValueError(
-                f"Context ID mismatch for task {task.name}: context {context.id} != task {task.context_id}"
+                f"Context ID mismatch for task {task.name}: "
+                f"context {context.id} != task {task.context_id}"
             )
         save_tmp_chat(context)
 
@@ -878,7 +871,8 @@ class TaskScheduler:
             )
             if not current_task:
                 self._printer.print(
-                    f"Scheduler Task with UUID '{task_uuid}' not found or updated by another process"
+                    f"Scheduler Task with UUID '{task_uuid}' not found or "
+                    "updated by another process"
                 )
                 return
             if current_task.state != TaskState.RUNNING:
@@ -902,15 +896,11 @@ class TaskScheduler:
                 # This is critical for the polling mechanism to find and stream logs
                 # Dict operations are atomic
                 # AgentContext._contexts[context.id] = context
-                agent = (
-                    context.streaming_agent 
-                    or context.agent0
-                )
+                agent = context.streaming_agent or context.agent0
 
                 # Prepare attachment filenames for logging
                 attachment_filenames = []
                 if current_task.attachments:
-{{ ... }}
                     for attachment in current_task.attachments:
                         if os.path.exists(attachment):
                             attachment_filenames.append(attachment)
@@ -927,18 +917,15 @@ class TaskScheduler:
                                     attachment_filenames.append(attachment)
                                 else:
                                     self._printer.print(
-                                        f"Skipping attachment: "
-                                        f"[{attachment}]: Not a valid URL"
+                                        f"Skipping attachment: " f"[{attachment}]: Not a valid URL"
                                     )
                             except (ValueError, AttributeError) as e:
                                 self._printer.print(
-                                    f"Skipping invalid URL attachment "
-                                    f"[{attachment}]: {e}"
+                                    f"Skipping invalid URL attachment " f"[{attachment}]: {e}"
                                 )
                             except Exception as e:
                                 self._printer.print(
-                                    f"Error processing attachment "
-                                    f"[{attachment}]: {e}"
+                                    f"Error processing attachment " f"[{attachment}]: {e}"
                                 )
                                 raise
 
@@ -994,22 +981,14 @@ class TaskScheduler:
                     )
                     await self.update_task(task_uuid, state=TaskState.IDLE)
 
-            except Exception as e:
-                # Error
+            except (RuntimeError, ValueError, OSError) as e:
+                # Error - catch specific exceptions that are likely during task execution
                 self._printer.print(f"Scheduler Task '{current_task.name}' failed: {e}")
                 await current_task.on_error(str(e))
-
-                # Explicitly verify task was updated in storage after error
-                await self._tasks.reload()
-                updated_task = self.get_task_by_uuid(task_uuid)
-                if updated_task and updated_task.state != TaskState.ERROR:
-                    self._printer.print(
-                        f"Fixing task state consistency: '{current_task.name}' state is not ERROR after failure"
-                    )
-                    await self.update_task(task_uuid, state=TaskState.ERROR)
-
-                if agent:
-                    agent.handle_critical_exception(e)
+            except Exception as e:
+                # Catch-all for unexpected errors
+                self._printer.print(f"Scheduler Task '{current_task.name}' unexpected error: {e}")
+                await current_task.on_error(str(e))
             finally:
                 # Call on_finish for task-specific cleanup
                 await current_task.on_finish()
@@ -1163,7 +1142,7 @@ def parse_task_plan(plan_data: dict[str, Any]) -> TaskPlan:
         done_dates_cast: list[datetime] = cast(list[datetime], done_dates)
 
         return TaskPlan.create(todo=todo_dates_cast, in_progress=in_progress, done=done_dates_cast)
-    except Exception as e:
+    except (KeyError, ValueError, TypeError) as e:
         PrintStyle(italic=True, font_color="red", padding=False).print(
             f"Error parsing task plan: {e}"
         )
