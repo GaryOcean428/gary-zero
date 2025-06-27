@@ -26,7 +26,6 @@ from framework.helpers.task_models import (
     TaskState,
 )
 from framework.helpers.task_serialization import deserialize_task, serialize_tasks
-from initialize import initialize_agent
 
 SCHEDULER_FOLDER = "tmp/scheduler"
 
@@ -325,6 +324,7 @@ class TaskScheduler:
         self, task: Union[ScheduledTask, AdHocTask, PlannedTask]
     ) -> AgentContext:
         """Create a new agent context for task execution."""
+        from initialize import initialize_agent
         agent = initialize_agent()
         
         context = AgentContext(
@@ -340,6 +340,7 @@ class TaskScheduler:
     ) -> AgentContext:
         """Get or create chat context for the task."""
         try:
+            from initialize import initialize_agent
             agent = initialize_agent()
             context = agent.load_context(task.context_id)
             
