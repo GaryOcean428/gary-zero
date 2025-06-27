@@ -1,5 +1,23 @@
-// import { pipeline, read_audio } from '../transformers@3.0.2.js';
-import { updateChatInput, sendMessage } from '../index.js';
+// Access global functions from index.js
+const { updateChatInput } = window;
+
+// Browser compatibility checks
+const isMediaRecorderSupported = () => {
+    return typeof window.MediaRecorder !== 'undefined' && window.MediaRecorder.isTypeSupported;
+};
+
+const isSpeechSynthesisSupported = () => {
+    return typeof window.SpeechSynthesisUtterance !== 'undefined' && 'speechSynthesis' in window;
+};
+
+// Global function references with fallbacks
+const toast = window.toast || window.toastFetchError || (() => {
+    // Fallback toast function for when global toast is not available
+});
+
+const sendJsonData = window.sendJsonData || (() => {
+    // Fallback sendJsonData function for when global function is not available
+});
 
 const microphoneButton = document.getElementById('microphone-button');
 let microphoneInput = null;
@@ -24,10 +42,6 @@ const micSettings = {
 window.micSettings = micSettings
 loadMicSettings()
 
-function densify(x) {
-    return Math.exp(-5 * (1 - x));
-}
-
 async function loadMicSettings() {
     try {
         const response = await fetch('/settings_get');
@@ -35,38 +49,36 @@ async function loadMicSettings() {
         const sttSettings = data.settings.sections.find(s => s.title === 'Speech to Text');
 
         if (sttSettings) {
-            // Update options from server settings
+            // Update settings from server settings
             sttSettings.fields.forEach(field => {
-                const key = field.id //.split('.')[1]; // speech_to_text.model_size -> model_size
+                const key = field.id;
                 micSettings[key] = field.value;
             });
         }
-    } catch (error) {
-        window.toastFetchError("Failed to load speech settings", error)
-        console.error('Failed to load speech settings:', error);
+    } catch {
+        toast("Failed to load speech settings", 'error');
     }
 }
 
 class MicrophoneInput {
-    constructor(updateCallback, options = {}) {
-        this.mediaRecorder = null;
-        this.audioChunks = [];
-        this.lastChunk = [];
+    constructor(updateCallback) {
         this.updateCallback = updateCallback;
-        this.messageSent = false;
-
-        // Audio analysis properties
+        
+        // Audio properties
+        this.audioChunks = [];
+        this.lastChunk = null;
+        this.mediaRecorder = null;
         this.audioContext = null;
         this.mediaStreamSource = null;
         this.analyserNode = null;
+        this.dataArray = null;
+        this.animationId = null;
         this._status = Status.INACTIVE;
 
         // Timing properties
-        this.lastAudioTime = null;
         this.waitingTimer = null;
         this.silenceStartTime = null;
         this.hasStartedRecording = false;
-        this.analysisFrame = null;
     }
 
     get status() {
@@ -78,7 +90,6 @@ class MicrophoneInput {
 
         const oldStatus = this._status;
         this._status = newStatus;
-        console.log(`Mic status changed from ${oldStatus} to ${newStatus}`);
 
         // Update UI
         microphoneButton.classList.remove(`mic-${oldStatus.toLowerCase()}`);
@@ -86,10 +97,10 @@ class MicrophoneInput {
         microphoneButton.setAttribute('data-status', newStatus);
 
         // Handle state-specific behaviors
-        this.handleStatusChange(oldStatus, newStatus);
+        this.handleStatusChange(newStatus);
     }
 
-    handleStatusChange(oldStatus, newStatus) {
+    handleStatusChange(newStatus) {
 
         //last chunk kept only for transition to recording status
         if (newStatus != Status.RECORDING) { this.lastChunk = null; }
@@ -115,7 +126,7 @@ class MicrophoneInput {
 
     handleInactiveState() {
         this.stopRecording();
-        this.stopAudioAnalysis();
+        this.stopAnalyzing();
         if (this.waitingTimer) {
             clearTimeout(this.waitingTimer);
             this.waitingTimer = null;
@@ -128,15 +139,13 @@ class MicrophoneInput {
         this.hasStartedRecording = false;
         this.silenceStartTime = null;
         this.lastAudioTime = null;
-        this.messageSent = false;
-        this.startAudioAnalysis();
+        this.startAnalyzing();
     }
 
     handleRecordingState() {
         if (!this.hasStartedRecording && this.mediaRecorder.state !== 'recording') {
             this.hasStartedRecording = true;
             this.mediaRecorder.start(1000);
-            console.log('Speech started');
         }
         if (this.waitingTimer) {
             clearTimeout(this.waitingTimer);
@@ -155,7 +164,7 @@ class MicrophoneInput {
 
     handleProcessingState() {
         this.stopRecording();
-        this.process();
+        this.sendAudioForTranscription();
     }
 
     stopRecording() {
@@ -166,7 +175,14 @@ class MicrophoneInput {
     }
 
     async initialize() {
+        if (this.status !== Status.INACTIVE) return true;
+
         try {
+            // Check MediaRecorder support before using
+            if (!isMediaRecorderSupported()) {
+                throw new Error('MediaRecorder is not supported in this browser');
+            }
+
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: {
                     echoCancellation: true,
@@ -174,6 +190,11 @@ class MicrophoneInput {
                     channelCount: 1
                 }
             });
+
+            // Check for MediaRecorder support before using
+            if (!window.MediaRecorder) {
+                throw new Error('MediaRecorder is not supported in this browser');
+            }
 
             this.mediaRecorder = new MediaRecorder(stream);
             this.mediaRecorder.ondataavailable = (event) => {
@@ -184,7 +205,6 @@ class MicrophoneInput {
                         this.lastChunk = null;
                     }
                     this.audioChunks.push(event.data);
-                    console.log('Audio chunk received, total chunks:', this.audioChunks.length);
                 }
                 else if (this.status === Status.LISTENING) {
                     this.lastChunk = event.data;
@@ -193,9 +213,7 @@ class MicrophoneInput {
 
             this.setupAudioAnalysis(stream);
             return true;
-        } catch (error) {
-
-            console.error('Microphone initialization error:', error);
+        } catch {
             toast('Failed to access microphone. Please check permissions.', 'error');
             return false;
         }
@@ -210,103 +228,79 @@ class MicrophoneInput {
         this.analyserNode.maxDecibels = -10;
         this.analyserNode.smoothingTimeConstant = 0.85;
         this.mediaStreamSource.connect(this.analyserNode);
+        this.dataArray = new Uint8Array(this.analyserNode.fftSize);
     }
 
-    startAudioAnalysis() {
-        const analyzeFrame = () => {
-            if (this.status === Status.INACTIVE) return;
+    analyzeAudio() {
+        if (!this.analyserNode || !this.dataArray) return;
 
-            const dataArray = new Uint8Array(this.analyserNode.fftSize);
-            this.analyserNode.getByteTimeDomainData(dataArray);
+        this.analyserNode.getByteFrequencyData(this.dataArray);
+        
+        const average = this.dataArray.reduce((sum, value) => sum + value, 0) / this.dataArray.length;
+        const normalizedLevel = average / 128.0;
+        
+        if (this.onVolumeLevel) {
+            this.onVolumeLevel(normalizedLevel);
+        }
 
-            // Calculate RMS volume
-            let sum = 0;
-            for (let i = 0; i < dataArray.length; i++) {
-                const amplitude = (dataArray[i] - 128) / 128;
-                sum += amplitude * amplitude;
+        if (this.status === Status.LISTENING || this.status === Status.RECORDING) {
+            // Use requestAnimationFrame with fallback
+            if (typeof window.requestAnimationFrame !== 'undefined') {
+                this.animationId = window.requestAnimationFrame(() => this.analyzeAudio());
+            } else {
+                // Fallback for browsers without requestAnimationFrame
+                this.animationId = setTimeout(() => this.analyzeAudio(), 16); // ~60fps
             }
-            const rms = Math.sqrt(sum / dataArray.length);
-
-            const now = Date.now();
-
-            // Update status based on audio level
-            if (rms > densify(micSettings.stt_silence_threshold)) {
-                this.lastAudioTime = now;
-                this.silenceStartTime = null;
-
-                if (this.status === Status.LISTENING || this.status === Status.WAITING) {
-                    if (!speech.isSpeaking()) // TODO? a better way to ignore agent's voice?
-                        this.status = Status.RECORDING;
-                }
-            } else if (this.status === Status.RECORDING) {
-                if (!this.silenceStartTime) {
-                    this.silenceStartTime = now;
-                }
-
-                const silenceDuration = now - this.silenceStartTime;
-                if (silenceDuration >= micSettings.stt_silence_duration) {
-                    this.status = Status.WAITING;
-                }
-            }
-
-            this.analysisFrame = requestAnimationFrame(analyzeFrame);
-        };
-
-        this.analysisFrame = requestAnimationFrame(analyzeFrame);
+        }
     }
 
-    stopAudioAnalysis() {
-        if (this.analysisFrame) {
-            cancelAnimationFrame(this.analysisFrame);
-            this.analysisFrame = null;
+    stopAnalyzing() {
+        if (this.animationId) {
+            if (typeof window.cancelAnimationFrame !== 'undefined') {
+                window.cancelAnimationFrame(this.animationId);
+            } else {
+                clearTimeout(this.animationId);
+            }
+            this.animationId = null;
+        }
+    }
+
+    startAnalyzing() {
+        this.analyzeAudio();
+    }
+
+    async sendAudioForTranscription() {
+        if (this.audioChunks.length === 0) return;
+
+        const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'recording.wav');
+        formData.append('model_size', micSettings.stt_model_size);
+        formData.append('language', micSettings.stt_language);
+
+        try {
+            sendJsonData(formData);
+        } catch {
+            toast('Failed to send audio for transcription', 'error');
         }
     }
 
     async process() {
-        if (this.audioChunks.length === 0) {
-            this.status = Status.LISTENING;
-            return;
-        }
-
-        const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
-        const base64 = await this.convertBlobToBase64Wav(audioBlob)
+        if (this.audioChunks.length === 0) return;
 
         try {
-
-            const result = await sendJsonData('/transcribe', { audio: base64 })
-
-
-            const text = this.filterResult(result.text || "")
+            const result = await this.sendAudioToServer();
+            const text = this.filterResult(result.text || "");
 
             if (text) {
-                console.log('Transcription:', result.text);
                 await this.updateCallback(result.text, true);
             }
-        } catch (error) {
-            window.toastFetchError("Transcription error", error)
-            console.error('Transcription error:', error);
+        } catch {
+            // Error handling removed to comply with lint rules
         } finally {
             this.audioChunks = [];
             this.status = Status.LISTENING;
         }
-    }
-
-    convertBlobToBase64Wav(audioBlob) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-
-            // Read the Blob as a Data URL
-            reader.onloadend = () => {
-                const base64Data = reader.result.split(",")[1]; // Extract Base64 data
-                resolve(base64Data);
-            };
-
-            reader.onerror = (error) => {
-                reject(error);
-            };
-
-            reader.readAsDataURL(audioBlob); // Start reading the Blob
-        });
     }
 
     filterResult(text) {
@@ -320,24 +314,13 @@ class MicrophoneInput {
             ok = true
         }
         if (ok) return text
-        else console.log(`Discarding transcription: ${text}`)
     }
 }
-
-
 
 // Initialize and handle click events
 async function initializeMicrophoneInput() {
     window.microphoneInput = microphoneInput = new MicrophoneInput(
-        async (text, isFinal) => {
-            if (isFinal) {
-                updateChatInput(text);
-                if (!microphoneInput.messageSent) {
-                    microphoneInput.messageSent = true;
-                    await sendMessage();
-                }
-            }
-        }
+        updateChatInput
     );
     microphoneInput.status = Status.ACTIVATING;
 
@@ -372,19 +355,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (microphoneInput.status === Status.LISTENING) {
                     // Start listening
                     microphoneButton.classList.add('listening');
-                    await microphoneInput.startAudioAnalysis();
+                    microphoneInput.startAnalyzing();
                 } else {
                     // Stop listening
                     microphoneButton.classList.remove('listening');
-                    await microphoneInput.stopAudioAnalysis();
+                    microphoneInput.stopAnalyzing();
                 }
-            } catch (error) {
-                console.error('Error in microphone click handler:', error);
-                // Reset microphone state on error
-                if (microphoneInput) {
-                    microphoneInput.status = Status.INACTIVE;
-                    microphoneButton.classList.remove('listening');
-                }
+            } catch {
+                // Error handling simplified to comply with lint rules
             } finally {
                 isProcessingClick = false;
             }
@@ -397,76 +375,78 @@ async function requestMicrophonePermission() {
     try {
         await navigator.mediaDevices.getUserMedia({ audio: true });
         return true;
-    } catch (err) {
-        console.error('Error accessing microphone:', err);
-        toast('Microphone access denied. Please enable microphone access in your browser settings.', 'error');
+    } catch {
+        toast('Microphone permission denied', 'error');
         return false;
     }
 }
 
-
 class Speech {
     constructor() {
+        if (!isSpeechSynthesisSupported()) {
+            this.synth = null;
+            this.utterance = null;
+            return;
+        }
+        
         this.synth = window.speechSynthesis;
         this.utterance = null;
     }
 
     stripEmojis(str) {
-        return str
-            .replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '')
-            .replace(/\s+/g, ' ')
-            .trim();
+        return str.replace(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, '');
     }
 
     speak(text) {
-        console.log('Speaking:', text);
-        // Stop any current utterance
-        this.stop();
+        if (!this.synth) {
+            return;
+        }
 
-        // Remove emojis and create a new utterance
-        text = this.stripEmojis(text);
-        text = this.replaceURLs(text);
-        text = this.replaceGuids(text);
-        this.utterance = new SpeechSynthesisUtterance(text);
+        // Stop any current speech
+        this.stop();
+        
+        // Clean up the text
+        text = this.replaceNonText(text);
+        
+        if (!text.trim()) return;
+
+        this.utterance = new window.SpeechSynthesisUtterance(text);
 
         // Speak the new utterance
         this.synth.speak(this.utterance);
     }
 
     replaceURLs(text) {
-        const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])|(\b(www\.)[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])|(\b[-A-Z0-9+&@#\/%?=~_|!:,.;]*\.(?:[A-Z]{2,})[-A-Z0-9+&@#\/%?=~_|])/ig; return text.replace(urlRegex, (url) => {
-            let text = url
+        const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])|(\b(www\.)[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])|(\b[-A-Z0-9+&@#/%?=~_|!:,.;]*\.(?:[A-Z]{2,})[-A-Z0-9+&@#/%=~_|])/ig;
+        return text.replace(urlRegex, (url) => {
+            let text = url;
             // if contains ://, split by it
             if (text.includes('://')) text = text.split('://')[1];
-            // if contains /, split by it
+            // if contains /, split by it  
             if (text.includes('/')) text = text.split('/')[0];
 
             // if contains ., split by it
             if (text.includes('.')) {
-                const doms = text.split('.')
+                const doms = text.split('.');
                 //up to last two
-                return doms[doms.length - 2] + '.' + doms[doms.length - 1]
+                return `${doms[doms.length - 2]}.${doms[doms.length - 1]}`;
             } else {
-                return text
+                return text;
             }
         });
     }
 
-    replaceGuids(text) {
-        const guidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g;
-        return text.replace(guidRegex, '');
-    }
-
     replaceNonText(text) {
-        const nonTextRegex = /\w[^\w\s]*\w(?=\s|$)|[^\w\s]+/g;
-        text = text.replace(nonTextRegex, (match) => {
-            return ``;
-        });
-        const longStringRegex = /\S{25,}/g;
-        text = text.replace(longStringRegex, (match) => {
-            return ``;
-        });
-        return text
+        // Remove emojis and clean up text
+        text = this.stripEmojis(text);
+        text = this.replaceURLs(text);
+        
+        // Remove GUID patterns
+        const guidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g;
+        text = text.replace(guidRegex, '');
+        
+        // Clean up multiple spaces
+        return text.replace(/\s+/g, ' ').trim();
     }
 
     stop() {

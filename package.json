@@ -11,15 +11,18 @@
   "scripts": {
     "lint": "eslint 'webui/**/*.js' --report-unused-disable-directives",
     "lint:fix": "eslint 'webui/**/*.js' --fix",
+    "biome:check": "biome check .",
+    "biome:fix": "biome check --write .",
+    "format": "biome format --write .",
     "accessibility": "pa11y-ci --sitemap http://localhost:8080/sitemap.xml || pa11y http://localhost:8080",
     "accessibility:webui": "pa11y 'webui/**/*.html'",
     "security": "npm audit",
     "security:report": "npm audit --audit-level moderate --json > security-report.json && npm-audit-html --input security-report.json --output security-report.html",
     "lighthouse": "lighthouse http://localhost:8080 --output-path=./lighthouse-report.html --output=html --view",
     "lighthouse:ci": "lighthouse http://localhost:8080 --output-path=./lighthouse-report.json --output=json",
-    "check:all": "npm run lint && npm run security && npm run accessibility:webui",
+    "check:all": "npm run lint && npm run biome:check && npm run security && npm run accessibility:webui",
     "report:all": "npm run lint > lint-report.txt 2>&1; npm run security:report; npm run accessibility:webui > accessibility-report.txt 2>&1; echo 'All reports generated!'",
-    "fix:all": "npm run lint:fix && npm audit fix",
+    "fix:all": "npm run lint:fix && npm run biome:fix && npm audit fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -40,13 +43,14 @@
   },
   "homepage": "https://github.com/GaryOcean428/gary-zero#readme",
   "devDependencies": {
+    "@biomejs/biome": "^2.0.5",
     "@eslint/js": "^9.29.0",
     "axe-core": "^4.10.3",
     "eslint": "^9.29.0",
     "eslint-plugin-compat": "^6.0.2",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "lighthouse": "^12.6.1",
-    "npm-audit-html": "^1.5.0",
+    "npm-audit-html": "^1.4.1",
     "pa11y": "^9.0.0"
   }
 }

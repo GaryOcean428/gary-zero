@@ -8,10 +8,17 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Any, cast, List, Dict
+from typing import Any, cast
 
 from framework.helpers import files
-from framework.helpers.settings.types import Settings, DEFAULT_SETTINGS, SettingsOutput, SettingsSection, SettingsField, FieldOption
+from framework.helpers.settings.types import (
+    DEFAULT_SETTINGS,
+    FieldOption,
+    Settings,
+    SettingsField,
+    SettingsOutput,
+    SettingsSection,
+)
 
 # Constants
 SETTINGS_FILE = files.get_abs_path("tmp/settings.json")
@@ -91,7 +98,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
                 return iter([])
 
     # Main model section
-    chat_model_fields: List[SettingsField] = []
+    chat_model_fields: list[SettingsField] = []
     chat_model_fields.append({
         "id": "chat_model_provider",
         "title": "Chat model provider",
@@ -128,7 +135,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
 
 def _apply_settings(settings: Settings) -> None:
     """Apply settings to the running application.
-    
+
     Args:
         settings: The settings to apply
     """

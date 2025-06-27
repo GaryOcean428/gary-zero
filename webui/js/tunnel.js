@@ -61,8 +61,8 @@ document.addEventListener('alpine:init', () => {
                         this.linkGenerated = false;
                     }
                 }
-            } catch (error) {
-                console.error('Error checking tunnel status:', error);
+            } catch {
+                // Error checking tunnel status - reset state
                 this.tunnelLink = '';
                 this.linkGenerated = false;
             }
@@ -94,17 +94,16 @@ document.addEventListener('alpine:init', () => {
                     // Check if stopping was successful
                     const stopData = await stopResponse.json();
                     if (!stopData.success) {
-                        console.warn("Warning: Couldn't stop existing tunnel cleanly");
                         // Continue anyway since we want to create a new one
                     }
                     
                     // Then generate a new one
                     await this.generateLink();
-                } catch (error) {
-                    console.error("Error refreshing tunnel:", error);
-                    window.toast("Error refreshing tunnel", "error", 3000);
+                } catch {
+                    // Error generating tunnel link
                     this.isLoading = false;
-                    this.loadingText = '';
+                    this.tunnelLink = '';
+                    this.linkGenerated = false;
                 } finally {
                     // Reset refresh button
                     refreshButton.innerHTML = originalContent;
@@ -153,8 +152,7 @@ document.addEventListener('alpine:init', () => {
                         return; // User cancelled
                     }
                 }
-            } catch (error) {
-                console.error("Error checking authentication status:", error);
+            } catch {
                 // Continue anyway if we can't check auth status
             }
             
@@ -226,18 +224,21 @@ document.addEventListener('alpine:init', () => {
                             window.toast("Tunnel created successfully", "success", 3000);
                             return;
                         }
-                    } catch (statusError) {
-                        console.error("Error checking tunnel status:", statusError);
+                    } catch {
+                        // Error accessing tunnel status
+                        this.tunnelLink = '';
+                        this.linkGenerated = false;
                     }
                     
                     // If we get here, the tunnel really failed to start
                     const errorMessage = data.message || "Failed to create tunnel. Please try again.";
                     window.toast(errorMessage, "error", 5000);
-                    console.error("Tunnel creation failed:", data);
                 }
-            } catch (error) {
-                window.toast("Error creating tunnel", "error", 5000);
-                console.error("Error creating tunnel:", error);
+            } catch {
+                // Error generating tunnel link
+                this.isLoading = false;
+                this.tunnelLink = '';
+                this.linkGenerated = false;
             } finally {
                 this.isLoading = false;
                 this.loadingText = '';
@@ -282,9 +283,9 @@ document.addEventListener('alpine:init', () => {
                     } else {
                         window.toast("Failed to stop tunnel", "error", 3000);
                     }
-                } catch (error) {
-                    window.toast("Error stopping tunnel", "error", 3000);
-                    console.error("Error stopping tunnel:", error);
+                } catch {
+                    // Error stopping tunnel
+                    this.isLoading = false;
                 } finally {
                     this.isLoading = false;
                     this.isStopping = false;
@@ -293,41 +294,19 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
-        copyToClipboard() {
-            if (!this.tunnelLink) return;
-            
-            const copyButton = document.querySelector('.copy-link-button');
-            const originalContent = copyButton.innerHTML;
-            
-            navigator.clipboard.writeText(this.tunnelLink)
-                .then(() => {
-                    // Update button to show success state
-                    copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                    copyButton.classList.add('copy-success');
-                    
-                    // Show toast notification
-                    window.toast("Tunnel URL copied to clipboard!", "success", 3000);
-                    
-                    // Reset button after 2 seconds
-                    setTimeout(() => {
-                        copyButton.innerHTML = originalContent;
-                        copyButton.classList.remove('copy-success');
-                    }, 2000);
-                })
-                .catch(err => {
-                    console.error('Failed to copy URL: ', err);
-                    window.toast("Failed to copy tunnel URL", "error", 3000);
-                    
-                    // Show error state
-                    copyButton.innerHTML = '<i class="fas fa-times"></i> Failed';
-                    copyButton.classList.add('copy-error');
-                    
-                    // Reset button after 2 seconds
-                    setTimeout(() => {
-                        copyButton.innerHTML = originalContent;
-                        copyButton.classList.remove('copy-error');
-                    }, 2000);
-                });
+        async copyToClipboard() {
+            try {
+                await navigator.clipboard.writeText(this.tunnelLink);
+                // Successfully copied to clipboard
+            } catch {
+                // Fallback for older browsers or restricted environments
+                const textArea = document.createElement('textarea');
+                textArea.value = this.tunnelLink;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+            }
         }
     }));
 }); 

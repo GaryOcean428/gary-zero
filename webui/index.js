@@ -1,6 +1,53 @@
 import * as msgs from "./js/messages.js";
 import { speech } from "./js/speech.js";
 
+// Message handling function
+export function setMessage(id, type, heading, content, temp, kvps = null) {
+    if (!chatHistory) {
+        console.error('Chat history element not available');
+        return;
+    }
+
+    // Remove existing message with same ID if it exists
+    const existingMessage = chatHistory.querySelector(`[data-message-id="${id}"]`);
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+
+    // Create message container
+    const messageContainer = document.createElement('div');
+    messageContainer.setAttribute('data-message-id', id);
+    messageContainer.classList.add('message-container');
+
+    // Add temporary message styling
+    if (temp) {
+        messageContainer.classList.add('message-temp');
+    }
+
+    // Get the appropriate message handler from messages.js
+    const handler = msgs.getHandler(type);
+    if (handler) {
+        handler(messageContainer, id, type, heading, content, temp, kvps);
+    } else {
+        console.warn(`No handler found for message type: ${type}`);
+        // Fallback to default handler
+        msgs.drawMessageDefault(messageContainer, id, type, heading, content, temp, kvps);
+    }
+
+    // Append to chat history
+    chatHistory.appendChild(messageContainer);
+
+    // Auto-scroll if enabled
+    if (autoScroll) {
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+
+    return messageContainer;
+}
+
+// Make setMessage available globally
+window.setMessage = setMessage;
+
 // Global functions that need to be available early for Alpine.js
 window.newChat = async function() {
     try {
@@ -672,91 +719,178 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Wait for Alpine.js to be fully ready before starting polling
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOMContentLoaded - waiting for Alpine.js and elements to be ready');
+    console.log('DOMContentLoaded - waiting for Alpine.js to be ready');
     
-    // Wait for Alpine.js to be fully initialized
-    function waitForAlpine(callback) {
-        if (typeof Alpine !== 'undefined' && Alpine.version) {
-            console.log('Alpine.js is ready, proceeding with element initialization');
-            callback();
+    // Wait for Alpine.js to finish initialization
+    waitForAlpineAndInitialize();
+});
+
+function waitForAlpineAndInitialize() {
+    // Check if Alpine.js is available and has finished initialization
+    if (typeof Alpine !== 'undefined' && document.readyState === 'complete') {
+        // Give Alpine.js a moment to process all x-data directives
+        setTimeout(() => {
+            initializeUIWithAlpine();
+        }, 500);
+    } else {
+        // Keep checking until Alpine.js is ready
+        setTimeout(waitForAlpineAndInitialize, 100);
+    }
+}
+
+function initializeUIWithAlpine() {
+    console.log('Starting Alpine.js-aware UI initialization...');
+    
+    // Define the elements we need with more robust selectors
+    const requiredSelectors = {
+        leftPanel: 'left-panel',
+        rightPanel: 'right-panel', 
+        container: '.container',
+        chatInput: 'chat-input',
+        sendButton: 'send-button',
+        chatHistory: 'chat-history',
+        inputSection: 'input-section',
+        statusSection: 'progress-bar-box',
+        chatsSection: 'chats-section',
+        tasksSection: 'tasks-section',
+        progressBar: 'progress-bar',
+        autoScrollSwitch: 'auto-scroll-switch',
+        timeDate: 'time-date'
+    };
+    
+    // Find elements with improved detection that works with Alpine.js
+    const elements = {};
+    const missingElements = [];
+    
+    Object.entries(requiredSelectors).forEach(([name, selector]) => {
+        let element = null;
+        
+        // Try multiple selection methods
+        if (selector.startsWith('.') || selector.startsWith('#')) {
+            element = document.querySelector(selector);
         } else {
-            console.log('Waiting for Alpine.js to initialize...');
-            setTimeout(() => waitForAlpine(callback), 50);
+            // Try as ID first
+            element = document.getElementById(selector);
+            // If not found, try as selector
+            if (!element) {
+                element = document.querySelector(`#${selector}`);
+            }
         }
+        
+        elements[name] = element;
+        if (!element) {
+            missingElements.push(name);
+            console.warn(`Element not found: ${name} (${selector})`);
+        } else {
+            console.log(`Found: ${name}`);
+        }
+    });
+    
+    // Assign elements to global variables
+    leftPanel = elements.leftPanel;
+    rightPanel = elements.rightPanel;
+    container = elements.container;
+    chatInput = elements.chatInput;
+    sendButton = elements.sendButton;
+    chatHistory = elements.chatHistory;
+    inputSection = elements.inputSection;
+    statusSection = elements.statusSection;
+    chatsSection = elements.chatsSection;
+    tasksSection = elements.tasksSection;
+    progressBar = elements.progressBar;
+    autoScrollSwitch = elements.autoScrollSwitch;
+    timeDate = elements.timeDate;
+    
+    // Log what we found
+    if (missingElements.length > 0) {
+        console.warn('Missing elements after Alpine.js initialization:', missingElements);
+        
+        // For elements that are still missing, try alternative approaches
+        if (!rightPanel) {
+            console.log('Right panel still missing, trying alternative selector...');
+            rightPanel = document.querySelector('[id="right-panel"]') || document.querySelector('#right-panel');
+        }
+        
+        if (!chatInput) {
+            console.log('Chat input still missing, trying alternative selector...');
+            chatInput = document.querySelector('[id="chat-input"]') || document.querySelector('#chat-input');
+        }
+        
+        if (!sendButton) {
+            console.log('Send button still missing, trying alternative selector...');
+            sendButton = document.querySelector('[id="send-button"]') || document.querySelector('#send-button');
+        }
+        
+        if (!chatHistory) {
+            console.log('Chat history still missing, trying alternative selector...');
+            chatHistory = document.querySelector('[id="chat-history"]') || document.querySelector('#chat-history');
+        }
+        
+        if (!inputSection) {
+            console.log('Input section still missing, trying alternative selector...');
+            inputSection = document.querySelector('[id="input-section"]') || document.querySelector('#input-section');
+        }
+        
+    } else {
+        console.log('All required elements found!');
     }
     
-    waitForAlpine(() => {
-        // Additional delay to ensure Alpine.js has processed all x-data components
-        setTimeout(() => {
-            // Define the elements we need
-            const requiredSelectors = {
-                leftPanel: 'left-panel',
-                rightPanel: 'right-panel',
-                container: '.container',
-                chatInput: 'chat-input',
-                sendButton: 'send-button',
-                chatHistory: 'chat-history',
-                inputSection: 'input-section',
-                statusSection: 'progress-bar-box',
-                chatsSection: 'chats-section',
-                tasksSection: 'tasks-section',
-                progressBar: 'progress-bar',
-                autoScrollSwitch: 'auto-scroll-switch',
-                timeDate: 'time-date'
-            };
-            
-            waitForElements(requiredSelectors, function(elements) {
-                // Assign elements to global variables with null checks
-                leftPanel = elements.leftPanel;
-                rightPanel = elements.rightPanel;
-                container = elements.container;
-                chatInput = elements.chatInput;
-                sendButton = elements.sendButton;
-                chatHistory = elements.chatHistory;
-                inputSection = elements.inputSection;
-                statusSection = elements.statusSection;
-                chatsSection = elements.chatsSection;
-                tasksSection = elements.tasksSection;
-                progressBar = elements.progressBar;
-                autoScrollSwitch = elements.autoScrollSwitch;
-                timeDate = elements.timeDate;
-                
-                // Setup event listeners
-                if (chatInput) {
-                    chatInput.addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            sendMessage();
-                        }
-                    });
-                    chatInput.addEventListener('input', adjustTextareaHeight);
-                }
-
-                if (sendButton) {
-                    sendButton.addEventListener('click', sendMessage);
-                }
-
-                if (chatHistory) {
-                    chatHistory.addEventListener('scroll', updateAfterScroll);
-                }
-
-                // Setup window event listeners
-                window.addEventListener('load', handleResize);
-                window.addEventListener('resize', handleResize);
-                
-                // Initialize components
-                setupSidebarToggle();
-                setupTabs();
-                initializeActiveTab();
-                
-                console.log('UI initialization complete');
-                
-                // Start polling after Alpine.js is ready
-                startPolling();
-            });
-        }, 25); // Give time for Alpine.js to process x-data components
+    // Setup event listeners for available elements
+    setupEventListeners();
+    
+    // Initialize components
+    setupSidebarToggle();
+    setupTabs();
+    initializeActiveTab();
+    
+    console.log('UI initialization complete - elements available:', {
+        leftPanel: !!leftPanel,
+        rightPanel: !!rightPanel,
+        chatInput: !!chatInput,
+        sendButton: !!sendButton,
+        chatHistory: !!chatHistory,
+        inputSection: !!inputSection
     });
-});
+    
+    // Start polling
+    startPolling();
+}
+
+function setupEventListeners() {
+    // Chat input event listeners
+    if (chatInput) {
+        console.log('Setting up chat input event listeners');
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        chatInput.addEventListener('input', adjustTextareaHeight);
+    } else {
+        console.error('Chat input element not found - cannot set up event listeners');
+    }
+
+    // Send button event listener
+    if (sendButton) {
+        console.log('Setting up send button event listener');
+        sendButton.addEventListener('click', sendMessage);
+    } else {
+        console.error('Send button element not found - cannot set up event listener');
+    }
+
+    // Chat history scroll listener
+    if (chatHistory) {
+        console.log('Setting up chat history scroll listener');
+        chatHistory.addEventListener('scroll', updateAfterScroll);
+    } else {
+        console.error('Chat history element not found - cannot set up scroll listener');
+    }
+
+    // Window event listeners
+    window.addEventListener('load', handleResize);
+    window.addEventListener('resize', handleResize);
+}
 
 function toggleCssProperty(selector, property, value) {
     // Get the stylesheet that contains the class
@@ -1167,134 +1301,6 @@ window.handleFileUploadForAlpine = function(event) {
     });
 };
 
-// Function to wait for elements to be available
-function waitForElements(selectors, callback, timeout = 10000) {
-    const startTime = Date.now();
-    
-    function checkElements() {
-        const elements = {};
-        let allFound = true;
-        
-        Object.entries(selectors).forEach(([name, selector]) => {
-            let element;
-            // Check if selector starts with . or # to determine if it's a class/ID selector
-            if (selector.startsWith('.') || selector.startsWith('#')) {
-                element = document.querySelector(selector);
-            } else {
-                // Assume it's an ID if no prefix
-                element = document.getElementById(selector);
-                if (!element) {
-                    element = document.querySelector(`#${selector}`);
-                }
-            }
-            elements[name] = element;
-            if (!element) {
-                allFound = false;
-                console.log(`Still waiting for: ${name} (${selector})`);
-            } else {
-                console.log(`Found: ${name}`);
-            }
-        });
-        
-        if (allFound) {
-            console.log('All elements found, initializing...');
-            callback(elements);
-        } else if (Date.now() - startTime < timeout) {
-            setTimeout(checkElements, 100);
-        } else {
-            console.warn('Timeout waiting for some elements, proceeding with available elements');
-            // Still call callback but with partial elements
-            callback(elements);
-        }
-    }
-    
-    checkElements();
-}
-
-// Setup event handlers once all elements are available
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOMContentLoaded - waiting for Alpine.js and elements to be ready');
-    
-    // Wait for Alpine.js to be fully loaded
-    function waitForAlpine(callback) {
-        if (window.Alpine) {
-            console.log('Alpine.js is ready, proceeding with element initialization');
-            callback();
-        } else {
-            console.log('Waiting for Alpine.js to initialize...');
-            setTimeout(() => waitForAlpine(callback), 50);
-        }
-    }
-    
-    waitForAlpine(() => {
-        // Additional delay to ensure Alpine.js has processed all x-data components
-        setTimeout(() => {
-            // Define the elements we need
-            const requiredSelectors = {
-                leftPanel: 'left-panel',
-                rightPanel: 'right-panel',
-                container: '.container',
-                chatInput: 'chat-input',
-                sendButton: 'send-button',
-                chatHistory: 'chat-history',
-                inputSection: 'input-section',
-                statusSection: 'progress-bar-box',
-                chatsSection: 'chats-section',
-                tasksSection: 'tasks-section',
-                progressBar: 'progress-bar',
-                autoScrollSwitch: 'auto-scroll-switch',
-                timeDate: 'time-date'
-            };
-            
-            waitForElements(requiredSelectors, function(elements) {
-                // Assign elements to global variables with null checks
-                leftPanel = elements.leftPanel;
-                rightPanel = elements.rightPanel;
-                container = elements.container;
-                chatInput = elements.chatInput;
-                sendButton = elements.sendButton;
-                chatHistory = elements.chatHistory;
-                inputSection = elements.inputSection;
-                statusSection = elements.statusSection;
-                chatsSection = elements.chatsSection;
-                tasksSection = elements.tasksSection;
-                progressBar = elements.progressBar;
-                autoScrollSwitch = elements.autoScrollSwitch;
-                timeDate = elements.timeDate;
-                
-                // Setup event listeners
-                if (chatInput) {
-                    chatInput.addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            sendMessage();
-                        }
-                    });
-                    chatInput.addEventListener('input', adjustTextareaHeight);
-                }
-
-                if (sendButton) {
-                    sendButton.addEventListener('click', sendMessage);
-                }
-
-                if (chatHistory) {
-                    chatHistory.addEventListener('scroll', updateAfterScroll);
-                }
-
-                // Setup window event listeners
-                window.addEventListener('load', handleResize);
-                window.addEventListener('resize', handleResize);
-                
-                // Initialize components
-                setupSidebarToggle();
-                setupTabs();
-                initializeActiveTab();
-                
-                console.log('UI initialization complete');
-            });
-        }, 25); // Give time for Alpine.js to process x-data components
-    });
-});
 
 // Setup drag and drop functionality
 document.addEventListener('DOMContentLoaded', function() {

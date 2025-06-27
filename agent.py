@@ -8,7 +8,7 @@ from collections.abc import Awaitable, Coroutine
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Callable, Dict
+from typing import Any, Callable
 
 # Third-party imports
 import nest_asyncio
@@ -17,10 +17,9 @@ from langchain_core.prompts import ChatPromptTemplate
 
 # Local application imports
 import models
-import framework.helpers.log as Log
 from framework.helpers import dirty_json, errors, extract_tools, files, history, tokens
+from framework.helpers import log as Log
 from framework.helpers.defer import DeferredTask
-from framework.helpers.dirty_json import DirtyJson
 from framework.helpers.localization import Localization
 from framework.helpers.print_style import PrintStyle
 
@@ -179,23 +178,39 @@ class AgentContext:
         self.task.start_task(func, *args, **kwargs)
         return self.task
 
-    # this wrapper ensures that superior agents are called back if the chat was loaded from file and original callstack is gone
+    # this wrapper ensures that superior agents are called back if the chat was
+    # loaded from file and original callstack is gone
     async def _process_chain(self, agent: "Agent", msg: "UserMessage|str", user=True):
         try:
-            msg_template = (
+            if user:
                 agent.hist_add_user_message(msg)  # type: ignore
-                if user
-                else agent.hist_add_tool_result(
+            else:
+                agent.hist_add_tool_result(
                     tool_name="call_subordinate", tool_result=msg  # type: ignore
                 )
-            )
             response = await agent.monologue()  # type: ignore
             superior = agent.data.get(Agent.DATA_NAME_SUPERIOR, None)
             if superior:
                 response = await self._process_chain(superior, response, False)  # type: ignore
             return response
+        except InterventionException:
+            pass  # intervention message has been handled in handle_intervention(),
+                 # proceed with conversation loop
+        except RepairableException as e:
+            # Forward repairable errors to the LLM, maybe it can fix them
+            error_message = errors.format_error(e)
+            agent.hist_add_warning(error_message)
+            PrintStyle(font_color="red", padding=True).print(error_message)
+            self.context.log.log(type="error", content=error_message)
         except Exception as e:
+            # Other exception kill the loop
             agent.handle_critical_exception(e)
+
+    async def message_loop(self, msg: str) -> dict[str, Any]:
+        pass
+
+    def __repr__(self):
+        return f"AgentContext(id={self.id}, name={self.name})"
 
 
 @dataclass
@@ -207,7 +222,7 @@ class ModelConfig:
     limit_input: int = 0
     limit_output: int = 0
     vision: bool = False
-    kwargs: dict = field(default_factory=dict)
+    kwargs: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -237,7 +252,7 @@ class AgentConfig:
     code_exec_ssh_port: int = 55022
     code_exec_ssh_user: str = "root"
     code_exec_ssh_pass: str = ""
-    additional: Dict[str, Any] = field(default_factory=dict)
+    additional: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -347,7 +362,8 @@ class Agent:
 
                         if (
                             self.loop_data.last_response == agent_response
-                        ):  # if assistant_response is the same as last message in history, let him know
+                        ):  # if assistant_response is the same as last message in history,
+                            # let him know
                             # Append the assistant's response to the history
                             self.hist_add_ai_response(agent_response)
                             # Append warning message to the history
@@ -366,7 +382,8 @@ class Agent:
 
                     # exceptions inside message loop:
                     except InterventionException:
-                        pass  # intervention message has been handled in handle_intervention(), proceed with conversation loop
+                        pass  # intervention message has been handled in handle_intervention(),
+                             # proceed with conversation loop
                     except RepairableException as e:
                         # Forward repairable errors to the LLM, maybe it can fix them
                         error_message = errors.format_error(e)
@@ -711,10 +728,6 @@ class Agent:
                 mcp_tool_candidate = mcp_helper.MCPConfig.get_instance().get_tool(self, tool_name)
                 if mcp_tool_candidate:
                     tool = mcp_tool_candidate
-            except ImportError:
-                PrintStyle(background_color="black", font_color="yellow", padding=True).print(
-                    "MCP helper module not found. Skipping MCP tool lookup."
-                )
             except Exception as e:
                 PrintStyle(background_color="black", font_color="red", padding=True).print(
                     f"Failed to get MCP tool '{tool_name}': {e}"
@@ -750,14 +763,14 @@ class Agent:
                 content=f"{self.agent_name}: Message misformat, no valid tool request found.",
             )
 
-    def log_from_stream(self, stream: str, logItem: Log.LogItem):
+    def log_from_stream(self, stream: str, log_item: Log.LogItem):
         try:
             if len(stream) < 25:
                 return  # no reason to try
-            response = DirtyJson.parse_string(stream)
+            response = dirty_json.parse_string(stream)
             if isinstance(response, dict):
                 # log if result is a dictionary already
-                logItem.update(content=stream, kvps=response)
+                log_item.update(content=stream, kvps=response)
         except Exception:
             pass
 
@@ -779,3 +792,6 @@ class Agent:
         )
         for cls in classes:
             await cls(agent=self).execute(**kwargs)
+
+    async def message_loop(self, msg: str) -> dict[str, Any]:
+        pass

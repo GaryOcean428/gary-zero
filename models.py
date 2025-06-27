@@ -411,10 +411,12 @@ def get_deepseek_chat(
         v1_secret_key = get_api_key("deepseek")
         if v1_secret_key:
             final_api_key_for_constructor = SecretStr(v1_secret_key.get_secret_value())
-    # If api_key was already a SecretStr (e.g. from get_api_key if logic changes), assume it's v1 and convert
+    # If api_key was already a SecretStr (e.g. from get_api_key if logic changes), 
+    # assume it's v1 and convert
     elif hasattr(api_key, "get_secret_value"):
         final_api_key_for_constructor = SecretStr(api_key.get_secret_value())
-    # else: api_key might be an already correctly-typed v2 SecretStr, or an unexpected type. Let it pass.
+    # else: api_key might be an already correctly-typed v2 SecretStr, 
+    # or an unexpected type. Let it pass.
 
     if not base_url:
         base_url = dotenv.get_dotenv_value("DEEPSEEK_BASE_URL") or "https://api.deepseek.com"

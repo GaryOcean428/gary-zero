@@ -2,7 +2,7 @@
 
 This module contains all type definitions used across the settings system.
 """
-from typing import Any, Literal, TypedDict, Optional, Dict, List, Union
+from typing import Any, Literal, Optional, TypedDict, Union
 
 
 class FieldOption(TypedDict):
@@ -25,7 +25,7 @@ class SettingsField(TypedDict, total=False):
     max: float
     step: float
     hidden: bool
-    options: List[FieldOption]
+    options: list[FieldOption]
 
 
 class SettingsSection(TypedDict, total=False):
@@ -33,13 +33,13 @@ class SettingsSection(TypedDict, total=False):
     id: str
     title: str
     description: str
-    fields: List[SettingsField]
+    fields: list[SettingsField]
     tab: str  # Indicates which tab this section belongs to
 
 
 class SettingsOutput(TypedDict):
     """The complete settings structure for the UI."""
-    sections: List[SettingsSection]
+    sections: list[SettingsSection]
 
 
 class Settings(TypedDict):
@@ -47,7 +47,7 @@ class Settings(TypedDict):
     # Chat model settings
     chat_model_provider: str
     chat_model_name: str
-    chat_model_kwargs: Dict[str, str]
+    chat_model_kwargs: dict[str, str]
     chat_model_ctx_length: int
     chat_model_ctx_history: float
     chat_model_vision: bool
@@ -58,7 +58,7 @@ class Settings(TypedDict):
     # Utility model settings
     util_model_provider: str
     util_model_name: str
-    util_model_kwargs: Dict[str, str]
+    util_model_kwargs: dict[str, str]
     util_model_ctx_length: int
     util_model_ctx_history: float
     util_model_vision: bool
@@ -69,7 +69,7 @@ class Settings(TypedDict):
     # Embedding model settings
     embed_model_provider: str
     embed_model_name: str
-    embed_model_kwargs: Dict[str, str]
+    embed_model_kwargs: dict[str, str]
     embed_model_ctx_length: int
     embed_model_rl_requests: int
     embed_model_rl_input: int
@@ -77,11 +77,11 @@ class Settings(TypedDict):
     # Browser model settings
     browser_model_provider: str
     browser_model_name: str
-    browser_model_kwargs: Dict[str, str]
+    browser_model_kwargs: dict[str, str]
     browser_model_vision: bool
 
     # MCP Servers settings
-    mcp_servers: Dict[str, Any]
+    mcp_servers: dict[str, Any]
 
     # Database settings
     database_url: str
@@ -104,8 +104,6 @@ class Settings(TypedDict):
     rfc_url: str
     rfc_password: str
     rfc_auto_docker: bool
-
-    # Add other settings fields as needed
 
 
 # Default settings values that can be used across modules

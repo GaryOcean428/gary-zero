@@ -5,9 +5,9 @@
  * Runs comprehensive accessibility, compatibility, and security checks
  */
 
-import { execSync } from 'child_process';
-import fs from 'fs';
-import path from 'path';
+import { execSync } from 'node:child_process';
+import fs from 'node:fs';
+import process from 'node:process';
 
 const colors = {
   green: '\x1b[32m',
@@ -19,6 +19,7 @@ const colors = {
 };
 
 function log(message, color = '') {
+  // eslint-disable-next-line no-console
   console.log(`${color}${message}${colors.reset}`);
 }
 

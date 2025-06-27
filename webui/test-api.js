@@ -3,7 +3,6 @@ const baseUrl = 'http://localhost:8080';
 
 async function testApiEndpoint(endpoint, data) {
     try {
-        console.log(`Testing ${endpoint}...`);
         const response = await fetch(`${baseUrl}${endpoint}`, {
             method: 'POST',
             headers: {
@@ -17,16 +16,13 @@ async function testApiEndpoint(endpoint, data) {
         }
         
         const result = await response.json();
-        console.log(`✅ ${endpoint} - Success:`, result);
         return result;
-    } catch (error) {
-        console.error(`❌ ${endpoint} - Error:`, error.message);
+    } catch {
         return null;
     }
 }
 
 async function testAllEndpoints() {
-    console.log('🚀 Starting API endpoint tests...\n');
     
     // Test /poll endpoint
     await testApiEndpoint('/poll', {
@@ -48,8 +44,6 @@ async function testAllEndpoints() {
     await testApiEndpoint('/new_chat', {
         title: 'Test Chat'
     });
-    
-    console.log('\n🎉 API endpoint testing completed!');
 }
 
 // Run the tests

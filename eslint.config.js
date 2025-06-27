@@ -1,6 +1,6 @@
 import js from '@eslint/js';
-import jsxA11y from 'eslint-plugin-jsx-a11y';
 import compat from 'eslint-plugin-compat';
+import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 export default [
   js.configs.recommended,

@@ -1,0 +1,33 @@
+{
+  "timestamp": "2025-06-27T00:46:16.622Z",
+  "reports": [
+    {
+      "name": "ESLint Code Quality & Security",
+      "description": "JavaScript code quality, security, and accessibility issues",
+      "success": false,
+      "outputFile": "./reports/eslint-report-2025-06-27T00-46-16-622Z.json",
+      "hasIssues": true
+    },
+    {
+      "name": "NPM Security Audit",
+      "description": "Package vulnerability and security issues",
+      "success": false,
+      "outputFile": "./reports/security-audit-2025-06-27T00-46-16-622Z.json",
+      "hasIssues": true
+    },
+    {
+      "name": "HTML Validation",
+      "description": "HTML markup validation and accessibility",
+      "success": true,
+      "outputFile": "./reports/html-validation-2025-06-27T00-46-16-622Z.txt",
+      "hasIssues": ""
+    },
+    {
+      "name": "CSS Quality Check",
+      "description": "CSS quality and compatibility issues",
+      "success": true,
+      "outputFile": "./reports/css-quality-2025-06-27T00-46-16-622Z.txt",
+      "hasIssues": ""
+    }
+  ]
+}
