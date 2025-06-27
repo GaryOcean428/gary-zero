@@ -63,11 +63,24 @@ class SchedulerTaskList(BaseModel):
                 
                 for task_data in tasks_data:
                     try:
-                        task = deserialize_task(task_data)
-                        self.tasks.append(task)
+                        # Handle both string and dict task_data
+                        if isinstance(task_data, str):
+                            # Skip string entries that aren't valid task data
+                            continue
+                        elif isinstance(task_data, dict):
+                            task = deserialize_task(task_data)
+                            self.tasks.append(task)
+                        else:
+                            # Skip unknown data types
+                            continue
                     except Exception as e:
+                        # Get UUID safely for error reporting
+                        task_uuid = "unknown"
+                        if isinstance(task_data, dict):
+                            task_uuid = task_data.get('uuid', 'unknown')
+                        
                         PrintStyle(font_color="red", padding=True).print(
-                            f"Error loading task {task_data.get('uuid', 'unknown')}: {str(e)}"
+                            f"Error loading task {task_uuid}: {str(e)}"
                         )
                         
             except Exception as e:
@@ -253,7 +266,7 @@ class TaskScheduler:
         """Find all tasks with the given name."""
         return self._tasks.find_task_by_name(name)
 
-    def tick(self) -> None:
+    async def tick(self) -> None:
         """Check for and run due tasks."""
         due_tasks = self._tasks.get_due_tasks()
         
