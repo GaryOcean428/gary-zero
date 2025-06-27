@@ -1,9 +1,8 @@
 """Task scheduler for managing and executing scheduled, ad-hoc, and planned tasks."""
 
-# Re-export all components from the modular structure for backward compatibility
 from framework.helpers.task_management import (
-    SchedulerTaskList,
     SCHEDULER_FOLDER,
+    SchedulerTaskList,
     TaskScheduler,
 )
 from framework.helpers.task_models import (
