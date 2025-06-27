@@ -9,7 +9,7 @@
     "lib": "lib"
   },
   "scripts": {
-    "start": "python run_ui.py",
+    "start": "source .venv/bin/activate && python run_ui.py",
     "lint": "eslint 'webui/**/*.js' --report-unused-disable-directives",
     "lint:fix": "eslint 'webui/**/*.js' --fix",
     "biome:check": "biome check .",
