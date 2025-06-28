@@ -245,10 +245,10 @@ def get_openai_chat(
     if api_key:  # User provided a string for the function's api_key parameter
         final_api_key_for_constructor = SecretStr(api_key)
     else:
-        # get_api_key returns pydantic.v1.types.SecretStr | None
+        # get_api_key returns str | None
         v1_secret_key = get_api_key("openai")
         if v1_secret_key:
-            final_api_key_for_constructor = SecretStr(v1_secret_key.get_secret_value())
+            final_api_key_for_constructor = SecretStr(v1_secret_key)
     return ChatOpenAI(
         api_key=final_api_key_for_constructor,
         model=model_name,
@@ -263,10 +263,10 @@ def get_openai_embedding(model_name: str, api_key: str | None = None, **kwargs) 
     if api_key:  # User provided a string for the function's api_key parameter
         final_api_key_for_constructor = SecretStr(api_key)
     else:
-        # get_api_key returns pydantic.v1.types.SecretStr | None
+        # get_api_key returns str | None
         v1_secret_key = get_api_key("openai")
         if v1_secret_key:
-            final_api_key_for_constructor = SecretStr(v1_secret_key.get_secret_value())
+            final_api_key_for_constructor = SecretStr(v1_secret_key)
     return OpenAIEmbeddings(model=model_name, api_key=final_api_key_for_constructor, **kwargs)
 
 
@@ -281,10 +281,10 @@ def get_openai_azure_chat(
     if api_key:  # User provided a string for the function's api_key parameter
         final_api_key_str = api_key
     else:
-        # get_api_key returns pydantic.v1.types.SecretStr | None
+        # get_api_key returns str | None
         v1_secret_key = get_api_key("openai_azure")
         if v1_secret_key:
-            final_api_key_str = v1_secret_key.get_secret_value()
+            final_api_key_str = v1_secret_key
 
     if not azure_endpoint:
         azure_endpoint = dotenv.get_dotenv_value("OPENAI_AZURE_ENDPOINT")
@@ -307,10 +307,10 @@ def get_openai_azure_embedding(
     if api_key:  # User provided a string for the function's api_key parameter
         final_api_key_str = api_key
     else:
-        # get_api_key returns pydantic.v1.types.SecretStr | None
+        # get_api_key returns str | None
         v1_secret_key = get_api_key("openai_azure")
         if v1_secret_key:
-            final_api_key_str = v1_secret_key.get_secret_value()
+            final_api_key_str = v1_secret_key
 
     if not azure_endpoint:
         azure_endpoint = dotenv.get_dotenv_value("OPENAI_AZURE_ENDPOINT")
@@ -334,7 +334,7 @@ def get_google_chat(
     else:
         v1_secret_key = get_api_key("google")
         if v1_secret_key:
-            final_api_key_for_constructor = SecretStr(v1_secret_key.get_secret_value())
+            final_api_key_for_constructor = SecretStr(v1_secret_key)
     return ChatGoogleGenerativeAI(
         model=model_name,
         google_api_key=final_api_key_for_constructor,
@@ -356,7 +356,7 @@ def get_google_embedding(
     else:
         v1_secret_key = get_api_key("google")
         if v1_secret_key:
-            final_api_key_for_constructor = SecretStr(v1_secret_key.get_secret_value())
+            final_api_key_for_constructor = SecretStr(v1_secret_key)
     return google_embeddings.GoogleGenerativeAIEmbeddings(
         model=model_name,
         google_api_key=final_api_key_for_constructor,
@@ -373,7 +373,7 @@ def get_mistralai_chat(model_name: str, api_key: str | None = None, **kwargs) ->
     else:
         v1_secret_key = get_api_key("mistral")
         if v1_secret_key:
-            final_api_key_for_constructor = SecretStr(v1_secret_key.get_secret_value())
+            final_api_key_for_constructor = SecretStr(v1_secret_key)
     return ChatMistralAI(model_name=model_name, api_key=final_api_key_for_constructor, **kwargs)
 
 
@@ -384,10 +384,10 @@ def get_groq_chat(model_name: str, api_key: str | None = None, **kwargs) -> Chat
     if api_key:  # User provided a string for the function's api_key parameter
         final_api_key_for_constructor = SecretStr(api_key)
     else:
-        # get_api_key returns pydantic.v1.types.SecretStr | None
+        # get_api_key returns str | None
         v1_secret_key = get_api_key("groq")
         if v1_secret_key:
-            final_api_key_for_constructor = SecretStr(v1_secret_key.get_secret_value())
+            final_api_key_for_constructor = SecretStr(v1_secret_key)
     model = ChatGroq(
         model=model_name,
         api_key=final_api_key_for_constructor,
@@ -410,7 +410,7 @@ def get_deepseek_chat(
     elif api_key is None:  # api_key was not provided to the function, try to get from env
         v1_secret_key = get_api_key("deepseek")
         if v1_secret_key:
-            final_api_key_for_constructor = SecretStr(v1_secret_key.get_secret_value())
+            final_api_key_for_constructor = SecretStr(v1_secret_key)
     # If api_key was already a SecretStr (e.g. from get_api_key if logic changes), 
     # assume it's v1 and convert
     elif hasattr(api_key, "get_secret_value"):
@@ -439,7 +439,7 @@ def get_openrouter_chat(
     elif api_key is None:  # api_key was not provided to the function, try to get from env
         v1_secret_key = get_api_key("openrouter")
         if v1_secret_key:
-            final_api_key_for_constructor = SecretStr(v1_secret_key.get_secret_value())
+            final_api_key_for_constructor = SecretStr(v1_secret_key)
     elif hasattr(api_key, "get_secret_value"):
         final_api_key_for_constructor = SecretStr(api_key.get_secret_value())
 
@@ -465,7 +465,7 @@ def get_openrouter_embedding(
     elif api_key is None:  # api_key was not provided to the function, try to get from env
         v1_secret_key = get_api_key("openrouter")
         if v1_secret_key:
-            final_api_key_for_constructor = SecretStr(v1_secret_key.get_secret_value())
+            final_api_key_for_constructor = SecretStr(v1_secret_key)
     elif hasattr(api_key, "get_secret_value"):
         final_api_key_for_constructor = SecretStr(api_key.get_secret_value())
 
@@ -490,7 +490,7 @@ def get_sambanova_chat(
     elif api_key is None:
         v1_secret_key = get_api_key("sambanova")
         if v1_secret_key:
-            final_api_key_for_constructor = SecretStr(v1_secret_key.get_secret_value())
+            final_api_key_for_constructor = SecretStr(v1_secret_key)
     elif hasattr(api_key, "get_secret_value") and callable(api_key.get_secret_value):
         final_api_key_for_constructor = SecretStr(api_key.get_secret_value())  # type: ignore
 
@@ -517,7 +517,7 @@ def get_sambanova_embedding(
     elif api_key is None:
         v1_secret_key = get_api_key("sambanova")
         if v1_secret_key:
-            final_api_key_for_constructor = SecretStr(v1_secret_key.get_secret_value())
+            final_api_key_for_constructor = SecretStr(v1_secret_key)
     elif hasattr(api_key, "get_secret_value") and callable(api_key.get_secret_value):
         final_api_key_for_constructor = SecretStr(api_key.get_secret_value())  # type: ignore
 
@@ -582,7 +582,7 @@ def get_chutes_chat(
     elif api_key is None:
         v1_secret_key = get_api_key("chutes")
         if v1_secret_key:
-            final_api_key_for_constructor = SecretStr(v1_secret_key.get_secret_value())
+            final_api_key_for_constructor = SecretStr(v1_secret_key)
     elif hasattr(api_key, "get_secret_value") and callable(api_key.get_secret_value):
         # This case handles if a Pydantic v1 SecretStr was somehow passed directly
         final_api_key_for_constructor = SecretStr(api_key.get_secret_value())  # type: ignore

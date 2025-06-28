@@ -28,6 +28,7 @@ from framework.helpers.task_serialization import (
     serialize_tasks,
 )
 
+
 # Keep the main scheduler instance accessible for backward compatibility
 def get_scheduler() -> TaskScheduler:
     """Get the global scheduler instance."""
