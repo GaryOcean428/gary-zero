@@ -52,23 +52,13 @@ class SchedulerTaskList(BaseModel):
         with self._lock:
             tasks_file = get_abs_path(f"{SCHEDULER_FOLDER}/tasks.json")
             
-            # Ensure the scheduler directory exists
-            make_dirs(f"{SCHEDULER_FOLDER}/tasks.json")
-            
-            try:
-                file_content = read_file(tasks_file)
-                if not file_content:
-                    self.tasks = []
-                    self.save()
-                    return
-            except FileNotFoundError:
-                # File doesn't exist yet, initialize with empty tasks
+            if not read_file(tasks_file):
                 self.tasks = []
                 self.save()
                 return
             
             try:
-                tasks_data = json.loads(file_content)
+                tasks_data = json.loads(read_file(tasks_file))
                 self.tasks = []
                 
                 for task_data in tasks_data:
