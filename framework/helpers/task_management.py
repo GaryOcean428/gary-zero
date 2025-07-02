@@ -58,7 +58,8 @@ class SchedulerTaskList(BaseModel):
                 return
             
             try:
-                tasks_data = json.loads(read_file(tasks_file))
+                file_content = read_file(tasks_file)
+                tasks_data = json.loads(file_content)
                 self.tasks = []
                 
                 for task_data in tasks_data:
