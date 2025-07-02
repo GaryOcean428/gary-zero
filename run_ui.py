@@ -144,13 +144,20 @@ async def serve_index():
 
 # handle favicon requests
 @webapp.route("/favicon.ico", methods=["GET"])
-async def serve_favicon():
+def serve_favicon():
     """Serve the favicon file."""
     try:
         # Try to serve the SVG favicon as ICO (browsers will handle it)
         favicon_path = get_abs_path("./webui/public/favicon.svg")
         if os.path.exists(favicon_path):
-            return webapp.send_static_file("public/favicon.svg")
+            # Read the file directly and serve with proper headers
+            with open(favicon_path, 'rb') as f:
+                content = f.read()
+            
+            # Return SVG with proper content type and caching headers
+            response = Response(content, mimetype='image/svg+xml')
+            response.headers['Cache-Control'] = 'public, max-age=3600'
+            return response
         else:
             # Return a 204 No Content if favicon doesn't exist
             return Response("", 204)
