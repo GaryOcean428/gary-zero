@@ -231,7 +231,7 @@ def call_development_function_sync(
 
 def get_web_ui_port() -> int:
     """Get the web UI port from args or environment."""
-    port = get_arg("port") or int(dotenv.get_dotenv_value("WEB_UI_PORT", 0)) or 5000
+    port = get_arg("port") or int(dotenv.get_dotenv_value("WEB_UI_PORT", 0)) or int(dotenv.get_dotenv_value("PORT", 0)) or 5000
     return int(port)
 
 
