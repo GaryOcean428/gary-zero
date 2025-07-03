@@ -87,7 +87,8 @@ RUN if [ ! -f /app/.env ] && [ -f /app/example.env ]; then \
     fi
 
 # Create necessary directories and handle entrypoint script
-RUN mkdir -p logs work_dir tmp memory && \
+RUN mkdir -p logs work_dir tmp memory tmp/scheduler && \
+    echo '[]' > /app/tmp/scheduler/tasks.json && \
     if [ -f /app/docker-entrypoint.sh ]; then chmod +x /app/docker-entrypoint.sh; fi
 
 # Expose the web UI port

@@ -52,13 +52,13 @@ class SchedulerTaskList(BaseModel):
         with self._lock:
             tasks_file = get_abs_path(f"{SCHEDULER_FOLDER}/tasks.json")
             
-            if not read_file(tasks_file):
-                self.tasks = []
-                self.save()
-                return
-            
             try:
                 file_content = read_file(tasks_file)
+                if not file_content:
+                    self.tasks = []
+                    self.save()
+                    return
+                    
                 tasks_data = json.loads(file_content)
                 self.tasks = []
                 
@@ -84,6 +84,10 @@ class SchedulerTaskList(BaseModel):
                             f"Error loading task {task_uuid}: {str(e)}"
                         )
                         
+            except FileNotFoundError:
+                # File doesn't exist yet, initialize with empty task list
+                self.tasks = []
+                self.save()
             except Exception as e:
                 PrintStyle(font_color="red", padding=True).print(
                     f"Error loading tasks: {str(e)}"
