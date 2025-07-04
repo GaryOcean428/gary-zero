@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Page Not Found - Gary-Zero</title>
+    <link rel="icon" type="image/svg+xml" href="/public/favicon.svg">
+    <link rel="stylesheet" href="/css/inline-styles.css">
+    <link rel="stylesheet" href="/index.css">
+    <style>
+        .error-content {
+            max-width: 600px;
+            margin: 4rem auto;
+            padding: 2rem;
+            text-align: center;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        .error-code {
+            font-size: 6rem;
+            font-weight: bold;
+            color: var(--color-primary);
+            margin-bottom: 1rem;
+        }
+        .error-message {
+            font-size: 1.5rem;
+            color: var(--color-secondary);
+            margin-bottom: 2rem;
+        }
+        .error-description {
+            color: var(--color-muted);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        .back-link {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--color-primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: opacity 0.2s;
+        }
+        .back-link:hover {
+            opacity: 0.8;
+        }
+        .helpful-links {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+        .helpful-links a {
+            color: var(--color-primary);
+            text-decoration: none;
+            margin: 0 1rem;
+        }
+        .helpful-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-content">
+        <div class="error-code">404</div>
+        <div class="error-message">Page Not Found</div>
+        <div class="error-description">
+            Sorry, the page you're looking for doesn't exist. It might have been moved, deleted, or you entered the wrong URL.
+        </div>
+        <a href="/" class="back-link">Return to Gary-Zero</a>
+        
+        <div class="helpful-links">
+            <a href="/privacy">Privacy Policy</a>
+            <a href="/terms">Terms of Service</a>
+            <a href="https://github.com/GaryOcean428/gary-zero" target="_blank">Documentation</a>
+        </div>
+    </div>
+</body>
+</html>

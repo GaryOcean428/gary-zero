@@ -1,5 +1,6 @@
 import json
 import threading
+import time
 from abc import abstractmethod
 from typing import Any, TypedDict, Union
 
@@ -45,11 +46,31 @@ class ApiHandler:
                         input_data = request.get_json()
                     # If empty or not valid JSON, use empty dict
                 except Exception as e:
-                    # Just log the error and continue with empty input
-                    PrintStyle().print(f"Error parsing JSON: {str(e)}")
-                    input_data = {}
+                    # Log the error and return structured error response
+                    PrintStyle().error(f"Invalid JSON in request: {str(e)}")
+                    return Response(
+                        response=json.dumps({
+                            "error": "Invalid JSON format",
+                            "message": "The request body contains invalid JSON",
+                            "timestamp": time.time()
+                        }),
+                        status=400,
+                        mimetype="application/json"
+                    )
             else:
                 input_data = {"data": request.get_data(as_text=True)}
+
+            # Validate input data
+            if not isinstance(input_data, dict):
+                return Response(
+                    response=json.dumps({
+                        "error": "Invalid input format",
+                        "message": "Input data must be a JSON object",
+                        "timestamp": time.time()
+                    }),
+                    status=400,
+                    mimetype="application/json"
+                )
 
             # process via handler
             output = await self.process(input_data, request)
@@ -61,11 +82,20 @@ class ApiHandler:
                 response_json = json.dumps(output)
                 return Response(response=response_json, status=200, mimetype="application/json")
 
-            # return exceptions with 500
+            # return exceptions with structured error response
         except Exception as e:
             error = format_error(e)
             PrintStyle.error(f"API error: {error}")
-            return Response(response=error, status=500, mimetype="text/plain")
+            return Response(
+                response=json.dumps({
+                    "error": "Internal server error",
+                    "message": "An unexpected error occurred while processing the request",
+                    "details": str(e) if hasattr(e, '__str__') else "Unknown error",
+                    "timestamp": time.time()
+                }),
+                status=500,
+                mimetype="application/json"
+            )
 
     # get context to run agent zero in
     def get_context(self, ctxid: str):
