@@ -19,6 +19,57 @@
             // This is a placeholder that will be replaced when index.js loads
         };
     </script>
+    <style>
+        /* Screen reader only text */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        
+        /* Enhanced focus indicators for accessibility */
+        button:focus-visible,
+        input:focus-visible,
+        textarea:focus-visible,
+        select:focus-visible,
+        a:focus-visible {
+            outline: 2px solid var(--color-primary, #3b82f6);
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
+        
+        /* Better disabled state */
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        
+        /* Validation states */
+        .validation-error {
+            color: var(--color-error, #ef4444);
+            font-size: 0.875rem;
+            margin-top: 4px;
+            display: none;
+        }
+        
+        input[aria-invalid="true"],
+        textarea[aria-invalid="true"] {
+            border-color: var(--color-error, #ef4444) !important;
+            box-shadow: 0 0 0 1px var(--color-error, #ef4444);
+        }
+        
+        input[aria-invalid="false"],
+        textarea[aria-invalid="false"] {
+            border-color: var(--color-success, #10b981);
+        }
+    </style>
+    
     <link rel="icon" type="image/svg+xml" href="public/favicon.svg">
     <link rel="stylesheet" href="css/inline-styles.css">
     <link rel="stylesheet" href="index.css">
@@ -81,6 +132,7 @@
         crossorigin="anonymous"></script>
 
     <!-- Non-module scripts after Alpine.js -->
+    <script type="text/javascript" src="js/enhanced-ux.js"></script>
     <script type="text/javascript" src="js/settings.js"></script>
     <script type="text/javascript" src="js/file_browser.js"></script>
     <script type="text/javascript" src="js/modal.js"></script>
@@ -467,10 +519,30 @@
 
                     <!-- Container for textarea and button -->
                     <div id="chat-input-container" style="position: relative;">
-                        <textarea id="chat-input" placeholder="Type your message here..." rows="1"></textarea>
+                        <label for="chat-input" class="sr-only">Type your message here</label>
+                        <textarea 
+                            id="chat-input" 
+                            placeholder="Type your message here..." 
+                            rows="1"
+                            aria-label="Chat message input"
+                            aria-describedby="chat-input-help"
+                            maxlength="10000"
+                            data-validation-rules='[{"name": "maxLength", "param": 10000}]'
+                        ></textarea>
+                        <div id="chat-input-help" class="sr-only">Press Enter to send, Shift+Enter for new line</div>
+
+                        <!-- Character count indicator -->
+                        <div id="char-count" style="
+                            position: absolute;
+                            bottom: -20px;
+                            right: 0;
+                            font-size: 0.75rem;
+                            color: var(--color-muted);
+                            display: none;
+                        "></div>
 
                         <!-- Expand button inside the textarea container -->
-                        <button id="expand-button" @click="$store.fullScreenInputModal.openModal()" aria-label="Expand input">
+                        <button id="expand-button" @click="$store.fullScreenInputModal.openModal()" aria-label="Expand input to full screen">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
                             </svg>
@@ -480,7 +552,7 @@
                     <div id="chat-buttons-wrapper">
 
                         <!-- Send button -->
-                        <button class="chat-button" id="send-button" aria-label="Send message">
+                        <button class="chat-button" id="send-button" aria-label="Send message" disabled>
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
                                 <path d="M25 20 L75 50 L25 80" fill="none" stroke="currentColor" stroke-width="15">
                                 </path>
@@ -998,6 +1070,82 @@
         <div class="dragdrop-text">Drop files to attach them to your message</div>
         <div class="dragdrop-subtext"></div>
     </div>
+
+    <!-- Footer -->
+    <footer style="position: fixed; bottom: 0; right: 0; padding: 0.5rem; font-size: 0.8rem; color: var(--color-muted); background: var(--bg-primary); border-top: 1px solid var(--border-color); z-index: 1000;">
+        <a href="/privacy" style="color: var(--color-muted); text-decoration: none; margin-right: 1rem;">Privacy</a>
+        <a href="/terms" style="color: var(--color-muted); text-decoration: none;">Terms</a>
+    </footer>
+
+    <!-- Enhanced UX initialization -->
+    <script>
+        // Initialize enhanced UX features when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize chat input validation and character counting
+            const chatInput = document.getElementById('chat-input');
+            const sendButton = document.getElementById('send-button');
+            const charCount = document.getElementById('char-count');
+            
+            if (chatInput && sendButton) {
+                // Enable/disable send button based on input
+                function updateSendButton() {
+                    const isEmpty = !chatInput.value.trim();
+                    sendButton.disabled = isEmpty;
+                    sendButton.style.opacity = isEmpty ? '0.5' : '1';
+                }
+                
+                // Character count display
+                function updateCharCount() {
+                    const count = chatInput.value.length;
+                    const maxLength = parseInt(chatInput.getAttribute('maxlength')) || 10000;
+                    
+                    if (count > maxLength * 0.8) {
+                        charCount.textContent = `${count}/${maxLength}`;
+                        charCount.style.display = 'block';
+                        charCount.style.color = count > maxLength * 0.9 ? 'var(--color-error, #ef4444)' : 'var(--color-warning, #f59e0b)';
+                    } else {
+                        charCount.style.display = 'none';
+                    }
+                }
+                
+                // Add validation to chat input
+                if (window.inputValidator) {
+                    const rules = JSON.parse(chatInput.getAttribute('data-validation-rules') || '[]');
+                    window.inputValidator.addValidationToElement(chatInput, rules, {
+                        showOnInput: true,
+                        showOnBlur: false
+                    });
+                }
+                
+                // Event listeners
+                chatInput.addEventListener('input', function() {
+                    updateSendButton();
+                    updateCharCount();
+                });
+                
+                chatInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        if (!sendButton.disabled) {
+                            sendButton.click();
+                        }
+                    }
+                });
+                
+                // Initial state
+                updateSendButton();
+            }
+            
+            // Show success message when pages load correctly
+            if (window.location.pathname === '/privacy' || window.location.pathname === '/terms') {
+                setTimeout(() => {
+                    if (window.toastManager) {
+                        window.toastManager.show('Legal information loaded successfully', 'success', 3000);
+                    }
+                }, 500);
+            }
+        });
+    </script>
 
 </body>
 

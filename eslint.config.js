@@ -16,7 +16,10 @@ export default [
       '**/*.min.js',
       '**/bundle*.js',
       '**/webui/js/lib/**',
-      '**/webui/js/libs/**'
+      '**/webui/js/libs/**',
+      '**/webui/js/transformers@*.js',
+      '**/webui/js/alpine*.js',
+      '**/*.debug.js'  // Debug files with intentional console statements
     ],
     languageOptions: {
       ecmaVersion: 2024,
@@ -65,11 +68,29 @@ export default [
         
         // Framework-specific (Alpine.js, etc.)
         Alpine: 'readonly',
+        ace: 'readonly',
         
         // Service Worker
         caches: 'readonly',
         clients: 'readonly',
-        registration: 'readonly'
+        registration: 'readonly',
+        
+        // Node.js/bundler globals
+        process: 'readonly',
+        Buffer: 'readonly',
+        global: 'readonly',
+        
+        // Additional browser APIs
+        AudioContext: 'readonly',
+        webkitAudioContext: 'readonly',
+        ReadableStream: 'readonly',
+        WritableStream: 'readonly',
+        TransformStream: 'readonly',
+        structuredClone: 'readonly',
+        
+        // App-specific globals
+        settingsModalProxy: 'readonly',
+        openModal: 'readonly'
       }
     },
     plugins: {
