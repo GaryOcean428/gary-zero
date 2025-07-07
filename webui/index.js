@@ -10,12 +10,50 @@ let lastLogGuid = "";
 let lastSpokenNo = 0;
 let appInitialized = false;
 
+// Message containers for tracking
+const messageContainers = new Map();
+
 // --- Global UI Element Variables ---
 let leftPanel, rightPanel, container, chatInput, sendButton, chatHistory;
 let inputSection, statusSection, chatsSection, tasksSection, progressBar, autoScrollSwitch, timeDate;
 let sidebarOverlay, toggleSidebarButton;
 
 // --- Utility and Helper Functions ---
+
+function setMessage(id, type, heading, content, temp, kvps) {
+    if (!chatHistory) {
+        console.warn('Chat history element not found, unable to set message');
+        return;
+    }
+
+    // Check if message already exists
+    let messageContainer = messageContainers.get(id);
+    if (messageContainer) {
+        // Update existing message
+        messageContainer.innerHTML = '';
+    } else {
+        // Create new message container
+        messageContainer = document.createElement('div');
+        messageContainer.classList.add('message-container');
+        messageContainer.setAttribute('data-message-id', id);
+        chatHistory.appendChild(messageContainer);
+        messageContainers.set(id, messageContainer);
+    }
+
+    // Get the appropriate message handler
+    const handler = msgs.getHandler(type);
+    if (handler) {
+        handler(messageContainer, id, type, heading, content, temp, kvps);
+    } else {
+        console.warn(`No handler found for message type: ${type}`);
+        msgs.drawMessageDefault(messageContainer, id, type, heading, content, temp, kvps);
+    }
+
+    // Auto-scroll if enabled
+    if (autoScroll && chatHistory) {
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+}
 
 function generateGUID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -132,6 +170,36 @@ function getContext() {
     return context;
 }
 window.getContext = getContext;
+
+function switchFromContext(id) {
+    // If the current context matches the id being removed, switch to an alternative
+    if (context === id) {
+        // Try to find an alternative context from available chats or tasks
+        if (window.Alpine && chatsSection?.__x?.$data) {
+            const chatsAD = Alpine.$data(chatsSection);
+            const alternateChat = chatsAD.contexts?.find(ctx => ctx.id !== id);
+            if (alternateChat) {
+                setContext(alternateChat.id);
+                return;
+            }
+        }
+        
+        if (window.Alpine && tasksSection?.__x?.$data) {
+            const tasksAD = Alpine.$data(tasksSection);
+            const alternateTask = tasksAD.tasks?.find(task => task.id !== id);
+            if (alternateTask) {
+                setContext(alternateTask.id);
+                return;
+            }
+        }
+        
+        // If no alternative found, create a new context
+        setContext(generateGUID());
+    }
+}
+
+// Export for module imports
+export { getContext, switchFromContext };
 
 function setConnectionStatus(connected) {
     connectionStatus = connected;
@@ -629,6 +697,45 @@ window.loadKnowledge = async function () {
 }
 
 // --- App Initialization ---
+
+function setupEventListeners() {
+    // Chat input event listeners
+    if (chatInput) {
+        chatInput.addEventListener('keydown', handleChatInputKeydown);
+        chatInput.addEventListener('input', adjustTextareaHeight);
+    }
+
+    // Send button event listener
+    if (sendButton) {
+        sendButton.addEventListener('click', sendMessage);
+    }
+
+    // Auto-scroll switch event listener
+    if (autoScrollSwitch) {
+        autoScrollSwitch.addEventListener('change', (e) => {
+            toggleAutoScroll(e.target.checked);
+        });
+    }
+
+    // Chat history scroll event listener
+    if (chatHistory) {
+        chatHistory.addEventListener('scroll', updateAfterScroll);
+    }
+
+    // Sidebar toggle event listeners
+    if (toggleSidebarButton) {
+        toggleSidebarButton.addEventListener('click', () => toggleSidebar());
+    }
+
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', () => toggleSidebar(false));
+    }
+
+    // Window resize event listener
+    window.addEventListener('resize', handleResize);
+
+    console.log('✅ Event listeners set up successfully.');
+}
 
 function initializeApp() {
     if (appInitialized) return;
