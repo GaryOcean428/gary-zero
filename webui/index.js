@@ -14,8 +14,8 @@ let appInitialized = false;
 const messageContainers = new Map();
 
 // --- Global UI Element Variables ---
-let leftPanel, rightPanel, container, chatInput, sendButton, chatHistory;
-let inputSection, statusSection, chatsSection, tasksSection, progressBar, autoScrollSwitch, timeDate;
+let leftPanel, rightPanel, chatInput, sendButton, chatHistory;
+let inputSection, statusSection, chatsSection, tasksSection, progressBar, autoScrollSwitch;
 let sidebarOverlay, toggleSidebarButton;
 
 // --- Utility and Helper Functions ---
@@ -86,8 +86,9 @@ function toggleCssProperty(selector, property, value) {
                     return;
                 }
             }
-        } catch (e) {
-            // Ignore CORS errors
+            // Ignore CORS errors for cross-origin stylesheets
+        } catch {
+            // Intentionally empty - ignoring CORS errors
         }
     }
 }
@@ -505,7 +506,7 @@ window.restart = async () => {
     if (!connectionStatus) return toast("Backend disconnected, cannot restart.", "error");
     try {
         await sendJsonData("/restart", {});
-    } catch (e) {
+    } catch {
         toast("Restarting...", "info", 0);
         for (let i = 0; i < 240; i++) {
             try {
@@ -513,7 +514,7 @@ window.restart = async () => {
                 hideToast();
                 await new Promise(r => setTimeout(r, 400));
                 return toast("Restarted", "success", 5000);
-            } catch (err) {
+            } catch {
                 await new Promise(r => setTimeout(r, 250));
             }
         }
@@ -744,11 +745,11 @@ function initializeApp() {
     console.log('🚀 Starting application initialization...');
 
     const selectors = {
-        leftPanel: '#left-panel', rightPanel: '#right-panel', container: '.container',
+        leftPanel: '#left-panel', rightPanel: '#right-panel',
         chatInput: '#chat-input', sendButton: '#send-button', chatHistory: '#chat-history',
         inputSection: '#input-section', statusSection: '#status-section', chatsSection: '#chats-section',
         tasksSection: '#tasks-section', progressBar: '#progress-bar', autoScrollSwitch: '#auto-scroll-switch',
-        timeDate: '#time-date', sidebarOverlay: '#sidebar-overlay', toggleSidebarButton: '#toggle-sidebar',
+        sidebarOverlay: '#sidebar-overlay', toggleSidebarButton: '#toggle-sidebar',
     };
 
     Object.entries(selectors).forEach(([key, selector]) => {
