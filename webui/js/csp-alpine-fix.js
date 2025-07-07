@@ -1,39 +1,10 @@
-// CSP and Alpine.js Compatibility Fix
-// WARNING: Development environment only - contains 'unsafe-eval' CSP directive
+// Alpine.js Components Registration
+// Server-side CSP is now properly configured in run_ui.py
 
 (function() {
     'use strict';
 
-    // 1. Update CSP meta tag for Alpine.js compatibility
-    function updateCSP() {
-        // Remove existing CSP meta tag if it exists
-        const existingCSP = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
-        if (existingCSP) {
-            existingCSP.remove();
-        }
-        
-        // Create new CSP meta tag with Alpine.js support
-        const meta = document.createElement('meta');
-        meta.httpEquiv = 'Content-Security-Policy';
-        meta.content = [
-            "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' cdnjs.cloudflare.com cdn.jsdelivr.net",
-            "style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com fonts.googleapis.com *.googleapis.com",
-            "font-src 'self' data: cdnjs.cloudflare.com fonts.gstatic.com *.gstatic.com",
-            "img-src 'self' data: blob: https:",
-            "connect-src 'self' ws: wss: http: https:",
-            "worker-src 'self' blob:",
-            "frame-src 'self'",
-            "object-src 'none'"
-        ].join('; ');
-        
-        // Insert at the beginning of head
-        document.head.insertBefore(meta, document.head.firstChild);
-        
-        console.log('✅ CSP meta tag updated for Alpine.js compatibility');
-    }
-
-    // 2. Initialize Alpine.js with CSP workaround
+    // Initialize Alpine.js components
     function initializeAlpineComponents() {
         if (typeof Alpine !== 'undefined') {
             // Register global app state component for common data patterns
@@ -250,12 +221,11 @@
         console.log('✅ Alpine.js error boundary established');
     }
 
-    // 5. Execution sequence
+    // Execution sequence
     function applyFixes() {
-        console.log('🔧 Applying CSP and Alpine.js compatibility fixes...');
+        console.log('🔧 Applying Alpine.js component registration...');
         
-        // Apply fixes in sequence
-        updateCSP();
+        // Apply fixes in sequence  
         setupAlpineErrorBoundary();
         fixToastManager();
         
@@ -280,7 +250,7 @@
             }, 5000);
         }
         
-        console.log('✅ CSP and Alpine.js fixes applied successfully');
+        console.log('✅ Alpine.js component registration complete');
     }
 
     // Execute fixes when DOM is ready

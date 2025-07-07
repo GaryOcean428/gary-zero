@@ -14,6 +14,27 @@ from datetime import datetime
 
 class MockBackendHandler(http.server.SimpleHTTPRequestHandler):
     """Mock backend handler that serves static files and handles API endpoints"""
+    
+    def end_headers(self):
+        """Add security headers including CSP before ending headers"""
+        # Add CSP header for Alpine.js and external resources
+        self.send_header('Content-Security-Policy', 
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' cdnjs.cloudflare.com cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com cdn.jsdelivr.net fonts.googleapis.com *.googleapis.com; "
+            "font-src 'self' data: cdnjs.cloudflare.com cdn.jsdelivr.net fonts.gstatic.com *.gstatic.com; "
+            "img-src 'self' data: blob: https:; "
+            "connect-src 'self' ws: wss: http: https:; "
+            "worker-src 'self' blob:; "
+            "frame-src 'self'; "
+            "object-src 'none'")
+        
+        # Add other security headers
+        self.send_header('X-Frame-Options', 'SAMEORIGIN')
+        self.send_header('X-Content-Type-Options', 'nosniff')
+        self.send_header('X-XSS-Protection', '1; mode=block')
+        
+        super().end_headers()
 
     def do_POST(self):
         """Handle POST requests to API endpoints"""

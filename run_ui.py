@@ -41,8 +41,8 @@ def add_security_headers(response):
     # Only add HSTS if using HTTPS
     if request.is_secure:
         response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-    # Basic CSP - can be made more restrictive based on needs
-    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' cdnjs.cloudflare.com cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com; font-src 'self' cdnjs.cloudflare.com; connect-src 'self'"
+    # CSP configured for Alpine.js and external resources
+    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' cdnjs.cloudflare.com cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com cdn.jsdelivr.net fonts.googleapis.com *.googleapis.com; font-src 'self' data: cdnjs.cloudflare.com cdn.jsdelivr.net fonts.gstatic.com *.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' ws: wss: http: https:; worker-src 'self' blob:; frame-src 'self'; object-src 'none'"
     return response
 
 webapp.after_request(add_security_headers)

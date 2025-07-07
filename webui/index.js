@@ -744,33 +744,58 @@ function initializeApp() {
 
     console.log('🚀 Starting application initialization...');
 
-    const selectors = {
-        leftPanel: '#left-panel', rightPanel: '#right-panel',
-        chatInput: '#chat-input', sendButton: '#send-button', chatHistory: '#chat-history',
-        inputSection: '#input-section', statusSection: '#status-section', chatsSection: '#chats-section',
-        tasksSection: '#tasks-section', progressBar: '#progress-bar', autoScrollSwitch: '#auto-scroll-switch',
-        sidebarOverlay: '#sidebar-overlay', toggleSidebarButton: '#toggle-sidebar',
-    };
+    // Wait for DOM elements to be available with retry mechanism
+    function waitForElements(attempt = 1) {
+        const selectors = {
+            leftPanel: '#left-panel', rightPanel: '#right-panel',
+            chatInput: '#chat-input', sendButton: '#send-button', chatHistory: '#chat-history',
+            inputSection: '#input-section', statusSection: '#status-section', chatsSection: '#chats-section',
+            tasksSection: '#tasks-section', progressBar: '#progress-bar', autoScrollSwitch: '#auto-scroll-switch',
+            sidebarOverlay: '#sidebar-overlay', toggleSidebarButton: '#toggle-sidebar',
+        };
 
-    Object.entries(selectors).forEach(([key, selector]) => {
-        window[key] = document.querySelector(selector);
-        if (!window[key]) console.warn(`Element "${key}" with selector "${selector}" not found.`);
-    });
+        const missing = [];
+        Object.entries(selectors).forEach(([key, selector]) => {
+            window[key] = document.querySelector(selector);
+            if (!window[key]) {
+                missing.push({ key, selector });
+            }
+        });
 
-    setupEventListeners();
-    setupTabs();
-    initializeActiveTab();
-    handleResize();
+        if (missing.length > 0 && attempt < 5) {
+            console.log(`⏳ Attempt ${attempt}: ${missing.length} elements not yet available, retrying...`);
+            setTimeout(() => waitForElements(attempt + 1), 100);
+            return;
+        }
 
-    toggleDarkMode(localStorage.getItem('darkMode') !== 'false');
-    if (autoScrollSwitch) {
-        const savedAutoScroll = localStorage.getItem('autoScroll') !== 'false';
-        autoScrollSwitch.checked = savedAutoScroll;
-        toggleAutoScroll(savedAutoScroll);
+        if (missing.length > 0) {
+            console.warn('⚠️ Some elements still not found after retries:', missing.map(m => m.key).join(', '));
+        } else {
+            console.log('✅ All DOM elements found successfully');
+        }
+
+        continueInitialization();
     }
 
-    startPolling();
-    console.log('✅ Application initialization complete.');
+    function continueInitialization() {
+        setupEventListeners();
+        setupTabs();
+        initializeActiveTab();
+        handleResize();
+
+        toggleDarkMode(localStorage.getItem('darkMode') !== 'false');
+        if (autoScrollSwitch) {
+            const savedAutoScroll = localStorage.getItem('autoScroll') !== 'false';
+            autoScrollSwitch.checked = savedAutoScroll;
+            toggleAutoScroll(savedAutoScroll);
+        }
+
+        startPolling();
+        console.log('✅ Application initialization complete.');
+    }
+
+    // Start the element waiting process
+    waitForElements();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
