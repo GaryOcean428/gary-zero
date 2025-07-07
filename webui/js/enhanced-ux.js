@@ -10,8 +10,28 @@ class ToastManager {
     }
 
     createContainer() {
-        if (this.container) return;
+        if (this.container && this.container.parentElement) return;
         
+        // Multiple fallback strategies for container parent
+        const targetSelectors = [
+            'body',
+            '#app',
+            '#root',
+            '.main-container',
+            'main'
+        ];
+
+        let parent = null;
+        for (const selector of targetSelectors) {
+            parent = document.querySelector(selector);
+            if (parent) break;
+        }
+
+        if (!parent) {
+            console.warn('ToastManager: No suitable parent element found, using document.body');
+            parent = document.body;
+        }
+
         this.container = document.createElement('div');
         this.container.id = 'toast-container';
         this.container.style.cssText = `
@@ -21,10 +41,28 @@ class ToastManager {
             z-index: 10000;
             pointer-events: none;
         `;
-        document.body.appendChild(this.container);
+        
+        try {
+            parent.appendChild(this.container);
+        } catch (error) {
+            console.error('ToastManager: Failed to append container to parent:', error);
+            // Fallback to document.body if the selected parent fails
+            if (parent !== document.body) {
+                document.body.appendChild(this.container);
+            }
+        }
     }
 
     show(message, type = 'info', duration = 5000) {
+        // Ensure container exists before showing toast
+        this.createContainer();
+        
+        if (!this.container || !this.container.parentElement) {
+            console.warn('ToastManager: Container not available, logging to console instead');
+            console.log(`[${type.toUpperCase()}] ${message}`);
+            return null;
+        }
+
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
         toast.style.cssText = `
