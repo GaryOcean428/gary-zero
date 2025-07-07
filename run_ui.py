@@ -32,6 +32,53 @@ lock = threading.Lock()
 basic_auth = BasicAuth(webapp)
 
 
+def add_security_headers(response):
+    """Add security headers to all responses."""
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    # Only add HSTS if using HTTPS
+    if request.is_secure:
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    # Basic CSP - can be made more restrictive based on needs
+    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' cdnjs.cloudflare.com cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com; font-src 'self' cdnjs.cloudflare.com; connect-src 'self'"
+    return response
+
+webapp.after_request(add_security_headers)
+
+
+# Custom error handlers
+@webapp.errorhandler(404)
+def handle_404(e):
+    """Handle 404 errors with custom page."""
+    try:
+        return files.read_file("./webui/404.html"), 404
+    except Exception:
+        return Response("Page not found", 404, mimetype="text/plain")
+
+
+@webapp.errorhandler(500)
+def handle_500(e):
+    """Handle 500 errors with custom page."""
+    try:
+        # Log the error for debugging
+        PrintStyle().error(f"Server error: {str(e)}")
+        return files.read_file("./webui/500.html"), 500
+    except Exception:
+        return Response("Internal server error", 500, mimetype="text/plain")
+
+
+@webapp.errorhandler(Exception)
+def handle_exception(e):
+    """Handle all unhandled exceptions."""
+    PrintStyle().error(f"Unhandled exception: {str(e)}")
+    try:
+        return files.read_file("./webui/500.html"), 500
+    except Exception:
+        return Response("Internal server error", 500, mimetype="text/plain")
+
+
 def is_loopback_address(address):
     """Check if the given address is a loopback address."""
     loopback_checker = {
@@ -140,6 +187,31 @@ async def serve_index():
         version_no=gitinfo["version"],
         version_time=gitinfo["commit_time"],
     )
+
+
+# handle privacy policy page
+@webapp.route("/privacy", methods=["GET"])
+def serve_privacy():
+    """Serve the privacy policy page."""
+    return files.read_file("./webui/privacy.html")
+
+
+# handle terms of service page
+@webapp.route("/terms", methods=["GET"])
+def serve_terms():
+    """Serve the terms of service page."""
+    return files.read_file("./webui/terms.html")
+
+
+# health check endpoint
+@webapp.route("/health", methods=["GET"])
+def health_check():
+    """Health check endpoint for monitoring."""
+    return {
+        "status": "healthy",
+        "timestamp": time.time(),
+        "version": "1.0.0"
+    }
 
 
 # handle favicon requests
