@@ -6,7 +6,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 import models
-from agent import Agent, InterventionException
+from agent import Agent, InterventionError
 from framework.extensions.message_loop_start._10_iteration_no import get_iter_no
 from framework.helpers import defer, files, persist_chat, strings
 from framework.helpers.browser_use import browser_use
@@ -136,7 +136,7 @@ class State:
         async def hook(agent: browser_use.Agent):
             await self.agent.wait_if_paused()
             if self.iter_no != get_iter_no(self.agent):
-                raise InterventionException("Task cancelled")
+                raise InterventionError("Task cancelled")
 
         # try:
         result = await self.use_agent.run(max_steps=50, on_step_start=hook, on_step_end=hook)

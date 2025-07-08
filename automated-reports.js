@@ -67,7 +67,7 @@ async function main() {
     },
     {
       name: 'NPM Security Audit',
-      command: 'npm audit --json',
+      command: 'audit-ci --output-format=json',
       outputFile: `${reportsDir}/security-audit-${timestamp}.json`,
       description: 'Package vulnerability and security issues'
     },

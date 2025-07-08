@@ -1,3 +1,11 @@
+"""
+Models module for managing AI language model integrations and configurations.
+
+This module provides a centralized interface for various AI language models
+including OpenAI, Anthropic, Google, Mistral, and others. It handles model
+initialization, configuration, and rate limiting.
+"""
+
 import os
 from enum import Enum
 from typing import Any

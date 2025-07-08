@@ -133,24 +133,28 @@ class AgentContext:
             )
         return items
 
-    def kill_process(self):
+    def kill_process(self) -> None:
+        """Kill the current running process."""
         if self.task:
             self.task.kill()
 
-    def reset(self):
+    def reset(self) -> None:
+        """Reset the agent context to initial state."""
         self.kill_process()
         self.log.reset()
         self.agent0 = Agent(0, self.config, self)
         self.streaming_agent = None
         self.paused = False
 
-    def nudge(self):
+    def nudge(self) -> Any:
+        """Nudge the agent to continue processing."""
         self.kill_process()
         self.paused = False
         self.task = self.run_task(self.get_agent().monologue)
         return self.task
 
-    def get_agent(self):
+    def get_agent(self) -> "Agent":
+        """Get the current active agent (streaming or default)."""
         return self.streaming_agent or self.agent0
 
     def communicate(self, msg: "UserMessage", broadcast_level: int = 1):
@@ -193,10 +197,10 @@ class AgentContext:
             if superior:
                 response = await self._process_chain(superior, response, False)  # type: ignore
             return response
-        except InterventionException:
+        except InterventionError:
             pass  # intervention message has been handled in handle_intervention(),
             # proceed with conversation loop
-        except RepairableException as e:
+        except RepairableError as e:
             # Forward repairable errors to the LLM, maybe it can fix them
             error_message = errors.format_error(e)
             agent.hist_add_warning(error_message)
@@ -278,16 +282,16 @@ class LoopData:
 
 
 # intervention exception class - skips rest of message loop iteration
-class InterventionException(Exception):
+class InterventionError(Exception):
     pass
 
 
 # killer exception class - not forwarded to LLM, cannot be fixed on its own, ends message loop
-class RepairableException(Exception):
+class RepairableError(Exception):
     pass
 
 
-class HandledException(Exception):
+class HandledError(Exception):
     pass
 
 
@@ -381,10 +385,10 @@ class Agent:
                                 return tools_result  # break the execution if the task is done
 
                     # exceptions inside message loop:
-                    except InterventionException:
+                    except InterventionError:
                         pass  # intervention message has been handled in handle_intervention(),
                         # proceed with conversation loop
-                    except RepairableException as e:
+                    except RepairableError as e:
                         # Forward repairable errors to the LLM, maybe it can fix them
                         error_message = errors.format_error(e)
                         self.hist_add_warning(error_message)
@@ -399,7 +403,7 @@ class Agent:
                         await self.call_extensions("message_loop_end", loop_data=self.loop_data)
 
             # exceptions outside message loop:
-            except InterventionException:
+            except InterventionError:
                 pass  # just start over
             except Exception as e:
                 self.handle_critical_exception(e)
@@ -467,14 +471,14 @@ class Agent:
         return prompt
 
     def handle_critical_exception(self, exception: Exception):
-        if isinstance(exception, HandledException):
+        if isinstance(exception, HandledError):
             raise exception  # Re-raise the exception to kill the loop
         elif isinstance(exception, asyncio.CancelledError):
             # Handling for asyncio.CancelledError
             PrintStyle(font_color="white", background_color="red", padding=True).print(
                 f"Context {self.context.id} terminated during message loop"
             )
-            raise HandledException(exception)  # Re-raise the exception to cancel the loop
+            raise HandledError(exception)  # Re-raise the exception to cancel the loop
         else:
             # Handling for general exceptions
             error_text = errors.error_text(exception)
@@ -486,7 +490,7 @@ class Agent:
                 content=error_message,
                 kvps={"text": error_text},
             )
-            raise HandledException(exception)  # Re-raise the exception to kill the loop
+            raise HandledError(exception)  # Re-raise the exception to kill the loop
 
     async def get_system_prompt(self, loop_data: LoopData) -> list[str]:
         system_prompt = []
@@ -698,7 +702,7 @@ class Agent:
                 self.hist_add_ai_response(progress)
             # append the intervention message
             self.hist_add_user_message(msg, intervention=True)
-            raise InterventionException(msg)
+            raise InterventionError(msg)
 
     async def wait_if_paused(self):
         while self.context.paused:

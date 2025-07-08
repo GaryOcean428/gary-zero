@@ -65,7 +65,11 @@ class RecallMemories(Extension):
             query=query,
             limit=RecallMemories.RESULTS,
             threshold=RecallMemories.THRESHOLD,
-            filter=f"area == '{Memory.Area.MAIN.value}' or area == '{Memory.Area.FRAGMENTS.value}'",  # exclude solutions
+            # exclude solutions
+            filter=(
+                f"area == '{Memory.Area.MAIN.value}' or "
+                f"area == '{Memory.Area.FRAGMENTS.value}'"
+            ),
         )
 
         # log the short result
