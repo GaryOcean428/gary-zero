@@ -56,7 +56,7 @@ async function loadMicSettings() {
             });
         }
     } catch {
-        toast("Failed to load speech settings", 'error');
+        window.toast?.error("Failed to load speech settings");
     }
 }
 
@@ -224,7 +224,7 @@ class MicrophoneInput {
             this.setupAudioAnalysis(stream);
             return true;
         } catch {
-            toast('Failed to access microphone. Please check permissions.', 'error');
+            window.toast?.error('Failed to access microphone. Please check permissions.');
             return false;
         }
     }
@@ -291,7 +291,7 @@ class MicrophoneInput {
         try {
             sendJsonData(formData);
         } catch {
-            toast('Failed to send audio for transcription', 'error');
+            window.toast?.error('Failed to send audio for transcription');
         }
     }
 
@@ -386,7 +386,7 @@ async function requestMicrophonePermission() {
         await navigator.mediaDevices.getUserMedia({ audio: true });
         return true;
     } catch {
-        toast('Microphone permission denied', 'error');
+        window.toast?.error('Microphone permission denied');
         return false;
     }
 }

@@ -6,11 +6,18 @@
 class ToastManager {
     constructor() {
         this.container = null;
-        this.createContainer();
+        this.queue = [];
+        this.initialized = false;
     }
 
     createContainer() {
         if (this.container && this.container.parentElement) return;
+        
+        // Wait for document.body to be available if needed
+        if (!document.body) {
+            console.warn('ToastManager: document.body not available, deferring container creation');
+            return false;
+        }
         
         // Multiple fallback strategies for container parent
         const targetSelectors = [
@@ -44,25 +51,61 @@ class ToastManager {
         
         try {
             parent.appendChild(this.container);
+            this.initialized = true;
+            console.log('✅ ToastManager container created successfully');
+            return true;
         } catch (error) {
             console.error('ToastManager: Failed to append container to parent:', error);
             // Fallback to document.body if the selected parent fails
-            if (parent !== document.body) {
-                document.body.appendChild(this.container);
+            if (parent !== document.body && document.body) {
+                try {
+                    document.body.appendChild(this.container);
+                    this.initialized = true;
+                    console.log('✅ ToastManager container created with fallback to body');
+                    return true;
+                } catch (fallbackError) {
+                    console.error('ToastManager: Fallback to body also failed:', fallbackError);
+                    return false;
+                }
             }
+            return false;
         }
     }
 
     show(message, type = 'info', duration = 5000) {
-        // Ensure container exists before showing toast
-        this.createContainer();
+        // Queue the toast if container isn't ready yet
+        if (!this.initialized) {
+            this.queue.push({ message, type, duration });
+            
+            // Try to create container and process queue
+            if (this.createContainer()) {
+                this.processQueue();
+            } else {
+                // Set up retry mechanism if document.body still not available
+                if (!this.retryTimer) {
+                    this.retryTimer = setTimeout(() => {
+                        this.retryTimer = null;
+                        if (this.createContainer()) {
+                            this.processQueue();
+                        }
+                    }, 100);
+                }
+                console.warn('ToastManager: Container not available, queued toast message');
+                return null;
+            }
+        }
         
+        // Ensure container exists before showing toast
         if (!this.container || !this.container.parentElement) {
             console.warn('ToastManager: Container not available, logging to console instead');
             console.log(`[${type.toUpperCase()}] ${message}`);
             return null;
         }
 
+        return this.displayToast(message, type, duration);
+    }
+
+    displayToast(message, type, duration) {
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
         toast.style.cssText = `
@@ -102,6 +145,13 @@ class ToastManager {
         }
 
         return toast;
+    }
+
+    processQueue() {
+        while (this.queue.length > 0) {
+            const { message, type, duration } = this.queue.shift();
+            this.displayToast(message, type, duration);
+        }
     }
 
     getTypeColor(type) {
@@ -346,7 +396,7 @@ class AlpineErrorBoundary {
     }
 
     handleError(error, context = 'Unknown') {
-        const toast = window.toastManager || new ToastManager();
+        const toast = getToastManager();
         toast.show(
             `An error occurred in ${context}. Please refresh the page if issues persist.`,
             'error',
@@ -355,7 +405,7 @@ class AlpineErrorBoundary {
     }
 
     handleAlpineError(args) {
-        const toast = window.toastManager || new ToastManager();
+        const toast = getToastManager();
         toast.show(
             'Interface error detected. Some features may not work correctly.',
             'warning',
@@ -364,8 +414,29 @@ class AlpineErrorBoundary {
     }
 }
 
-// Initialize global instances
-window.toastManager = new ToastManager();
+// Initialize global instances with lazy initialization for ToastManager
+function getToastManager() {
+    if (!window._toastManagerInstance) {
+        window._toastManagerInstance = new ToastManager();
+    }
+    return window._toastManagerInstance;
+}
+
+// Make toast manager available globally but only create when needed
+Object.defineProperty(window, 'toastManager', {
+    get: getToastManager,
+    configurable: true
+});
+
+// Also create a global toast API for convenience
+window.toast = {
+    show: (message, type, duration) => getToastManager().show(message, type, duration),
+    success: (message, duration) => getToastManager().show(message, 'success', duration),
+    error: (message, duration) => getToastManager().show(message, 'error', duration),
+    warning: (message, duration) => getToastManager().show(message, 'warning', duration),
+    info: (message, duration) => getToastManager().show(message, 'info', duration)
+};
+
 window.inputValidator = new InputValidator();
 window.loadingManager = new LoadingManager();
 window.errorBoundary = new AlpineErrorBoundary();
