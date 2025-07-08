@@ -142,13 +142,45 @@ window.toastFetchError = toastFetchError;
 // --- Backend Communication ---
 
 async function sendJsonData(url, data) {
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
-    if (!response.ok) throw new Error(await response.text());
-    return await response.json();
+    let retries = 3;
+    let lastError = null;
+    
+    for (let i = 0; i < retries; i++) {
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                // Handle 502 gateway errors specifically
+                if (response.status === 502) {
+                    lastError = new Error(`Server temporarily unavailable (${response.status})`);
+                    if (i < retries - 1) {
+                        // Wait longer between retries for 502 errors
+                        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+                        continue;
+                    }
+                } else {
+                    throw new Error(errorText);
+                }
+            } else {
+                return await response.json();
+            }
+        } catch (error) {
+            lastError = error;
+            if (i < retries - 1) {
+                // Wait before retry
+                await new Promise(resolve => setTimeout(resolve, 500 * (i + 1)));
+                continue;
+            }
+        }
+    }
+    
+    // If we get here, all retries failed
+    throw lastError;
 }
 window.sendJsonData = sendJsonData;
 
@@ -317,7 +349,10 @@ async function startPolling() {
             setTimeout(_doPoll, nextInterval);
         } catch (error) {
             console.error('Error in polling loop:', error);
-            setTimeout(_doPoll, longInterval);
+            
+            // Use longer interval when errors occur
+            const errorInterval = Math.min(longInterval * 4, 2000); // Max 2 seconds
+            setTimeout(_doPoll, errorInterval);
         }
     }
     _doPoll();

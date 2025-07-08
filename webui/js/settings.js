@@ -92,17 +92,45 @@ const settingsModalProxy = {
             return;
         }
 
-        const modalAD = Alpine?.$data(modalEl);
-        if (!modalAD) {
-            console.error('Settings modal not initialised');
+        // Wait for Alpine to be ready and ensure component is initialized
+        if (typeof Alpine === 'undefined') {
+            console.error('Alpine.js not available');
+            return;
+        }
+
+        let modalAD = null;
+        try {
+            // Try to get the Alpine data, with retries for timing issues
+            for (let i = 0; i < 3; i++) {
+                modalAD = Alpine.$data(modalEl);
+                if (modalAD && modalAD._x_dataStack) {
+                    break;
+                }
+                // Wait a bit and try again
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            if (!modalAD || !modalAD._x_dataStack) {
+                console.error('Settings modal not properly initialized with Alpine.js');
+                return;
+            }
+        } catch (error) {
+            console.error('Error accessing Alpine data:', error);
             return;
         }
 
         // First, ensure the store is updated properly
-        const store = Alpine.store('root');
-        if (store) {
-            // Set isOpen first to ensure proper state
-            store.isOpen = true;
+        let store = null;
+        try {
+            store = Alpine.store('root');
+            if (store) {
+                // Set isOpen first to ensure proper state
+                store.isOpen = true;
+            } else {
+                console.warn('Root store not found, initializing fallback');
+            }
+        } catch (error) {
+            console.error('Error accessing Alpine store:', error);
         }
 
         //get settings from backend
@@ -320,49 +348,77 @@ const settingsModalProxy = {
 
 document.addEventListener('alpine:init', function () {
     // Initialize the root store first to ensure it exists before components try to access it
-    Alpine.store('root', {
-        activeTab: localStorage.getItem('settingsActiveTab') || 'agent',
-        isOpen: false,
+    try {
+        Alpine.store('root', {
+            activeTab: localStorage.getItem('settingsActiveTab') || 'agent',
+            isOpen: false,
 
-        toggleSettings() {
-            this.isOpen = !this.isOpen;
-        }
-    });
+            toggleSettings() {
+                try {
+                    this.isOpen = !this.isOpen;
+                } catch (error) {
+                    console.error('Error toggling settings:', error);
+                }
+            }
+        });
+        console.log('✅ Alpine root store initialized successfully');
+    } catch (error) {
+        console.error('❌ Error initializing Alpine root store:', error);
+    }
 
     // Then initialize other Alpine components
-    Alpine.data('settingsModal', function () {
-        return {
-            settingsData: {},
-            filteredSections: [],
-            activeTab: 'agent',
-            isLoading: true,
+    try {
+        Alpine.data('settingsModal', function () {
+            return {
+                settingsData: {},
+                filteredSections: [],
+                activeTab: 'agent',
+                isLoading: true,
 
-            async init() {
-                // Initialize with the store value
-                this.activeTab = Alpine.store('root').activeTab || 'agent';
+                async init() {
+                    try {
+                        // Initialize with the store value
+                        const rootStore = Alpine.store('root');
+                        this.activeTab = rootStore?.activeTab || 'agent';
 
-                // Watch store tab changes
-                this.$watch('$store.root.activeTab', (newTab) => {
-                    if (typeof newTab !== 'undefined') {
-                        this.activeTab = newTab;
-                        localStorage.setItem('settingsActiveTab', newTab);
+                        // Watch store tab changes
+                        this.$watch('$store.root.activeTab', (newTab) => {
+                            if (typeof newTab !== 'undefined') {
+                                this.activeTab = newTab;
+                                localStorage.setItem('settingsActiveTab', newTab);
+                                this.updateFilteredSections();
+                            }
+                        });
+
+                        // Load settings
+                        await this.fetchSettings();
                         this.updateFilteredSections();
+                    } catch (error) {
+                        console.error('Error in settingsModal init:', error);
+                        // Set fallback state
+                        this.activeTab = 'agent';
+                        this.isLoading = false;
                     }
-                });
-
-                // Load settings
-                await this.fetchSettings();
-                this.updateFilteredSections();
-            },
+                },
 
             switchTab(tab) {
-                // Update our component state
-                this.activeTab = tab;
+                try {
+                    // Update our component state
+                    this.activeTab = tab;
 
-                // Update the store safely
-                const store = Alpine.store('root');
-                if (store) {
-                    store.activeTab = tab;
+                    // Update the store safely
+                    const store = Alpine.store('root');
+                    if (store) {
+                        store.activeTab = tab;
+                    }
+                    
+                    // Save to localStorage
+                    localStorage.setItem('settingsActiveTab', tab);
+                    
+                    // Update filtered sections
+                    this.updateFilteredSections();
+                } catch (error) {
+                    console.error('Error switching tab:', error);
                 }
             },
 
@@ -569,8 +625,11 @@ document.addEventListener('alpine:init', function () {
 
                 this.$store.root.isOpen = false;
             }
-        };
-    });
+        });
+        console.log('✅ Alpine settingsModal component registered successfully');
+    } catch (error) {
+        console.error('❌ Error registering Alpine settingsModal component:', error);
+    }
 });
 
 // Show toast notification
