@@ -87,7 +87,16 @@ const settingsModalProxy = {
     async openModal() {
         console.log('Settings modal opening');
         const modalEl = document.getElementById('settingsModal');
-        const modalAD = Alpine.$data(modalEl);
+        if (!modalEl) {
+            console.error('Settings modal element not found');
+            return;
+        }
+
+        const modalAD = Alpine?.$data(modalEl);
+        if (!modalAD) {
+            console.error('Settings modal not initialised');
+            return;
+        }
 
         // First, ensure the store is updated properly
         const store = Alpine.store('root');
