@@ -187,3 +187,4 @@ if (document.readyState === 'loading') {
 } else {
   UIStructureBuilder.buildCompleteInterface();
 }
+
