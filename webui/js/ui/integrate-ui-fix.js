@@ -9,13 +9,19 @@
     }
   };
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      if (!document.getElementById('right-panel')) {
+  // Use a dedicated initialization flag to determine if the UI needs to be built
+  if (!window.__uiInitialized) {
+    const buildUI = () => {
+      if (!window.__uiInitialized) {
         window.UIStructureBuilder?.buildCompleteInterface();
+        window.__uiInitialized = true;
       }
-    });
-  } else if (!document.getElementById('right-panel')) {
-    window.UIStructureBuilder?.buildCompleteInterface();
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', buildUI);
+    } else {
+      buildUI();
+    }
   }
 })();

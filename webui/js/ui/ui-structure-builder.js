@@ -65,6 +65,7 @@ export class UIStructureBuilder {
       </div>`;
 
     const fragment = document.createRange().createContextualFragment(template);
+    appContainer.innerHTML = '';
     appContainer.appendChild(fragment);
     this.injectCompleteStyles();
     this.initializeMessageHandlers();
@@ -155,6 +156,22 @@ export class UIStructureBuilder {
           </div>`;
       }
       messagesContainer.appendChild(messageEl);
+
+      // Ensure messagesContainer is scrollable
+      if (messagesContainer) {
+        const computedStyle = window.getComputedStyle(messagesContainer);
+        if (
+          (computedStyle.overflowY !== 'auto' && computedStyle.overflowY !== 'scroll') ||
+          computedStyle.height === 'auto' ||
+          computedStyle.height === '0px'
+        ) {
+          messagesContainer.style.overflowY = 'auto';
+          if (!messagesContainer.style.height) {
+            messagesContainer.style.height = '300px'; // Set a reasonable default height
+          }
+        }
+      }
+
       if (document.getElementById('auto-scroll-switch')?.checked) {
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
       }
@@ -163,4 +180,11 @@ export class UIStructureBuilder {
 }
 
 window.UIStructureBuilder = UIStructureBuilder;
-UIStructureBuilder.buildCompleteInterface();
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    UIStructureBuilder.buildCompleteInterface();
+  });
+} else {
+  UIStructureBuilder.buildCompleteInterface();
+}
+
