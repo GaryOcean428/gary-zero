@@ -133,24 +133,28 @@ class AgentContext:
             )
         return items
 
-    def kill_process(self):
+    def kill_process(self) -> None:
+        """Kill the current running process."""
         if self.task:
             self.task.kill()
 
-    def reset(self):
+    def reset(self) -> None:
+        """Reset the agent context to initial state."""
         self.kill_process()
         self.log.reset()
         self.agent0 = Agent(0, self.config, self)
         self.streaming_agent = None
         self.paused = False
 
-    def nudge(self):
+    def nudge(self) -> Any:
+        """Nudge the agent to continue processing."""
         self.kill_process()
         self.paused = False
         self.task = self.run_task(self.get_agent().monologue)
         return self.task
 
-    def get_agent(self):
+    def get_agent(self) -> "Agent":
+        """Get the current active agent (streaming or default)."""
         return self.streaming_agent or self.agent0
 
     def communicate(self, msg: "UserMessage", broadcast_level: int = 1):
