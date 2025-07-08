@@ -9,19 +9,13 @@
     }
   };
 
-  // Use a dedicated initialization flag to determine if the UI needs to be built
-  if (!window.__uiInitialized) {
-    const buildUI = () => {
-      if (!window.__uiInitialized) {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!document.getElementById('right-panel')) {
         window.UIStructureBuilder?.buildCompleteInterface();
-        window.__uiInitialized = true;
       }
-    };
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', buildUI);
-    } else {
-      buildUI();
-    }
+    });
+  } else if (!document.getElementById('right-panel')) {
+    window.UIStructureBuilder?.buildCompleteInterface();
   }
 })();

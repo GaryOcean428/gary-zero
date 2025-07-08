@@ -8,8 +8,10 @@ export class UIStructureBuilder {
       document.body.appendChild(appContainer);
     }
 
-    const existingRightPanel = document.getElementById('right-panel');
-    if (existingRightPanel) existingRightPanel.remove();
+    // Clear any previous UI to avoid duplicate fragments
+    while (appContainer.firstChild) {
+      appContainer.removeChild(appContainer.firstChild);
+    }
 
     const template = `
       <div class="app-layout">
@@ -65,7 +67,6 @@ export class UIStructureBuilder {
       </div>`;
 
     const fragment = document.createRange().createContextualFragment(template);
-    appContainer.innerHTML = '';
     appContainer.appendChild(fragment);
     this.injectCompleteStyles();
     this.initializeMessageHandlers();
@@ -187,4 +188,3 @@ if (document.readyState === 'loading') {
 } else {
   UIStructureBuilder.buildCompleteInterface();
 }
-
