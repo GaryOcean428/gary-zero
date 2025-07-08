@@ -10,6 +10,7 @@ from typing import Annotated, Literal, Optional, Union
 # Third-party imports
 try:
     import nest_asyncio
+
     nest_asyncio.apply()
 except ImportError:
     # nest_asyncio is optional - used for nested event loops
@@ -36,6 +37,7 @@ from framework.helpers.print_style import PrintStyle
 
 class TaskState(str, Enum):
     """Enumeration of possible task states."""
+
     IDLE = "idle"
     RUNNING = "running"
     FINISHED = "finished"
@@ -43,6 +45,7 @@ class TaskState(str, Enum):
 
 class TaskType(str, Enum):
     """Enumeration of task types."""
+
     AD_HOC = "adhoc"
     SCHEDULED = "scheduled"
     PLANNED = "planned"
@@ -50,6 +53,7 @@ class TaskType(str, Enum):
 
 class TaskSchedule(BaseModel):
     """Cron-style task schedule configuration."""
+
     minute: str = "*"
     hour: str = "*"
     day: str = "*"
@@ -64,6 +68,7 @@ class TaskSchedule(BaseModel):
 
 class TaskPlan(BaseModel):
     """Task plan for managing planned task execution."""
+
     todo: list[datetime] = Field(default_factory=list)
     in_progress: datetime | None = None
     done: list[datetime] = Field(default_factory=list)
@@ -112,16 +117,17 @@ class TaskPlan(BaseModel):
         """Check if the task should launch now."""
         if self.in_progress is not None:
             return False
-        
+
         next_launch = self.get_next_launch_time()
         if next_launch is None:
             return False
-        
+
         return datetime.now(timezone.utc) >= next_launch
 
 
 class BaseTask(BaseModel):
     """Base class for all task types."""
+
     uuid: str = Field(default_factory=lambda: str(uuid.uuid4()))
     context_id: Optional[str] = Field(default=None)
     state: TaskState = Field(default=TaskState.IDLE)
@@ -170,7 +176,7 @@ class BaseTask(BaseModel):
                 self.last_result = last_result
             if context_id is not None:
                 self.context_id = context_id
-                
+
             self.updated_at = datetime.now(timezone.utc)
 
     def check_schedule(self, frequency_seconds: float = 60.0) -> bool:
@@ -186,7 +192,7 @@ class BaseTask(BaseModel):
         next_run = self.get_next_run()
         if next_run is None:
             return None
-        
+
         now = datetime.now(timezone.utc)
         return int((next_run - now).total_seconds() / 60)
 
@@ -209,6 +215,7 @@ class BaseTask(BaseModel):
 
 class AdHocTask(BaseTask):
     """Ad-hoc task that runs once when triggered."""
+
     type: Literal[TaskType.AD_HOC] = TaskType.AD_HOC
     token: str = Field(default_factory=lambda: str(uuid.uuid4().int))
 
@@ -263,6 +270,7 @@ class AdHocTask(BaseTask):
 
 class ScheduledTask(BaseTask):
     """Scheduled task that runs based on cron-style schedule."""
+
     type: Literal[TaskType.SCHEDULED] = TaskType.SCHEDULED
     schedule: TaskSchedule
 
@@ -322,15 +330,15 @@ class ScheduledTask(BaseTask):
         try:
             # Create cron object from schedule
             cron = CronTab(self.schedule.to_crontab())
-            
+
             # Get timezone
             tz = pytz.timezone(self.schedule.timezone)
             now = datetime.now(tz)
-            
+
             # Check if we should run now
             delay = cron.next(now=now, default_utc=False)
             return delay <= frequency_seconds
-            
+
         except Exception as e:
             PrintStyle(font_color="red", padding=True).print(
                 f"Error checking schedule for task {self.name}: {str(e)}"
@@ -343,17 +351,18 @@ class ScheduledTask(BaseTask):
             cron = CronTab(self.schedule.to_crontab())
             tz = pytz.timezone(self.schedule.timezone)
             now = datetime.now(tz)
-            
+
             # Get next run time and convert to UTC
             next_run_local = cron.next(now=now, default_utc=False, return_datetime=True)
             return next_run_local.astimezone(timezone.utc)
-            
+
         except Exception:
             return None
 
 
 class PlannedTask(BaseTask):
     """Planned task that runs at specific planned times."""
+
     type: Literal[TaskType.PLANNED] = TaskType.PLANNED
     plan: TaskPlan
 

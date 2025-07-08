@@ -42,8 +42,10 @@ class SchedulerTaskCreate(ApiHandler):
         token: str = input.get("token", "")
 
         # Debug log the token value
+        token_length = len(token) if token else 0
         printer.print(
-            f"Token received from frontend: '{token}' (type: {type(token)}, length: {len(token) if token else 0})"
+            f"Token received from frontend: '{token}' "
+            f"(type: {type(token)}, length: {token_length})"
         )
 
         # Generate a random token if empty or not provided
@@ -77,7 +79,7 @@ class SchedulerTaskCreate(ApiHandler):
                 try:
                     task_schedule = parse_task_schedule(schedule)
                 except ValueError as e:
-                    raise ValueError(str(e))
+                    raise ValueError(str(e)) from e
             else:
                 raise ValueError("Invalid schedule format. Must be string or object.")
 

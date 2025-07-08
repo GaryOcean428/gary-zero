@@ -7,9 +7,9 @@ from typing import Any, TypedDict, Union
 from flask import Flask, Request, Response
 
 from agent import AgentContext
-from initialize import initialize_agent
 from framework.helpers.errors import format_error
 from framework.helpers.print_style import PrintStyle
+from initialize import initialize_agent
 
 Input = dict
 Output = Union[dict[str, Any], Response, TypedDict]  # type: ignore
@@ -49,13 +49,15 @@ class ApiHandler:
                     # Log the error and return structured error response
                     PrintStyle().error(f"Invalid JSON in request: {str(e)}")
                     return Response(
-                        response=json.dumps({
-                            "error": "Invalid JSON format",
-                            "message": "The request body contains invalid JSON",
-                            "timestamp": time.time()
-                        }),
+                        response=json.dumps(
+                            {
+                                "error": "Invalid JSON format",
+                                "message": "The request body contains invalid JSON",
+                                "timestamp": time.time(),
+                            }
+                        ),
                         status=400,
-                        mimetype="application/json"
+                        mimetype="application/json",
                     )
             else:
                 input_data = {"data": request.get_data(as_text=True)}
@@ -63,13 +65,15 @@ class ApiHandler:
             # Validate input data
             if not isinstance(input_data, dict):
                 return Response(
-                    response=json.dumps({
-                        "error": "Invalid input format",
-                        "message": "Input data must be a JSON object",
-                        "timestamp": time.time()
-                    }),
+                    response=json.dumps(
+                        {
+                            "error": "Invalid input format",
+                            "message": "Input data must be a JSON object",
+                            "timestamp": time.time(),
+                        }
+                    ),
                     status=400,
-                    mimetype="application/json"
+                    mimetype="application/json",
                 )
 
             # process via handler
@@ -87,14 +91,16 @@ class ApiHandler:
             error = format_error(e)
             PrintStyle.error(f"API error: {error}")
             return Response(
-                response=json.dumps({
-                    "error": "Internal server error",
-                    "message": "An unexpected error occurred while processing the request",
-                    "details": str(e) if hasattr(e, '__str__') else "Unknown error",
-                    "timestamp": time.time()
-                }),
+                response=json.dumps(
+                    {
+                        "error": "Internal server error",
+                        "message": "An unexpected error occurred while processing the request",
+                        "details": str(e) if hasattr(e, "__str__") else "Unknown error",
+                        "timestamp": time.time(),
+                    }
+                ),
                 status=500,
-                mimetype="application/json"
+                mimetype="application/json",
             )
 
     # get context to run agent zero in

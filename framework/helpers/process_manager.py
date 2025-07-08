@@ -3,6 +3,7 @@
 This module provides a thread-safe way to manage the application process
 and server instances without using global variables.
 """
+
 from __future__ import annotations
 
 import os
@@ -19,6 +20,7 @@ class ProcessManager:
     This class provides a singleton instance that manages the application
     process lifecycle and server instances.
     """
+
     _instance: ProcessManager | None = None
     _server: Any = None
 

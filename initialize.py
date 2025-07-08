@@ -2,9 +2,10 @@
 import asyncio
 import logging
 
+import framework.helpers.mcp_handler as mcp_helper
+
 # Third-party imports
 import models
-import framework.helpers.mcp_handler as mcp_helper
 
 # Local application imports
 from agent import AgentConfig, ModelConfig
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 def initialize_agent():
     current_settings = get_settings()
-    
+
     # Merge with defaults to ensure all required keys exist
     for key, value in DEFAULT_SETTINGS.items():
         if key not in current_settings:
@@ -85,11 +86,7 @@ def initialize_agent():
         except (ValueError, RuntimeError) as e:
             error_msg = f"Failed to update MCP settings: {e}"
             # Log warning (context not available during initialization)
-            PrintStyle(
-                background_color="black",
-                font_color="red",
-                padding=True
-            ).print(error_msg)
+            PrintStyle(background_color="black", font_color="red", padding=True).print(error_msg)
             logger.warning("Failed to update MCP settings", exc_info=e)
 
     # return config object
@@ -98,14 +95,15 @@ def initialize_agent():
 
 def initialize_mcp() -> DeferredTask:
     """Initialize MCP servers in a deferred task."""
+
     async def deferred_initialize_mcp_async():
         current_settings = get_settings()
-        
+
         # Merge with defaults to ensure all required keys exist
         for key, value in DEFAULT_SETTINGS.items():
             if key not in current_settings:
                 current_settings[key] = value
-                
+
         mcp_servers_config = current_settings.get("mcp_servers")
         if mcp_servers_config:
             # Run the synchronous mcp_init_servers in a separate thread to avoid blocking
@@ -116,6 +114,7 @@ def initialize_mcp() -> DeferredTask:
 
 def initialize_chats() -> DeferredTask:
     """Initialize chat sessions in a deferred task."""
+
     async def initialize_chats_async():
         persist_chat.load_tmp_chats()
 

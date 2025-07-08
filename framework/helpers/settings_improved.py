@@ -5,6 +5,7 @@ This module demonstrates better practices for:
 2. Improved regex pattern for environment variable parsing
 3. Type safety and validation
 """
+
 # Standard library imports
 import asyncio
 import contextlib
@@ -19,6 +20,7 @@ from framework.helpers.print_style import PrintStyle
 
 class TaskStatus(Enum):
     """Status of background tasks."""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -28,6 +30,7 @@ class TaskStatus(Enum):
 @dataclass
 class BackgroundTask:
     """Represents a managed background task."""
+
     name: str
     task: asyncio.Task
     status: TaskStatus = TaskStatus.PENDING
@@ -41,12 +44,7 @@ class BackgroundTaskManager:
         self._tasks: dict[str, BackgroundTask] = {}
         self._lock = asyncio.Lock()
 
-    async def schedule_task(
-        self,
-        coro,
-        task_name: str,
-        on_error=None
-    ) -> BackgroundTask:
+    async def schedule_task(self, coro, task_name: str, on_error=None) -> BackgroundTask:
         """Schedule a background task with proper error handling.
 
         Args:
@@ -86,11 +84,9 @@ class BackgroundTaskManager:
                     bg_task.error = e
 
                     # Log error
-                    PrintStyle(
-                        background_color="red",
-                        font_color="white",
-                        padding=True
-                    ).print(f"Background task '{task_name}' failed: {e}")
+                    PrintStyle(background_color="red", font_color="white", padding=True).print(
+                        f"Background task '{task_name}' failed: {e}"
+                    )
 
                     # Call custom error handler if provided
                     if on_error:
@@ -98,9 +94,7 @@ class BackgroundTaskManager:
                             on_error(e)
                         except Exception as handler_error:  # pylint: disable=broad-except
                             PrintStyle(
-                                background_color="red",
-                                font_color="white",
-                                padding=True
+                                background_color="red", font_color="white", padding=True
                             ).print(f"Error handler for '{task_name}' failed: {handler_error}")
 
             task.add_done_callback(handle_completion)
@@ -156,7 +150,8 @@ class BackgroundTaskManager:
         """Remove completed and failed tasks from tracking."""
         async with self._lock:
             to_remove = [
-                name for name, task in self._tasks.items()
+                name
+                for name, task in self._tasks.items()
                 if task.status in (TaskStatus.COMPLETED, TaskStatus.FAILED)
             ]
             for name in to_remove:
@@ -179,10 +174,7 @@ class EnvParser:
     """Improved environment variable parser with better pattern matching."""
 
     # Compiled regex patterns for better performance
-    LINE_PATTERN = re.compile(
-        r'^\s*(?P<key>[^#\s=][^=]*?)\s*=\s*(?P<value>.*?)\s*$',
-        re.MULTILINE
-    )
+    LINE_PATTERN = re.compile(r"^\s*(?P<key>[^#\s=][^=]*?)\s*=\s*(?P<value>.*?)\s*$", re.MULTILINE)
 
     # Pattern to detect quoted values
     QUOTED_VALUE_PATTERN = re.compile(r'^(["\'])(.*)(\1)$', re.DOTALL)
@@ -207,8 +199,8 @@ class EnvParser:
 
         # Process each line
         for match in cls.LINE_PATTERN.finditer(data):
-            key = match.group('key').strip()
-            value = match.group('value').strip()
+            key = match.group("key").strip()
+            value = match.group("value").strip()
 
             # Handle quoted values
             quoted_match = cls.QUOTED_VALUE_PATTERN.match(value)
@@ -250,12 +242,7 @@ class EnvParser:
     @staticmethod
     def _needs_quotes(value: str) -> bool:
         """Check if a value needs to be quoted."""
-        return (
-            "\n" in value or
-            " " in value or
-            value == "" or
-            any(c in value for c in '"\'=')
-        )
+        return "\n" in value or " " in value or value == "" or any(c in value for c in "\"'=")
 
 
 # Example usage of the improved code:
@@ -263,29 +250,24 @@ async def update_mcp_token_improved(current_token: str):
     """Improved version of update_mcp_token with better error handling."""
     try:
         from framework.helpers.mcp_server import DynamicMcpProxy
+
         DynamicMcpProxy.get_instance().reconfigure(token=current_token)
 
-        PrintStyle(
-            background_color="green",
-            font_color="white",
-            padding=True
-        ).print("Successfully updated MCP token")
+        PrintStyle(background_color="green", font_color="white", padding=True).print(
+            "Successfully updated MCP token"
+        )
 
     except ImportError as e:
-        PrintStyle(
-            background_color="red",
-            font_color="white",
-            padding=True
-        ).print(f"Failed to import MCP server module: {e}")
+        PrintStyle(background_color="red", font_color="white", padding=True).print(
+            f"Failed to import MCP server module: {e}"
+        )
         raise
     except Exception as e:  # pylint: disable=broad-except
         # Catching broad exception here is intentional for background tasks
         # to prevent them from crashing the event loop silently.
-        PrintStyle(
-            background_color="red",
-            font_color="white",
-            padding=True
-        ).print(f"Failed to update MCP token: {e}")
+        PrintStyle(background_color="red", font_color="white", padding=True).print(
+            f"Failed to update MCP token: {e}"
+        )
         raise
 
 

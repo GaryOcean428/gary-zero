@@ -34,10 +34,12 @@ def get_scheduler() -> TaskScheduler:
     """Get the global scheduler instance."""
     return TaskScheduler.get()
 
+
 # Keep the main task list accessible for backward compatibility
 def get_task_list() -> SchedulerTaskList:
     """Get the global task list instance."""
     return SchedulerTaskList.get()
+
 
 # Legacy compatibility exports
 __all__ = [

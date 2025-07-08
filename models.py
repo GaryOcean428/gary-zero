@@ -72,10 +72,7 @@ def get_api_key(service) -> str | None:
 
 def get_model(model_type: ModelType, provider: ModelProvider, name: str, **kwargs):
     # Construct the function name for the model getter
-    fnc_name = (
-        f"get_{provider.name.lower()}_"
-        f"{model_type.name.lower()}"
-    )
+    fnc_name = f"get_{provider.name.lower()}_" f"{model_type.name.lower()}"
     model = globals()[fnc_name](name, **kwargs)
     return model
 
@@ -98,9 +95,7 @@ def get_rate_limiter(
     key = f"{provider.name}\\{name}"
     if key not in rate_limiters:
         rate_limiters[key] = RateLimiter(
-            requests=requests,
-            input_tokens=input_tokens,
-            output_tokens=output_tokens
+            requests=requests, input_tokens=input_tokens, output_tokens=output_tokens
         )
     limiter = rate_limiters[key]
     limiter.limits["requests"] = requests or 0
@@ -388,20 +383,13 @@ def get_groq_chat(model_name: str, api_key: str | None = None, **kwargs) -> Chat
         v1_secret_key = get_api_key("groq")
         if v1_secret_key:
             final_api_key_for_constructor = SecretStr(v1_secret_key)
-    model = ChatGroq(
-        model=model_name,
-        api_key=final_api_key_for_constructor,
-        **kwargs
-    )
+    model = ChatGroq(model=model_name, api_key=final_api_key_for_constructor, **kwargs)
     return model
 
 
 # DeepSeek models
 def get_deepseek_chat(
-    model_name: str,
-    api_key: str | None = None,
-    base_url: str | None = None,
-    **kwargs
+    model_name: str, api_key: str | None = None, base_url: str | None = None, **kwargs
 ) -> ChatOpenAI:
     """Get a DeepSeek chat model."""
     final_api_key_for_constructor: SecretStr | None = None
@@ -411,11 +399,11 @@ def get_deepseek_chat(
         v1_secret_key = get_api_key("deepseek")
         if v1_secret_key:
             final_api_key_for_constructor = SecretStr(v1_secret_key)
-    # If api_key was already a SecretStr (e.g. from get_api_key if logic changes), 
+    # If api_key was already a SecretStr (e.g. from get_api_key if logic changes),
     # assume it's v1 and convert
     elif hasattr(api_key, "get_secret_value"):
         final_api_key_for_constructor = SecretStr(api_key.get_secret_value())
-    # else: api_key might be an already correctly-typed v2 SecretStr, 
+    # else: api_key might be an already correctly-typed v2 SecretStr,
     # or an unexpected type. Let it pass.
 
     if not base_url:
@@ -545,10 +533,7 @@ def get_other_chat(
 
 
 def get_other_embedding(
-    model_name: str,
-    api_key: str | None = None,
-    base_url: str | None = None,
-    **kwargs
+    model_name: str, api_key: str | None = None, base_url: str | None = None, **kwargs
 ) -> OpenAIEmbeddings:
     """Get any other OpenAI-compatible embedding model."""
     # This function assumes api_key is either a string or None.
@@ -563,12 +548,7 @@ def get_other_embedding(
         # standard way for ChatOpenAI/OpenAIEmbeddings to handle this.
         pass
 
-    return OpenAIEmbeddings(
-        model=model_name,
-        api_key=final_api_key,
-        base_url=base_url,
-        **kwargs
-    )
+    return OpenAIEmbeddings(model=model_name, api_key=final_api_key, base_url=base_url, **kwargs)
 
 
 # Chutes models

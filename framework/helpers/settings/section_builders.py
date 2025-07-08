@@ -1,4 +1,3 @@
-from typing import Any, List
 
 import models
 from framework.helpers.settings.constants import MODEL_PARAMS_DESCRIPTION, PASSWORD_PLACEHOLDER
@@ -304,7 +303,6 @@ class SectionBuilder:
     @staticmethod
     def build_stt_section(settings: Settings) -> SettingsSection:
         """Builds the speech-to-text settings section."""
-        from framework.helpers import files  # Local import
         stt_fields: list[SettingsField] = []
         stt_fields.append(
             {

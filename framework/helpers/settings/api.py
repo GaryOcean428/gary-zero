@@ -3,17 +3,16 @@
 This module provides the public interface for accessing and modifying settings
 while avoiding circular imports.
 """
+
 from __future__ import annotations
 
 import json
 import os
-from pathlib import Path
 from typing import Any, cast
 
 from framework.helpers import files
 from framework.helpers.settings.types import (
     DEFAULT_SETTINGS,
-    FieldOption,
     Settings,
     SettingsField,
     SettingsOutput,
@@ -39,7 +38,7 @@ def get_settings() -> Settings:
         return DEFAULT_SETTINGS.copy()
 
     try:
-        with open(SETTINGS_FILE, 'r', encoding='utf-8') as f:
+        with open(SETTINGS_FILE, encoding="utf-8") as f:
             settings_data = json.load(f)
         return cast(Settings, settings_data)
     except (json.JSONDecodeError, OSError):
@@ -56,18 +55,18 @@ def set_settings(settings: Settings, apply: bool = True) -> None:
     """
     # Ensure the directory exists
     os.makedirs(os.path.dirname(SETTINGS_FILE), exist_ok=True)
-    
+
     # Write settings to file
-    with open(SETTINGS_FILE, 'w', encoding='utf-8') as f:
+    with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
         json.dump(settings, f, indent=2)
-    
+
     if apply:
         _apply_settings(settings)
 
 
 def set_settings_delta(delta: dict[str, Any], apply: bool = True) -> None:
     """Update settings with the given delta.
-    
+
     Args:
         delta: Dictionary of settings to update
         apply: If True, apply the settings immediately
@@ -79,16 +78,17 @@ def set_settings_delta(delta: dict[str, Any], apply: bool = True) -> None:
 
 def convert_out(settings: Settings) -> SettingsOutput:
     """Convert settings to UI format.
-    
+
     Args:
         settings: The settings to convert
-        
+
     Returns:
         Settings formatted for the UI
     """
     # Import models here to avoid circular imports
     try:
         import models
+
         ModelProvider = models.ModelProvider
     except ImportError:
         # Fallback if models not available
@@ -99,22 +99,26 @@ def convert_out(settings: Settings) -> SettingsOutput:
 
     # Main model section
     chat_model_fields: list[SettingsField] = []
-    chat_model_fields.append({
-        "id": "chat_model_provider",
-        "title": "Chat model provider",
-        "description": "Select provider for main chat model used by Gary-Zero",
-        "type": "select",
-        "value": settings["chat_model_provider"],
-        "options": [{"value": p.name, "label": p.value} for p in ModelProvider],
-    })
-    
-    chat_model_fields.append({
-        "id": "chat_model_name",
-        "title": "Chat model name",
-        "description": "Exact name of model from selected provider",
-        "type": "text",
-        "value": settings["chat_model_name"],
-    })
+    chat_model_fields.append(
+        {
+            "id": "chat_model_provider",
+            "title": "Chat model provider",
+            "description": "Select provider for main chat model used by Gary-Zero",
+            "type": "select",
+            "value": settings["chat_model_provider"],
+            "options": [{"value": p.name, "label": p.value} for p in ModelProvider],
+        }
+    )
+
+    chat_model_fields.append(
+        {
+            "id": "chat_model_name",
+            "title": "Chat model name",
+            "description": "Exact name of model from selected provider",
+            "type": "text",
+            "value": settings["chat_model_name"],
+        }
+    )
 
     chat_model_section: SettingsSection = {
         "id": "chat_model",

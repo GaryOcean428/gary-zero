@@ -107,8 +107,6 @@ const fullComponentImplementation = function() {
         showLoadingState: false,
         viewMode: 'list', // Controls whether to show list or detail view
         selectedTaskForDetail: null, // Task object for detail view
-        attachmentsText: '',
-        filteredTasks: [],
         hasNoTasks: true, // Add explicit reactive property
 
         // Initialize the component

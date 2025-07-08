@@ -2,6 +2,7 @@
 
 # Standard library imports
 import asyncio
+import contextlib
 import json
 import threading
 from datetime import datetime, timezone
@@ -14,12 +15,10 @@ from pydantic import BaseModel, Field, PrivateAttr
 from agent import AgentContext, UserMessage
 from framework.helpers.defer import DeferredTask
 from framework.helpers.files import get_abs_path, make_dirs, read_file, write_file
-from framework.helpers.localization import Localization
 from framework.helpers.persist_chat import save_tmp_chat
 from framework.helpers.print_style import PrintStyle
 from framework.helpers.task_models import (
     AdHocTask,
-    BaseTask,
     PlannedTask,
     ScheduledTask,
     Task,
@@ -32,6 +31,7 @@ SCHEDULER_FOLDER = "tmp/scheduler"
 
 class SchedulerTaskList(BaseModel):
     """Manages the list of all scheduled tasks."""
+
     tasks: list[Task] = Field(default_factory=list)
     __instance: ClassVar[Optional["SchedulerTaskList"]] = PrivateAttr(default=None)
 
@@ -51,17 +51,17 @@ class SchedulerTaskList(BaseModel):
         """Reload tasks from disk."""
         with self._lock:
             tasks_file = get_abs_path(f"{SCHEDULER_FOLDER}/tasks.json")
-            
+
             try:
                 file_content = read_file(tasks_file)
                 if not file_content:
                     self.tasks = []
                     self.save()
                     return
-                    
+
                 tasks_data = json.loads(file_content)
                 self.tasks = []
-                
+
                 for task_data in tasks_data:
                     try:
                         # Handle both string and dict task_data
@@ -78,20 +78,18 @@ class SchedulerTaskList(BaseModel):
                         # Get UUID safely for error reporting
                         task_uuid = "unknown"
                         if isinstance(task_data, dict):
-                            task_uuid = task_data.get('uuid', 'unknown')
-                        
+                            task_uuid = task_data.get("uuid", "unknown")
+
                         PrintStyle(font_color="red", padding=True).print(
                             f"Error loading task {task_uuid}: {str(e)}"
                         )
-                        
+
             except FileNotFoundError:
                 # File doesn't exist yet, initialize with empty task list
                 self.tasks = []
                 self.save()
             except Exception as e:
-                PrintStyle(font_color="red", padding=True).print(
-                    f"Error loading tasks: {str(e)}"
-                )
+                PrintStyle(font_color="red", padding=True).print(f"Error loading tasks: {str(e)}")
                 self.tasks = []
 
     def add_task(self, task: Union[ScheduledTask, AdHocTask, PlannedTask]) -> None:
@@ -107,14 +105,12 @@ class SchedulerTaskList(BaseModel):
         with self._lock:
             make_dirs(SCHEDULER_FOLDER)
             tasks_file = get_abs_path(f"{SCHEDULER_FOLDER}/tasks.json")
-            
+
             try:
                 serialized_tasks = serialize_tasks(self.tasks)
                 write_file(tasks_file, json.dumps(serialized_tasks, indent=2))
             except Exception as e:
-                PrintStyle(font_color="red", padding=True).print(
-                    f"Error saving tasks: {str(e)}"
-                )
+                PrintStyle(font_color="red", padding=True).print(f"Error saving tasks: {str(e)}")
 
     def update_task_by_uuid(
         self,
@@ -195,7 +191,7 @@ class SchedulerTaskList(BaseModel):
         with self._lock:
             original_count = len(self.tasks)
             self.tasks = [task for task in self.tasks if task.uuid != task_uuid]
-            
+
             if len(self.tasks) < original_count:
                 self.save()
                 return True
@@ -206,7 +202,7 @@ class SchedulerTaskList(BaseModel):
         with self._lock:
             original_count = len(self.tasks)
             self.tasks = [task for task in self.tasks if task.name != name]
-            
+
             if len(self.tasks) < original_count:
                 self.save()
                 return True
@@ -215,6 +211,7 @@ class SchedulerTaskList(BaseModel):
 
 class TaskScheduler:
     """Main task scheduler for managing and executing tasks."""
+
     _instance = None
 
     def __init__(self):
@@ -274,10 +271,10 @@ class TaskScheduler:
     async def tick(self) -> None:
         """Check for and run due tasks."""
         due_tasks = self._tasks.get_due_tasks()
-        
+
         for task in due_tasks:
             self._printer.print(f"Running scheduled task: {task.name}")
-            
+
             # Run task in background
             DeferredTask.create(
                 self._run_task_wrapper,
@@ -290,9 +287,9 @@ class TaskScheduler:
         task = self.get_task_by_uuid(task_uuid)
         if not task:
             return False
-        
+
         self._printer.print(f"Running task: {task.name}")
-        
+
         # Run task in background
         DeferredTask.create(
             self._run_task_wrapper,
@@ -306,7 +303,7 @@ class TaskScheduler:
         task = self.get_task_by_name(name)
         if not task:
             return False
-        
+
         return self.run_task_by_uuid(task.uuid, task_context)
 
     def save(self) -> None:
@@ -327,6 +324,7 @@ class TaskScheduler:
 
         Returns the updated task or None if not found.
         """
+
         def _update_task(task):
             task.update(**update_params)
 
@@ -338,35 +336,33 @@ class TaskScheduler:
         """Update a task by UUID with the provided parameters."""
         return self.update_task_checked(task_uuid, **update_params)
 
-    def __new_context(
-        self, task: Union[ScheduledTask, AdHocTask, PlannedTask]
-    ) -> AgentContext:
+    def __new_context(self, task: Union[ScheduledTask, AdHocTask, PlannedTask]) -> AgentContext:
         """Create a new agent context for task execution."""
         from initialize import initialize_agent
+
         agent = initialize_agent()
-        
+
         context = AgentContext(
             agent=agent,
             context_id=task.context_id,
             system_prompt=task.system_prompt,
         )
-        
+
         return context
 
-    def _get_chat_context(
-        self, task: Union[ScheduledTask, AdHocTask, PlannedTask]
-    ) -> AgentContext:
+    def _get_chat_context(self, task: Union[ScheduledTask, AdHocTask, PlannedTask]) -> AgentContext:
         """Get or create chat context for the task."""
         try:
             from initialize import initialize_agent
+
             agent = initialize_agent()
             context = agent.load_context(task.context_id)
-            
+
             if context is None:
                 context = self.__new_context(task)
-                
+
             return context
-            
+
         except Exception as e:
             self._printer.print(f"Error loading context, creating new one: {str(e)}")
             return self.__new_context(task)
@@ -378,10 +374,10 @@ class TaskScheduler:
         try:
             # Save context
             context.agent.save_context(context)
-            
+
             # Save temporary chat
             save_tmp_chat(context.context_id, context.chat_history)
-            
+
         except Exception as e:
             self._printer.print(f"Error persisting chat: {str(e)}")
 
@@ -393,51 +389,53 @@ class TaskScheduler:
         """Execute a task asynchronously."""
         try:
             # Update task state to running
-            self.update_task(task.uuid, state=TaskState.RUNNING, last_run=datetime.now(timezone.utc))
-            
+            self.update_task(
+                task.uuid, state=TaskState.RUNNING, last_run=datetime.now(timezone.utc)
+            )
+
             # Call task's on_run hook
             await task.on_run()
-            
+
             # Get chat context
             context = self._get_chat_context(task)
-            
+
             # Create user message
             message_content = task.prompt
             if task_context:
                 message_content = f"{task_context}\n\n{message_content}"
-            
+
             user_message = UserMessage(content=message_content, attachments=task.attachments)
-            
+
             # Execute task
             response = await context.agent.message_loop_async(user_message, context)
-            
+
             # Update task with result
             self.update_task(
                 task.uuid,
                 state=TaskState.FINISHED,
                 last_result=response.content if response else "No response",
             )
-            
+
             # Call success hook
             await task.on_success(response.content if response else "No response")
-            
+
             # Persist chat context
             self._persist_chat(task, context)
-            
+
         except Exception as e:
             error_msg = str(e)
             self._printer.print(f"Error running task {task.name}: {error_msg}")
-            
+
             # Update task with error
             self.update_task(
                 task.uuid,
                 state=TaskState.FINISHED,
                 last_result=f"Error: {error_msg}",
             )
-            
+
             # Call error hook
             await task.on_error(error_msg)
-        
+
         finally:
             # Call finish hook
             await task.on_finish()
@@ -447,21 +445,19 @@ class TaskScheduler:
         task = self.get_task_by_uuid(task_uuid)
         if not task:
             return
-        
+
         try:
             # Create and run the task
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            
+
             loop.run_until_complete(self._run_task(task, task_context))
-            
+
         except Exception as e:
             self._printer.print(f"Error in task wrapper: {str(e)}")
         finally:
-            try:
+            with contextlib.suppress(Exception):
                 loop.close()
-            except Exception:
-                pass
 
     def serialize_all_tasks(self) -> list[dict[str, Any]]:
         """
@@ -475,7 +471,7 @@ class TaskScheduler:
         Returns None if task is not found.
         """
         from framework.helpers.task_serialization import serialize_task
-        
+
         task = self.get_task_by_uuid(task_id)
         if task:
             return serialize_task(task)

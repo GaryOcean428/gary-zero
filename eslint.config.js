@@ -17,9 +17,10 @@ export default [
       '**/bundle*.js',
       '**/webui/js/lib/**',
       '**/webui/js/libs/**',
-      '**/webui/js/transformers@*.js',
-      '**/webui/js/alpine*.js',
-      '**/*.debug.js'  // Debug files with intentional console statements
+      'webui/js/transformers@*.js',
+      'webui/js/alpine*.js',
+      '**/*.debug.js',  // Debug files with intentional console statements
+      'webui/js/verify-fixes.js' // Testing/verification file
     ],
     languageOptions: {
       ecmaVersion: 2024,
@@ -58,6 +59,15 @@ export default [
         Event: 'readonly',
         CustomEvent: 'readonly',
         EventSource: 'readonly',
+        MutationObserver: 'readonly',
+        requestAnimationFrame: 'readonly',
+        cancelAnimationFrame: 'readonly',
+        queueMicrotask: 'readonly',
+        Element: 'readonly',
+        ShadowRoot: 'readonly',
+        HTMLElement: 'readonly',
+        getComputedStyle: 'readonly',
+        error: 'readonly',
         
         // Web Worker globals
         self: 'readonly',
@@ -87,10 +97,26 @@ export default [
         WritableStream: 'readonly',
         TransformStream: 'readonly',
         structuredClone: 'readonly',
+        Image: 'readonly',
         
         // App-specific globals
         settingsModalProxy: 'readonly',
-        openModal: 'readonly'
+        openModal: 'readonly',
+        DOMParser: 'readonly',
+        ToastManager: 'readonly',
+        module: 'readonly',
+        exports: 'readonly',
+        require: 'readonly',
+        flatpickr: 'readonly',
+        sendJsonData: 'readonly',
+        resp: 'readonly',
+        MediaRecorder: 'readonly',
+        toast: 'readonly',
+        AudioContext: 'readonly',
+        SpeechSynthesisUtterance: 'readonly',
+        openFileLink: 'writable',
+        renderMathInElement: 'readonly',
+        messageContent: 'writable'
       }
     },
     plugins: {

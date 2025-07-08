@@ -12,7 +12,6 @@ from framework.helpers.task_models import (
     ScheduledTask,
     TaskPlan,
     TaskSchedule,
-    Task,
 )
 
 
@@ -27,7 +26,7 @@ def serialize_datetime(dt: Optional[datetime]) -> Optional[str]:
     """
     if dt is None:
         return None
-    
+
     localization = Localization.get()
     local_dt = localization.to_user_timezone(dt)
     return local_dt.isoformat()
@@ -44,16 +43,16 @@ def parse_datetime(dt_str: Optional[str]) -> Optional[datetime]:
     """
     if dt_str is None:
         return None
-    
+
     try:
         # Parse the ISO format datetime string
         dt = datetime.fromisoformat(dt_str)
-        
+
         # If it's naive, assume it's in user's timezone and convert to UTC
         if dt.tzinfo is None:
             localization = Localization.get()
             dt = localization.from_user_timezone(dt)
-        
+
         return dt.astimezone(timezone.utc)
     except (ValueError, TypeError):
         return None
@@ -100,18 +99,18 @@ def parse_task_plan(plan_data: dict[str, Any]) -> TaskPlan:
             parsed_dt = parse_datetime(dt_str)
             if parsed_dt:
                 todo_list.append(parsed_dt)
-    
+
     in_progress = None
     if "in_progress" in plan_data:
         in_progress = parse_datetime(plan_data["in_progress"])
-    
+
     done_list = []
     if "done" in plan_data and isinstance(plan_data["done"], list):
         for dt_str in plan_data["done"]:
             parsed_dt = parse_datetime(dt_str)
             if parsed_dt:
                 done_list.append(parsed_dt)
-    
+
     return TaskPlan(
         todo=todo_list,
         in_progress=in_progress,
@@ -142,7 +141,7 @@ def serialize_task(
         "last_result": task.last_result,
         "type": task.type,
     }
-    
+
     # Add type-specific fields
     if isinstance(task, ScheduledTask):
         base_data["schedule"] = serialize_task_schedule(task.schedule)
@@ -150,7 +149,7 @@ def serialize_task(
         base_data["token"] = task.token
     elif isinstance(task, PlannedTask):
         base_data["plan"] = serialize_task_plan(task.plan)
-    
+
     return base_data
 
 
@@ -182,7 +181,7 @@ def deserialize_task(task_data: dict[str, Any], task_class: Optional[type[T]] = 
         "last_run": parse_datetime(task_data.get("last_run")),
         "last_result": task_data.get("last_result"),
     }
-    
+
     # Determine task type
     task_type = task_data.get("type")
     if task_class:
@@ -195,7 +194,7 @@ def deserialize_task(task_data: dict[str, Any], task_class: Optional[type[T]] = 
         target_class = PlannedTask
     else:
         raise ValueError(f"Unknown task type: {task_type}")
-    
+
     # Add type-specific fields
     if target_class == ScheduledTask:
         if "schedule" in task_data:
@@ -209,8 +208,8 @@ def deserialize_task(task_data: dict[str, Any], task_class: Optional[type[T]] = 
             base_fields["plan"] = parse_task_plan(task_data["plan"])
         else:
             base_fields["plan"] = TaskPlan()
-    
+
     # Filter out None values for optional fields
     filtered_fields = {k: v for k, v in base_fields.items() if v is not None}
-    
+
     return target_class(**filtered_fields)

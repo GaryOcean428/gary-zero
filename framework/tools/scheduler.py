@@ -129,10 +129,7 @@ class SchedulerTool(Tool):
         # Break loop if task is running in the same context
         # otherwise it would start two conversations in one window
         break_loop = task.context_id == self.agent.context.id
-        return Response(
-            message=f"Task started: {task_uuid}",
-            break_loop=break_loop
-        )
+        return Response(message=f"Task started: {task_uuid}", break_loop=break_loop)
 
     async def delete_task(self, **kwargs) -> Response:
         task_uuid: str = kwargs.get("uuid")
@@ -258,8 +255,7 @@ class SchedulerTool(Tool):
 
         if not all([name, system_prompt, prompt]):
             return Response(
-                "Name, system_prompt, and prompt are required parameters",
-                success=False
+                "Name, system_prompt, and prompt are required parameters", success=False
             )
 
         # Convert plan to list of datetimes in UTC
@@ -275,14 +271,12 @@ class SchedulerTool(Tool):
                 todo.append(dt)
             except (ValueError, TypeError):
                 return Response(
-                    f"Invalid datetime format in plan: {item}. Use ISO format.",
-                    success=False
+                    f"Invalid datetime format in plan: {item}. Use ISO format.", success=False
                 )
 
         if not todo:
             return Response(
-                "At least one valid execution time must be provided in the plan",
-                success=False
+                "At least one valid execution time must be provided in the plan", success=False
             )
 
         # Create task plan with todo list
@@ -294,10 +288,7 @@ class SchedulerTool(Tool):
             prompt=prompt,
             attachments=attachments,
             plan=task_plan,
-            context_id=(
-                None if dedicated_context
-                else self.agent.context.id
-            )
+            context_id=(None if dedicated_context else self.agent.context.id),
         )
 
         try:
@@ -305,13 +296,10 @@ class SchedulerTool(Tool):
             return Response(
                 f"Planned task '{name}' created with {len(todo)} "
                 f"scheduled executions: {task.uuid}",
-                break_loop=False
+                break_loop=False,
             )
         except Exception as e:
-            return Response(
-                f"Failed to create planned task: {str(e)}",
-                success=False
-            )
+            return Response(f"Failed to create planned task: {str(e)}", success=False)
 
     async def wait_for_task(self, **kwargs) -> Response:
         task_uuid: str = kwargs.get("uuid")
@@ -325,13 +313,11 @@ class SchedulerTool(Tool):
 
         if not (self.agent and self.agent.context):
             logger.warning(
-                "No agent context available for task %s. "
-                "Task will run in a dedicated context.",
-                task.name
+                "No agent context available for task %s. " "Task will run in a dedicated context.",
+                task.name,
             )
             return Response(
-                message="Cannot wait for task: No agent context available",
-                break_loop=False
+                message="Cannot wait for task: No agent context available", break_loop=False
             )
 
         if task.context_id == self.agent.context.id:
@@ -364,14 +350,10 @@ class SchedulerTool(Tool):
 
         last_run = (
             serialize_datetime(task.last_run)
-            if hasattr(task, 'last_run') and task.last_run
+            if hasattr(task, "last_run") and task.last_run
             else "Never"
         )
-        result = (
-            task.last_result
-            if hasattr(task, 'last_result')
-            else "No result yet"
-        )
+        result = task.last_result if hasattr(task, "last_result") else "No result yet"
 
         message = (
             f"*Task*: {task_uuid}\n"

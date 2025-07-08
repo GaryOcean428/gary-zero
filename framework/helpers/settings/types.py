@@ -2,24 +2,24 @@
 
 This module contains all type definitions used across the settings system.
 """
-from typing import Any, Literal, Optional, TypedDict, Union
+
+from typing import Any, Literal, TypedDict
 
 
 class FieldOption(TypedDict):
     """Represents a selectable option in a settings field."""
+
     value: str
     label: str
 
 
 class SettingsField(TypedDict, total=False):
     """Definition of a single settings field."""
+
     id: str
     title: str
     description: str
-    type: Literal[
-        "text", "number", "select", "range",
-        "textarea", "password", "switch", "button"
-    ]
+    type: Literal["text", "number", "select", "range", "textarea", "password", "switch", "button"]
     value: Any
     min: float
     max: float
@@ -30,6 +30,7 @@ class SettingsField(TypedDict, total=False):
 
 class SettingsSection(TypedDict, total=False):
     """A section containing related settings fields."""
+
     id: str
     title: str
     description: str
@@ -39,11 +40,13 @@ class SettingsSection(TypedDict, total=False):
 
 class SettingsOutput(TypedDict):
     """The complete settings structure for the UI."""
+
     sections: list[SettingsSection]
 
 
 class Settings(TypedDict):
     """Application settings structure."""
+
     # Chat model settings
     chat_model_provider: str
     chat_model_name: str
@@ -118,7 +121,6 @@ DEFAULT_SETTINGS: Settings = {
     "chat_model_rl_requests": 0,
     "chat_model_rl_input": 0,
     "chat_model_rl_output": 0,
-
     # Utility model settings
     "util_model_provider": "groq",
     "util_model_name": "meta-llama/llama-4-maverick-17b-128e-instruct",
@@ -129,7 +131,6 @@ DEFAULT_SETTINGS: Settings = {
     "util_model_rl_requests": 0,
     "util_model_rl_input": 0,
     "util_model_rl_output": 0,
-
     # Embedding model settings
     "embed_model_provider": "groq",
     "embed_model_name": "text-embedding-3-large",
@@ -137,16 +138,13 @@ DEFAULT_SETTINGS: Settings = {
     "embed_model_ctx_length": 8192,
     "embed_model_rl_requests": 0,
     "embed_model_rl_input": 0,
-
     # Browser model settings
     "browser_model_provider": "groq",
     "browser_model_name": "meta-llama/llama-4-maverick-17b-128e-instruct",
     "browser_model_kwargs": {},
     "browser_model_vision": True,
-
     # MCP Servers settings
     "mcp_servers": {},
-
     # Database settings
     "database_url": "sqlite:///./zero.db",
     "database_name": "zero",
@@ -159,11 +157,9 @@ DEFAULT_SETTINGS: Settings = {
     "database_ssl_cert": "",
     "database_ssl_key": "",
     "database_ssl_verify_cert": True,
-
     # MCP Server settings
     "mcp_server_enabled": True,
     "mcp_server_token": "mcp-token-12345",
-
     # RFC settings
     "rfc_url": "http://localhost:8000",
     "rfc_password": "",

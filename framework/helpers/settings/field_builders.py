@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any
 
 import models
 from framework.helpers.settings.constants import PASSWORD_PLACEHOLDER
@@ -21,9 +21,9 @@ class FieldBuilder:
         }
 
     @staticmethod
-    def create_api_key_fields(settings: Settings) -> List[SettingsField]:
+    def create_api_key_fields(settings: Settings) -> list[SettingsField]:
         """Create API key fields for various model providers."""
-        fields: List[SettingsField] = []
+        fields: list[SettingsField] = []
         fields.append(FieldBuilder._get_api_key_field(settings, "openai", "OpenAI API Key"))
         fields.append(FieldBuilder._get_api_key_field(settings, "anthropic", "Anthropic API Key"))
         fields.append(FieldBuilder._get_api_key_field(settings, "chutes", "Chutes API Key"))
@@ -45,9 +45,9 @@ class FieldBuilder:
         include_context_length: bool = False,
         include_context_history: bool = False,
         model_params_description: str = ""
-    ) -> List[SettingsField]:
+    ) -> list[SettingsField]:
         """Create common model configuration fields."""
-        fields: List[SettingsField] = []
+        fields: list[SettingsField] = []
 
         fields.append(
             {
