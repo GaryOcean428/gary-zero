@@ -49,7 +49,11 @@
 #             )
 #         if not self.context:
 #             self.context = await self.browser.new_context(
-#                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.6422.141 Safari/537.36"
+#                 user_agent=(
+#                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+#                     "AppleWebKit/537.36 (KHTML, like Gecko) "
+#                     "Chrome/125.0.6422.141 Safari/537.36"
+#                 )
 #             )
 
 #         self.page = await self.context.new_page()

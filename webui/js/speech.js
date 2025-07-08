@@ -192,11 +192,21 @@ class MicrophoneInput {
             });
 
             // Check for MediaRecorder support before using
-            if (!window.MediaRecorder) {
+            // Check for MediaRecorder support with Safari 14 compatibility
+            if (!window.MediaRecorder && !window.webkitMediaRecorder) {
                 throw new Error('MediaRecorder is not supported in this browser');
             }
 
-            this.mediaRecorder = new MediaRecorder(stream);
+            // Use MediaRecorder with Safari compatibility check
+            let MediaRecorderClass;
+            if (window.MediaRecorder) {
+                MediaRecorderClass = window.MediaRecorder;
+            } else if (window.webkitMediaRecorder) {
+                MediaRecorderClass = window.webkitMediaRecorder;
+            } else {
+                throw new Error('MediaRecorder is not supported in this browser');
+            }
+            this.mediaRecorder = new MediaRecorderClass(stream);
             this.mediaRecorder.ondataavailable = (event) => {
                 if (event.data.size > 0 &&
                     (this.status === Status.RECORDING || this.status === Status.WAITING)) {
