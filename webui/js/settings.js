@@ -625,7 +625,8 @@ document.addEventListener('alpine:init', function () {
 
                 this.$store.root.isOpen = false;
             }
-        });
+        };
+    });
         console.log('✅ Alpine settingsModal component registered successfully');
     } catch (error) {
         console.error('❌ Error registering Alpine settingsModal component:', error);
