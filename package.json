@@ -20,7 +20,7 @@
     "accessibility": "pa11y-ci --sitemap http://localhost:8080/sitemap.xml || pa11y http://localhost:8080",
     "accessibility:webui": "pa11y 'webui/**/*.html'",
     "security": "npm audit",
-    "security:report": "npm audit --audit-level moderate --json > security-report.json && npm-audit-html --input security-report.json --output security-report.html",
+    "security:report": "audit-ci --output-format=json --output-path=security-report.json || true && npm audit --json > security-audit.json || true",
     "lighthouse": "lighthouse http://localhost:8080 --output-path=./lighthouse-report.html --output=html --view",
     "lighthouse:ci": "lighthouse http://localhost:8080 --output-path=./lighthouse-report.json --output=json",
     "check:all": "npm run lint:clean && npm run biome:check && npm run security && npm run accessibility:webui",
@@ -48,12 +48,12 @@
   "devDependencies": {
     "@biomejs/biome": "^2.0.5",
     "@eslint/js": "^9.29.0",
+    "audit-ci": "^7.1.0",
     "axe-core": "^4.10.3",
     "eslint": "^9.29.0",
     "eslint-plugin-compat": "^6.0.2",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "lighthouse": "^12.6.1",
-    "npm-audit-html": "^1.4.1",
     "pa11y": "^9.0.0"
   }
 }
