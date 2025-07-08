@@ -349,6 +349,40 @@ function updateProgress(progress, active) {
     }
 }
 
+function verifyUIVisibility() {
+    const elements = [
+        'right-panel',
+        'chat-history',
+        'chat-input',
+        'send-button',
+        'status-section',
+        'progress-bar',
+        'auto-scroll-switch',
+        'left-panel'
+    ];
+    console.log('🔍 UI visibility check');
+    elements.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) {
+            console.warn(`❌ #${id} missing`);
+            return;
+        }
+        const style = window.getComputedStyle(el);
+        const visible =
+            style.display !== 'none' &&
+            style.visibility !== 'hidden' &&
+            parseFloat(style.opacity) !== 0 &&
+            el.offsetParent !== null;
+        console.log(`${visible ? '✅' : '⚠️'} #${id}`);
+        if (!visible) {
+            el.style.display = '';
+            el.style.visibility = 'visible';
+            el.style.opacity = '1';
+        }
+    });
+}
+window.verifyUIVisibility = verifyUIVisibility;
+
 // --- Global Window Functions for UI interaction ---
 
 function newChat() {
@@ -807,6 +841,7 @@ function initializeApp() {
         }
 
         startPolling();
+        verifyUIVisibility();
         console.log('✅ Application initialization complete.');
     }
 
