@@ -216,6 +216,7 @@ const settingsModalProxy = {
 
             const modalEl = document.getElementById('settingsModal');
             const modalAD = Alpine.$data(modalEl);
+            let resp;
             try {
                 resp = await window.sendJsonData("/settings_set", modalAD.settings);
             } catch (e) {

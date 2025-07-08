@@ -97,6 +97,7 @@ export default [
         WritableStream: 'readonly',
         TransformStream: 'readonly',
         structuredClone: 'readonly',
+        Image: 'readonly',
         
         // App-specific globals
         settingsModalProxy: 'readonly',
@@ -112,7 +113,10 @@ export default [
         MediaRecorder: 'readonly',
         toast: 'readonly',
         AudioContext: 'readonly',
-        SpeechSynthesisUtterance: 'readonly'
+        SpeechSynthesisUtterance: 'readonly',
+        openFileLink: 'writable',
+        renderMathInElement: 'readonly',
+        messageContent: 'writable'
       }
     },
     plugins: {

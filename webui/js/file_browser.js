@@ -185,7 +185,8 @@ const fileBrowserModalProxy = {
           alert(`Some files failed to upload:\n${failedFiles}`);
         }
       } else {
-        alert(data.message);
+        const errorData = await response.json();
+        alert(errorData.message || "Error uploading files");
       }
     } catch (error) {
       window.toastFetchError("Error uploading files", error);
@@ -263,7 +264,7 @@ document.addEventListener("alpine:init", () => {
 // Keep the global assignment for backward compatibility
 window.fileBrowserModalProxy = fileBrowserModalProxy;
 
-openFileLink = async function (path) {
+window.openFileLink = async function (path) {
   try {
     const resp = await window.sendJsonData("/file_info", { path });
     if (!resp.exists) {
