@@ -65,6 +65,7 @@ export class UIStructureBuilder {
       </div>`;
 
     const fragment = document.createRange().createContextualFragment(template);
+    appContainer.innerHTML = '';
     appContainer.appendChild(fragment);
     this.injectCompleteStyles();
     this.initializeMessageHandlers();
