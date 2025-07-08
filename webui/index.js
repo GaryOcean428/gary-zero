@@ -756,8 +756,24 @@ function initializeApp() {
 
         const missing = [];
         Object.entries(selectors).forEach(([key, selector]) => {
-            window[key] = document.querySelector(selector);
-            if (!window[key]) {
+            const element = document.querySelector(selector);
+            // Assign to global variables
+            switch(key) {
+                case 'leftPanel': leftPanel = element; break;
+                case 'rightPanel': rightPanel = element; break;
+                case 'chatInput': chatInput = element; break;
+                case 'sendButton': sendButton = element; break;
+                case 'chatHistory': chatHistory = element; break;
+                case 'inputSection': inputSection = element; break;
+                case 'statusSection': statusSection = element; break;
+                case 'chatsSection': chatsSection = element; break;
+                case 'tasksSection': tasksSection = element; break;
+                case 'progressBar': progressBar = element; break;
+                case 'autoScrollSwitch': autoScrollSwitch = element; break;
+                case 'sidebarOverlay': sidebarOverlay = element; break;
+                case 'toggleSidebarButton': toggleSidebarButton = element; break;
+            }
+            if (!element) {
                 missing.push({ key, selector });
             }
         });
