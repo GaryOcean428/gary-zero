@@ -1,4 +1,5 @@
 """Tests for the scheduler tool."""
+
 import os
 import sys
 from datetime import datetime, timedelta, timezone
@@ -10,7 +11,7 @@ from framework.helpers.task_scheduler import PlannedTask
 from framework.tools.scheduler import SchedulerTool
 
 # Add project root to Python path
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
@@ -30,7 +31,7 @@ class TestSchedulerTool:
     @pytest.fixture
     def mock_task_scheduler(self):
         """Fixture to mock the TaskScheduler singleton."""
-        with patch('zero.helpers.task_scheduler.TaskScheduler') as mock_scheduler:
+        with patch("zero.helpers.task_scheduler.TaskScheduler") as mock_scheduler:
             mock_instance = mock_scheduler.get.return_value
             yield mock_instance
 
@@ -57,7 +58,7 @@ class TestSchedulerTool:
             prompt=prompt,
             plan=plan,
             attachments=attachments,
-            dedicated_context=False
+            dedicated_context=False,
         )
 
         # Verify the result
@@ -86,11 +87,7 @@ class TestSchedulerTool:
 
         # Call the method under test with dedicated_context=True
         await scheduler_tool.create_planned_task(
-            name="test_task",
-            system_prompt="Test",
-            prompt="Test",
-            plan=plan,
-            dedicated_context=True
+            name="test_task", system_prompt="Test", prompt="Test", plan=plan, dedicated_context=True
         )
 
         # Verify the task was created with no context_id
@@ -106,7 +103,7 @@ class TestSchedulerTool:
             system_prompt="Test",
             prompt="Test",
             plan=["not-a-valid-datetime"],
-            dedicated_context=False
+            dedicated_context=False,
         )
 
         # Verify error response

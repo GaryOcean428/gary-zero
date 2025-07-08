@@ -34,10 +34,7 @@ class SettingsField(TypedDict, total=False):
     id: str
     title: str
     description: str
-    type: Literal[
-        "text", "number", "select", "range",
-        "textarea", "password", "switch", "button"
-    ]
+    type: Literal["text", "number", "select", "range", "textarea", "password", "switch", "button"]
     value: Any
     min: float
     max: float
@@ -447,9 +444,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "description": "Set user password for web UI",
             "type": "password",
             "value": (
-                PASSWORD_PLACEHOLDER
-                if dotenv.get_dotenv_value(dotenv.KEY_AUTH_PASSWORD)
-                else ""
+                PASSWORD_PLACEHOLDER if dotenv.get_dotenv_value(dotenv.KEY_AUTH_PASSWORD) else ""
             ),
         }
     )
@@ -487,13 +482,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
     api_keys_fields.append(_get_api_key_field(settings, "huggingface", "HuggingFace API Key"))
     api_keys_fields.append(_get_api_key_field(settings, "mistralai", "MistralAI API Key"))
     api_keys_fields.append(_get_api_key_field(settings, "openrouter", "OpenRouter API Key"))
-    api_keys_fields.append(
-        _get_api_key_field(
-            settings,
-            "sambanova",
-            "Sambanova API Key"
-        )
-    )
+    api_keys_fields.append(_get_api_key_field(settings, "sambanova", "Sambanova API Key"))
 
     api_keys_section: SettingsSection = {
         "id": "api_keys",
@@ -515,8 +504,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "type": "select",
             "value": settings["agent_prompts_subdir"],
             "options": [
-                {"value": subdir, "label": subdir}
-                for subdir in files.get_subdirectories("prompts")
+                {"value": subdir, "label": subdir} for subdir in files.get_subdirectories("prompts")
             ],
         }
     )
@@ -706,9 +694,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
     stt_section: SettingsSection = {
         "id": "stt",
         "title": "Speech to Text",
-        "description": (
-            "Voice transcription preferences and server turn detection settings."
-        ),
+        "description": ("Voice transcription preferences and server turn detection settings."),
         "fields": stt_fields,
         "tab": "agent",
     }
@@ -731,11 +717,11 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "id": "mcp_servers",
             "title": "MCP Servers",
             "description": (
-            "(JSON list of) >> RemoteServer <<: [name, url, headers, timeout (opt), "
-            "sse_read_timeout (opt), disabled (opt)] / >> Local Server <<: [name, "
-            "command, args, env, encoding (opt), encoding_error_handler (opt), "
-            "disabled (opt)]"
-        ),
+                "(JSON list of) >> RemoteServer <<: [name, url, headers, timeout (opt), "
+                "sse_read_timeout (opt), disabled (opt)] / >> Local Server <<: [name, "
+                "command, args, env, encoding (opt), encoding_error_handler (opt), "
+                "disabled (opt)]"
+            ),
             "type": "textarea",
             "value": settings["mcp_servers"],
             "hidden": True,
@@ -773,9 +759,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
     mcp_client_section: SettingsSection = {
         "id": "mcp_client",
         "title": "External MCP Servers",
-        "description": (
-            "Gary-Zero can use external MCP servers, local or remote as tools."
-        ),
+        "description": ("Gary-Zero can use external MCP servers, local or remote as tools."),
         "fields": mcp_client_fields,
         "tab": "mcp",
     }
@@ -966,45 +950,47 @@ def get_default_settings() -> Settings:
     """
     default_settings = DEFAULT_SETTINGS.copy()
     # Add additional default settings that aren't in the base Settings type
-    default_settings.update({
-        "embed_model_provider": "openai",
-        "embed_model_name": "text-embedding-ada-002",
-        "embed_model_kwargs": {},
-        "embed_model_rl_requests": 0,
-        "embed_model_rl_input": 0,
-        "browser_model_provider": "openai",
-        "browser_model_name": "gpt-4.1-vision-preview",
-        "browser_model_vision": True,
-        "browser_model_kwargs": {"temperature": "0"},
-        "agent_prompts_subdir": "prompts",
-        "agent_memory_subdir": "memory",
-        "agent_knowledge_subdir": "knowledge",
-        "api_keys": {},
-        "auth_login": "admin",
-        "auth_password": hashlib.sha256(b"admin").hexdigest(),
-        "root_password": hashlib.sha256(b"").hexdigest(),
-        "rfc_auto_docker": True,
-        "rfc_url": "http://localhost:8000",
-        "rfc_password": "",
-        "rfc_port_http": 8000,
-        "rfc_port_ssh": 8022,
-        "stt_model_size": "base",
-        "stt_language": "en",
-        "stt_silence_threshold": 0.5,
-        "stt_silence_duration": 1000,
-        "stt_waiting_timeout": 5000,
-        "mcp_servers": (
-            "filesystem,github,github.com/pashpashpash/mcp-taskmanager,"
-            "mcp-browserbase,mcp-playwright,memory"
-        ),
-        "mcp_client_init_timeout": 30,
-        "mcp_client_tool_timeout": 300,
-        "mcp_server_enabled": True,
-        "mcp_server_token": create_auth_token(),
-        "util_model_rl_requests": 0,
-        "util_model_rl_input": 0,
-        "util_model_rl_output": 0,
-    })
+    default_settings.update(
+        {
+            "embed_model_provider": "openai",
+            "embed_model_name": "text-embedding-ada-002",
+            "embed_model_kwargs": {},
+            "embed_model_rl_requests": 0,
+            "embed_model_rl_input": 0,
+            "browser_model_provider": "openai",
+            "browser_model_name": "gpt-4.1-vision-preview",
+            "browser_model_vision": True,
+            "browser_model_kwargs": {"temperature": "0"},
+            "agent_prompts_subdir": "prompts",
+            "agent_memory_subdir": "memory",
+            "agent_knowledge_subdir": "knowledge",
+            "api_keys": {},
+            "auth_login": "admin",
+            "auth_password": hashlib.sha256(b"admin").hexdigest(),
+            "root_password": hashlib.sha256(b"").hexdigest(),
+            "rfc_auto_docker": True,
+            "rfc_url": "http://localhost:8000",
+            "rfc_password": "",
+            "rfc_port_http": 8000,
+            "rfc_port_ssh": 8022,
+            "stt_model_size": "base",
+            "stt_language": "en",
+            "stt_silence_threshold": 0.5,
+            "stt_silence_duration": 1000,
+            "stt_waiting_timeout": 5000,
+            "mcp_servers": (
+                "filesystem,github,github.com/pashpashpash/mcp-taskmanager,"
+                "mcp-browserbase,mcp-playwright,memory"
+            ),
+            "mcp_client_init_timeout": 30,
+            "mcp_client_tool_timeout": 300,
+            "mcp_server_enabled": True,
+            "mcp_server_token": create_auth_token(),
+            "util_model_rl_requests": 0,
+            "util_model_rl_input": 0,
+            "util_model_rl_output": 0,
+        }
+    )
     return default_settings
 
 
@@ -1034,11 +1020,11 @@ def _apply_settings(previous: Settings | None) -> None:
         ctx.config = config  # type: ignore[attr-defined]  # reinitialize context config
 
         # Apply config to all agents in the hierarchy
-        agent = getattr(ctx, 'agent0', None)
+        agent = getattr(ctx, "agent0", None)
         while agent:
             agent.config = ctx.config  # type: ignore[attr-defined]
             agent = agent.get_data(  # type: ignore[attr-defined]
-                getattr(agent, 'DATA_NAME_SUBORDINATE', None)  # type: ignore[attr-defined]
+                getattr(agent, "DATA_NAME_SUBORDINATE", None)  # type: ignore[attr-defined]
             )
 
         # force memory reload on embedding model change
@@ -1053,17 +1039,12 @@ def _apply_settings(previous: Settings | None) -> None:
 
         # update mcp settings if necessary
         if not previous or current_settings["mcp_servers"] != previous["mcp_servers"]:
+
             async def update_mcp_settings(mcp_servers: str):
-                PrintStyle(
-                    background_color="black",
-                    font_color="white",
-                    padding=True
-                ).print("Updating MCP config...")
-                AgentContext.log_to_all(
-                    type="info",
-                    content="Updating MCP settings...",
-                    temp=True
+                PrintStyle(background_color="black", font_color="white", padding=True).print(
+                    "Updating MCP config..."
                 )
+                AgentContext.log_to_all(type="info", content="Updating MCP settings...", temp=True)
 
                 mcp_config = MCPConfig.get_instance()
                 try:
@@ -1074,36 +1055,27 @@ def _apply_settings(previous: Settings | None) -> None:
                         content=f"Failed to update MCP settings: {e}",
                         temp=False,
                     )
-                    PrintStyle(
-                        background_color="red",
-                        font_color="black",
-                        padding=True
-                    ).print("Failed to update MCP settings")
-                    PrintStyle(
-                        background_color="black",
-                        font_color="red",
-                        padding=True
-                    ).print(f"{e}")
+                    PrintStyle(background_color="red", font_color="black", padding=True).print(
+                        "Failed to update MCP settings"
+                    )
+                    PrintStyle(background_color="black", font_color="red", padding=True).print(
+                        f"{e}"
+                    )
 
-                PrintStyle(
-                    background_color="#6734C3",
-                    font_color="white",
-                    padding=True
-                ).print("Parsed MCP config:")
-                PrintStyle(
-                    background_color="#334455",
-                    font_color="white",
-                    padding=False
-                ).print(mcp_config.model_dump_json())
+                PrintStyle(background_color="#6734C3", font_color="white", padding=True).print(
+                    "Parsed MCP config:"
+                )
+                PrintStyle(background_color="#334455", font_color="white", padding=False).print(
+                    mcp_config.model_dump_json()
+                )
                 AgentContext.log_to_all(
-                    type="info",
-                    content="Finished updating MCP settings.",
-                    temp=True
+                    type="info", content="Finished updating MCP settings.", temp=True
                 )
 
             # TODO: Replace with a proper background task scheduler
             # if/when the codebase is fully async.
             import asyncio
+
             asyncio.create_task(update_mcp_settings(config.mcp_servers))
 
         # update token in mcp server
@@ -1119,6 +1091,7 @@ def _apply_settings(previous: Settings | None) -> None:
             # TODO: Replace with a proper background task scheduler
             # if/when the codebase is fully async.
             import asyncio
+
             asyncio.create_task(update_mcp_token(current_token))
 
 

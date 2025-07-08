@@ -15,7 +15,7 @@ def main(args):
         format="%(asctime)s %(levelname)s %(filename)s: %(message)s",
     )
     logger = logging.getLogger("supervisord-watchdog")
-    debug_mode = True if "DEBUG" in os.environ else False
+    debug_mode = "DEBUG" in os.environ
 
     while True:
         logger.info("Listening for events...")

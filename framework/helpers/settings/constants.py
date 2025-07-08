@@ -6,4 +6,4 @@ MODEL_PARAMS_DESCRIPTION = (
 
 PASSWORD_PLACEHOLDER = "****PSWD****"
 
-SETTINGS_FILE = "tmp/settings.json" # Adjusted to be relative to the base directory
+SETTINGS_FILE = "tmp/settings.json"  # Adjusted to be relative to the base directory

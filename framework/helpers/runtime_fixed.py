@@ -1,19 +1,16 @@
 """Runtime configuration and utilities for the application."""
+
 from __future__ import annotations
 
 # Standard library imports
 import argparse
 import asyncio
-import inspect
-import queue
-import threading
-import urllib.parse
 from collections.abc import Awaitable
 from dataclasses import dataclass, field
-from typing import Any, Callable, TypeVar, cast, overload
+from typing import Any, Callable, TypeVar, overload
 
 # Local application imports
-from . import dotenv, rfc, settings
+from . import rfc
 
 T = TypeVar("T")
 R = TypeVar("R")
@@ -22,6 +19,7 @@ R = TypeVar("R")
 @dataclass
 class RuntimeState:
     """Singleton class to manage runtime state and command line arguments."""
+
     _instance: RuntimeState | None = None
     args: dict[str, Any] = field(default_factory=dict)
     dockerman: Any = None
@@ -44,10 +42,7 @@ class RuntimeState:
             help="Use cloudflare tunnel for public URL",
         )
         self._parser.add_argument(
-            "--development",
-            type=bool,
-            default=False,
-            help="Development mode"
+            "--development", type=bool, default=False, help="Development mode"
         )
         # Add other arguments as needed
 
@@ -62,7 +57,7 @@ class RuntimeState:
         return self._args
 
     @classmethod
-    def get_instance(cls) -> 'RuntimeState':
+    def get_instance(cls) -> RuntimeState:
         """Get the singleton instance of RuntimeState."""
         if cls._instance is None:
             cls._instance = cls()
@@ -101,18 +96,18 @@ def has_arg(name: str) -> bool:
 
 def is_dockerized() -> bool:
     """Check if running in a Docker container."""
-    return os.path.exists('/.dockerenv')
+    return os.path.exists("/.dockerenv")
 
 
 def is_development() -> bool:
     """Check if running in development mode."""
-    return get_arg('development', False)
+    return get_arg("development", False)
 
 
 def get_local_url() -> str:
     """Get the local URL based on the runtime environment."""
-    host = get_arg('host', '0.0.0.0')
-    port = get_arg('port', 8000)
+    host = get_arg("host", "0.0.0.0")
+    port = get_arg("port", 8000)
     return f"http://{host}:{port}"
 
 
@@ -123,9 +118,7 @@ async def call_development_function(
 
 
 @overload
-async def call_development_function(
-    func: Callable[..., T], *args: Any, **kwargs: Any
-) -> T: ...
+async def call_development_function(func: Callable[..., T], *args: Any, **kwargs: Any) -> T: ...
 
 
 async def call_development_function(
@@ -144,7 +137,7 @@ async def call_development_function(
             kwargs=kwargs,
         )
         return result
-    
+
     # Local execution
     if asyncio.iscoroutinefunction(func):
         return await func(*args, **kwargs)  # type: ignore
@@ -183,7 +176,7 @@ def call_development_function_sync(
 
 def get_web_ui_port() -> int:
     """Get the web UI port from args or environment."""
-    return get_arg('port', 8000)
+    return get_arg("port", 8000)
 
 
 def get_tunnel_api_port() -> int:

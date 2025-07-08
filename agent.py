@@ -195,7 +195,7 @@ class AgentContext:
             return response
         except InterventionException:
             pass  # intervention message has been handled in handle_intervention(),
-                 # proceed with conversation loop
+            # proceed with conversation loop
         except RepairableException as e:
             # Forward repairable errors to the LLM, maybe it can fix them
             error_message = errors.format_error(e)
@@ -383,7 +383,7 @@ class Agent:
                     # exceptions inside message loop:
                     except InterventionException:
                         pass  # intervention message has been handled in handle_intervention(),
-                             # proceed with conversation loop
+                        # proceed with conversation loop
                     except RepairableException as e:
                         # Forward repairable errors to the LLM, maybe it can fix them
                         error_message = errors.format_error(e)

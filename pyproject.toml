@@ -42,6 +42,7 @@ exclude = [
     "dist",
 ]
 
+[tool.ruff.lint]
 # Lint rules
 select = [
     "E",   # pycodestyle errors

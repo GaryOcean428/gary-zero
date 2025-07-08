@@ -34,16 +34,19 @@ basic_auth = BasicAuth(webapp)
 
 def add_security_headers(response):
     """Add security headers to all responses."""
-    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['X-XSS-Protection'] = '1; mode=block'
-    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     # Only add HSTS if using HTTPS
     if request.is_secure:
-        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     # CSP configured for Alpine.js and external resources
-    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' cdnjs.cloudflare.com cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com cdn.jsdelivr.net fonts.googleapis.com *.googleapis.com; font-src 'self' data: cdnjs.cloudflare.com cdn.jsdelivr.net fonts.gstatic.com *.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' ws: wss: http: https:; worker-src 'self' blob:; frame-src 'self'; object-src 'none'"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' cdnjs.cloudflare.com cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com cdn.jsdelivr.net fonts.googleapis.com *.googleapis.com; font-src 'self' data: cdnjs.cloudflare.com cdn.jsdelivr.net fonts.gstatic.com *.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' ws: wss: http: https:; worker-src 'self' blob:; frame-src 'self'; object-src 'none'"
+    )
     return response
+
 
 webapp.after_request(add_security_headers)
 
@@ -207,11 +210,7 @@ def serve_terms():
 @webapp.route("/health", methods=["GET"])
 def health_check():
     """Health check endpoint for monitoring."""
-    return {
-        "status": "healthy",
-        "timestamp": time.time(),
-        "version": "1.0.0"
-    }
+    return {"status": "healthy", "timestamp": time.time(), "version": "1.0.0"}
 
 
 # handle favicon requests
@@ -223,12 +222,12 @@ def serve_favicon():
         favicon_path = get_abs_path("./webui/public/favicon.svg")
         if os.path.exists(favicon_path):
             # Read the file directly and serve with proper headers
-            with open(favicon_path, 'rb') as f:
+            with open(favicon_path, "rb") as f:
                 content = f.read()
-            
+
             # Return SVG with proper content type and caching headers
-            response = Response(content, mimetype='image/svg+xml')
-            response.headers['Cache-Control'] = 'public, max-age=3600'
+            response = Response(content, mimetype="image/svg+xml")
+            response.headers["Cache-Control"] = "public, max-age=3600"
             return response
         else:
             # Return a 204 No Content if favicon doesn't exist

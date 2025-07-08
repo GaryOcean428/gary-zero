@@ -13,10 +13,10 @@ from starlette.requests import Request
 from starlette.types import ASGIApp, Receive, Scope, Send
 
 from agent import AgentContext, AgentContextType, UserMessage
-from initialize import initialize_agent
 from framework.helpers import settings
 from framework.helpers.persist_chat import remove_chat
 from framework.helpers.print_style import PrintStyle
+from initialize import initialize_agent
 
 _PRINTER = PrintStyle(italic=True, font_color="green", padding=False)
 
@@ -219,7 +219,8 @@ async def _run_chat(context: AgentContext, message: str, attachments: list[str] 
                             attachment_filenames.append(attachment)
                         else:
                             _PRINTER.print(
-                                f"Skipping attachment (unsupported scheme): [{attachment}]")
+                                f"Skipping attachment (unsupported scheme): [{attachment}]"
+                            )
                     except (ValueError, AttributeError) as e:
                         _PRINTER.print(f"Skipping malformed attachment URL [{attachment}]: {e}")
 

@@ -1,4 +1,5 @@
 """Runtime configuration and utilities for the application."""
+
 from __future__ import annotations
 
 # Standard library imports
@@ -22,6 +23,7 @@ R = TypeVar("R")
 @dataclass
 class RuntimeState:
     """Singleton class to manage runtime state and command line arguments."""
+
     _instance: RuntimeState | None = None
     args: dict[str, Any] = field(default_factory=dict)
     dockerman: Any = None
@@ -44,21 +46,13 @@ class RuntimeState:
             help="Use cloudflare tunnel for public URL",
         )
         self._parser.add_argument(
-            "--development",
-            type=bool,
-            default=False,
-            help="Development mode"
+            "--development", type=bool, default=False, help="Development mode"
         )
         self._parser.add_argument(
-            "--dockerized",
-            action="store_true",
-            help="Run in Docker container"
+            "--dockerized", action="store_true", help="Run in Docker container"
         )
         self._parser.add_argument(
-            "--tunnel_api_port",
-            type=int,
-            default=None,
-            help="Tunnel API port"
+            "--tunnel_api_port", type=int, default=None, help="Tunnel API port"
         )
 
     def parse_args(self) -> dict[str, Any]:
@@ -139,9 +133,7 @@ async def call_development_function(
 
 
 @overload
-async def call_development_function(
-    func: Callable[..., T], *args: Any, **kwargs: Any
-) -> T: ...
+async def call_development_function(func: Callable[..., T], *args: Any, **kwargs: Any) -> T: ...
 
 
 async def call_development_function(
@@ -203,8 +195,8 @@ def _get_rfc_url() -> str:
 
     # Rebuild URL and ensure /rfc path
     url = urllib.parse.urlunparse(parsed)
-    if not url.endswith('/rfc'):
-        url = url.rstrip('/') + '/rfc'
+    if not url.endswith("/rfc"):
+        url = url.rstrip("/") + "/rfc"
 
     return url
 
@@ -231,7 +223,12 @@ def call_development_function_sync(
 
 def get_web_ui_port() -> int:
     """Get the web UI port from args or environment."""
-    port = get_arg("port") or int(dotenv.get_dotenv_value("WEB_UI_PORT", 0)) or int(dotenv.get_dotenv_value("PORT", 0)) or 5000
+    port = (
+        get_arg("port")
+        or int(dotenv.get_dotenv_value("WEB_UI_PORT", 0))
+        or int(dotenv.get_dotenv_value("PORT", 0))
+        or 5000
+    )
     return int(port)
 
 

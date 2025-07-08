@@ -17,6 +17,7 @@ _input_lock = threading.Lock()
 
 class GlobalState:
     """Container for shared state to avoid global variables."""
+
     def __init__(self):
         self.context: AgentContext = None
         self.lock = threading.Lock()
@@ -58,18 +59,16 @@ async def chat(agent_context: AgentContext):
                 ).print(f"User message ({timeout}s timeout, 'w' to wait, 'e' to leave):")
                 if sys.platform != "win32":
                     pass  # this fixes arrow keys in terminal
-                user_input = timeout_input(
-                    "> ", timeout
-                )  # Wait for input with timeout
+                user_input = timeout_input("> ", timeout)  # Wait for input with timeout
                 if not user_input:
                     user_input = ""
                     PrintStyle(font_color="white", padding=False, log_only=True).print(
                         f"> [timeout] {user_input}"
                     )
                 else:
-                    PrintStyle(
-                        font_color="white", padding=False, log_only=True
-                    ).print(f"> {user_input}")
+                    PrintStyle(font_color="white", padding=False, log_only=True).print(
+                        f"> {user_input}"
+                    )
 
         # exit the conversation when the user types 'exit'
         if user_input.lower() == "e" or user_input.lower() == "exit":
@@ -100,15 +99,11 @@ def intervention():
         ).print("User intervention ('e' to leave, empty to continue):")
 
         user_input = input("> ")
-        PrintStyle(font_color="white", padding=False, log_only=True).print(
-            f"> {user_input}"
-        )
+        PrintStyle(font_color="white", padding=False, log_only=True).print(f"> {user_input}")
         if user_input.lower() == "e" or user_input.lower() == "exit":
             os._exit(0)  # exit the conversation when the user types 'exit'
         if user_input:
-            _state.context.streaming_agent.intervention = UserMessage(
-                user_input, []
-            )
+            _state.context.streaming_agent.intervention = UserMessage(user_input, [])
 
         _state.context.paused = False  # continue agent streaming
 
