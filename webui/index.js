@@ -568,8 +568,10 @@ window.restart = async () => {
     return toast("Backend disconnected, cannot restart.", "error");
   try {
     await sendJsonData("/restart", {});
-  } catch {
+  } catch (error) {
     // This is expected to fail as the server shuts down. We can ignore it.
+    // eslint-disable-next-line no-console
+    console.log("Restart initiated, server shutting down:", error.message);
   }
 
   toast("Restarting...", "info", 0);
@@ -580,8 +582,10 @@ window.restart = async () => {
       hideToast();
       await new Promise((r) => setTimeout(r, 400));
       return toast("Restarted", "success", 5000);
-    } catch {
+    } catch (error) {
       // Not ready yet, continue loop
+      // eslint-disable-next-line no-console
+      console.log("Health check failed, retrying...", error.message);
     }
   }
   hideToast();
@@ -765,12 +769,14 @@ window.loadKnowledge = async () => {
 // --- App Initialization ---
 
 function initializeApp() {
-  let appInitialized = false;
-  if (appInitialized) return;
-  appInitialized = true;
+  // Check if already initialized to prevent multiple runs
+  if (window._appInitialized) {
+    return;
+  }
+  window._appInitialized = true;
 
   const darkMode = localStorage.getItem("darkMode") !== "false";
-  const savedAutoScroll = localStorage.getItem("autoScroll") === "true";
+  const savedAutoScroll = localStorage.getItem("autoScroll") !== "false"; // Default to true
 
   function setupEventListeners() {
     // Chat input event listeners
@@ -808,10 +814,9 @@ function initializeApp() {
       toggleSidebarButtonElem.addEventListener("click", () => {
         if (!leftPanel || !sidebarOverlay) return;
 
-        const currentState = leftPanel.classList.contains("hidden");
-        const newState = !currentState;
+        const isHidden = leftPanel.classList.contains("hidden");
 
-        if (newState) {
+        if (isHidden) {
           leftPanel.classList.remove("hidden");
           if (isMobile()) {
             sidebarOverlay.classList.add("visible");
@@ -825,7 +830,7 @@ function initializeApp() {
 
     if (sidebarOverlay) {
       sidebarOverlay.addEventListener("click", () => {
-        if (!leftPanel || !sidebarOverlay) return;
+        if (!leftPanel) return;
         leftPanel.classList.add("hidden");
         sidebarOverlay.classList.remove("visible");
       });
@@ -833,17 +838,22 @@ function initializeApp() {
 
     // Window resize event listener
     window.addEventListener("resize", () => {
-      if (!leftPanel || !rightPanel || !sidebarOverlay) return;
-      if (isMobile()) {
-        leftPanel.classList.add("hidden");
-        rightPanel.classList.remove("expanded");
-        sidebarOverlay.classList.remove("visible");
-      } else {
-        leftPanel.classList.remove("hidden");
-        rightPanel.classList.add("expanded");
-        sidebarOverlay.classList.remove("visible");
-      }
+      handleWindowResize();
     });
+  }
+
+  function handleWindowResize() {
+    if (!leftPanel || !rightPanel || !sidebarOverlay) return;
+
+    if (isMobile()) {
+      leftPanel.classList.add("hidden");
+      rightPanel.classList.remove("expanded");
+      sidebarOverlay.classList.remove("visible");
+    } else {
+      leftPanel.classList.remove("hidden");
+      rightPanel.classList.add("expanded");
+      sidebarOverlay.classList.remove("visible");
+    }
   }
 
   function waitForElements(attempt = 1) {
@@ -862,8 +872,11 @@ function initializeApp() {
     };
 
     const missing = [];
+    const found = [];
+
     Object.entries(selectors).forEach(([key, selector]) => {
       const element = document.querySelector(selector);
+
       // Assign to global variables
       switch (key) {
         case "leftPanel":
@@ -900,27 +913,78 @@ function initializeApp() {
           sidebarOverlay = element;
           break;
       }
-      if (!element) {
+
+      if (element) {
+        found.push(key);
+      } else {
         missing.push({ key, selector });
       }
     });
 
-    if (missing.length > 0 && attempt < 5) {
-      setTimeout(() => waitForElements(attempt + 1), 100);
-      return;
-    }
+    // Continue if we have the essential elements or max attempts reached
+    const essentialElements = ["rightPanel", "chatInput", "chatHistory"];
+    const hasEssentials = essentialElements.every((key) => found.includes(key));
 
-    if (missing.length > 0) {
-      // console.warn('Missing UI elements:', missing);
+    if (hasEssentials || attempt >= 10) {
+      continueInitialization();
+    } else {
+      setTimeout(() => waitForElements(attempt + 1), 200);
     }
-
-    continueInitialization();
   }
 
   function continueInitialization() {
+    // Ensure critical elements are visible
+    ensureElementsVisible();
+
     setupEventListeners();
+    setupTabs();
+    setupInitialState();
+    setupPolling();
+  }
+
+  function ensureElementsVisible() {
+    // Try to rebuild missing UI elements first
+    if (window.UIStructureRebuilder) {
+      const rebuilder = new window.UIStructureRebuilder();
+      const result = rebuilder.rebuildMissingElements();
+      if (result.success && result.rebuilt.length > 0) {
+        // Re-query elements after rebuilding
+        setTimeout(() => {
+          waitForElements(1);
+        }, 100);
+        return;
+      }
+      rebuilder.ensureVisibility();
+    }
+
+    const criticalElements = [
+      { id: "right-panel", name: "Right Panel" },
+      { id: "chat-history", name: "Chat History" },
+      { id: "chat-input", name: "Chat Input" },
+      { id: "send-button", name: "Send Button" },
+      { id: "input-section", name: "Input Section" }
+    ];
+
+    criticalElements.forEach(({ id }) => {
+      const element = document.getElementById(id);
+      if (element) {
+        // Force visibility
+        element.style.display = "";
+        element.style.visibility = "visible";
+        element.style.opacity = "1";
+      }
+    });
+
+    // Force right panel to be expanded by default
+    if (rightPanel) {
+      rightPanel.classList.add("expanded");
+    }
+  }
+
+  function setupTabs() {
     const chatsTab = document.getElementById("chats-tab");
     const tasksTab = document.getElementById("tasks-tab");
+
     if (chatsTab && tasksTab) {
       chatsTab.addEventListener("click", () => activateTab("chats"));
       tasksTab.addEventListener("click", () => activateTab("tasks"));
@@ -930,43 +994,52 @@ function initializeApp() {
         const tTab = document.getElementById("tasks-tab");
         if (cTab) cTab.addEventListener("click", () => activateTab("chats"));
         if (tTab) tTab.addEventListener("click", () => activateTab("tasks"));
-      }, 100);
+      }, 200);
+    }
+  }
+
+  function setupInitialState() {
+    // Initialize localStorage defaults
+    if (!localStorage.getItem("lastSelectedChat")) {
+      localStorage.setItem("lastSelectedChat", "");
+    }
+    if (!localStorage.getItem("lastSelectedTask")) {
+      localStorage.setItem("lastSelectedTask", "");
     }
 
-    if (!localStorage.getItem("lastSelectedChat"))
-      localStorage.setItem("lastSelectedChat", "");
-    if (!localStorage.getItem("lastSelectedTask"))
-      localStorage.setItem("lastSelectedTask", "");
+    // Activate initial tab
     const activeTab = localStorage.getItem("activeTab") || "chats";
     activateTab(activeTab);
 
-    if (!leftPanel || !rightPanel || !sidebarOverlay) return;
-    if (isMobile()) {
-      leftPanel.classList.add("hidden");
-      rightPanel.classList.remove("expanded");
-      sidebarOverlay.classList.remove("visible");
-    } else {
-      leftPanel.classList.remove("hidden");
-      rightPanel.classList.add("expanded");
-      sidebarOverlay.classList.remove("visible");
-    }
+    // Handle responsive layout
+    handleWindowResize();
 
+    // Apply theme
     toggleDarkMode(darkMode);
+
+    // Set up auto-scroll
     if (autoScrollSwitch) {
       autoScrollSwitch.checked = savedAutoScroll;
       toggleAutoScroll(savedAutoScroll);
     }
+  }
 
+  function setupPolling() {
     (async () => {
-      const shortInterval = 25;
-      const longInterval = 250;
-      const shortIntervalPeriod = 100;
+      const shortInterval = 100;
+      const longInterval = 500;
+      const shortIntervalPeriod = 50;
       let shortIntervalCount = 0;
+      let consecutiveErrors = 0;
 
       async function _doPoll() {
         try {
           const updated = await poll();
-          if (updated) shortIntervalCount = shortIntervalPeriod;
+
+          if (updated) {
+            shortIntervalCount = shortIntervalPeriod;
+            consecutiveErrors = 0; // Reset error count on success
+          }
 
           const nextInterval =
             shortIntervalCount > 0 ? shortInterval : longInterval;
@@ -974,18 +1047,28 @@ function initializeApp() {
 
           setTimeout(_doPoll, nextInterval);
         } catch {
-          // console.error('Error in polling loop:', error);
+          consecutiveErrors++;
 
-          // Use longer interval when errors occur
-          const errorInterval = Math.min(longInterval * 4, 2000); // Max 2 seconds
+          // Use progressively longer intervals on consecutive errors
+          const errorInterval = Math.min(
+            longInterval * Math.pow(2, Math.min(consecutiveErrors - 1, 4)),
+            10000
+          );
           setTimeout(_doPoll, errorInterval);
         }
       }
+
+      // Start polling immediately
       _doPoll();
     })();
-    verifyUIVisibility();
+
+    // Final UI verification
+    setTimeout(() => {
+      verifyUIVisibility();
+    }, 1000);
   }
 
+  // Start the initialization process
   waitForElements();
 }
 
