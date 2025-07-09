@@ -1397,10 +1397,7 @@ pre {
   height: 1.5rem;
 }
 
-/* Microphone button */
-.chat-button.mic-inactive svg {
-  /* Add specific styles if needed */
-}
+/* Microphone button - styles can be added if needed */
 
 /* Tooltip */
 .tooltip {
@@ -1523,10 +1520,7 @@ input:checked + .slider:before {
   display: flex;
 }
 
-/* Tooltip */
-.tooltip {
-  /* Already defined above */
-}
+/* Tooltip - already defined above */
 
 /* Copy button styles */
 .copy-button {

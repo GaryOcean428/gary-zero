@@ -171,10 +171,10 @@
             <!--Sidebar upper elements-->
             <div class="left-panel-top">
                 <div class="config-section" x-data="{ showQuickActions: true }">
-                <button class="config-button" id="reset-chat" @click="resetChat()">Reset Chat</button>
-                <button class="config-button" id="new-chat" @click="newChat()">New Chat</button>
-                <button class="config-button" id="load-chats" @click="loadChats()">Load Chat</button>
-                <button class="config-button" id="save-chat" @click="saveChat()">Save Chat</button>
+                    <button class="config-button" id="reset-chat" @click="resetChat()">Reset Chat</button>
+                    <button class="config-button" id="new-chat" @click="newChat()">New Chat</button>
+                    <button class="config-button" id="load-chats" @click="loadChats()">Load Chat</button>
+                    <button class="config-button" id="save-chat" @click="saveChat()">Save Chat</button>
                     <button class="config-button" id="restart" @click="restart()">Restart</button>
                     <button class="config-button" id="settings" @click="settingsModalProxy.openModal()"><svg
                             xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="-5.0 -17.0 110.0 135.0"
@@ -209,7 +209,7 @@
                                         <span class="chat-name" :title="context.name ? context.name : 'Chat #' + context.no"
                                             x-text="context.name ? context.name : 'Chat #' + context.no"></span>
                                     </div>
-                                    <button class="edit-button" @click="killChat(context.id)">X</button>
+                                                    <button class="edit-button" @click="killChat(context.id)">X</button>
                                 </li>
                             </template>
                         </ul>
@@ -277,7 +277,7 @@
                                     <path d="M8 4l8 8-8 8" />
                                 </svg>
                             </h3>
-                            <ul class="config-list" id="pref-list" x-show="prefOpen" x-collapse x-transition>
+                            <ul class="config-list" id="pref-list-desktop" x-show="prefOpen" x-collapse x-transition>
                                 <!-- Preferences Items -->
                                 <li x-data="{ autoScroll: true }">
                                     <span>Autoscroll</span>
@@ -329,10 +329,9 @@
                                 </li>
                             </ul>
                         </span>
-                    </div>
-                    <!-- Version Info -->
+                        <!-- Version Info -->
                     <div class="version-info">
-                        <span id="a0version">Version {{version_no}} {{version_time}}</span>
+                        <span id="a0version-desktop">Version {{version_no}} {{version_time}}</span>
                     </div>
                 </div>
             </div>
@@ -548,7 +547,7 @@
     <div id="settingsModal" x-data="settingsModalProxy">
         <template x-teleport="body">
             <div x-show="isOpen" class="modal-overlay" @click.self="handleCancel()"
-                @keydown.escape.window="handleCancel()" x-transition>
+                @keydown.escape.window="handleCancel()" x-transition="">
                 <div class="modal-container">
                     <div class="modal-header">
                         <h2 x-text="settings.title"></h2>
@@ -589,8 +588,8 @@
                                     <template x-for="(section, index) in filteredSections" :key="section.title">
                                         <li>
                                             <a :href="'#section' + (index + 1)">
-                                                <img :src="'/public/' + section.id +'.svg'"
-                                                    :alt="section.title">
+                                <img :src="'/public/' + section.id +'.svg'"
+                                    :alt="section.title" width="50" height="50">
                                                 <span x-text="section.title"></span>
                                             </a>
                                         </li>
@@ -598,7 +597,7 @@
                                     <!-- Tunnel navigation entry - only visible in the External Services tab -->
                                     <li x-show="activeTab === 'external'">
                                         <a href="#section-tunnel">
-                                            <img src="/public/tunnel.svg" alt="Tunnel">
+                                            <img src="/public/tunnel.svg" alt="Tunnel" width="50" height="50">
                                             <span>Flare Tunnel</span>
                                         </a>
                                     </li>
@@ -775,7 +774,7 @@
     <div id="fileBrowserModal" x-data="fileBrowserModalProxy">
         <template x-teleport="body">
             <div x-show="isOpen" class="modal-overlay" @click.self="handleClose()"
-                @keydown.escape.window="handleClose()" x-transition>
+                @keydown.escape.window="handleClose()" x-transition="">
                 <div class="modal-container">
                     <div class="modal-header">
                         <h2 class="modal-title" x-text="browser.title"></h2>
@@ -831,8 +830,8 @@
                                         <div class="file-item" :data-is-dir="file.is_dir">
                                             <div class="file-name"
                                                 @click="file.is_dir ? navigateToFolder(file.path) : downloadFile(file)">
-                                                <img :src="'/public/' + (file.type === 'unknown' ? 'file' : (isArchive(file.name) ? 'archive' : file.type)) + '.svg'"
-                                                    class="file-icon" :alt="file.type + ' icon'">
+                                    <img :src="'/public/' + (file.type === 'unknown' ? 'file' : (isArchive(file.name) ? 'archive' : file.type)) + '.svg'"
+                                        class="file-icon" :alt="file.type + ' icon'" width="20" height="20">
                                                 <span x-text="file.name"></span>
                                             </div>
                                             <div class="file-size" x-text="formatFileSize(file.size)"></div>
@@ -895,7 +894,7 @@
     <div id="genericModal" x-data="genericModalProxy">
         <template x-teleport="body">
             <div x-show="isOpen" class="modal-overlay" @click.self="handleClose()"
-                @keydown.escape.window="handleClose()" x-transition>
+                @keydown.escape.window="handleClose()" x-transition="">
                 <div class="modal-container">
                     <div class="modal-header">
                         <h2 class="modal-title" x-text="title"></h2>
@@ -911,10 +910,10 @@
     </div>
 
     <!-- Full Screen Input Modal -->
-    <div id="fullScreenInputModal" x-data="fullScreenInputModalProxy">
+    <div id="full-screen-input-modal" x-data="fullScreenInputModalProxy">
         <template x-teleport="body">
             <div x-show="isOpen" class="modal-overlay" @click.self="handleClose()"
-                @keydown.escape.window="handleClose()" x-transition>
+                @keydown.escape.window="handleClose()" x-transition="">
                 <div class="modal-container full-screen-input-modal">
                     <div class="modal-content">
                         <button class="modal-close" @click="handleClose()">&times;</button>
