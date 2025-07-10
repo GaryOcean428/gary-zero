@@ -18,6 +18,5 @@ branch = "main"
 
 [services.variables]
 NODE_ENV = "production"
-WEB_UI_PORT = { $ref = "PORT" }
 WEB_UI_HOST = "0.0.0.0"
 PYTHONUNBUFFERED = "1"

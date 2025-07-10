@@ -40,7 +40,6 @@ branch = "main"
 
 [services.variables]
 NODE_ENV = "production"
-WEB_UI_PORT = { $ref = "PORT" }
 WEB_UI_HOST = "0.0.0.0"
 PYTHONUNBUFFERED = "1"
 ```
@@ -121,8 +120,10 @@ Railway will automatically:
 ## Port Configuration
 
 - Railway automatically provides a `$PORT` environment variable
-- The application is configured to bind to `0.0.0.0:$PORT`
-- Default fallback port is 50001 (defined in `.env.example`)
+- The application is configured to bind to `0.0.0.0:$PORT` via the startCommand
+- The application's port resolution logic automatically uses Railway's `$PORT` variable
+- No additional `WEB_UI_PORT` configuration is needed in railway.toml
+- Default fallback port is 5000 (defined in application code)
 
 ## Monitoring
 
