@@ -258,7 +258,7 @@ class DirtyJson:
                     # Try to collect exactly 4 hex digits
                     for _ in range(4):
                         if self.current_char is None or not self.current_char.isalnum():
-            # If we can't get 4 hex digits, treat it as a literal '\u' 
+            # If we can't get 4 hex digits, treat it as a literal '\u'
             # followed by whatever we got
                             return result + "\\u" + unicode_char
                         unicode_char += self.current_char

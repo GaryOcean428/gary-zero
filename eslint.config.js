@@ -112,7 +112,6 @@ export default [
         resp: 'readonly',
         MediaRecorder: 'readonly',
         toast: 'readonly',
-        AudioContext: 'readonly',
         SpeechSynthesisUtterance: 'readonly',
         openFileLink: 'writable',
         renderMathInElement: 'readonly',
