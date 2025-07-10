@@ -1,50 +1,50 @@
-import * as _modals from "./modals.js";
 import * as _components from "./components.js";
+import * as _modals from "./modals.js";
 
 // Import Alpine.js directly
 import "./alpine.min.js";
 
 // Add Alpine.js Collapse plugin support
-if (typeof Alpine !== 'undefined') {
+if (typeof Alpine !== "undefined") {
     // Add null-safe magic helper for Alpine.js expressions
-    Alpine.magic('safe', () => {
-        return (value, defaultValue = '') => {
+    Alpine.magic("safe", () => {
+        return (value, defaultValue = "") => {
             try {
                 return value != null ? String(value).trim() : defaultValue;
             } catch (error) {
-                console.warn('Alpine safe magic error:', error);
+                console.warn("Alpine safe magic error:", error);
                 return defaultValue;
             }
         };
     });
-    
+
     // Register x-collapse directive manually since the plugin isn't loaded
-    Alpine.directive('collapse', (el, { value, modifiers }, { effect, evaluate }) => {
+    Alpine.directive("collapse", (el, { value, modifiers }, { effect, evaluate }) => {
         let initialUpdate = true;
-        
+
         const closedStyles = {
-            height: '0px',
-            overflow: 'hidden',
-            paddingTop: '0px',
-            paddingBottom: '0px',
-            marginTop: '0px',
-            marginBottom: '0px',
+            height: "0px",
+            overflow: "hidden",
+            paddingTop: "0px",
+            paddingBottom: "0px",
+            marginTop: "0px",
+            marginBottom: "0px",
         };
-        
+
         let openStyles = {};
-        
+
         effect(() => {
             let isOpen;
-            
+
             // Handle case where no value is provided (just x-collapse)
             if (!value) {
                 // Default behavior: collapse based on x-show if present
-                const showDirective = el.getAttribute('x-show');
+                const showDirective = el.getAttribute("x-show");
                 if (showDirective) {
                     try {
                         isOpen = evaluate(showDirective);
                     } catch (error) {
-                        console.warn('Error evaluating x-show for collapse:', error);
+                        console.warn("Error evaluating x-show for collapse:", error);
                         isOpen = true; // Default to open on error
                     }
                 } else {
@@ -53,22 +53,22 @@ if (typeof Alpine !== 'undefined') {
             } else {
                 isOpen = evaluate(value);
             }
-            
+
             // Null-safe handling: ensure isOpen is a boolean
             if (isOpen === null || isOpen === undefined) {
                 isOpen = false;
             }
-            
+
             if (initialUpdate) {
                 if (isOpen) {
                     // Store initial open styles
                     openStyles = {
-                        height: el.style.height || '',
-                        overflow: el.style.overflow || '',
-                        paddingTop: el.style.paddingTop || '',
-                        paddingBottom: el.style.paddingBottom || '',
-                        marginTop: el.style.marginTop || '',
-                        marginBottom: el.style.marginBottom || '',
+                        height: el.style.height || "",
+                        overflow: el.style.overflow || "",
+                        paddingTop: el.style.paddingTop || "",
+                        paddingBottom: el.style.paddingBottom || "",
+                        marginTop: el.style.marginTop || "",
+                        marginBottom: el.style.marginBottom || "",
                     };
                 } else {
                     // Apply closed styles immediately on initial load if closed
@@ -77,26 +77,26 @@ if (typeof Alpine !== 'undefined') {
                 initialUpdate = false;
                 return;
             }
-            
+
             if (isOpen) {
                 // Opening animation
                 Object.assign(el.style, openStyles);
-                el.style.transition = 'all 0.3s ease-in-out';
+                el.style.transition = "all 0.3s ease-in-out";
             } else {
                 // Closing animation
-                el.style.transition = 'all 0.3s ease-in-out';
+                el.style.transition = "all 0.3s ease-in-out";
                 Object.assign(el.style, closedStyles);
             }
         });
     });
-    
-    console.log('✅ Alpine.js Collapse directive registered');
+
+    console.log("✅ Alpine.js Collapse directive registered");
 }
 
 // Wait for Alpine to be available
-if (typeof Alpine !== 'undefined') {
+if (typeof Alpine !== "undefined") {
     // Add global null-safe wrapper function for Alpine expressions
-    window.safeAlpineEval = function(expression, context = {}, defaultValue = '') {
+    window.safeAlpineEval = (expression, context = {}, defaultValue = "") => {
         try {
             if (expression === null || expression === undefined) {
                 return defaultValue;
@@ -104,19 +104,16 @@ if (typeof Alpine !== 'undefined') {
             const result = Alpine.evaluate(context, expression);
             return result != null ? result : defaultValue;
         } catch (error) {
-            console.warn('Alpine expression evaluation error:', error, 'Expression:', expression);
+            console.warn("Alpine expression evaluation error:", error, "Expression:", expression);
             return defaultValue;
         }
     };
-    
+
     // add x-destroy directive
-    Alpine.directive(
-      "destroy",
-      (el, { expression }, { evaluateLater, cleanup }) => {
+    Alpine.directive("destroy", (el, { expression }, { evaluateLater, cleanup }) => {
         const onDestroy = evaluateLater(expression);
         cleanup(() => onDestroy());
-      }
-    );
+    });
 } else {
-    console.error('Alpine.js not loaded properly');
+    console.error("Alpine.js not loaded properly");
 }

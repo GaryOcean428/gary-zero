@@ -12,21 +12,15 @@ class ToastManager {
 
     createContainer() {
         if (this.container && this.container.parentElement) return;
-        
+
         // Wait for document.body to be available if needed
         if (!document.body) {
-            console.warn('ToastManager: document.body not available, deferring container creation');
+            console.warn("ToastManager: document.body not available, deferring container creation");
             return false;
         }
-        
+
         // Multiple fallback strategies for container parent
-        const targetSelectors = [
-            'body',
-            '#app',
-            '#root',
-            '.main-container',
-            'main'
-        ];
+        const targetSelectors = ["body", "#app", "#root", ".main-container", "main"];
 
         let parent = null;
         for (const selector of targetSelectors) {
@@ -35,12 +29,12 @@ class ToastManager {
         }
 
         if (!parent) {
-            console.warn('ToastManager: No suitable parent element found, using document.body');
+            console.warn("ToastManager: No suitable parent element found, using document.body");
             parent = document.body;
         }
 
-        this.container = document.createElement('div');
-        this.container.id = 'toast-container';
+        this.container = document.createElement("div");
+        this.container.id = "toast-container";
         this.container.style.cssText = `
             position: fixed;
             top: 20px;
@@ -48,23 +42,23 @@ class ToastManager {
             z-index: 10000;
             pointer-events: none;
         `;
-        
+
         try {
             parent.appendChild(this.container);
             this.initialized = true;
-            console.log('✅ ToastManager container created successfully');
+            console.log("✅ ToastManager container created successfully");
             return true;
         } catch (error) {
-            console.error('ToastManager: Failed to append container to parent:', error);
+            console.error("ToastManager: Failed to append container to parent:", error);
             // Fallback to document.body if the selected parent fails
             if (parent !== document.body && document.body) {
                 try {
                     document.body.appendChild(this.container);
                     this.initialized = true;
-                    console.log('✅ ToastManager container created with fallback to body');
+                    console.log("✅ ToastManager container created with fallback to body");
                     return true;
                 } catch (fallbackError) {
-                    console.error('ToastManager: Fallback to body also failed:', fallbackError);
+                    console.error("ToastManager: Fallback to body also failed:", fallbackError);
                     return false;
                 }
             }
@@ -72,11 +66,11 @@ class ToastManager {
         }
     }
 
-    show(message, type = 'info', duration = 5000) {
+    show(message, type = "info", duration = 5000) {
         // Queue the toast if container isn't ready yet
         if (!this.initialized) {
             this.queue.push({ message, type, duration });
-            
+
             // Try to create container and process queue
             if (this.createContainer()) {
                 this.processQueue();
@@ -90,14 +84,14 @@ class ToastManager {
                         }
                     }, 100);
                 }
-                console.warn('ToastManager: Container not available, queued toast message');
+                console.warn("ToastManager: Container not available, queued toast message");
                 return null;
             }
         }
-        
+
         // Ensure container exists before showing toast
         if (!this.container || !this.container.parentElement) {
-            console.warn('ToastManager: Container not available, logging to console instead');
+            console.warn("ToastManager: Container not available, logging to console instead");
             console.log(`[${type.toUpperCase()}] ${message}`);
             return null;
         }
@@ -106,7 +100,7 @@ class ToastManager {
     }
 
     displayToast(message, type, duration) {
-        const toast = document.createElement('div');
+        const toast = document.createElement("div");
         toast.className = `toast toast-${type}`;
         toast.style.cssText = `
             background: var(--bg-secondary, #2a2a2a);
@@ -122,7 +116,7 @@ class ToastManager {
             animation: slideInRight 0.3s ease-out;
             position: relative;
         `;
-        
+
         toast.innerHTML = `
             <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-size: 16px;">${this.getTypeIcon(type)}</span>
@@ -138,7 +132,7 @@ class ToastManager {
         if (duration > 0) {
             setTimeout(() => {
                 if (toast.parentElement) {
-                    toast.style.animation = 'slideOutRight 0.3s ease-in forwards';
+                    toast.style.animation = "slideOutRight 0.3s ease-in forwards";
                     setTimeout(() => toast.remove(), 300);
                 }
             }, duration);
@@ -156,20 +150,20 @@ class ToastManager {
 
     getTypeColor(type) {
         const colors = {
-            success: '#10b981',
-            error: '#ef4444',
-            warning: '#f59e0b',
-            info: '#3b82f6'
+            success: "#10b981",
+            error: "#ef4444",
+            warning: "#f59e0b",
+            info: "#3b82f6",
         };
         return colors[type] || colors.info;
     }
 
     getTypeIcon(type) {
         const icons = {
-            success: '✓',
-            error: '✗',
-            warning: '⚠',
-            info: 'ℹ'
+            success: "✓",
+            error: "✗",
+            warning: "⚠",
+            info: "ℹ",
         };
         return icons[type] || icons.info;
     }
@@ -183,30 +177,50 @@ class InputValidator {
     }
 
     initializeDefaultRules() {
-        this.addRule('required', (value) => {
-            return value && value.toString().trim().length > 0;
-        }, 'This field is required');
+        this.addRule(
+            "required",
+            (value) => {
+                return value && value.toString().trim().length > 0;
+            },
+            "This field is required"
+        );
 
-        this.addRule('email', (value) => {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return !value || emailRegex.test(value);
-        }, 'Please enter a valid email address');
+        this.addRule(
+            "email",
+            (value) => {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return !value || emailRegex.test(value);
+            },
+            "Please enter a valid email address"
+        );
 
-        this.addRule('minLength', (value, param) => {
-            return !value || value.toString().length >= param;
-        }, (param) => `Must be at least ${param} characters long`);
+        this.addRule(
+            "minLength",
+            (value, param) => {
+                return !value || value.toString().length >= param;
+            },
+            (param) => `Must be at least ${param} characters long`
+        );
 
-        this.addRule('maxLength', (value, param) => {
-            return !value || value.toString().length <= param;
-        }, (param) => `Must not exceed ${param} characters`);
+        this.addRule(
+            "maxLength",
+            (value, param) => {
+                return !value || value.toString().length <= param;
+            },
+            (param) => `Must not exceed ${param} characters`
+        );
 
-        this.addRule('url', (value) => {
-            try {
-                return !value || new URL(value);
-            } catch {
-                return false;
-            }
-        }, 'Please enter a valid URL');
+        this.addRule(
+            "url",
+            (value) => {
+                try {
+                    return !value || new URL(value);
+                } catch {
+                    return false;
+                }
+            },
+            "Please enter a valid URL"
+        );
     }
 
     addRule(name, validator, message) {
@@ -219,7 +233,7 @@ class InputValidator {
 
         for (const rule of rules) {
             let ruleName, param;
-            if (typeof rule === 'string') {
+            if (typeof rule === "string") {
                 ruleName = rule;
             } else {
                 ruleName = rule.name;
@@ -231,9 +245,7 @@ class InputValidator {
 
             const isValid = ruleObj.validator(value, param);
             if (!isValid) {
-                const message = typeof ruleObj.message === 'function' 
-                    ? ruleObj.message(param) 
-                    : ruleObj.message;
+                const message = typeof ruleObj.message === "function" ? ruleObj.message(param) : ruleObj.message;
                 errors.push(message);
             }
         }
@@ -242,17 +254,13 @@ class InputValidator {
     }
 
     addValidationToElement(element, rules, options = {}) {
-        const { 
-            showOnBlur = true, 
-            showOnInput = false, 
-            container = element.parentElement 
-        } = options;
+        const { showOnBlur = true, showOnInput = false, container = element.parentElement } = options;
 
         // Create error display element
-        let errorElement = container.querySelector('.validation-error');
+        let errorElement = container.querySelector(".validation-error");
         if (!errorElement) {
-            errorElement = document.createElement('div');
-            errorElement.className = 'validation-error';
+            errorElement = document.createElement("div");
+            errorElement.className = "validation-error";
             errorElement.style.cssText = `
                 color: #ef4444;
                 font-size: 0.875rem;
@@ -266,26 +274,26 @@ class InputValidator {
             const errors = this.validate(element, rules);
             if (errors.length > 0) {
                 errorElement.textContent = errors[0];
-                errorElement.style.display = 'block';
-                element.style.borderColor = '#ef4444';
-                element.setAttribute('aria-invalid', 'true');
-                element.setAttribute('aria-describedby', errorElement.id || 'validation-error');
+                errorElement.style.display = "block";
+                element.style.borderColor = "#ef4444";
+                element.setAttribute("aria-invalid", "true");
+                element.setAttribute("aria-describedby", errorElement.id || "validation-error");
                 return false;
             } else {
-                errorElement.style.display = 'none';
-                element.style.borderColor = '';
-                element.setAttribute('aria-invalid', 'false');
-                element.removeAttribute('aria-describedby');
+                errorElement.style.display = "none";
+                element.style.borderColor = "";
+                element.setAttribute("aria-invalid", "false");
+                element.removeAttribute("aria-describedby");
                 return true;
             }
         };
 
         if (showOnBlur) {
-            element.addEventListener('blur', validateAndShow);
+            element.addEventListener("blur", validateAndShow);
         }
 
         if (showOnInput) {
-            element.addEventListener('input', validateAndShow);
+            element.addEventListener("input", validateAndShow);
         }
 
         // Return validation function for manual triggering
@@ -299,15 +307,15 @@ class LoadingManager {
         this.activeLoaders = new Set();
     }
 
-    show(element, text = 'Loading...') {
+    show(element, text = "Loading...") {
         if (!element) return;
 
         const loaderId = Math.random().toString(36).substr(2, 9);
-        
+
         // Store original content
         const originalContent = element.innerHTML;
         const originalDisabled = element.disabled;
-        
+
         // Create loading state
         element.innerHTML = `
             <span style="display: flex; align-items: center; gap: 8px;">
@@ -328,7 +336,7 @@ class LoadingManager {
             id: loaderId,
             element,
             originalContent,
-            originalDisabled
+            originalDisabled,
         });
 
         return loaderId;
@@ -368,25 +376,25 @@ class AlpineErrorBoundary {
     }
 
     setupGlobalErrorHandling() {
-        window.addEventListener('error', (event) => {
-            console.error('Global error:', event.error);
-            this.handleError(event.error, 'Global Error');
+        window.addEventListener("error", (event) => {
+            console.error("Global error:", event.error);
+            this.handleError(event.error, "Global Error");
         });
 
-        window.addEventListener('unhandledrejection', (event) => {
-            console.error('Unhandled promise rejection:', event.reason);
-            this.handleError(event.reason, 'Promise Rejection');
+        window.addEventListener("unhandledrejection", (event) => {
+            console.error("Unhandled promise rejection:", event.reason);
+            this.handleError(event.reason, "Promise Rejection");
         });
     }
 
     setupAlpineErrorHandling() {
         // Alpine.js error handling setup
-        document.addEventListener('alpine:init', () => {
+        document.addEventListener("alpine:init", () => {
             if (window.Alpine) {
                 // Override Alpine's error handling
                 const originalError = console.error;
                 console.error = (...args) => {
-                    if (args[0] && args[0].toString().includes('Alpine')) {
+                    if (args[0] && args[0].toString().includes("Alpine")) {
                         this.handleAlpineError(args);
                     }
                     originalError.apply(console, args);
@@ -395,22 +403,14 @@ class AlpineErrorBoundary {
         });
     }
 
-    handleError(error, context = 'Unknown') {
+    handleError(error, context = "Unknown") {
         const toast = getToastManager();
-        toast.show(
-            `An error occurred in ${context}. Please refresh the page if issues persist.`,
-            'error',
-            8000
-        );
+        toast.show(`An error occurred in ${context}. Please refresh the page if issues persist.`, "error", 8000);
     }
 
     handleAlpineError(args) {
         const toast = getToastManager();
-        toast.show(
-            'Interface error detected. Some features may not work correctly.',
-            'warning',
-            6000
-        );
+        toast.show("Interface error detected. Some features may not work correctly.", "warning", 6000);
     }
 }
 
@@ -423,18 +423,18 @@ function getToastManager() {
 }
 
 // Make toast manager available globally but only create when needed
-Object.defineProperty(window, 'toastManager', {
+Object.defineProperty(window, "toastManager", {
     get: getToastManager,
-    configurable: true
+    configurable: true,
 });
 
 // Also create a global toast API for convenience
 window.toast = {
     show: (message, type, duration) => getToastManager().show(message, type, duration),
-    success: (message, duration) => getToastManager().show(message, 'success', duration),
-    error: (message, duration) => getToastManager().show(message, 'error', duration),
-    warning: (message, duration) => getToastManager().show(message, 'warning', duration),
-    info: (message, duration) => getToastManager().show(message, 'info', duration)
+    success: (message, duration) => getToastManager().show(message, "success", duration),
+    error: (message, duration) => getToastManager().show(message, "error", duration),
+    warning: (message, duration) => getToastManager().show(message, "warning", duration),
+    info: (message, duration) => getToastManager().show(message, "info", duration),
 };
 
 window.inputValidator = new InputValidator();
@@ -442,7 +442,7 @@ window.loadingManager = new LoadingManager();
 window.errorBoundary = new AlpineErrorBoundary();
 
 // Add CSS animations
-const style = document.createElement('style');
+const style = document.createElement("style");
 style.textContent = `
     @keyframes slideInRight {
         from {
@@ -504,11 +504,11 @@ style.textContent = `
 document.head.appendChild(style);
 
 // Export for module usage
-if (typeof module !== 'undefined' && module.exports) {
+if (typeof module !== "undefined" && module.exports) {
     module.exports = {
         ToastManager,
         InputValidator,
         LoadingManager,
-        AlpineErrorBoundary
+        AlpineErrorBoundary,
     };
 }

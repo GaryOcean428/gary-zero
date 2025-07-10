@@ -1,33 +1,33 @@
 {
-  "timestamp": "2025-06-25T05:20:28.479Z",
-  "reports": [
-    {
-      "name": "ESLint Code Quality & Security",
-      "description": "JavaScript code quality, security, and accessibility issues",
-      "success": false,
-      "outputFile": "./reports/eslint-report-2025-06-25T05-20-28-478Z.json",
-      "hasIssues": ""
-    },
-    {
-      "name": "NPM Security Audit",
-      "description": "Package vulnerability and security issues",
-      "success": false,
-      "outputFile": "./reports/security-audit-2025-06-25T05-20-28-478Z.json",
-      "hasIssues": true
-    },
-    {
-      "name": "HTML Validation",
-      "description": "HTML markup validation and accessibility",
-      "success": true,
-      "outputFile": "./reports/html-validation-2025-06-25T05-20-28-478Z.txt",
-      "hasIssues": ""
-    },
-    {
-      "name": "CSS Quality Check",
-      "description": "CSS quality and compatibility issues",
-      "success": true,
-      "outputFile": "./reports/css-quality-2025-06-25T05-20-28-478Z.txt",
-      "hasIssues": ""
-    }
-  ]
+    "timestamp": "2025-06-25T05:20:28.479Z",
+    "reports": [
+        {
+            "name": "ESLint Code Quality & Security",
+            "description": "JavaScript code quality, security, and accessibility issues",
+            "success": false,
+            "outputFile": "./reports/eslint-report-2025-06-25T05-20-28-478Z.json",
+            "hasIssues": ""
+        },
+        {
+            "name": "NPM Security Audit",
+            "description": "Package vulnerability and security issues",
+            "success": false,
+            "outputFile": "./reports/security-audit-2025-06-25T05-20-28-478Z.json",
+            "hasIssues": true
+        },
+        {
+            "name": "HTML Validation",
+            "description": "HTML markup validation and accessibility",
+            "success": true,
+            "outputFile": "./reports/html-validation-2025-06-25T05-20-28-478Z.txt",
+            "hasIssues": ""
+        },
+        {
+            "name": "CSS Quality Check",
+            "description": "CSS quality and compatibility issues",
+            "success": true,
+            "outputFile": "./reports/css-quality-2025-06-25T05-20-28-478Z.txt",
+            "hasIssues": ""
+        }
+    ]
 }

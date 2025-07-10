@@ -1,17 +1,17 @@
-import { pipeline, read_audio } from './transformers@3.0.2.js';
-import { updateChatInput, sendMessage } from '../index.js';
+import { sendMessage, updateChatInput } from "../index.js";
+import { pipeline, read_audio } from "./transformers@3.0.2.js";
 
-const microphoneButton = document.getElementById('microphone-button');
+const microphoneButton = document.getElementById("microphone-button");
 let microphoneInput = null;
 let isProcessingClick = false;
 
 const Status = {
-    INACTIVE: 'inactive',
-    ACTIVATING: 'activating',
-    LISTENING: 'listening',
-    RECORDING: 'recording',
-    WAITING: 'waiting',
-    PROCESSING: 'processing'
+    INACTIVE: "inactive",
+    ACTIVATING: "activating",
+    LISTENING: "listening",
+    RECORDING: "recording",
+    WAITING: "waiting",
+    PROCESSING: "processing",
 };
 
 class MicrophoneInput {
@@ -36,13 +36,13 @@ class MicrophoneInput {
         this.analysisFrame = null;
 
         this.options = {
-            modelSize: 'tiny',
-            language: 'en',
+            modelSize: "tiny",
+            language: "en",
             silenceThreshold: 0.15,
             silenceDuration: 1000,
             waitingTimeout: 2000,
             minSpeechDuration: 500,
-            ...options
+            ...options,
         };
     }
 
@@ -60,16 +60,17 @@ class MicrophoneInput {
         // Update UI
         microphoneButton.classList.remove(`mic-${oldStatus.toLowerCase()}`);
         microphoneButton.classList.add(`mic-${newStatus.toLowerCase()}`);
-        microphoneButton.setAttribute('data-status', newStatus);
+        microphoneButton.setAttribute("data-status", newStatus);
 
         // Handle state-specific behaviors
         this.handleStatusChange(oldStatus, newStatus);
     }
 
     handleStatusChange(oldStatus, newStatus) {
-
         //last chunk kept only for transition to recording status
-        if (newStatus != Status.RECORDING) { this.lastChunk = null; }
+        if (newStatus != Status.RECORDING) {
+            this.lastChunk = null;
+        }
 
         switch (newStatus) {
             case Status.INACTIVE:
@@ -110,10 +111,10 @@ class MicrophoneInput {
     }
 
     handleRecordingState() {
-        if (!this.hasStartedRecording && this.mediaRecorder.state !== 'recording') {
+        if (!this.hasStartedRecording && this.mediaRecorder.state !== "recording") {
             this.hasStartedRecording = true;
             this.mediaRecorder.start(1000);
-            console.log('Speech started');
+            console.log("Speech started");
         }
         if (this.waitingTimer) {
             clearTimeout(this.waitingTimer);
@@ -136,7 +137,7 @@ class MicrophoneInput {
     }
 
     stopRecording() {
-        if (this.mediaRecorder?.state === 'recording') {
+        if (this.mediaRecorder?.state === "recording") {
             this.mediaRecorder.stop();
             this.hasStartedRecording = false;
         }
@@ -145,7 +146,7 @@ class MicrophoneInput {
     async initialize() {
         try {
             this.transcriber = await pipeline(
-                'automatic-speech-recognition',
+                "automatic-speech-recognition",
                 `Xenova/whisper-${this.options.modelSize}.${this.options.language}`
             );
 
@@ -153,8 +154,8 @@ class MicrophoneInput {
                 audio: {
                     echoCancellation: true,
                     noiseSuppression: true,
-                    channelCount: 1
-                }
+                    channelCount: 1,
+                },
             });
 
             // Use MediaRecorder with Safari compatibility check
@@ -164,20 +165,18 @@ class MicrophoneInput {
             } else if (window.webkitMediaRecorder) {
                 MediaRecorderClass = window.webkitMediaRecorder;
             } else {
-                throw new Error('MediaRecorder is not supported in this browser');
+                throw new Error("MediaRecorder is not supported in this browser");
             }
             this.mediaRecorder = new MediaRecorderClass(stream);
             this.mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0 &&
-                    (this.status === Status.RECORDING || this.status === Status.WAITING)) {
+                if (event.data.size > 0 && (this.status === Status.RECORDING || this.status === Status.WAITING)) {
                     if (this.lastChunk) {
                         this.audioChunks.push(this.lastChunk);
                         this.lastChunk = null;
                     }
                     this.audioChunks.push(event.data);
-                    console.log('Audio chunk received, total chunks:', this.audioChunks.length);
-                }
-                else if (this.status === Status.LISTENING) {
+                    console.log("Audio chunk received, total chunks:", this.audioChunks.length);
+                } else if (this.status === Status.LISTENING) {
                     this.lastChunk = event.data;
                 }
             };
@@ -185,9 +184,8 @@ class MicrophoneInput {
             this.setupAudioAnalysis(stream);
             return true;
         } catch (error) {
-
-            console.error('Microphone initialization error:', error);
-            toast('Failed to access microphone. Please check permissions.', 'error');
+            console.error("Microphone initialization error:", error);
+            toast("Failed to access microphone. Please check permissions.", "error");
             return false;
         }
     }
@@ -200,7 +198,7 @@ class MicrophoneInput {
         } else if (window.webkitAudioContext) {
             AudioContextClass = window.webkitAudioContext;
         } else {
-            throw new Error('AudioContext is not supported in this browser');
+            throw new Error("AudioContext is not supported in this browser");
         }
         this.audioContext = new AudioContextClass();
         this.mediaStreamSource = this.audioContext.createMediaStreamSource(stream);
@@ -211,7 +209,6 @@ class MicrophoneInput {
         this.analyserNode.smoothingTimeConstant = 0.85;
         this.mediaStreamSource.connect(this.analyserNode);
     }
-    
 
     startAudioAnalysis() {
         const analyzeFrame = () => {
@@ -236,7 +233,8 @@ class MicrophoneInput {
                 this.silenceStartTime = null;
 
                 if (this.status === Status.LISTENING || this.status === Status.WAITING) {
-                    if (!speech.isSpeaking()) // TODO? a better way to ignore agent's voice?
+                    if (!speech.isSpeaking())
+                        // TODO? a better way to ignore agent's voice?
                         this.status = Status.RECORDING;
                 }
             } else if (this.status === Status.RECORDING) {
@@ -269,24 +267,22 @@ class MicrophoneInput {
             return;
         }
 
-        const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });        
+        const audioBlob = new Blob(this.audioChunks, { type: "audio/wav" });
         const audioUrl = URL.createObjectURL(audioBlob);
-
-
 
         try {
             const samplingRate = 16000;
             const audioData = await read_audio(audioUrl, samplingRate);
             const result = await this.transcriber(audioData);
-            const text = this.filterResult(result.text || "")
+            const text = this.filterResult(result.text || "");
 
             if (text) {
-                console.log('Transcription:', result.text);
+                console.log("Transcription:", result.text);
                 await this.updateCallback(result.text, true);
             }
         } catch (error) {
-            console.error('Transcription error:', error);
-            toast('Transcription failed.', 'error');
+            console.error("Transcription error:", error);
+            toast("Transcription failed.", "error");
         } finally {
             URL.revokeObjectURL(audioUrl);
             this.audioChunks = [];
@@ -295,21 +291,19 @@ class MicrophoneInput {
     }
 
     filterResult(text) {
-        text = text.trim()
-        let ok = false
+        text = text.trim();
+        let ok = false;
         while (!ok) {
-            if (!text) break
-            if (text[0] === '{' && text[text.length - 1] === '}') break
-            if (text[0] === '(' && text[text.length - 1] === ')') break
-            if (text[0] === '[' && text[text.length - 1] === ']') break
-            ok = true
+            if (!text) break;
+            if (text[0] === "{" && text[text.length - 1] === "}") break;
+            if (text[0] === "(" && text[text.length - 1] === ")") break;
+            if (text[0] === "[" && text[text.length - 1] === "]") break;
+            ok = true;
         }
-        if (ok) return text
-        else console.log(`Discarding transcription: ${text}`)
+        if (ok) return text;
+        else console.log(`Discarding transcription: ${text}`);
     }
 }
-
-
 
 // Initialize and handle click events
 async function initializeMicrophoneInput() {
@@ -324,11 +318,11 @@ async function initializeMicrophoneInput() {
             }
         },
         {
-            modelSize: 'tiny',
-            language: 'en',
+            modelSize: "tiny",
+            language: "en",
             silenceThreshold: 0.07,
             silenceDuration: 1000,
-            waitingTimeout: 1500
+            waitingTimeout: 1500,
         }
     );
     microphoneInput.status = Status.ACTIVATING;
@@ -336,7 +330,7 @@ async function initializeMicrophoneInput() {
     return await microphoneInput.initialize();
 }
 
-microphoneButton.addEventListener('click', async () => {
+microphoneButton.addEventListener("click", async () => {
     if (isProcessingClick) return;
     isProcessingClick = true;
 
@@ -344,13 +338,15 @@ microphoneButton.addEventListener('click', async () => {
     if (!hasPermission) return;
 
     try {
-        if (!microphoneInput && !await initializeMicrophoneInput()) {
+        if (!microphoneInput && !(await initializeMicrophoneInput())) {
             return;
         }
 
         // Simply toggle between INACTIVE and LISTENING states
         microphoneInput.status =
-            (microphoneInput.status === Status.INACTIVE || microphoneInput.status === Status.ACTIVATING) ? Status.LISTENING : Status.INACTIVE;
+            microphoneInput.status === Status.INACTIVE || microphoneInput.status === Status.ACTIVATING
+                ? Status.LISTENING
+                : Status.INACTIVE;
     } finally {
         setTimeout(() => {
             isProcessingClick = false;
@@ -364,12 +360,11 @@ async function requestMicrophonePermission() {
         await navigator.mediaDevices.getUserMedia({ audio: true });
         return true;
     } catch (err) {
-        console.error('Error accessing microphone:', err);
-        toast('Microphone access denied. Please enable microphone access in your browser settings.', 'error');
+        console.error("Error accessing microphone:", err);
+        toast("Microphone access denied. Please enable microphone access in your browser settings.", "error");
         return false;
     }
 }
-
 
 class Speech {
     constructor() {
@@ -379,13 +374,16 @@ class Speech {
 
     stripEmojis(str) {
         return str
-            .replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '')
-            .replace(/\s+/g, ' ')
+            .replace(
+                /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g,
+                ""
+            )
+            .replace(/\s+/g, " ")
             .trim();
     }
 
     speak(text) {
-        console.log('Speaking:', text);
+        console.log("Speaking:", text);
         // Stop any current utterance
         this.stop();
 
@@ -409,4 +407,4 @@ class Speech {
 }
 
 export const speech = new Speech();
-window.speech = speech
+window.speech = speech;

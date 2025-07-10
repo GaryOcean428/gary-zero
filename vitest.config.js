@@ -14,8 +14,8 @@ export default defineConfig({
           branches: 80,
           functions: 80,
           lines: 80,
-          statements: 80
-        }
+          statements: 80,
+        },
       },
       exclude: [
         'node_modules/',
@@ -27,25 +27,20 @@ export default defineConfig({
         'build/',
         'webui/js/alpine*.js',
         'webui/js/transformers*.js',
-        '**/*.min.js'
-      ]
+        '**/*.min.js',
+      ],
     },
     include: [
       'tests/**/*.{test,spec}.{js,ts}',
       'webui/**/*.{test,spec}.{js,ts}',
-      'framework/**/*.{test,spec}.{js,ts}'
+      'framework/**/*.{test,spec}.{js,ts}',
     ],
-    exclude: [
-      'node_modules/',
-      'dist/',
-      'build/',
-      '**/*.min.js'
-    ]
+    exclude: ['node_modules/', 'dist/', 'build/', '**/*.min.js'],
   },
   resolve: {
     alias: {
       '@': './webui',
-      '@framework': './framework'
-    }
-  }
+      '@framework': './framework',
+    },
+  },
 });

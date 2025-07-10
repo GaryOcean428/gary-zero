@@ -1,9 +1,9 @@
 {
-    "compilerOptions": {
-      "baseUrl": ".",
-      "paths": {
-        "*": ["webui/*"]
-      }
-    },
-    "include": ["webui/**/*.js"]
-  }
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "*": ["webui/*"]
+    }
+  },
+  "include": ["webui/**/*.js"]
+}
