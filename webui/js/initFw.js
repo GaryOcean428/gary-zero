@@ -6,6 +6,18 @@ import "./alpine.min.js";
 
 // Add Alpine.js Collapse plugin support
 if (typeof Alpine !== 'undefined') {
+    // Add null-safe magic helper for Alpine.js expressions
+    Alpine.magic('safe', () => {
+        return (value, defaultValue = '') => {
+            try {
+                return value != null ? String(value).trim() : defaultValue;
+            } catch (error) {
+                console.warn('Alpine safe magic error:', error);
+                return defaultValue;
+            }
+        };
+    });
+    
     // Register x-collapse directive manually since the plugin isn't loaded
     Alpine.directive('collapse', (el, { value, modifiers }, { effect, evaluate }) => {
         let initialUpdate = true;
@@ -22,7 +34,30 @@ if (typeof Alpine !== 'undefined') {
         let openStyles = {};
         
         effect(() => {
-            let isOpen = evaluate(value);
+            let isOpen;
+            
+            // Handle case where no value is provided (just x-collapse)
+            if (!value) {
+                // Default behavior: collapse based on x-show if present
+                const showDirective = el.getAttribute('x-show');
+                if (showDirective) {
+                    try {
+                        isOpen = evaluate(showDirective);
+                    } catch (error) {
+                        console.warn('Error evaluating x-show for collapse:', error);
+                        isOpen = true; // Default to open on error
+                    }
+                } else {
+                    isOpen = true; // Default to open if no value specified
+                }
+            } else {
+                isOpen = evaluate(value);
+            }
+            
+            // Null-safe handling: ensure isOpen is a boolean
+            if (isOpen === null || isOpen === undefined) {
+                isOpen = false;
+            }
             
             if (initialUpdate) {
                 if (isOpen) {
@@ -60,6 +95,20 @@ if (typeof Alpine !== 'undefined') {
 
 // Wait for Alpine to be available
 if (typeof Alpine !== 'undefined') {
+    // Add global null-safe wrapper function for Alpine expressions
+    window.safeAlpineEval = function(expression, context = {}, defaultValue = '') {
+        try {
+            if (expression === null || expression === undefined) {
+                return defaultValue;
+            }
+            const result = Alpine.evaluate(context, expression);
+            return result != null ? result : defaultValue;
+        } catch (error) {
+            console.warn('Alpine expression evaluation error:', error, 'Expression:', expression);
+            return defaultValue;
+        }
+    };
+    
     // add x-destroy directive
     Alpine.directive(
       "destroy",
