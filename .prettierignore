@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+*.min.js
+bundle*.js
+
+# Generated files
+dist/
+build/
+coverage/
+.nyc_output/
+
+# Third-party libraries
+webui/js/alpine*.js
+webui/js/transformers*.js
+webui/js/lib/
+webui/js/libs/
+
+# Package manager files
+package-lock.json
+yarn.lock
+
+# Environment and config files that should not be formatted
+*.env
+*.env.*
+
+# Binary and media files
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.svg
+*.ico
+*.webp
+*.mp4
+*.webm
+
+# Log files
+*.log
+logs/
+
+# Reports
+reports/
+*.report.*
+
+# Python files (handled by Python formatters)
+*.py
+*.pyc
+__pycache__/
+
+# Docker files
+Dockerfile*
+docker-compose*.yml
+docker-compose*.yaml
