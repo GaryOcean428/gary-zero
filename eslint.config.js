@@ -4,6 +4,33 @@ import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 export default [
   js.configs.recommended,
+  // Browser-specific files configuration
+  {
+    files: ['**/lib/browser/**/*.js', '**/webui/js/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2024,
+      sourceType: 'script', // Browser scripts are often non-module
+      globals: {
+        // Browser-specific globals
+        window: 'readonly',
+        document: 'readonly',
+        console: 'readonly',
+        Node: 'readonly',
+        Element: 'readonly',
+        HTMLElement: 'readonly',
+        Event: 'readonly',
+        navigator: 'readonly',
+        location: 'readonly',
+        localStorage: 'readonly',
+        sessionStorage: 'readonly'
+      }
+    },
+    rules: {
+      'no-unused-vars': 'off', // Allow unused vars in utility functions
+      'no-undef': 'error'
+    }
+  },
+  // Main application configuration
   {
     files: ['**/*.js', '**/*.mjs', '**/*.jsx'],
     ignores: [
@@ -89,6 +116,8 @@ export default [
         process: 'readonly',
         Buffer: 'readonly',
         global: 'readonly',
+        setImmediate: 'readonly',
+        clearImmediate: 'readonly',
         
         // Additional browser APIs
         AudioContext: 'readonly',
