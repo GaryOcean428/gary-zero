@@ -391,7 +391,7 @@ def get_groq_chat(model_name: str, api_key: str | None = None, **kwargs) -> Chat
         v1_secret_key = get_api_key("groq")
         if v1_secret_key:
             final_api_key_for_constructor = SecretStr(v1_secret_key)
-    
+
     # Extract string value from SecretStr for ChatGroq constructor
     api_key_string = final_api_key_for_constructor.get_secret_value() if final_api_key_for_constructor else None
     model = ChatGroq(model=model_name, api_key=api_key_string, **kwargs)
