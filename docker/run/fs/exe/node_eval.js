@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-const vm = require("vm");
-const path = require("path");
-const Module = require("module");
+const vm = require("node:vm");
+const path = require("node:path");
+const _Module = require("node:module");
 
 // Enhance `require` to search CWD first, then globally
 function customRequire(moduleName) {
@@ -11,7 +11,7 @@ function customRequire(moduleName) {
         const cwdPath = require.resolve(moduleName, { paths: [path.join(process.cwd(), "node_modules")] });
         // console.log("resolved path:", cwdPath);
         return require(cwdPath);
-    } catch (cwdErr) {
+    } catch (_cwdErr) {
         try {
             // Try resolving as a global module
             return require(moduleName);
