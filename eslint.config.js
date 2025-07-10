@@ -3,6 +3,22 @@ import compat from 'eslint-plugin-compat';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 
 export default [
+  // Global ignores (apply to all configs)
+  {
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/*.min.js',
+      '**/webui/js/alpine*.js',
+      '**/webui/js/lib/**',
+      '**/webui/js/libs/**',
+      '**/vendor/**',
+      '**/*.debug.js',
+      'webui/js/verify-fixes.js',
+      'webui/js/transformers@*.js',
+    ],
+  },
   js.configs.recommended,
   // Browser-specific files configuration
   {
