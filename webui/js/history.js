@@ -4,24 +4,34 @@ export async function openHistoryModal() {
     try {
         const hist = await window.sendJsonData("/history_get", { context: getContext() });
         // const data = JSON.stringify(hist.history, null, 4);
-        const data = hist.history
-        const size = hist.tokens
-        await showEditorModal(data, "markdown", `History ~${size} tokens`, "Conversation history visible to the LLM. History is compressed to fit into the context window over time.");
+        const data = hist.history;
+        const size = hist.tokens;
+        await showEditorModal(
+            data,
+            "markdown",
+            `History ~${size} tokens`,
+            "Conversation history visible to the LLM. History is compressed to fit into the context window over time."
+        );
     } catch (e) {
-        window.toastFetchError("Error fetching history", e)
-        return
+        window.toastFetchError("Error fetching history", e);
+        return;
     }
 }
 
 export async function openCtxWindowModal() {
     try {
         const win = await window.sendJsonData("/ctx_window_get", { context: getContext() });
-        const data = win.content
-        const size = win.tokens
-        await showEditorModal(data, "markdown", `Context window ~${size} tokens`, "Data passed to the LLM during last interaction. Contains system message, conversation history and RAG.");
+        const data = win.content;
+        const size = win.tokens;
+        await showEditorModal(
+            data,
+            "markdown",
+            `Context window ~${size} tokens`,
+            "Data passed to the LLM during last interaction. Contains system message, conversation history and RAG."
+        );
     } catch (e) {
-        window.toastFetchError("Error fetching context", e)
-        return
+        window.toastFetchError("Error fetching context", e);
+        return;
     }
 }
 
@@ -37,7 +47,7 @@ async function showEditorModal(data, type = "json", title, description = "") {
     if (container) {
         const editor = ace.edit("json-viewer-container");
 
-        const dark = localStorage.getItem('darkMode')
+        const dark = localStorage.getItem("darkMode");
         if (dark != "false") {
             editor.setTheme("ace/theme/github_dark");
         } else {

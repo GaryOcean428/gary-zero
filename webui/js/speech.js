@@ -3,54 +3,59 @@ const { updateChatInput } = window;
 
 // Browser compatibility checks
 const isMediaRecorderSupported = () => {
-    return typeof window.MediaRecorder !== 'undefined' && window.MediaRecorder.isTypeSupported;
+    return typeof window.MediaRecorder !== "undefined" && window.MediaRecorder.isTypeSupported;
 };
 
 const isSpeechSynthesisSupported = () => {
-    return typeof window.SpeechSynthesisUtterance !== 'undefined' && 'speechSynthesis' in window;
+    return typeof window.SpeechSynthesisUtterance !== "undefined" && "speechSynthesis" in window;
 };
 
 // Global function references with fallbacks
-const toast = window.toast || window.toastFetchError || (() => {
-    // Fallback toast function for when global toast is not available
-});
+const toast =
+    window.toast ||
+    window.toastFetchError ||
+    (() => {
+        // Fallback toast function for when global toast is not available
+    });
 
-const sendJsonData = window.sendJsonData || (() => {
-    // Fallback sendJsonData function for when global function is not available
-});
+const sendJsonData =
+    window.sendJsonData ||
+    (() => {
+        // Fallback sendJsonData function for when global function is not available
+    });
 
-const microphoneButton = document.getElementById('microphone-button');
+const microphoneButton = document.getElementById("microphone-button");
 let microphoneInput = null;
 let isProcessingClick = false;
 
 const Status = {
-    INACTIVE: 'inactive',
-    ACTIVATING: 'activating',
-    LISTENING: 'listening',
-    RECORDING: 'recording',
-    WAITING: 'waiting',
-    PROCESSING: 'processing'
+    INACTIVE: "inactive",
+    ACTIVATING: "activating",
+    LISTENING: "listening",
+    RECORDING: "recording",
+    WAITING: "waiting",
+    PROCESSING: "processing",
 };
 
 const micSettings = {
-    stt_model_size: 'tiny',
-    stt_language: 'en',
+    stt_model_size: "tiny",
+    stt_language: "en",
     stt_silence_threshold: 0.05,
     stt_silence_duration: 1000,
     stt_waiting_timeout: 2000,
 };
-window.micSettings = micSettings
-loadMicSettings()
+window.micSettings = micSettings;
+loadMicSettings();
 
 async function loadMicSettings() {
     try {
-        const response = await fetch('/settings_get');
+        const response = await fetch("/settings_get");
         const data = await response.json();
-        const sttSettings = data.settings.sections.find(s => s.title === 'Speech to Text');
+        const sttSettings = data.settings.sections.find((s) => s.title === "Speech to Text");
 
         if (sttSettings) {
             // Update settings from server settings
-            sttSettings.fields.forEach(field => {
+            sttSettings.fields.forEach((field) => {
                 const key = field.id;
                 micSettings[key] = field.value;
             });
@@ -63,7 +68,7 @@ async function loadMicSettings() {
 class MicrophoneInput {
     constructor(updateCallback) {
         this.updateCallback = updateCallback;
-        
+
         // Audio properties
         this.audioChunks = [];
         this.lastChunk = null;
@@ -94,16 +99,17 @@ class MicrophoneInput {
         // Update UI
         microphoneButton.classList.remove(`mic-${oldStatus.toLowerCase()}`);
         microphoneButton.classList.add(`mic-${newStatus.toLowerCase()}`);
-        microphoneButton.setAttribute('data-status', newStatus);
+        microphoneButton.setAttribute("data-status", newStatus);
 
         // Handle state-specific behaviors
         this.handleStatusChange(newStatus);
     }
 
     handleStatusChange(newStatus) {
-
         //last chunk kept only for transition to recording status
-        if (newStatus != Status.RECORDING) { this.lastChunk = null; }
+        if (newStatus != Status.RECORDING) {
+            this.lastChunk = null;
+        }
 
         switch (newStatus) {
             case Status.INACTIVE:
@@ -143,7 +149,7 @@ class MicrophoneInput {
     }
 
     handleRecordingState() {
-        if (!this.hasStartedRecording && this.mediaRecorder.state !== 'recording') {
+        if (!this.hasStartedRecording && this.mediaRecorder.state !== "recording") {
             this.hasStartedRecording = true;
             this.mediaRecorder.start(1000);
         }
@@ -168,7 +174,7 @@ class MicrophoneInput {
     }
 
     stopRecording() {
-        if (this.mediaRecorder?.state === 'recording') {
+        if (this.mediaRecorder?.state === "recording") {
             this.mediaRecorder.stop();
             this.hasStartedRecording = false;
         }
@@ -180,21 +186,21 @@ class MicrophoneInput {
         try {
             // Check MediaRecorder support before using
             if (!isMediaRecorderSupported()) {
-                throw new Error('MediaRecorder is not supported in this browser');
+                throw new Error("MediaRecorder is not supported in this browser");
             }
 
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: {
                     echoCancellation: true,
                     noiseSuppression: true,
-                    channelCount: 1
-                }
+                    channelCount: 1,
+                },
             });
 
             // Check for MediaRecorder support before using
             // Check for MediaRecorder support with Safari 14 compatibility
             if (!window.MediaRecorder && !window.webkitMediaRecorder) {
-                throw new Error('MediaRecorder is not supported in this browser');
+                throw new Error("MediaRecorder is not supported in this browser");
             }
 
             // Use MediaRecorder with Safari compatibility check
@@ -204,19 +210,17 @@ class MicrophoneInput {
             } else if (window.webkitMediaRecorder) {
                 MediaRecorderClass = window.webkitMediaRecorder;
             } else {
-                throw new Error('MediaRecorder is not supported in this browser');
+                throw new Error("MediaRecorder is not supported in this browser");
             }
             this.mediaRecorder = new MediaRecorderClass(stream);
             this.mediaRecorder.ondataavailable = (event) => {
-                if (event.data.size > 0 &&
-                    (this.status === Status.RECORDING || this.status === Status.WAITING)) {
+                if (event.data.size > 0 && (this.status === Status.RECORDING || this.status === Status.WAITING)) {
                     if (this.lastChunk) {
                         this.audioChunks.push(this.lastChunk);
                         this.lastChunk = null;
                     }
                     this.audioChunks.push(event.data);
-                }
-                else if (this.status === Status.LISTENING) {
+                } else if (this.status === Status.LISTENING) {
                     this.lastChunk = event.data;
                 }
             };
@@ -224,7 +228,7 @@ class MicrophoneInput {
             this.setupAudioAnalysis(stream);
             return true;
         } catch {
-            window.toast?.error('Failed to access microphone. Please check permissions.');
+            window.toast?.error("Failed to access microphone. Please check permissions.");
             return false;
         }
     }
@@ -245,17 +249,17 @@ class MicrophoneInput {
         if (!this.analyserNode || !this.dataArray) return;
 
         this.analyserNode.getByteFrequencyData(this.dataArray);
-        
+
         const average = this.dataArray.reduce((sum, value) => sum + value, 0) / this.dataArray.length;
         const normalizedLevel = average / 128.0;
-        
+
         if (this.onVolumeLevel) {
             this.onVolumeLevel(normalizedLevel);
         }
 
         if (this.status === Status.LISTENING || this.status === Status.RECORDING) {
             // Use requestAnimationFrame with fallback
-            if (typeof window.requestAnimationFrame !== 'undefined') {
+            if (typeof window.requestAnimationFrame !== "undefined") {
                 this.animationId = window.requestAnimationFrame(() => this.analyzeAudio());
             } else {
                 // Fallback for browsers without requestAnimationFrame
@@ -266,7 +270,7 @@ class MicrophoneInput {
 
     stopAnalyzing() {
         if (this.animationId) {
-            if (typeof window.cancelAnimationFrame !== 'undefined') {
+            if (typeof window.cancelAnimationFrame !== "undefined") {
                 window.cancelAnimationFrame(this.animationId);
             } else {
                 clearTimeout(this.animationId);
@@ -282,16 +286,16 @@ class MicrophoneInput {
     async sendAudioForTranscription() {
         if (this.audioChunks.length === 0) return;
 
-        const audioBlob = new Blob(this.audioChunks, { type: 'audio/wav' });
+        const audioBlob = new Blob(this.audioChunks, { type: "audio/wav" });
         const formData = new FormData();
-        formData.append('audio', audioBlob, 'recording.wav');
-        formData.append('model_size', micSettings.stt_model_size);
-        formData.append('language', micSettings.stt_language);
+        formData.append("audio", audioBlob, "recording.wav");
+        formData.append("model_size", micSettings.stt_model_size);
+        formData.append("language", micSettings.stt_language);
 
         try {
             sendJsonData(formData);
         } catch {
-            window.toast?.error('Failed to send audio for transcription');
+            window.toast?.error("Failed to send audio for transcription");
         }
     }
 
@@ -314,34 +318,32 @@ class MicrophoneInput {
     }
 
     filterResult(text) {
-        text = text.trim()
-        let ok = false
+        text = text.trim();
+        let ok = false;
         while (!ok) {
-            if (!text) break
-            if (text[0] === '{' && text[text.length - 1] === '}') break
-            if (text[0] === '(' && text[text.length - 1] === ')') break
-            if (text[0] === '[' && text[text.length - 1] === ']') break
-            ok = true
+            if (!text) break;
+            if (text[0] === "{" && text[text.length - 1] === "}") break;
+            if (text[0] === "(" && text[text.length - 1] === ")") break;
+            if (text[0] === "[" && text[text.length - 1] === "]") break;
+            ok = true;
         }
-        if (ok) return text
+        if (ok) return text;
     }
 }
 
 // Initialize and handle click events
 async function initializeMicrophoneInput() {
-    window.microphoneInput = microphoneInput = new MicrophoneInput(
-        updateChatInput
-    );
+    window.microphoneInput = microphoneInput = new MicrophoneInput(updateChatInput);
     microphoneInput.status = Status.ACTIVATING;
 
     return await microphoneInput.initialize();
 }
 
 // Wait for the DOM to be fully loaded before adding event listeners
-document.addEventListener('DOMContentLoaded', () => {
-    const microphoneButton = document.getElementById('microphone-button');
+document.addEventListener("DOMContentLoaded", () => {
+    const microphoneButton = document.getElementById("microphone-button");
     if (microphoneButton) {
-        microphoneButton.addEventListener('click', async () => {
+        microphoneButton.addEventListener("click", async () => {
             if (isProcessingClick) return;
             isProcessingClick = true;
 
@@ -352,23 +354,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                if (!microphoneInput && !await initializeMicrophoneInput()) {
+                if (!microphoneInput && !(await initializeMicrophoneInput())) {
                     isProcessingClick = false;
                     return;
                 }
 
                 // Simply toggle between INACTIVE and LISTENING states
                 microphoneInput.status =
-                    (microphoneInput.status === Status.INACTIVE || microphoneInput.status === Status.ACTIVATING) ? Status.LISTENING : Status.INACTIVE;
+                    microphoneInput.status === Status.INACTIVE || microphoneInput.status === Status.ACTIVATING
+                        ? Status.LISTENING
+                        : Status.INACTIVE;
 
                 // Update UI based on the new status
                 if (microphoneInput.status === Status.LISTENING) {
                     // Start listening
-                    microphoneButton.classList.add('listening');
+                    microphoneButton.classList.add("listening");
                     microphoneInput.startAnalyzing();
                 } else {
                     // Stop listening
-                    microphoneButton.classList.remove('listening');
+                    microphoneButton.classList.remove("listening");
                     microphoneInput.stopAnalyzing();
                 }
             } catch {
@@ -386,7 +390,7 @@ async function requestMicrophonePermission() {
         await navigator.mediaDevices.getUserMedia({ audio: true });
         return true;
     } catch {
-        window.toast?.error('Microphone permission denied');
+        window.toast?.error("Microphone permission denied");
         return false;
     }
 }
@@ -398,13 +402,16 @@ class Speech {
             this.utterance = null;
             return;
         }
-        
+
         this.synth = window.speechSynthesis;
         this.utterance = null;
     }
 
     stripEmojis(str) {
-        return str.replace(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, '');
+        return str.replace(
+            /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu,
+            ""
+        );
     }
 
     speak(text) {
@@ -414,10 +421,10 @@ class Speech {
 
         // Stop any current speech
         this.stop();
-        
+
         // Clean up the text
         text = this.replaceNonText(text);
-        
+
         if (!text.trim()) return;
 
         this.utterance = new window.SpeechSynthesisUtterance(text);
@@ -427,17 +434,18 @@ class Speech {
     }
 
     replaceURLs(text) {
-        const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])|(\b(www\.)[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])|(\b[-A-Z0-9+&@#/%?=~_|!:,.;]*\.(?:[A-Z]{2,})[-A-Z0-9+&@#/%=~_|])/ig;
+        const urlRegex =
+            /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])|(\b(www\.)[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])|(\b[-A-Z0-9+&@#/%?=~_|!:,.;]*\.(?:[A-Z]{2,})[-A-Z0-9+&@#/%=~_|])/gi;
         return text.replace(urlRegex, (url) => {
             let text = url;
             // if contains ://, split by it
-            if (text.includes('://')) text = text.split('://')[1];
-            // if contains /, split by it  
-            if (text.includes('/')) text = text.split('/')[0];
+            if (text.includes("://")) text = text.split("://")[1];
+            // if contains /, split by it
+            if (text.includes("/")) text = text.split("/")[0];
 
             // if contains ., split by it
-            if (text.includes('.')) {
-                const doms = text.split('.');
+            if (text.includes(".")) {
+                const doms = text.split(".");
                 //up to last two
                 return `${doms[doms.length - 2]}.${doms[doms.length - 1]}`;
             } else {
@@ -450,13 +458,13 @@ class Speech {
         // Remove emojis and clean up text
         text = this.stripEmojis(text);
         text = this.replaceURLs(text);
-        
+
         // Remove GUID patterns
         const guidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g;
-        text = text.replace(guidRegex, '');
-        
+        text = text.replace(guidRegex, "");
+
         // Clean up multiple spaces
-        return text.replace(/\s+/g, ' ').trim();
+        return text.replace(/\s+/g, " ").trim();
     }
 
     stop() {
@@ -471,7 +479,7 @@ class Speech {
 }
 
 export const speech = new Speech();
-window.speech = speech
+window.speech = speech;
 
 // Add event listener for settings changes
-document.addEventListener('settings-updated', loadMicSettings);
+document.addEventListener("settings-updated", loadMicSettings);
