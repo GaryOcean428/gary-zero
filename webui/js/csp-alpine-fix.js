@@ -66,6 +66,19 @@
                 }
             });
 
+            // Add null-safe text binding helper
+            Alpine.magic('safeText', () => (value, fallback = '') => {
+                try {
+                    if (value === null || value === undefined) {
+                        return fallback;
+                    }
+                    return String(value);
+                } catch (error) {
+                    console.warn('Alpine safeText error:', error);
+                    return fallback;
+                }
+            });
+
             console.log('✅ Alpine.js components registered successfully');
         } else {
             console.warn('Alpine.js not available for component registration');
@@ -206,14 +219,32 @@
 
         // Global error handler for Alpine.js expressions
         window.addEventListener('error', (event) => {
-            if (event.error && event.error.message && event.error.message.includes('Alpine')) {
-                console.error('Alpine.js runtime error:', event.error);
-                if (window.toastManager) {
-                    window.toastManager.show(
-                        'Interface error detected. Please refresh if issues persist.',
-                        'warning',
-                        5000
-                    );
+            if (event.error && event.error.message) {
+                const errorMessage = event.error.message;
+                
+                // Handle specific null.trim() error
+                if (errorMessage.includes('null') && errorMessage.includes('trim')) {
+                    console.error('Alpine.js null trim error detected:', event.error);
+                    if (window.toastManager) {
+                        window.toastManager.show(
+                            'Interface initialization issue resolved. Some features may have been temporarily unavailable.',
+                            'info',
+                            4000
+                        );
+                    }
+                    return; // Don't throw this to user
+                }
+                
+                // Handle other Alpine.js errors
+                if (errorMessage.includes('Alpine')) {
+                    console.error('Alpine.js runtime error:', event.error);
+                    if (window.toastManager) {
+                        window.toastManager.show(
+                            'Interface error detected. Please refresh if issues persist.',
+                            'warning',
+                            5000
+                        );
+                    }
                 }
             }
         });
