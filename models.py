@@ -620,6 +620,30 @@ def get_xai_chat(
     )
 
 
+def get_xai_embedding(
+    model_name: str, api_key: str | None = None, base_url: str | None = None, **kwargs
+) -> OpenAIEmbeddings:
+    """Get an xAI embedding model."""
+    final_api_key_for_constructor: SecretStr | None = None
+    if isinstance(api_key, str):
+        final_api_key_for_constructor = SecretStr(api_key)
+    elif api_key is None:
+        v1_secret_key = get_api_key("xai")
+        if v1_secret_key:
+            final_api_key_for_constructor = SecretStr(v1_secret_key)
+    elif hasattr(api_key, "get_secret_value") and callable(api_key.get_secret_value):
+        final_api_key_for_constructor = SecretStr(api_key.get_secret_value())  # type: ignore
+
+    if not base_url:
+        base_url = dotenv.get_dotenv_value("XAI_BASE_URL") or "https://api.x.ai/v1"
+    return OpenAIEmbeddings(
+        model=model_name,
+        api_key=final_api_key_for_constructor,
+        base_url=base_url,
+        **kwargs,
+    )
+
+
 # Perplexity models
 def get_perplexity_chat(
     model_name: str, api_key: str | None = None, base_url: str | None = None, **kwargs
@@ -645,6 +669,30 @@ def get_perplexity_chat(
     )
 
 
+def get_perplexity_embedding(
+    model_name: str, api_key: str | None = None, base_url: str | None = None, **kwargs
+) -> OpenAIEmbeddings:
+    """Get a Perplexity embedding model."""
+    final_api_key_for_constructor: SecretStr | None = None
+    if isinstance(api_key, str):
+        final_api_key_for_constructor = SecretStr(api_key)
+    elif api_key is None:
+        v1_secret_key = get_api_key("perplexity")
+        if v1_secret_key:
+            final_api_key_for_constructor = SecretStr(v1_secret_key)
+    elif hasattr(api_key, "get_secret_value") and callable(api_key.get_secret_value):
+        final_api_key_for_constructor = SecretStr(api_key.get_secret_value())  # type: ignore
+
+    if not base_url:
+        base_url = dotenv.get_dotenv_value("PERPLEXITY_BASE_URL") or "https://api.perplexity.ai"
+    return OpenAIEmbeddings(
+        model=model_name,
+        api_key=final_api_key_for_constructor,
+        base_url=base_url,
+        **kwargs,
+    )
+
+
 # Meta models (handled through existing providers like Groq, but we add for consistency)
 def get_meta_chat(
     model_name: str, api_key: str | None = None, base_url: str | None = None, **kwargs
@@ -665,6 +713,30 @@ def get_meta_chat(
     return ChatOpenAI(
         api_key=final_api_key_for_constructor,
         model=model_name,
+        base_url=base_url,
+        **kwargs,
+    )
+
+
+def get_meta_embedding(
+    model_name: str, api_key: str | None = None, base_url: str | None = None, **kwargs
+) -> OpenAIEmbeddings:
+    """Get a Meta embedding model."""
+    final_api_key_for_constructor: SecretStr | None = None
+    if isinstance(api_key, str):
+        final_api_key_for_constructor = SecretStr(api_key)
+    elif api_key is None:
+        v1_secret_key = get_api_key("meta")
+        if v1_secret_key:
+            final_api_key_for_constructor = SecretStr(v1_secret_key)
+    elif hasattr(api_key, "get_secret_value") and callable(api_key.get_secret_value):
+        final_api_key_for_constructor = SecretStr(api_key.get_secret_value())  # type: ignore
+
+    if not base_url:
+        base_url = dotenv.get_dotenv_value("META_BASE_URL") or "https://api.meta.ai/v1"
+    return OpenAIEmbeddings(
+        model=model_name,
+        api_key=final_api_key_for_constructor,
         base_url=base_url,
         **kwargs,
     )
