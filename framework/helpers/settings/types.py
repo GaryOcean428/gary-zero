@@ -111,36 +111,36 @@ class Settings(TypedDict):
 
 # Default settings values that can be used across modules
 DEFAULT_SETTINGS: Settings = {
-    # Chat model settings
-    "chat_model_provider": "groq",
-    "chat_model_name": "meta-llama/llama-4-maverick-17b-128e-instruct",
+    # Chat model settings - using Claude-3.5-Sonnet for high performance
+    "chat_model_provider": "ANTHROPIC",
+    "chat_model_name": "claude-3-5-sonnet-20241022",
     "chat_model_kwargs": {},
-    "chat_model_ctx_length": 131072,  # 128K tokens
+    "chat_model_ctx_length": 200000,  # 200K tokens as per spec
     "chat_model_ctx_history": 0.9,
     "chat_model_vision": True,
     "chat_model_rl_requests": 0,
     "chat_model_rl_input": 0,
     "chat_model_rl_output": 0,
-    # Utility model settings
-    "util_model_provider": "groq",
-    "util_model_name": "meta-llama/llama-4-maverick-17b-128e-instruct",
+    # Utility model settings - using GPT-4.1-mini for efficiency
+    "util_model_provider": "OPENAI",
+    "util_model_name": "gpt-4.1-mini",
     "util_model_kwargs": {},
-    "util_model_ctx_length": 131072,
+    "util_model_ctx_length": 1047576,  # 1M+ tokens as per spec
     "util_model_ctx_history": 0.9,
     "util_model_vision": False,
     "util_model_rl_requests": 0,
     "util_model_rl_input": 0,
     "util_model_rl_output": 0,
-    # Embedding model settings
-    "embed_model_provider": "groq",
+    # Embedding model settings - using OpenAI text-embedding-3-large
+    "embed_model_provider": "OPENAI",
     "embed_model_name": "text-embedding-3-large",
     "embed_model_kwargs": {},
     "embed_model_ctx_length": 8192,
     "embed_model_rl_requests": 0,
     "embed_model_rl_input": 0,
-    # Browser model settings
-    "browser_model_provider": "groq",
-    "browser_model_name": "meta-llama/llama-4-maverick-17b-128e-instruct",
+    # Browser model settings - using Claude-3.5-Sonnet for vision
+    "browser_model_provider": "ANTHROPIC",
+    "browser_model_name": "claude-3-5-sonnet-20241022",
     "browser_model_kwargs": {},
     "browser_model_vision": True,
     # MCP Servers settings

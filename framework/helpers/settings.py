@@ -480,9 +480,12 @@ def convert_out(settings: Settings) -> SettingsOutput:
     api_keys_fields.append(_get_api_key_field(settings, "google", "Google API Key"))
     api_keys_fields.append(_get_api_key_field(settings, "groq", "Groq API Key"))
     api_keys_fields.append(_get_api_key_field(settings, "huggingface", "HuggingFace API Key"))
+    api_keys_fields.append(_get_api_key_field(settings, "meta", "Meta API Key"))
     api_keys_fields.append(_get_api_key_field(settings, "mistralai", "MistralAI API Key"))
     api_keys_fields.append(_get_api_key_field(settings, "openrouter", "OpenRouter API Key"))
+    api_keys_fields.append(_get_api_key_field(settings, "perplexity", "Perplexity API Key"))
     api_keys_fields.append(_get_api_key_field(settings, "sambanova", "Sambanova API Key"))
+    api_keys_fields.append(_get_api_key_field(settings, "xai", "xAI API Key"))
 
     api_keys_section: SettingsSection = {
         "id": "api_keys",
@@ -952,13 +955,13 @@ def get_default_settings() -> Settings:
     # Add additional default settings that aren't in the base Settings type
     default_settings.update(
         {
-            "embed_model_provider": "openai",
-            "embed_model_name": "text-embedding-ada-002",
+            "embed_model_provider": "OPENAI",
+            "embed_model_name": "text-embedding-3-large",
             "embed_model_kwargs": {},
             "embed_model_rl_requests": 0,
             "embed_model_rl_input": 0,
-            "browser_model_provider": "openai",
-            "browser_model_name": "gpt-4.1-vision-preview",
+            "browser_model_provider": "ANTHROPIC",
+            "browser_model_name": "claude-3-5-sonnet-20241022",
             "browser_model_vision": True,
             "browser_model_kwargs": {"temperature": "0"},
             "agent_prompts_subdir": "prompts",
