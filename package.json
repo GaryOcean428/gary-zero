@@ -10,6 +10,7 @@
   },
   "scripts": {
     "start": "source .venv/bin/activate && python run_ui.py",
+    "postinstall": "node scripts/postinstall.js",
     "lint": "eslint 'webui/**/*.js' --report-unused-disable-directives",
     "lint:clean": "eslint 'webui/index.js' 'webui/components/**/*.js' 'webui/js/AlpineStore.js' 'webui/js/api.js' 'webui/js/components.js' 'webui/js/csp-alpine-fix.js' 'webui/js/enhanced-ux.js' 'webui/js/file_browser.js' 'webui/js/history.js' 'webui/js/image_modal.js' 'webui/js/initFw.js' 'webui/js/messages.js' 'webui/js/modal.js' 'webui/js/modals.js' 'webui/js/scheduler.js' 'webui/js/settings.js' 'webui/js/sleep.js' 'webui/js/speech.js' 'webui/js/speech_browser.js' 'webui/js/time-utils.js' 'webui/js/timeout.js' 'webui/js/tunnel.js' --report-unused-disable-directives",
     "lint:fix": "eslint 'webui/**/*.js' --fix",
@@ -55,6 +56,9 @@
     "url": "https://github.com/GaryOcean428/gary-zero/issues"
   },
   "homepage": "https://github.com/GaryOcean428/gary-zero#readme",
+  "dependencies": {
+    "@vscode/test-web": "^0.0.62"
+  },
   "devDependencies": {
     "@biomejs/biome": "^2.0.5",
     "@eslint/js": "^9.29.0",

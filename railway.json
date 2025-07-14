@@ -5,5 +5,10 @@
   "deploy": {
     "startCommand": "python run_ui.py --port $PORT --host 0.0.0.0 --dockerized",
     "healthcheckPath": "/health"
+  },
+  "env": {
+    "RAILPACK_PRUNE_DEPS": "false",
+    "WEB_UI_HOST": "0.0.0.0",
+    "PYTHONUNBUFFERED": "1"
   }
 }

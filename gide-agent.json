@@ -1,0 +1,16 @@
+{
+  "name": "gide-coding-agent",
+  "version": "1.0.0",
+  "description": "AI coding agent extension for gary-zero",
+  "main": "./webui/index.js",
+  "capabilities": {
+    "codeCompletion": true,
+    "codeGeneration": true,
+    "codeAnalysis": true,
+    "chatInterface": true
+  },
+  "vscode": {
+    "webExtension": true,
+    "engines": "^1.74.0"
+  }
+}
