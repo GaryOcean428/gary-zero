@@ -91,8 +91,8 @@ class DeferredTask:
             raise RuntimeError("Task hasn't been started")
         try:
             return self._future.result(timeout)
-        except TimeoutError:
-            raise TimeoutError("The task did not complete within the specified timeout.")
+        except TimeoutError as e:
+            raise TimeoutError("The task did not complete within the specified timeout.") from e
 
     async def result(self, timeout: Optional[float] = None) -> Any:
         if not self._future:
@@ -105,8 +105,8 @@ class DeferredTask:
                 result = self._future.result(timeout)  # type: ignore
                 # self.kill()
                 return result
-            except TimeoutError:
-                raise TimeoutError("The task did not complete within the specified timeout.")
+            except TimeoutError as e:
+                raise TimeoutError("The task did not complete within the specified timeout.") from e
 
         return await loop.run_in_executor(None, _get_result)
 

@@ -1,6 +1,42 @@
-/* Tasks section */
+/* Tasks section - Ensure it's visible when selected */
 #tasks-section {
     display: none;
+}
+
+#tasks-section.active {
+    display: block;
+}
+
+/* Chats section - Default visible */
+#chats-section {
+    display: block;
+}
+
+#chats-section.active {
+    display: block;
+}
+
+/* Tab switching styles */
+.tabs {
+    display: flex;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 1rem;
+}
+
+.tab {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.tab:hover {
+    background-color: var(--color-secondary);
+}
+
+.tab.active {
+    border-bottom-color: var(--color-primary);
+    font-weight: bold;
 }
 
 .copy-link-button, .refresh-link-button {

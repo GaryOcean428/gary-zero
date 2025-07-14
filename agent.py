@@ -352,7 +352,7 @@ class Agent:
                             type="agent", heading=f"{self.agent_name}: Generating"
                         )
 
-                        async def stream_callback(chunk: str, full: str):
+                        async def stream_callback(chunk: str, full: str, printer=printer, log=log):
                             # output the agent response stream
                             if chunk:
                                 printer.stream(chunk)

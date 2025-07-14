@@ -812,7 +812,7 @@ class MCPClientBase(ABC):
                     excs = getattr(e, "exceptions", None)  # Python 3.11+ ExceptionGroup
                     original_exception = excs[0] if excs else e
                     # Create a dummy exception to break out of the async block
-                    raise RuntimeError("Dummy exception to break out of async block")
+                    raise RuntimeError("Dummy exception to break out of async block") from e
         except Exception:
             # Check if this is our dummy exception
             if original_exception is not None:
@@ -821,7 +821,7 @@ class MCPClientBase(ABC):
             PrintStyle(background_color="#AA4455", font_color="white", padding=False).print(
                 f"MCPClientBase ({self.server.name} - {operation_name}): Error during operation: {type(e).__name__}: {e}"
             )
-            raise e  # Re-raise the original exception
+            raise e from None  # Re-raise the original exception
         # finally:
         #     PrintStyle(font_color="cyan").print(
         #         f"MCPClientBase ({self.server.name} - {operation_name}): Session and transport will be closed by AsyncExitStack."
@@ -921,7 +921,7 @@ class MCPClientBase(ABC):
             )
             raise ConnectionError(
                 f"MCPClientBase::Failed to call tool '{tool_name}' on server '{self.server.name}'. Original error: {type(e).__name__}: {e}"
-            )
+            ) from e
 
     def get_log(self):
         # read and return lines from self.log_file, do not close it

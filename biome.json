@@ -1,59 +1,59 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.0.5/schema.json",
-  "vcs": {
-    "enabled": true,
-    "clientKind": "git",
-    "useIgnoreFile": true
-  },
-  "files": {
-    "ignoreUnknown": false,
-    "maxSize": 5242880,
-    "includes": ["**/*.js", "**/*.json", "**/*.html"],
-    "experimentalScannerIgnores": [
-      "node_modules/**", 
-      "*.min.js", 
-      "webui/js/transformers@3.0.2.js",
-      "reports/**",
-      ".claude/**"
-    ]
-  },
-  "formatter": {
-    "enabled": true,
-    "useEditorconfig": true,
-    "formatWithErrors": false,
-    "indentStyle": "space",
-    "indentWidth": 4,
-    "lineEnding": "lf",
-    "lineWidth": 120,
-    "attributePosition": "auto"
-  },
-  "linter": {
-    "enabled": true,
-    "rules": {
-      "recommended": true,
-      "suspicious": {
-        "noDoubleEquals": "off",
-        "noImplicitAnyLet": "off"
-      },
-      "style": {
-        "useConst": "warn",
-        "useTemplate": "warn"
-      },
-      "correctness": {
-        "noUnusedVariables": "warn"
-      }
-    }
-  },
-  "javascript": {
+    "$schema": "https://biomejs.dev/schemas/2.0.5/schema.json",
+    "vcs": {
+        "enabled": true,
+        "clientKind": "git",
+        "useIgnoreFile": true
+    },
+    "files": {
+        "ignoreUnknown": false,
+        "maxSize": 5242880,
+        "includes": ["**/*.js", "**/*.json", "**/*.html"],
+        "experimentalScannerIgnores": [
+            "node_modules/**",
+            "*.min.js",
+            "webui/js/transformers@3.0.2.js",
+            "reports/**",
+            ".claude/**"
+        ]
+    },
     "formatter": {
-      "jsxQuoteStyle": "double",
-      "quoteProperties": "asNeeded",
-      "trailingCommas": "es5",
-      "semicolons": "always",
-      "arrowParentheses": "always",
-      "bracketSameLine": false,
-      "quoteStyle": "double",
-      "attributePosition": "auto"
+        "enabled": true,
+        "useEditorconfig": true,
+        "formatWithErrors": false,
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineEnding": "lf",
+        "lineWidth": 120,
+        "attributePosition": "auto"
+    },
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "recommended": true,
+            "suspicious": {
+                "noDoubleEquals": "off",
+                "noImplicitAnyLet": "off"
+            },
+            "style": {
+                "useConst": "warn",
+                "useTemplate": "warn"
+            },
+            "correctness": {
+                "noUnusedVariables": "warn"
+            }
+        }
+    },
+    "javascript": {
+        "formatter": {
+            "jsxQuoteStyle": "double",
+            "quoteProperties": "asNeeded",
+            "trailingCommas": "es5",
+            "semicolons": "always",
+            "arrowParentheses": "always",
+            "bracketSameLine": false,
+            "quoteStyle": "double",
+            "attributePosition": "auto"
+        }
     }
-  }
 }

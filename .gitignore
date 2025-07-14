@@ -37,6 +37,9 @@ memory/**
 # Handle logs directory
 logs/*
 
+# Handle reports directory
+reports/*
+
 # Handle tmp directory
 tmp/*
 

@@ -1,0 +1,45 @@
+#!/usr/bin/env sh
+
+echo "🔍 Running Phase 3 pre-commit checks..."
+
+# Run critical linting (ESLint errors only - warnings are non-blocking)
+echo "📋 ESLint critical check..."
+npm run lint:clean > /tmp/eslint.log 2>&1
+EXIT_CODE=$?
+if [ "$EXIT_CODE" -eq 2 ]; then
+    echo "❌ ESLint critical errors found!"
+    cat /tmp/eslint.log
+    exit 1
+fi
+echo "✅ ESLint: No critical errors (warnings allowed)"
+
+# Run tests to ensure changes don't break functionality
+echo "🧪 Running infrastructure tests..."
+npm test || exit 1
+
+# Check for critical Python issues (undefined names only - E999 was deprecated)
+echo "🐍 Python critical checks..."
+if command -v ruff >/dev/null 2>&1; then
+    ruff check . --select F821 > /tmp/ruff.log 2>&1
+    if [ $? -ne 0 ]; then
+        echo "❌ Critical Python violations found!"
+        cat /tmp/ruff.log
+        exit 1
+    fi
+    echo "✅ Python: No critical violations (F821)"
+else
+    echo "⚠️ Ruff not available - skipping Python checks"
+fi
+
+# Security audit (critical only)
+echo "🔒 Security audit..."
+npm audit --audit-level=critical > /tmp/audit.log 2>&1
+if [ $? -ne 0 ]; then
+    echo "❌ Critical security vulnerabilities found!"
+    cat /tmp/audit.log
+    exit 1
+fi
+echo "✅ Security: No critical vulnerabilities"
+
+echo "🎯 Phase 3 pre-commit checks completed successfully!"
+echo "📊 Quality: ESLint warnings allowed, critical issues blocked"

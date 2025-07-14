@@ -16,17 +16,23 @@
     "lint:fix:clean": "eslint 'webui/index.js' 'webui/components/**/*.js' 'webui/js/AlpineStore.js' 'webui/js/api.js' 'webui/js/components.js' 'webui/js/csp-alpine-fix.js' 'webui/js/enhanced-ux.js' 'webui/js/file_browser.js' 'webui/js/history.js' 'webui/js/image_modal.js' 'webui/js/initFw.js' 'webui/js/messages.js' 'webui/js/modal.js' 'webui/js/modals.js' 'webui/js/scheduler.js' 'webui/js/settings.js' 'webui/js/sleep.js' 'webui/js/speech.js' 'webui/js/speech_browser.js' 'webui/js/time-utils.js' 'webui/js/timeout.js' 'webui/js/tunnel.js' --fix",
     "biome:check": "biome check .",
     "biome:fix": "biome check --write .",
-    "format": "biome format --write .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "accessibility": "pa11y-ci --sitemap http://localhost:8080/sitemap.xml || pa11y http://localhost:8080",
     "accessibility:webui": "pa11y 'webui/**/*.html'",
     "security": "npm audit",
     "security:report": "audit-ci --output-format=json --output-path=security-report.json || true && npm audit --json > security-audit.json || true",
     "lighthouse": "lighthouse http://localhost:8080 --output-path=./lighthouse-report.html --output=html --view",
     "lighthouse:ci": "lighthouse http://localhost:8080 --output-path=./lighthouse-report.json --output=json",
-    "check:all": "npm run lint:clean && npm run biome:check && npm run security && npm run accessibility:webui",
+    "check:all": "npm run lint:clean && npm run format:check && npm run tsc:check && npm run security && npm run accessibility:webui",
     "report:all": "npm run lint:clean > lint-report.txt 2>&1; npm run security:report; npm run accessibility:webui > accessibility-report.txt 2>&1; echo 'All reports generated!'",
-    "fix:all": "npm run lint:fix:clean && npm run biome:fix && npm audit fix",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "fix:all": "npm run lint:fix:clean && npm run format && npm audit fix",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "tsc:check": "tsc --noEmit",
+    "tsc:strict": "tsc --noEmit --strict",
+    "prepare": "husky install || true"
   },
   "repository": {
     "type": "git",
@@ -41,6 +47,10 @@
   ],
   "author": "",
   "license": "ISC",
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  },
   "bugs": {
     "url": "https://github.com/GaryOcean428/gary-zero/issues"
   },
@@ -48,12 +58,21 @@
   "devDependencies": {
     "@biomejs/biome": "^2.0.5",
     "@eslint/js": "^9.29.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@types/node": "^22.10.5",
+    "@vitest/ui": "^3.2.4",
     "audit-ci": "^7.1.0",
     "axe-core": "^4.10.3",
     "eslint": "^9.29.0",
     "eslint-plugin-compat": "^6.0.2",
     "eslint-plugin-jsx-a11y": "^6.10.2",
+    "husky": "^9.1.7",
+    "jsdom": "^26.0.0",
     "lighthouse": "^12.6.1",
-    "pa11y": "^9.0.0"
+    "lint-staged": "^15.2.10",
+    "pa11y": "^9.0.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3",
+    "vitest": "^3.2.4"
   }
 }

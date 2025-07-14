@@ -5,6 +5,7 @@ from __future__ import annotations
 # Standard library imports
 import argparse
 import asyncio
+import os
 from collections.abc import Awaitable
 from dataclasses import dataclass, field
 from typing import Any, Callable, TypeVar, overload
