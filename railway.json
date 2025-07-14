@@ -1,0 +1,9 @@
+{
+  "build": {
+    "builder": "nixpacks"
+  },
+  "deploy": {
+    "startCommand": "python run_ui.py --port $PORT --host 0.0.0.0 --dockerized",
+    "healthcheckPath": "/health"
+  }
+}

@@ -20,6 +20,32 @@ T = TypeVar("T")
 R = TypeVar("R")
 
 
+def _parse_port_arg(value: str) -> int | None:
+    """Parse port argument, handling Railway's literal '$PORT' string case.
+    
+    Args:
+        value: The port argument value (could be number or '$PORT' string)
+        
+    Returns:
+        Parsed integer port or None if parsing fails
+    """
+    # Handle Railway's literal '$PORT' string case
+    if value == "$PORT":
+        port_from_env = dotenv.get_dotenv_value("PORT")
+        if port_from_env:
+            try:
+                return int(port_from_env)
+            except ValueError:
+                pass
+        return None
+    
+    # Handle normal integer case
+    try:
+        return int(value)
+    except ValueError:
+        return None
+
+
 @dataclass
 class RuntimeState:
     """Singleton class to manage runtime state and command line arguments."""
@@ -37,7 +63,7 @@ class RuntimeState:
 
     def _initialize_parser(self) -> None:
         """Initialize the argument parser with all supported arguments."""
-        self._parser.add_argument("--port", type=int, default=None, help="Web UI port")
+        self._parser.add_argument("--port", type=_parse_port_arg, default=None, help="Web UI port")
         self._parser.add_argument("--host", type=str, default=None, help="Web UI host")
         self._parser.add_argument(
             "--cloudflare_tunnel",
@@ -225,8 +251,8 @@ def get_web_ui_port() -> int:
     """Get the web UI port from args or environment."""
     port = (
         get_arg("port")
-        or int(dotenv.get_dotenv_value("WEB_UI_PORT", 0))
         or int(dotenv.get_dotenv_value("PORT", 0))
+        or int(dotenv.get_dotenv_value("WEB_UI_PORT", 0))
         or 5000
     )
     return int(port)
