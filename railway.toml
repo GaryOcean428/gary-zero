@@ -3,7 +3,7 @@ builder = "NIXPACKS"
 buildCommand = "pip install -r requirements.txt"
 
 [deploy]
-startCommand = "python run_ui.py --port $PORT"
+startCommand = "gunicorn app:app --bind 0.0.0.0:$PORT"
 healthcheckPath = "/"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
@@ -17,6 +17,6 @@ repo = "GaryOcean428/gary-zero"
 branch = "main"
 
 [services.variables]
-NODE_ENV = "production"
 WEB_UI_HOST = "0.0.0.0"
 PYTHONUNBUFFERED = "1"
+FLASK_ENV = "production"
