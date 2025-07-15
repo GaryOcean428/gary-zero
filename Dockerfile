@@ -13,7 +13,11 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_DEFAULT_TIMEOUT=100 \
-    PYTHONPATH=/app
+    PYTHONPATH=/app \
+    UV_CACHE_DIR=/root/.cache/uv \
+    PIP_CACHE_DIR=/root/.cache/pip \
+    UV_COMPILE_BYTECODE=1 \
+    UV_NO_SYNC=1
 
 # Install system dependencies in one layer to reduce image size
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -27,9 +31,18 @@ WORKDIR /app
 
 # Copy dependency files first to leverage Docker cache
 COPY requirements.txt ./
+COPY uv.lock* ./
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install UV and Python dependencies with cache optimization
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir uv && \
+    if [ -f uv.lock ]; then \
+        uv sync --locked --no-dev; \
+    else \
+        echo "Warning: uv.lock not found, falling back to requirements.txt" && \
+        pip install --no-cache-dir -r requirements.txt; \
+    fi
 
 # ========== Runtime Stage ==========
 FROM python:3.11-slim
