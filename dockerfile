@@ -4,15 +4,6 @@ ARG VCS_REF
 ARG VERSION=dev
 ARG DOCKER_TAG=latest
 
-# Railway environment variables (available during build)
-ARG RAILWAY_SERVICE_NAME
-ARG RAILWAY_ENVIRONMENT
-ARG RAILWAY_PROJECT_NAME
-ARG RAILWAY_DEPLOYMENT_ID
-
-# PORT configuration for Railway
-ARG PORT=8000
-
 # ========== Builder Stage ==========
 FROM python:3.11-alpine AS builder
 
@@ -57,7 +48,6 @@ ARG BUILD_DATE
 ARG VCS_REF
 ARG VERSION
 ARG DOCKER_TAG
-ARG PORT
 
 # Set metadata labels
 LABEL org.opencontainers.image.created="${BUILD_DATE}" \
@@ -75,7 +65,6 @@ LABEL org.opencontainers.image.created="${BUILD_DATE}" \
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app \
-    PORT=${PORT} \
     WEB_UI_PORT=50001 \
     WEB_UI_HOST=0.0.0.0 \
     USE_CLOUDFLARE=false \
@@ -119,10 +108,18 @@ RUN mkdir -p logs work_dir tmp memory tmp/scheduler && \
     echo '[]' > /app/tmp/scheduler/tasks.json && \
     if [ -f /app/docker-entrypoint.sh ]; then chmod +x /app/docker-entrypoint.sh; fi
 
-# Expose the configured port (Railway compatible)
-EXPOSE $PORT
+# Create non-root user for security
+RUN addgroup -g 1001 appgroup && \
+    adduser -D -u 1001 -G appgroup appuser && \
+    chown -R appuser:appgroup /app
+
+# Switch to non-root user
+USER appuser
+
+# Expose the web UI port
+EXPOSE 50001
 
 # Set the entrypoint and command
 # If docker-entrypoint.sh exists, use it; otherwise run directly
 ENTRYPOINT ["/bin/sh", "-c", "if [ -f /app/docker-entrypoint.sh ]; then exec /app/docker-entrypoint.sh \"$@\"; else exec \"$@\"; fi", "--"]
-CMD ["sh", "-c", "python run_ui.py --port ${PORT:-8000} --host 0.0.0.0"]
+CMD ["python", "run_ui.py", "--port", "50001"]
