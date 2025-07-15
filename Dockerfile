@@ -5,7 +5,7 @@ ARG VERSION=dev
 ARG DOCKER_TAG=latest
 
 # ========== Builder Stage ==========
-FROM python:3.11-slim AS builder
+FROM python:3.11-alpine AS builder
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
@@ -15,12 +15,21 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_DEFAULT_TIMEOUT=100 \
     PYTHONPATH=/app
 
-# Install system dependencies in one layer to reduce image size
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
+# Install build dependencies for Alpine
+RUN apk add --no-cache \
+    gcc \
+    musl-dev \
+    libffi-dev \
+    openssl-dev \
     curl \
     git \
-    && rm -rf /var/lib/apt/lists/*
+    linux-headers \
+    # Additional common dependencies for Python packages
+    zlib-dev \
+    jpeg-dev \
+    libxml2-dev \
+    libxslt-dev \
+    postgresql-dev
 
 # Set working directory
 WORKDIR /app
@@ -32,7 +41,7 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 # ========== Runtime Stage ==========
-FROM python:3.11-slim
+FROM python:3.11-alpine
 
 # Re-declare build arguments to use in this stage
 ARG BUILD_DATE
@@ -67,10 +76,17 @@ ENV PYTHONUNBUFFERED=1 \
     SAMBANOVA_BASE_URL=https://fast-api.snova.ai/v1
 
 # Install runtime dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apk add --no-cache \
     curl \
     git \
-    && rm -rf /var/lib/apt/lists/*
+    libffi \
+    openssl \
+    # Runtime libraries for compiled Python packages
+    zlib \
+    libjpeg \
+    libxml2 \
+    libxslt \
+    libpq
 
 # Set working directory
 WORKDIR /app
@@ -91,6 +107,14 @@ RUN if [ ! -f /app/.env ] && [ -f /app/example.env ]; then \
 RUN mkdir -p logs work_dir tmp memory tmp/scheduler && \
     echo '[]' > /app/tmp/scheduler/tasks.json && \
     if [ -f /app/docker-entrypoint.sh ]; then chmod +x /app/docker-entrypoint.sh; fi
+
+# Create non-root user for security
+RUN addgroup -g 1001 appgroup && \
+    adduser -D -u 1001 -G appgroup appuser && \
+    chown -R appuser:appgroup /app
+
+# Switch to non-root user
+USER appuser
 
 # Expose the web UI port
 EXPOSE 50001
