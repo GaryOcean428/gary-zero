@@ -1,13 +1,16 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "python env_validator.py && pip install -r requirements.txt"
+timeout = 1800  # 30 minutes
+retries = 3
+buildCommand = "python -m pip install --upgrade pip uv && uv sync --locked"
 
 [deploy]
 startCommand = "python run_ui.py --port $PORT --host 0.0.0.0 --dockerized"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 10
+restartPolicyMaxRetries = 3
+replicas = 1
 
 [[services]]
 name = "gary-zero"
