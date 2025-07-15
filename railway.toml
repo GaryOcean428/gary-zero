@@ -1,6 +1,6 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "pip install -r requirements.txt"
+buildCommand = "python env_validator.py && pip install -r requirements.txt"
 
 [deploy]
 startCommand = "python run_ui.py --port $PORT --host 0.0.0.0 --dockerized"
