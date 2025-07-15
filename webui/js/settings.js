@@ -4,6 +4,7 @@ const settingsModalProxy = {
     resolvePromise: null,
     activeTab: "agent", // Default tab
     provider: "serveo",
+    isLoading: false,
 
     // Computed property for filtered sections
     get filteredSections() {
