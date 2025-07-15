@@ -1,0 +1,22 @@
+[
+  {
+    "path": "./webui/js/transformers@3.0.2.js",
+    "maxSize": "150 kB",
+    "compression": "gzip"
+  },
+  {
+    "path": "./webui/js/alpine.min.js", 
+    "maxSize": "50 kB",
+    "compression": "gzip"
+  },
+  {
+    "path": "./webui/index.js",
+    "maxSize": "30 kB",
+    "compression": "gzip"
+  },
+  {
+    "path": "./webui/js/scheduler.js",
+    "maxSize": "25 kB",
+    "compression": "gzip"
+  }
+]
