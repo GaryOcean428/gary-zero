@@ -51,10 +51,8 @@ WORKDIR /app
 COPY requirements.txt ./
 COPY uv.lock* ./
 
-# Install UV and Python dependencies with cache optimization
-RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=cache,target=/root/.cache/pip \
-    pip install --no-cache-dir uv && \
+# Install UV and Python dependencies
+RUN pip install --no-cache-dir uv && \
     if [ -f uv.lock ]; then \
         uv sync --locked --no-dev; \
     else \
