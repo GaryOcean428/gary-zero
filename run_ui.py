@@ -22,9 +22,13 @@ os.environ["TZ"] = "UTC"
 # Apply the timezone change
 time.tzset()
 
+# Track application startup time
+_startup_time = time.time()
+
 # initialize the internal Flask server
 webapp = Flask("app", static_folder=get_abs_path("./webui"), static_url_path="/")
 webapp.config["JSON_SORT_KEYS"] = False  # Disable key sorting in jsonify
+webapp._startup_time = _startup_time  # Store startup time on app instance
 
 lock = threading.Lock()
 
@@ -218,7 +222,36 @@ def serve_terms():
 @webapp.route("/health", methods=["GET"])
 def health_check():
     """Health check endpoint for monitoring."""
-    return {"status": "healthy", "timestamp": time.time(), "version": "1.0.0"}
+    import psutil
+    try:
+        # Get basic system metrics
+        memory_percent = psutil.virtual_memory().percent
+        startup_time = getattr(webapp, '_startup_time', None)
+        uptime = time.time() - startup_time if startup_time else 0
+        
+        return {
+            "status": "healthy", 
+            "timestamp": time.time(), 
+            "version": "1.0.0",
+            "memory_percent": memory_percent,
+            "uptime_seconds": uptime,
+            "server": "gunicorn" if "gunicorn" in os.environ.get("SERVER_SOFTWARE", "") else "development"
+        }
+    except Exception as e:
+        # Fallback to basic health check if psutil fails
+        return {
+            "status": "healthy", 
+            "timestamp": time.time(), 
+            "version": "1.0.0",
+            "error": str(e)
+        }
+
+
+# readiness check endpoint for Railway
+@webapp.route("/ready", methods=["GET"])
+def readiness_check():
+    """Readiness check endpoint for Railway deployment verification."""
+    return {"status": "ready", "service": "gary-zero", "timestamp": time.time()}
 
 
 # handle favicon requests
