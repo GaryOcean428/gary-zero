@@ -29,7 +29,7 @@ python-dotenv==1.1.0
 pytz==2024.2
 sentence-transformers==3.0.1
 tiktoken==0.8.0
-unstructured==0.15.13
+unstructured>=0.16.19,<0.18.0
 unstructured-client==0.25.9
 webcolors==24.6.0
 nest-asyncio==1.6.0
