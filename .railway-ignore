@@ -1,0 +1,26 @@
+# Railway ignore file - exclude Docker files to ensure Nixpacks is used
+Dockerfile*
+docker-compose*
+.docker/
+docker/
+
+# Development files
+.git/
+.github/
+docs/
+*.md
+!README.md
+
+# Build artifacts
+node_modules/
+*.log
+.cache/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
