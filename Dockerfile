@@ -22,11 +22,7 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_DEFAULT_TIMEOUT=100 \
-    PYTHONPATH=/app \
-    UV_CACHE_DIR=/root/.cache/uv \
-    PIP_CACHE_DIR=/root/.cache/pip \
-    UV_COMPILE_BYTECODE=1 \
-    UV_NO_SYNC=1
+    PYTHONPATH=/app
 
 # Install build dependencies for Alpine
 RUN apk add --no-cache \
@@ -49,18 +45,10 @@ WORKDIR /app
 
 # Copy dependency files first to leverage Docker cache
 COPY requirements.txt ./
-COPY uv.lock* ./
 
-# Install UV and Python dependencies with Railway-compatible cache optimization
-RUN --mount=type=cache,id=s/eef92461-60f6-4937-a828-fd5cfd6440d7-uv,target=/root/.cache/uv \
-    --mount=type=cache,id=s/eef92461-60f6-4937-a828-fd5cfd6440d7-pip,target=/root/.cache/pip \
-    pip install --no-cache-dir uv && \
-    if [ -f uv.lock ]; then \
-        uv sync --locked --no-dev; \
-    else \
-        echo "Warning: uv.lock not found, falling back to requirements.txt" && \
-        pip install --no-cache-dir -r requirements.txt; \
-    fi
+# Install Python dependencies with Railway-compatible cache optimization
+RUN --mount=type=cache,id=s/eef92461-60f6-4937-a828-fd5cfd6440d7-pip,target=/root/.cache/pip \
+    pip install --no-cache-dir -r requirements.txt
 
 # ========== Runtime Stage ==========
 FROM python:3.11-alpine
