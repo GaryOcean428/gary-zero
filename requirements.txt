@@ -717,7 +717,7 @@ typing-inspect==0.9.0
     #   unstructured-client
 typing-inspection==0.4.1
     # via pydantic-settings
-unstructured==0.15.13
+unstructured>=0.16.19,<0.18.0
     # via -r requirements.in
 unstructured-client==0.25.9
     # via
