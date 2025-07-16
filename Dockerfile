@@ -14,7 +14,7 @@ ARG RAILWAY_DEPLOYMENT_ID
 ARG PORT=8000
 
 # ========== Builder Stage ==========
-FROM python:3.11-alpine AS builder
+FROM python:3.11-slim AS builder
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
@@ -22,23 +22,25 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_DEFAULT_TIMEOUT=100 \
-    PYTHONPATH=/app
+    PYTHONPATH=/app \
+    DEBIAN_FRONTEND=noninteractive
 
-# Install build dependencies for Alpine
-RUN apk add --no-cache \
+# Install build dependencies for Ubuntu/Debian
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
-    musl-dev \
+    g++ \
+    build-essential \
     libffi-dev \
-    openssl-dev \
+    libssl-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    zlib1g-dev \
+    libjpeg-dev \
+    libpq-dev \
+    pkg-config \
     curl \
     git \
-    linux-headers \
-    # Additional common dependencies for Python packages
-    zlib-dev \
-    jpeg-dev \
-    libxml2-dev \
-    libxslt-dev \
-    postgresql-dev
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
@@ -51,7 +53,7 @@ RUN --mount=type=cache,id=s/eef92461-60f6-4937-a828-fd5cfd6440d7-pip,target=/roo
     pip install --no-cache-dir -r requirements.txt
 
 # ========== Runtime Stage ==========
-FROM python:3.11-alpine
+FROM python:3.11-slim
 
 # Re-declare build arguments to use in this stage
 ARG BUILD_DATE
@@ -85,20 +87,21 @@ ENV PYTHONUNBUFFERED=1 \
     OLLAMA_BASE_URL=http://127.0.0.1:11434 \
     LM_STUDIO_BASE_URL=http://127.0.0.1:1234/v1 \
     OPEN_ROUTER_BASE_URL=https://openrouter.ai/api/v1 \
-    SAMBANOVA_BASE_URL=https://fast-api.snova.ai/v1
+    SAMBANOVA_BASE_URL=https://fast-api.snova.ai/v1 \
+    DEBIAN_FRONTEND=noninteractive
 
 # Install runtime dependencies
-RUN apk add --no-cache \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
-    libffi \
-    openssl \
-    # Runtime libraries for compiled Python packages
-    zlib \
-    libjpeg \
+    libffi8 \
+    libssl3 \
     libxml2 \
-    libxslt \
-    libpq
+    libxslt1.1 \
+    zlib1g \
+    libjpeg62-turbo \
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
