@@ -129,4 +129,4 @@ EXPOSE $PORT
 # Set the entrypoint and command
 # If docker-entrypoint.sh exists, use it; otherwise run directly
 ENTRYPOINT ["/bin/sh", "-c", "if [ -f /app/docker-entrypoint.sh ]; then exec /app/docker-entrypoint.sh \"$@\"; else exec \"$@\"; fi", "--"]
-CMD ["gunicorn", "--bind", "0.0.0.0:${PORT:-8000}", "--workers", "1", "--timeout", "120", "--preload", "wsgi:application"]
+CMD gunicorn --bind 0.0.0.0:${PORT:-8000} --workers 1 --timeout 120 --preload wsgi:application
