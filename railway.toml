@@ -5,7 +5,7 @@ retries = 3
 buildCommand = "python -m pip install --upgrade pip uv && uv sync --locked"
 
 [deploy]
-startCommand = "python run_ui.py --port $PORT --host 0.0.0.0 --dockerized"
+startCommand = "gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --preload wsgi:application"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
