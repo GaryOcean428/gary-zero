@@ -28,6 +28,10 @@ ENV PYTHONUNBUFFERED=1 \
     UV_COMPILE_BYTECODE=1 \
     UV_NO_SYNC=1
 
+# Install system dependencies in one layer to reduce image size
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+
 # Install build dependencies for Alpine
 RUN apk add --no-cache \
     gcc \
@@ -51,8 +55,10 @@ WORKDIR /app
 COPY requirements.txt ./
 COPY uv.lock* ./
 
-# Install UV and Python dependencies
-RUN pip install --no-cache-dir uv && \
+# Install UV and Python dependencies with cache optimization
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir uv && \
     if [ -f uv.lock ]; then \
         uv sync --locked --no-dev; \
     else \
