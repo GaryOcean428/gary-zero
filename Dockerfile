@@ -126,7 +126,5 @@ RUN mkdir -p logs work_dir tmp memory tmp/scheduler && \
 # Expose the configured port (Railway compatible)
 EXPOSE $PORT
 
-# Set the entrypoint and command
-# If docker-entrypoint.sh exists, use it; otherwise run directly
-ENTRYPOINT ["/bin/sh", "-c", "if [ -f /app/docker-entrypoint.sh ]; then exec /app/docker-entrypoint.sh \"$@\"; else exec \"$@\"; fi", "--"]
-CMD gunicorn --bind 0.0.0.0:${PORT:-8000} --workers 1 --timeout 120 --preload wsgi:application
+# Use shell form CMD for proper environment variable expansion
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-8000} --workers 1 --timeout 120 --preload wsgi:application"]
