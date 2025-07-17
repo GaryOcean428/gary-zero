@@ -1,15 +1,13 @@
 [build]
-builder = "NIXPACKS"
+builder = "DOCKERFILE"
 timeout = 1800  # 30 minutes
 retries = 3
-buildCommand = "python -m pip install --upgrade pip uv && uv sync --locked"
 
 [deploy]
-startCommand = "gunicorn --bind 0.0.0.0:${PORT:-8000} --workers 1 --timeout 120 --preload wsgi:application"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 3
+restartPolicyMaxRetries = 2
 replicas = 1
 
 [[services]]

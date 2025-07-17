@@ -118,13 +118,13 @@ RUN if [ ! -f /app/.env ] && [ -f /app/example.env ]; then \
         cp /app/example.env /app/.env; \
     fi
 
-# Create necessary directories and handle entrypoint script
+# Create necessary directories and set up entrypoint script
 RUN mkdir -p logs work_dir tmp memory tmp/scheduler && \
     echo '[]' > /app/tmp/scheduler/tasks.json && \
-    if [ -f /app/docker-entrypoint.sh ]; then chmod +x /app/docker-entrypoint.sh; fi
+    chmod +x /app/docker-entrypoint.sh
 
 # Expose the configured port (Railway compatible)
 EXPOSE $PORT
 
-# Use shell form CMD for proper environment variable expansion
-CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-8000} --workers 1 --timeout 120 --preload wsgi:application"]
+# Use entrypoint script for robust PORT handling
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

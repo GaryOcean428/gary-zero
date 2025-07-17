@@ -10,35 +10,61 @@ import tempfile
 from pathlib import Path
 
 def test_dockerfile_port_expansion():
-    """Test that Dockerfile CMD properly expands PORT variable."""
+    """Test that Dockerfile uses entrypoint approach for robust PORT handling."""
     dockerfile_path = Path(__file__).parent / "Dockerfile"
     
     with open(dockerfile_path, 'r') as f:
         dockerfile_content = f.read()
     
-    # Check that CMD uses proper shell form for variable expansion
-    assert 'CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-8000}' in dockerfile_content, \
-        "Dockerfile CMD should use shell form with PORT fallback"
+    # Check that ENTRYPOINT uses entrypoint script
+    assert 'ENTRYPOINT ["/app/docker-entrypoint.sh"]' in dockerfile_content, \
+        "Dockerfile should use ENTRYPOINT with entrypoint script for robust PORT handling"
     
-    # Ensure no complex ENTRYPOINT interferes
-    assert 'ENTRYPOINT ["/bin/sh", "-c", "if [ -f /app/docker-entrypoint.sh ]' not in dockerfile_content, \
-        "Complex ENTRYPOINT should be removed to avoid shell expansion issues"
+    # Ensure no shell expansion in CMD that could fail
+    assert 'CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-8000}' not in dockerfile_content, \
+        "Complex shell expansion in CMD should be replaced with entrypoint approach"
     
-    print("✅ Dockerfile CMD properly configured for PORT expansion")
+    print("✅ Dockerfile properly configured with entrypoint approach")
+    return True
+
+def test_entrypoint_script_port_handling():
+    """Test that docker-entrypoint.sh properly handles PORT environment variable."""
+    entrypoint_path = Path(__file__).parent / "docker-entrypoint.sh"
+    
+    with open(entrypoint_path, 'r') as f:
+        entrypoint_content = f.read()
+    
+    # Check that entrypoint exports PORT with fallback
+    assert 'export PORT=${PORT:-8000}' in entrypoint_content, \
+        "Entrypoint script should export PORT with 8000 fallback"
+    
+    # Check that gunicorn command uses the exported PORT
+    assert 'exec gunicorn --bind 0.0.0.0:$PORT' in entrypoint_content, \
+        "Entrypoint script should use exported PORT variable in gunicorn command"
+    
+    # Check that script uses wsgi:application
+    assert 'wsgi:application' in entrypoint_content, \
+        "Entrypoint script should use wsgi:application module"
+    
+    print("✅ Entrypoint script properly configured for PORT handling")
     return True
 
 def test_railway_config():
-    """Test that railway.toml has proper PORT fallback."""
+    """Test that railway.toml is configured for Docker deployment."""
     railway_path = Path(__file__).parent / "railway.toml"
     
     with open(railway_path, 'r') as f:
         railway_content = f.read()
     
-    # Check that startCommand has PORT fallback
-    assert 'startCommand = "gunicorn --bind 0.0.0.0:${PORT:-8000}' in railway_content, \
-        "railway.toml startCommand should include PORT fallback"
+    # Check that builder is set to DOCKERFILE
+    assert 'builder = "DOCKERFILE"' in railway_content, \
+        "railway.toml should use DOCKERFILE builder for entrypoint script support"
     
-    print("✅ Railway configuration includes PORT fallback")
+    # Check that health check is configured
+    assert 'healthcheckPath = "/health"' in railway_content, \
+        "railway.toml should include health check configuration"
+    
+    print("✅ Railway configuration optimized for Docker deployment")
     return True
 
 def test_health_endpoint_structure():
@@ -130,6 +156,7 @@ def main():
     
     tests = [
         test_dockerfile_port_expansion,
+        test_entrypoint_script_port_handling,
         test_railway_config,
         test_wsgi_application_export,
         test_port_environment_expansion,
