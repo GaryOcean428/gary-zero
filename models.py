@@ -247,14 +247,26 @@ def get_openai_chat(
     model_name: str, api_key: str | None = None, base_url: str | None = None, **kwargs
 ) -> ChatOpenAI:
     """Get an OpenAI chat model."""
-    final_api_key_for_constructor: SecretStr | None = None
+    final_api_key_for_constructor: str | None = None
     if api_key:  # User provided a string for the function's api_key parameter
-        final_api_key_for_constructor = SecretStr(api_key)
+        # Handle case where api_key might already be a SecretStr
+        if isinstance(api_key, SecretStr):
+            final_api_key_for_constructor = api_key.get_secret_value()
+        elif hasattr(api_key, 'get_secret_value'):
+            final_api_key_for_constructor = api_key.get_secret_value()
+        else:
+            final_api_key_for_constructor = api_key
     else:
-        # get_api_key returns str | None
+        # get_api_key returns str | None, but might return SecretStr from Railway
         v1_secret_key = get_api_key("openai")
         if v1_secret_key:
-            final_api_key_for_constructor = SecretStr(v1_secret_key)
+            # Handle case where Railway provides SecretStr objects
+            if isinstance(v1_secret_key, SecretStr):
+                final_api_key_for_constructor = v1_secret_key.get_secret_value()
+            elif hasattr(v1_secret_key, 'get_secret_value'):
+                final_api_key_for_constructor = v1_secret_key.get_secret_value()
+            else:
+                final_api_key_for_constructor = str(v1_secret_key)
     return ChatOpenAI(
         api_key=final_api_key_for_constructor,
         model=model_name,
@@ -265,14 +277,26 @@ def get_openai_chat(
 
 def get_openai_embedding(model_name: str, api_key: str | None = None, **kwargs) -> OpenAIEmbeddings:
     """Get an OpenAI embedding model."""
-    final_api_key_for_constructor: SecretStr | None = None
+    final_api_key_for_constructor: str | None = None
     if api_key:  # User provided a string for the function's api_key parameter
-        final_api_key_for_constructor = SecretStr(api_key)
+        # Handle case where api_key might already be a SecretStr
+        if isinstance(api_key, SecretStr):
+            final_api_key_for_constructor = api_key.get_secret_value()
+        elif hasattr(api_key, 'get_secret_value'):
+            final_api_key_for_constructor = api_key.get_secret_value()
+        else:
+            final_api_key_for_constructor = api_key
     else:
-        # get_api_key returns str | None
+        # get_api_key returns str | None, but might return SecretStr from Railway
         v1_secret_key = get_api_key("openai")
         if v1_secret_key:
-            final_api_key_for_constructor = SecretStr(v1_secret_key)
+            # Handle case where Railway provides SecretStr objects
+            if isinstance(v1_secret_key, SecretStr):
+                final_api_key_for_constructor = v1_secret_key.get_secret_value()
+            elif hasattr(v1_secret_key, 'get_secret_value'):
+                final_api_key_for_constructor = v1_secret_key.get_secret_value()
+            else:
+                final_api_key_for_constructor = str(v1_secret_key)
     return OpenAIEmbeddings(model=model_name, api_key=final_api_key_for_constructor, **kwargs)
 
 
