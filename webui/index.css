@@ -931,7 +931,7 @@ pre {
   margin-right: var(--spacing-xs);
   overflow-y: auto;
   scroll-behavior: smooth;
-  resize: vertical; /* Allow manual resize */
+  resize: horizontal; /* Allow manual resize */
   align-content: start;
   background-clip: border-box;
   border: 6px solid transparent;

@@ -1039,7 +1039,14 @@
             if (chatInput && sendButton) {
                 // Enable/disable send button based on input
                 function updateSendButton() {
-                    const inputValue = window.DOMHelpers?.safeGetElementValue(chatInput) || '';
+                    // Try multiple ways to get the input value for better compatibility
+                    let inputValue = '';
+                    try {
+                        inputValue = window.DOMHelpers?.safeGetElementValue(chatInput) || chatInput.value || '';
+                    } catch (e) {
+                        inputValue = chatInput.value || '';
+                    }
+                    
                     if (typeof inputValue !== 'string') {
                         console.warn('Chat input value is not a string');
                         return;
@@ -1051,7 +1058,14 @@
 
                 // Character count display
                 function updateCharCount() {
-                    const inputValue = window.DOMHelpers?.safeGetElementValue(chatInput) || '';
+                    // Try multiple ways to get the input value for better compatibility
+                    let inputValue = '';
+                    try {
+                        inputValue = window.DOMHelpers?.safeGetElementValue(chatInput) || chatInput.value || '';
+                    } catch (e) {
+                        inputValue = chatInput.value || '';
+                    }
+                    
                     if (typeof inputValue !== 'string') {
                         console.warn('Chat input value is not a string for character count');
                         return;
