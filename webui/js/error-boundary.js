@@ -4,10 +4,16 @@
  */
 
 class ErrorBoundary {
-    constructor() {
+    constructor(options = {}) {
         this.setupGlobalErrorHandlers();
         this.errorLog = [];
         this.maxLogSize = 100;
+        this.isTestEnvironment = options.isTestEnvironment || false;
+        
+        // Only set up fetch handling if not disabled (for testing)
+        if (!options.disableFetchHandling) {
+            this.setupFetchErrorHandling();
+        }
     }
 
     /**
@@ -45,18 +51,20 @@ class ErrorBoundary {
                 this.showUserError('A critical error occurred. Please refresh the page.');
             }
         });
-
-        // Handle fetch API errors
-        this.setupFetchErrorHandling();
     }
 
     /**
      * Set up fetch API error handling with retry logic
      */
     setupFetchErrorHandling() {
+        // Check if fetch exists and hasn't already been wrapped
+        if (!window.fetch || window.fetch._errorBoundaryWrapped) {
+            return;
+        }
+        
         const originalFetch = window.fetch;
         
-        window.fetch = async (...args) => {
+        const wrappedFetch = async (...args) => {
             try {
                 const response = await originalFetch(...args);
                 
@@ -73,6 +81,9 @@ class ErrorBoundary {
                     if (this.isRetryableError(response.status)) {
                         return this.retryFetch(originalFetch, ...args);
                     }
+                    
+                    // For non-retryable errors, throw the error
+                    throw error;
                 }
                 
                 return response;
@@ -88,6 +99,10 @@ class ErrorBoundary {
                 throw error;
             }
         };
+        
+        // Mark the wrapped fetch to avoid double-wrapping
+        wrappedFetch._errorBoundaryWrapped = true;
+        window.fetch = wrappedFetch;
     }
 
     /**
@@ -107,12 +122,27 @@ class ErrorBoundary {
                 }
                 
                 if (attempt === maxRetries) {
-                    throw new Error(`Request failed after ${maxRetries} attempts`);
+                    const error = new Error(`Request failed after ${maxRetries} attempts: HTTP ${response.status}`);
+                    this.logError('Fetch Retry Failed', error, {
+                        type: 'fetch',
+                        url: args[0],
+                        status: response.status,
+                        attempts: maxRetries,
+                        timestamp: new Date().toISOString()
+                    });
+                    throw error;
                 }
             } catch (error) {
                 if (attempt === maxRetries) {
+                    this.logError('Fetch Retry Failed', error, {
+                        type: 'fetch',
+                        url: args[0],
+                        attempts: maxRetries,
+                        timestamp: new Date().toISOString()
+                    });
                     throw error;
                 }
+                // Continue to next retry attempt
             }
         }
     }
@@ -146,18 +176,28 @@ class ErrorBoundary {
      * Show user-friendly error message
      */
     showUserError(message, isRecoverable = true) {
+        let messageShown = false;
+        
         // Try to use existing toast/notification system
         if (typeof window.showToast === 'function') {
             window.showToast(message, 'error');
+            messageShown = true;
         } else if (typeof window.Alpine?.store === 'function') {
             // Use Alpine.js store if available
-            const store = window.Alpine.store('notifications') || {};
-            if (store.add) {
-                store.add({ type: 'error', message, timeout: 5000 });
+            try {
+                const store = window.Alpine.store('notifications') || {};
+                if (store.add) {
+                    store.add({ type: 'error', message, timeout: 5000 });
+                    messageShown = true;
+                }
+            } catch (e) {
+                // Alpine store failed, continue to fallback
             }
-        } else {
-            // Fallback to browser alert
-            alert(message);
+        }
+        
+        // Fallback to browser alert if no other method worked
+        if (!messageShown) {
+            window.alert(message);
         }
 
         // Add error UI if page is severely broken
@@ -294,13 +334,22 @@ class ErrorBoundary {
     }
 }
 
-// Initialize global error boundary
-const globalErrorBoundary = new ErrorBoundary();
+// Initialize global error boundary only if not in test environment
+let globalErrorBoundary;
+if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
+    try {
+        globalErrorBoundary = new ErrorBoundary();
+    } catch (error) {
+        console.warn('Failed to initialize global error boundary:', error);
+    }
+}
 
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = ErrorBoundary;
 } else {
     window.ErrorBoundary = ErrorBoundary;
-    window.globalErrorBoundary = globalErrorBoundary;
+    if (globalErrorBoundary) {
+        window.globalErrorBoundary = globalErrorBoundary;
+    }
 }
