@@ -110,8 +110,14 @@
             const observer = new MutationObserver(mutations => {
                 mutations.forEach(mutation => {
                     mutation.addedNodes.forEach(node => {
-                        // Use DOM helper for validation
-                        if (!window.DOMHelpers?.isValidElement(node)) return;
+                        // Enhanced validation for DOM nodes
+                        if (!node || node.nodeType !== Node.ELEMENT_NODE) return;
+                        
+                        // Use DOM helper for validation with fallback
+                        const isValidElement = window.DOMHelpers?.isValidElement || 
+                            ((n) => n && n.nodeType === 1 && typeof n.querySelector === 'function');
+                        
+                        if (!isValidElement(node)) return;
                         
                         const chatInputs = node.matches && node.matches('#chat-input, textarea[data-chat-input], .chat-input') 
                             ? [node] 
@@ -130,10 +136,24 @@
                 });
             });
             
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
+            // Ensure document.body is available before observing
+            if (document.body) {
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+            } else {
+                // Wait for document.body to be available
+                const bodyCheckInterval = setInterval(() => {
+                    if (document.body) {
+                        clearInterval(bodyCheckInterval);
+                        observer.observe(document.body, {
+                            childList: true,
+                            subtree: true
+                        });
+                    }
+                }, 10);
+            }
             
         } catch (error) {
             console.warn('⚠️  Chat input auto-resize initialization failed:', error.message);

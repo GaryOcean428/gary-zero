@@ -114,16 +114,21 @@ const settingsModalProxy = {
         let modalAD = null;
         try {
             // Try to get the Alpine data, with retries for timing issues
-            for (let i = 0; i < 3; i++) {
-                modalAD = Alpine.$data(modalEl);
-                if (modalAD && modalAD._x_dataStack) {
-                    break;
+            for (let i = 0; i < 5; i++) {
+                try {
+                    modalAD = Alpine.$data(modalEl);
+                    // Enhanced validation for Alpine data
+                    if (modalAD && (modalAD._x_dataStack || modalAD.isOpen !== undefined)) {
+                        break;
+                    }
+                } catch (dataError) {
+                    console.warn(`Attempt ${i + 1}: Error getting Alpine data:`, dataError.message);
                 }
-                // Wait a bit and try again
-                await new Promise((resolve) => setTimeout(resolve, 100));
+                // Wait progressively longer
+                await new Promise((resolve) => setTimeout(resolve, 100 * (i + 1)));
             }
 
-            if (!modalAD || !modalAD._x_dataStack) {
+            if (!modalAD) {
                 console.error("Settings modal not properly initialized with Alpine.js");
                 return;
             }
