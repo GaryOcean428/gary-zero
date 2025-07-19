@@ -118,8 +118,27 @@
     <!-- Load Alpine.js first -->
     <script defer type="module" src="js/initFw.js"></script>
 
-    <!-- VS Code Web Integration -->
-    <script type="module" src="js/vscode-integration.js"></script>
+    <!-- VS Code Web Integration - Only load in development -->
+    <script>
+        // Conditionally load VS Code integration only if not in production
+        const isProduction = window.location.hostname.includes('railway.app') || 
+                           window.location.hostname.includes('herokuapp.com') || 
+                           window.location.hostname.includes('vercel.app') || 
+                           window.location.hostname.includes('netlify.app');
+        
+        const devFeaturesEnabled = window.ENABLE_DEV_FEATURES !== false;
+        const vscodeIntegrationEnabled = window.VSCODE_INTEGRATION_ENABLED !== false;
+        
+        if (!isProduction && devFeaturesEnabled && vscodeIntegrationEnabled) {
+            const script = document.createElement('script');
+            script.type = 'module';
+            script.src = 'js/vscode-integration.js';
+            document.head.appendChild(script);
+            console.log('🔧 VS Code integration enabled in development mode');
+        } else {
+            console.log('ℹ️  VS Code integration disabled in production mode');
+        }
+    </script>
 
     <!-- Then load module scripts with defer to ensure DOM is ready -->
     <script defer type="module" src="js/scheduler.js"></script>

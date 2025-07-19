@@ -48,12 +48,17 @@ class VSCodeWebIntegration {
             if (typeof window !== 'undefined' && window.vscodeTestWeb) {
                 this.vscodeTestWeb = window.vscodeTestWeb;
             } else {
-                // Dynamically import if in Node.js environment
-                try {
-                    const vscodeTestWebModule = await import('@vscode/test-web');
-                    this.vscodeTestWeb = vscodeTestWebModule;
-                } catch (error) {
-                    console.warn('VS Code test-web not available:', error.message);
+                // Only attempt dynamic import in development environment
+                if (typeof process !== 'undefined' || window.location.hostname === 'localhost') {
+                    try {
+                        const vscodeTestWebModule = await import('@vscode/test-web');
+                        this.vscodeTestWeb = vscodeTestWebModule;
+                    } catch (error) {
+                        console.info('ℹ️  VS Code test-web not available (normal in production):', error.message);
+                        return;
+                    }
+                } else {
+                    console.info('ℹ️  VS Code test-web skipped in non-development environment');
                     return;
                 }
             }
@@ -61,7 +66,7 @@ class VSCodeWebIntegration {
             this.isInitialized = true;
             console.log('✅ VS Code Web integration initialized (development mode)');
         } catch (error) {
-            console.warn('⚠️ VS Code Web integration failed to initialize:', error.message);
+            console.info('ℹ️  VS Code Web integration not available:', error.message);
         }
     }
 

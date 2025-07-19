@@ -4,6 +4,29 @@ import * as _modals from "./modals.js";
 // Import Alpine.js directly
 import "./alpine.min.js";
 
+// Pre-initialize root store as early as possible to prevent race conditions
+if (typeof Alpine !== "undefined") {
+    // Initialize store immediately when Alpine is available
+    document.addEventListener("alpine:init", () => {
+        try {
+            Alpine.store("root", {
+                activeTab: localStorage.getItem("settingsActiveTab") || "agent",
+                isOpen: false,
+                toggleSettings() {
+                    try {
+                        this.isOpen = !this.isOpen;
+                    } catch (error) {
+                        console.error("Error toggling settings:", error);
+                    }
+                },
+            });
+            console.log("✅ Alpine root store pre-initialized successfully");
+        } catch (error) {
+            console.error("❌ Error pre-initializing Alpine root store:", error);
+        }
+    });
+}
+
 // Add Alpine.js Collapse plugin support
 if (typeof Alpine !== "undefined") {
     // Add null-safe magic helper for Alpine.js expressions
