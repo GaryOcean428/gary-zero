@@ -159,6 +159,7 @@
         crossorigin="anonymous"></script>
 
     <!-- Non-module scripts after Alpine.js -->
+    <script type="text/javascript" src="js/dom-helpers.js"></script>
     <script type="text/javascript" src="js/enhanced-ux.js"></script>
     <script type="text/javascript" src="js/chat-input-autoresize.js"></script>
     <script type="text/javascript" src="js/settings.js"></script>
@@ -1020,22 +1021,47 @@
     <script>
         // Initialize enhanced UX features when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize chat input validation and character counting
-            const chatInput = document.getElementById('chat-input');
-            const sendButton = document.getElementById('send-button');
-            const charCount = document.getElementById('char-count');
+            // Initialize chat input validation and character counting using DOM helpers
+            const chatInput = window.DOMHelpers?.safeGetElementById('chat-input') || document.getElementById('chat-input');
+            const sendButton = window.DOMHelpers?.safeGetElementById('send-button') || document.getElementById('send-button');
+            const charCount = window.DOMHelpers?.safeGetElementById('char-count') || document.getElementById('char-count');
+
+            // Validate all required elements exist before proceeding
+            if (!chatInput) {
+                console.warn('Chat input element not found - skipping chat functionality initialization');
+                return;
+            }
+            if (!sendButton) {
+                console.warn('Send button element not found - skipping send functionality initialization');
+                return;
+            }
 
             if (chatInput && sendButton) {
                 // Enable/disable send button based on input
                 function updateSendButton() {
-                    const isEmpty = !chatInput.value.trim();
+                    const inputValue = window.DOMHelpers?.safeGetElementValue(chatInput) || '';
+                    if (typeof inputValue !== 'string') {
+                        console.warn('Chat input value is not a string');
+                        return;
+                    }
+                    const isEmpty = !inputValue.trim();
                     sendButton.disabled = isEmpty;
                     sendButton.style.opacity = isEmpty ? '0.5' : '1';
                 }
 
                 // Character count display
                 function updateCharCount() {
-                    const count = chatInput.value.length;
+                    const inputValue = window.DOMHelpers?.safeGetElementValue(chatInput) || '';
+                    if (typeof inputValue !== 'string') {
+                        console.warn('Chat input value is not a string for character count');
+                        return;
+                    }
+                    if (!charCount) {
+                        // Character count element is optional, just skip if not found
+                        return;
+                    }
+                    
+                    const count = inputValue.length;
                     const maxLength = parseInt(chatInput.getAttribute('maxlength')) || 10000;
 
                     if (count > maxLength * 0.8) {

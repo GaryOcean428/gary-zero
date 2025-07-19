@@ -48,17 +48,25 @@
                 setTimeout(() => autoResizeTextarea(textarea), 0);
             });
             
-            // Handle programmatic value changes
-            const originalSetter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
-            Object.defineProperty(textarea, 'value', {
-                get() {
-                    return originalSetter.call(this);
-                },
-                set(newValue) {
-                    originalSetter.call(this, newValue);
-                    autoResizeTextarea(this);
+            // Handle programmatic value changes (with browser compatibility check)
+            try {
+                const textareaPrototype = Object.getPrototypeOf(textarea);
+                const originalSetter = Object.getOwnPropertyDescriptor(textareaPrototype, 'value')?.set;
+                if (originalSetter) {
+                    Object.defineProperty(textarea, 'value', {
+                        get() {
+                            return originalSetter.call(this);
+                        },
+                        set(newValue) {
+                            originalSetter.call(this, newValue);
+                            autoResizeTextarea(this);
+                        }
+                    });
                 }
-            });
+            } catch (error) {
+                // Fallback for browsers that don't support property descriptor manipulation
+                console.warn('Could not enhance textarea value setter:', error.message);
+            }
             
             // Initial resize on page load
             autoResizeTextarea(textarea);
@@ -102,20 +110,22 @@
             const observer = new MutationObserver(mutations => {
                 mutations.forEach(mutation => {
                     mutation.addedNodes.forEach(node => {
-                        if (node.nodeType === 1) { // Element node
-                            const chatInputs = node.matches && node.matches('#chat-input, textarea[data-chat-input], .chat-input') 
-                                ? [node] 
-                                : node.querySelectorAll ? node.querySelectorAll('#chat-input, textarea[data-chat-input], .chat-input') 
-                                : [];
-                            
-                            chatInputs.forEach(textarea => {
-                                textarea.addEventListener('input', () => autoResizeTextarea(textarea));
-                                textarea.addEventListener('paste', () => {
-                                    setTimeout(() => autoResizeTextarea(textarea), 0);
-                                });
-                                autoResizeTextarea(textarea);
+                        // Use DOM helper for validation
+                        if (!window.DOMHelpers?.isValidElement(node)) return;
+                        
+                        const chatInputs = node.matches && node.matches('#chat-input, textarea[data-chat-input], .chat-input') 
+                            ? [node] 
+                            : node.querySelectorAll ? node.querySelectorAll('#chat-input, textarea[data-chat-input], .chat-input') 
+                            : [];
+                        
+                        chatInputs.forEach(textarea => {
+                            if (!textarea || !textarea.addEventListener) return; // Validate textarea element
+                            textarea.addEventListener('input', () => autoResizeTextarea(textarea));
+                            textarea.addEventListener('paste', () => {
+                                setTimeout(() => autoResizeTextarea(textarea), 0);
                             });
-                        }
+                            autoResizeTextarea(textarea);
+                        });
                     });
                 });
             });
