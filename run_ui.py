@@ -250,13 +250,24 @@ def health_check():
         startup_time = getattr(webapp, '_startup_time', None)
         uptime = time.time() - startup_time if startup_time else 0
         
+        # Check environment configuration
+        langchain_stream_disabled = dotenv.get_dotenv_value("LANGCHAIN_ANTHROPIC_STREAM_USAGE", "true").lower() == "false"
+        enable_dev_features = dotenv.get_dotenv_value("ENABLE_DEV_FEATURES", "true").lower() == "true"
+        node_env = dotenv.get_dotenv_value("NODE_ENV", "development")
+        
         return {
             "status": "healthy", 
             "timestamp": time.time(), 
             "version": "1.0.0",
             "memory_percent": memory_percent,
             "uptime_seconds": uptime,
-            "server": "gunicorn" if "gunicorn" in os.environ.get("SERVER_SOFTWARE", "") else "development"
+            "server": "gunicorn" if "gunicorn" in os.environ.get("SERVER_SOFTWARE", "") else "development",
+            "environment": {
+                "node_env": node_env,
+                "langchain_stream_disabled": langchain_stream_disabled,
+                "dev_features_enabled": enable_dev_features,
+                "production_mode": node_env == "production" or not enable_dev_features
+            }
         }
     except Exception as e:
         # Fallback to basic health check if psutil fails
@@ -264,7 +275,11 @@ def health_check():
             "status": "healthy", 
             "timestamp": time.time(), 
             "version": "1.0.0",
-            "error": str(e)
+            "error": str(e),
+            "environment": {
+                "node_env": dotenv.get_dotenv_value("NODE_ENV", "development"),
+                "langchain_stream_disabled": dotenv.get_dotenv_value("LANGCHAIN_ANTHROPIC_STREAM_USAGE", "true").lower() == "false"
+            }
         }
 
 
