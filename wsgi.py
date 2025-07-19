@@ -126,6 +126,7 @@ def create_app():
         return app
         
     except Exception as e:
+        error_message = str(e)  # Capture error message for use in nested function
         PrintStyle().error(f"❌ Application startup failed: {e}")
         # Return a minimal app with health check for debugging
         from flask import Flask, jsonify
@@ -136,7 +137,7 @@ def create_app():
         def emergency_health():
             return jsonify({
                 "status": "error",
-                "error": str(e),
+                "error": error_message,
                 "timestamp": time.time(),
                 "startup_failed": True
             })
