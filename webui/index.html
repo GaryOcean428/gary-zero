@@ -355,7 +355,7 @@
                                 </li>
                             </ul>
                         </span>
-                        <!-- Version Info -->
+                    <!-- Version Info -->
                     <div class="version-info">
                         <span id="a0version-desktop">Version {{version_no}} {{version_time}}</span>
                     </div>
@@ -363,70 +363,6 @@
             </div>
             <!--Sidebar lower elements-->
             <div class="left-panel-bottom">
-                <!-- Preferences -->
-                <div class="pref-section" x-data="{ prefOpen: true }">
-                    <span>
-                        <h3 class="pref-header" @click="prefOpen = !prefOpen">
-                            Preferences
-                            <svg class="arrow-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2" width="16" height="16"
-                                :class="{'rotated': !prefOpen}">
-                                <path d="M8 4l8 8-8 8" />
-                            </svg>
-                        </h3>
-                        <ul class="config-list" id="pref-list-mobile" x-show="prefOpen" x-collapse x-transition>
-                            <!-- Preferences Items -->
-                            <li x-data="{ autoScroll: true }">
-                                <span>Autoscroll</span>
-                                <label class="switch">
-                                    <input id="auto-scroll-switch-mobile" type="checkbox" x-model="autoScroll"
-                                        x-effect="window.safeCall('toggleAutoScroll',autoScroll)" aria-label="Toggle autoscroll">
-                                    <span class="slider"></span>
-                                </label>
-                            </li>
-                            <li x-data="{ darkMode: localStorage.getItem('darkMode') != 'false' }"
-                                x-init="$watch('darkMode', val => toggleDarkMode(val))">
-                                <span class="switch-label">Dark mode</span>
-                                <label class="switch">
-                                    <input type="checkbox" x-model="darkMode" aria-label="Toggle dark mode">
-                                    <span class="slider"></span>
-                                </label>
-                            </li>
-                            <li x-data="{ speech: localStorage.getItem('speech') == 'true' }"
-                                x-init="$watch('speech', val => toggleSpeech(val))">
-                                <span class="switch-label">Speech</span>
-                                <label class="switch">
-                                    <input type="checkbox" x-model="speech" aria-label="Toggle speech">
-                                    <span class="slider"></span>
-                                </label>
-                            </li>
-                            <li x-data="{ showThoughts: true }">
-                                <span>Show thoughts</span>
-                                <label class="switch">
-                                    <input type="checkbox" x-model="showThoughts"
-                                        x-effect="window.safeCall('toggleThoughts',showThoughts)" aria-label="Toggle show thoughts">
-                                    <span class="slider"></span>
-                                </label>
-                            </li>
-                            <li x-data="{ showJson: false }">
-                                <span>Show JSON</span>
-                                <label class="switch">
-                                    <input type="checkbox" x-model="showJson"
-                                        x-effect="window.safeCall('toggleJson',showJson)" aria-label="Toggle show JSON">
-                                    <span class="slider"></span>
-                                </label>
-                            </li>
-                            <li x-data="{ showUtils: false }">
-                                <span>Show utility messages</span>
-                                <label class="switch">
-                                    <input type="checkbox" x-model="showUtils"
-                                        x-effect="window.safeCall('toggleUtils',showUtils)" aria-label="Toggle show utility messages">
-                                    <span class="slider"></span>
-                                </label>
-                            </li>
-                        </ul>
-                    </span>
-                </div>
                 <!-- Version Info -->
                 <div class="version-info">
                     <span id="a0version-mobile">Version {{version_no}} {{version_time}}</span>
@@ -1039,7 +975,14 @@
             if (chatInput && sendButton) {
                 // Enable/disable send button based on input
                 function updateSendButton() {
-                    const inputValue = window.DOMHelpers?.safeGetElementValue(chatInput) || '';
+                    // Try multiple ways to get the input value for better compatibility
+                    let inputValue = '';
+                    try {
+                        inputValue = window.DOMHelpers?.safeGetElementValue(chatInput) || chatInput.value || '';
+                    } catch (e) {
+                        inputValue = chatInput.value || '';
+                    }
+                    
                     if (typeof inputValue !== 'string') {
                         console.warn('Chat input value is not a string');
                         return;
@@ -1051,7 +994,14 @@
 
                 // Character count display
                 function updateCharCount() {
-                    const inputValue = window.DOMHelpers?.safeGetElementValue(chatInput) || '';
+                    // Try multiple ways to get the input value for better compatibility
+                    let inputValue = '';
+                    try {
+                        inputValue = window.DOMHelpers?.safeGetElementValue(chatInput) || chatInput.value || '';
+                    } catch (e) {
+                        inputValue = chatInput.value || '';
+                    }
+                    
                     if (typeof inputValue !== 'string') {
                         console.warn('Chat input value is not a string for character count');
                         return;
