@@ -434,19 +434,23 @@ def get_deepseek_chat(
     model_name: str, api_key: str | None = None, base_url: str | None = None, **kwargs
 ) -> ChatOpenAI:
     """Get a DeepSeek chat model."""
-    final_api_key_for_constructor: SecretStr | None = None
+    final_api_key_for_constructor: str | None = None
     if isinstance(api_key, str):  # User provided a string for the function's api_key parameter
-        final_api_key_for_constructor = SecretStr(api_key)
+        final_api_key_for_constructor = api_key
+    elif isinstance(api_key, SecretStr):  # User provided SecretStr
+        final_api_key_for_constructor = api_key.get_secret_value()
+    elif hasattr(api_key, 'get_secret_value'):  # Handle other SecretStr-like objects
+        final_api_key_for_constructor = api_key.get_secret_value()
     elif api_key is None:  # api_key was not provided to the function, try to get from env
         v1_secret_key = get_api_key("deepseek")
         if v1_secret_key:
-            final_api_key_for_constructor = SecretStr(v1_secret_key)
-    # If api_key was already a SecretStr (e.g. from get_api_key if logic changes),
-    # assume it's v1 and convert
-    elif hasattr(api_key, "get_secret_value"):
-        final_api_key_for_constructor = SecretStr(api_key.get_secret_value())
-    # else: api_key might be an already correctly-typed v2 SecretStr,
-    # or an unexpected type. Let it pass.
+            # Handle case where Railway provides SecretStr objects
+            if isinstance(v1_secret_key, SecretStr):
+                final_api_key_for_constructor = v1_secret_key.get_secret_value()
+            elif hasattr(v1_secret_key, 'get_secret_value'):
+                final_api_key_for_constructor = v1_secret_key.get_secret_value()
+            else:
+                final_api_key_for_constructor = str(v1_secret_key)
 
     if not base_url:
         base_url = dotenv.get_dotenv_value("DEEPSEEK_BASE_URL") or "https://api.deepseek.com"
