@@ -924,19 +924,21 @@ pre {
   -webkit-font-optical-sizing: auto;
   font-optical-sizing: auto;
   font-size: 0.9rem;
-  max-height: 7rem;
-  min-height: 3.05rem;
+  max-height: 200px; /* Increased from 7rem for better UX */
+  min-height: 40px; /* Reduced from 3.05rem for better mobile UX */
   width: 100%;
   padding: 0.48rem 40px var(--spacing-sm) var(--spacing-sm);
   margin-right: var(--spacing-xs);
   overflow-y: auto;
   scroll-behavior: smooth;
-  resize: none;
+  resize: vertical; /* Allow manual resize */
   align-content: start;
   background-clip: border-box;
   border: 6px solid transparent;
   -webkit-transition: all 0.3s ease;
   transition: all 0.3s ease;
+  /* Auto-resize support */
+  field-sizing: content; /* Modern browsers */
 }
 
 #chat-input {

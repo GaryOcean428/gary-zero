@@ -1,6 +1,7 @@
 /**
  * VS Code Web Integration for Gary-Zero
  * Provides VS Code-style UI functionality using @vscode/test-web
+ * Only loads in development environment for performance optimization
  */
 
 class VSCodeWebIntegration {
@@ -8,10 +9,37 @@ class VSCodeWebIntegration {
         this.isInitialized = false;
         this.vscodeTestWeb = null;
         this.webExtensionHost = null;
+        this.isProductionMode = this.checkProductionMode();
+    }
+
+    /**
+     * Check if running in production mode
+     * @returns {boolean} True if in production
+     */
+    checkProductionMode() {
+        // Check multiple indicators of production environment
+        const hostname = window.location.hostname;
+        const isProduction = hostname.includes('railway.app') || 
+                           hostname.includes('herokuapp.com') || 
+                           hostname.includes('vercel.app') || 
+                           hostname.includes('netlify.app') ||
+                           hostname === 'gary-zero-production.up.railway.app';
+        
+        // Check for environment variable override
+        const devFeaturesEnabled = window.ENABLE_DEV_FEATURES !== false;
+        const vscodeIntegrationEnabled = window.VSCODE_INTEGRATION_ENABLED !== false;
+        
+        return isProduction && (!devFeaturesEnabled || !vscodeIntegrationEnabled);
     }
 
     async initialize() {
         if (this.isInitialized) {
+            return;
+        }
+
+        // Skip initialization in production
+        if (this.isProductionMode) {
+            console.log('ℹ️  VS Code integration disabled in production mode');
             return;
         }
 
@@ -31,7 +59,7 @@ class VSCodeWebIntegration {
             }
 
             this.isInitialized = true;
-            console.log('✅ VS Code Web integration initialized');
+            console.log('✅ VS Code Web integration initialized (development mode)');
         } catch (error) {
             console.warn('⚠️ VS Code Web integration failed to initialize:', error.message);
         }
@@ -331,18 +359,49 @@ class VSCodeWebIntegration {
 // Initialize VS Code Web integration
 const vscodeWebIntegration = new VSCodeWebIntegration();
 
-// Auto-initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        vscodeWebIntegration.initialize().then(() => {
-            vscodeWebIntegration.enhanceUIWithVSCodeFeatures();
-            vscodeWebIntegration.setupGideCodingAgent();
+// Only initialize in development mode
+if (!vscodeWebIntegration.isProductionMode) {
+    // Auto-initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            vscodeWebIntegration.initialize().then(() => {
+                if (vscodeWebIntegration.isInitialized) {
+                    vscodeWebIntegration.enhanceUIWithVSCodeFeatures();
+                    vscodeWebIntegration.setupGideCodingAgent();
+                }
+            });
         });
-    });
+    } else {
+        vscodeWebIntegration.initialize().then(() => {
+            if (vscodeWebIntegration.isInitialized) {
+                vscodeWebIntegration.enhanceUIWithVSCodeFeatures();
+                vscodeWebIntegration.setupGideCodingAgent();
+            }
+        });
+    }
 } else {
-    vscodeWebIntegration.initialize().then(() => {
-        vscodeWebIntegration.enhanceUIWithVSCodeFeatures();
-        vscodeWebIntegration.setupGideCodingAgent();
+    console.log('🚀 Production mode: VS Code integration disabled for performance');
+}
+
+// Memory cleanup for production
+if (vscodeWebIntegration.isProductionMode) {
+    // Clean up any existing VS Code related objects
+    if (window.vscodeTestWeb) {
+        window.vscodeTestWeb = null;
+    }
+    
+    // Prevent memory leaks from message channels
+    window.addEventListener('beforeunload', () => {
+        if (window.messageChannels && Array.isArray(window.messageChannels)) {
+            window.messageChannels.forEach(channel => {
+                try { 
+                    channel.close(); 
+                } catch(e) { 
+                    console.warn('Channel cleanup:', e.message); 
+                }
+            });
+            window.messageChannels = [];
+        }
     });
 }
 

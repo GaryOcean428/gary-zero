@@ -228,6 +228,13 @@ def get_anthropic_chat(
         api_key = get_api_key("anthropic")
     if not base_url:
         base_url = dotenv.get_dotenv_value("ANTHROPIC_BASE_URL") or "https://api.anthropic.com"
+    
+    # Production hotfix for LangChain Anthropic streaming metadata bug (Issue #26348)
+    # Disable stream_usage when LANGCHAIN_ANTHROPIC_STREAM_USAGE is set to false
+    stream_usage_disabled = dotenv.get_dotenv_value("LANGCHAIN_ANTHROPIC_STREAM_USAGE", "true").lower() == "false"
+    if stream_usage_disabled and "stream_usage" not in kwargs:
+        kwargs["stream_usage"] = False
+    
     return ChatAnthropic(model=model_name, api_key=api_key, base_url=base_url, **kwargs)
 
 
