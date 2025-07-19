@@ -24,10 +24,23 @@ const settingsModalProxy = {
         // Update our component state
         this.activeTab = tabName;
 
-        // Update the store safely
-        const store = Alpine.store("root");
-        if (store) {
-            store.activeTab = tabName;
+        // Update the store safely with retry logic
+        try {
+            const store = Alpine.store("root");
+            if (store) {
+                store.activeTab = tabName;
+            } else {
+                console.warn("Root store not available during tab switch, will retry");
+                // Retry after a short delay if store not ready
+                setTimeout(() => {
+                    const retryStore = Alpine.store("root");
+                    if (retryStore) {
+                        retryStore.activeTab = tabName;
+                    }
+                }, 100);
+            }
+        } catch (error) {
+            console.warn("Error accessing Alpine store during tab switch:", error);
         }
 
         localStorage.setItem("settingsActiveTab", tabName);
@@ -119,15 +132,29 @@ const settingsModalProxy = {
             return;
         }
 
-        // First, ensure the store is updated properly
+        // First, ensure the store is updated properly with proper error handling
         let store = null;
         try {
+            // Wait for Alpine to be fully ready
+            if (typeof Alpine === 'undefined') {
+                console.warn("Alpine.js not yet loaded, delaying settings modal open");
+                setTimeout(() => this.openSettings(), 100);
+                return new Promise((resolve) => { this.resolvePromise = resolve; });
+            }
+            
             store = Alpine.store("root");
             if (store) {
                 // Set isOpen first to ensure proper state
                 store.isOpen = true;
             } else {
-                console.warn("Root store not found, initializing fallback");
+                console.warn("Root store not found, will retry initialization");
+                // Retry after Alpine is fully ready
+                setTimeout(() => {
+                    const retryStore = Alpine.store("root");
+                    if (retryStore) {
+                        retryStore.isOpen = true;
+                    }
+                }, 100);
             }
         } catch (error) {
             console.error("Error accessing Alpine store:", error);
@@ -347,26 +374,9 @@ const settingsModalProxy = {
 // });
 
 document.addEventListener("alpine:init", () => {
-    // Initialize the root store first to ensure it exists before components try to access it
-    try {
-        Alpine.store("root", {
-            activeTab: localStorage.getItem("settingsActiveTab") || "agent",
-            isOpen: false,
-
-            toggleSettings() {
-                try {
-                    this.isOpen = !this.isOpen;
-                } catch (error) {
-                    console.error("Error toggling settings:", error);
-                }
-            },
-        });
-        console.log("✅ Alpine root store initialized successfully");
-    } catch (error) {
-        console.error("❌ Error initializing Alpine root store:", error);
-    }
-
-    // Then initialize other Alpine components
+    // Root store is now initialized in initFw.js for better timing
+    
+    // Initialize settings modal Alpine component
     try {
         Alpine.data("settingsModal", () => ({
             settingsData: {},
@@ -376,13 +386,38 @@ document.addEventListener("alpine:init", () => {
 
             async init() {
                 try {
-                    // Initialize with the store value
-                    const rootStore = Alpine.store("root");
-                    this.activeTab = rootStore?.activeTab || "agent";
+                    // Wait for root store to be available with retry logic
+                    let rootStore = null;
+                    let retryCount = 0;
+                    const maxRetries = 10;
+                    
+                    while (!rootStore && retryCount < maxRetries) {
+                        try {
+                            rootStore = Alpine.store("root");
+                            if (rootStore) break;
+                        } catch (error) {
+                            console.warn(`Retry ${retryCount + 1}: Root store not ready yet`);
+                        }
+                        await new Promise(resolve => setTimeout(resolve, 50));
+                        retryCount++;
+                    }
+                    
+                    if (rootStore) {
+                        this.activeTab = rootStore.activeTab || "agent";
+                    } else {
+                        console.warn("Root store not available after retries, using default");
+                        this.activeTab = "agent";
+                    }
+                    if (rootStore) {
+                        this.activeTab = rootStore.activeTab || "agent";
+                    } else {
+                        console.warn("Root store not available after retries, using default");
+                        this.activeTab = "agent";
+                    }
 
-                    // Watch store tab changes
+                    // Watch store tab changes with null safety
                     this.$watch("$store.root.activeTab", (newTab) => {
-                        if (typeof newTab !== "undefined") {
+                        if (typeof newTab !== "undefined" && newTab !== null) {
                             this.activeTab = newTab;
                             localStorage.setItem("settingsActiveTab", newTab);
                             this.updateFilteredSections();
@@ -405,10 +440,23 @@ document.addEventListener("alpine:init", () => {
                     // Update our component state
                     this.activeTab = tab;
 
-                    // Update the store safely
-                    const store = Alpine.store("root");
-                    if (store) {
-                        store.activeTab = tab;
+                    // Update the store safely with retry logic
+                    try {
+                        const store = Alpine.store("root");
+                        if (store) {
+                            store.activeTab = tab;
+                        } else {
+                            console.warn("Root store not available during tab switch, will retry");
+                            // Retry after a short delay if store not ready
+                            setTimeout(() => {
+                                const retryStore = Alpine.store("root");
+                                if (retryStore) {
+                                    retryStore.activeTab = tab;
+                                }
+                            }, 100);
+                        }
+                    } catch (error) {
+                        console.warn("Error accessing Alpine store during tab switch:", error);
                     }
 
                     // Save to localStorage
