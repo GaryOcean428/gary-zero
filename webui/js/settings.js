@@ -168,7 +168,7 @@ const settingsModalProxy = {
         //get settings from backend
         try {
             console.log("Fetching settings from /settings_get endpoint");
-            const set = await sendJsonData("/settings_get", null);
+            const set = await sendJsonData("/settings_get", {});
             console.log("Settings fetch successful:", set);
 
             // First load the settings data without setting the active tab
@@ -485,6 +485,7 @@ document.addEventListener("alpine:init", () => {
                         headers: {
                             "Content-Type": "application/json",
                         },
+                        body: JSON.stringify({}),
                     });
 
                     console.log("Settings response status:", response.status, response.statusText);
