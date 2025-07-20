@@ -137,13 +137,17 @@ class FieldBuilder:
             })
 
         if model_params_description:
+            # Convert kwargs dict to environment string format for display
+            from framework.helpers.settings.api import _dict_to_env
+            kwargs_value = _dict_to_env(settings[f"{model_type}_model_kwargs"])
+            
             fields.append(
                 {
                     "id": f"{model_type}_model_kwargs",
                     "title": f"{model_type.capitalize()} model additional parameters",
                     "description": model_params_description,
                     "type": "textarea",
-                    "value": settings[f"{model_type}_model_kwargs"], # This will be converted later
+                    "value": kwargs_value,
                 }
             )
         return fields
