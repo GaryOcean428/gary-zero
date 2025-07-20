@@ -35,6 +35,30 @@ lock = threading.Lock()
 # Set up basic authentication for UI and API but not MCP
 basic_auth = BasicAuth(webapp)
 
+# Add request logging middleware for debugging
+@webapp.before_request
+def log_request_info():
+    """Log request details for debugging."""
+    # Only log for settings-related endpoints to avoid spam
+    if '/settings' in request.path or request.path in ['/settings_get', '/settings_set']:
+        PrintStyle().debug(f"Settings request: {request.method} {request.path}")
+        PrintStyle().debug(f"Headers: {dict(request.headers)}")
+        if request.is_json and request.data:
+            try:
+                PrintStyle().debug(f"JSON data: {request.get_json()}")
+            except Exception as e:
+                PrintStyle().debug(f"Invalid JSON data: {e}")
+
+@webapp.after_request
+def log_response_info(response):
+    """Log response details for debugging."""
+    # Only log for settings-related endpoints to avoid spam
+    if '/settings' in request.path or request.path in ['/settings_get', '/settings_set']:
+        PrintStyle().debug(f"Settings response: {response.status_code} {response.status}")
+        if response.status_code >= 400:
+            PrintStyle().error(f"Settings error response: {response.get_data(as_text=True)[:200]}")
+    return response
+
 
 def add_security_headers(response):
     """Add security headers to all responses."""

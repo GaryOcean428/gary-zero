@@ -167,7 +167,9 @@ const settingsModalProxy = {
 
         //get settings from backend
         try {
-            const set = await sendJsonData("/settings_get", null);
+            console.log("Fetching settings from /settings_get endpoint");
+            const set = await sendJsonData("/settings_get", {});
+            console.log("Settings fetch successful:", set);
 
             // First load the settings data without setting the active tab
             const settings = {
@@ -477,22 +479,27 @@ document.addEventListener("alpine:init", () => {
             async fetchSettings() {
                 try {
                     this.isLoading = true;
-                    const response = await fetch("/api/settings_get", {
+                    console.log("Fetching settings from /settings_get endpoint");
+                    const response = await fetch("/settings_get", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
                         },
+                        body: JSON.stringify({}),
                     });
 
+                    console.log("Settings response status:", response.status, response.statusText);
                     if (response.ok) {
                         const data = await response.json();
+                        console.log("Settings data received:", data);
                         if (data && data.settings) {
                             this.settingsData = data.settings;
                         } else {
-                            console.error("Invalid settings data format");
+                            console.error("Invalid settings data format:", data);
                         }
                     } else {
-                        console.error("Failed to fetch settings:", response.statusText);
+                        const errorText = await response.text();
+                        console.error("Failed to fetch settings:", response.status, response.statusText, errorText);
                     }
                 } catch (error) {
                     console.error("Error fetching settings:", error);
@@ -539,7 +546,7 @@ document.addEventListener("alpine:init", () => {
                     }
 
                     // Send request
-                    const response = await fetch("/api/settings_save", {
+                    const response = await fetch("/settings_set", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
@@ -596,7 +603,7 @@ document.addEventListener("alpine:init", () => {
                     }
 
                     // Send test request
-                    const response = await fetch("/api/test_connection", {
+                    const response = await fetch("/test_connection", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",

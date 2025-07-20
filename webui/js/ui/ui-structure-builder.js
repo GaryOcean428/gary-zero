@@ -29,16 +29,22 @@ export class UIStructureBuilder {
     static initializeMessageHandlers() {
         const chatInput = document.getElementById("chat-input");
         if (chatInput) {
-            chatInput.addEventListener("input", function () {
+            // Remove existing listeners before adding new ones to prevent duplicates
+            const newChatInput = chatInput.cloneNode(true);
+            chatInput.parentNode.replaceChild(newChatInput, chatInput);
+            
+            newChatInput.addEventListener("input", function () {
                 this.style.height = "auto";
                 this.style.height = `${this.scrollHeight}px`;
             });
-            chatInput.addEventListener("keydown", (e) => {
+            newChatInput.addEventListener("keydown", (e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
                     document.getElementById("send-button")?.click();
                 }
             });
+            
+            console.log("🎯 Message handlers initialized (duplicates removed)");
         }
 
         window.renderMessage = (type, content, metadata = {}) => {

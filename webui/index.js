@@ -29,14 +29,26 @@ function setMessage(id, type, heading, content, temp, kvps) {
     let messageContainer = messageContainers.get(id);
     if (messageContainer) {
         // Update existing message
+        console.log(`🔄 Updating existing message: ${id} (${type})`);
         messageContainer.innerHTML = "";
     } else {
         // Create new message container
+        console.log(`✨ Creating new message: ${id} (${type})`);
         messageContainer = document.createElement("div");
         messageContainer.classList.add("message-container");
         messageContainer.setAttribute("data-message-id", id);
         chatHistory.appendChild(messageContainer);
         messageContainers.set(id, messageContainer);
+    }
+
+    // Check for potential duplicates in DOM (additional safety check)
+    const existingMessages = chatHistory.querySelectorAll(`[data-message-id="${id}"]`);
+    if (existingMessages.length > 1) {
+        console.warn(`⚠️ Duplicate message containers detected for ID: ${id}`, existingMessages);
+        // Remove duplicates, keeping only the first one
+        for (let i = 1; i < existingMessages.length; i++) {
+            existingMessages[i].remove();
+        }
     }
 
     // Get the appropriate message handler
@@ -144,6 +156,8 @@ window.toastFetchError = toastFetchError;
 async function sendJsonData(url, data) {
     const retries = 3;
     let lastError = null;
+    
+    console.log(`📡 Sending request to ${url}`, data);
 
     for (let i = 0; i < retries; i++) {
         try {
@@ -153,24 +167,36 @@ async function sendJsonData(url, data) {
                 body: JSON.stringify(data),
             });
 
+            console.log(`📡 Response from ${url}: ${response.status} ${response.statusText}`);
+
             if (!response.ok) {
                 const errorText = await response.text();
+                console.error(`❌ Request failed for ${url}:`, {
+                    status: response.status,
+                    statusText: response.statusText,
+                    error: errorText
+                });
                 // Handle 502 gateway errors specifically
                 if (response.status === 502) {
                     lastError = new Error(`Server temporarily unavailable (${response.status})`);
                     if (i < retries - 1) {
+                        console.log(`🔄 Retrying ${url} in ${1000 * (i + 1)}ms due to 502 error`);
                         // Wait longer between retries for 502 errors
                         await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
                     }
                 } else {
-                    throw new Error(errorText);
+                    throw new Error(`${response.status}: ${errorText}`);
                 }
             } else {
-                return await response.json();
+                const result = await response.json();
+                console.log(`✅ Success from ${url}:`, result);
+                return result;
             }
         } catch (error) {
+            console.error(`❌ Network error for ${url} (attempt ${i + 1}):`, error);
             lastError = error;
             if (i < retries - 1) {
+                console.log(`🔄 Retrying ${url} in ${500 * (i + 1)}ms due to network error`);
                 // Wait before retry
                 await new Promise((resolve) => setTimeout(resolve, 500 * (i + 1)));
             }
@@ -178,6 +204,7 @@ async function sendJsonData(url, data) {
     }
 
     // If we get here, all retries failed
+    console.error(`💥 All retries failed for ${url}:`, lastError);
     throw lastError;
 }
 window.sendJsonData = sendJsonData;
