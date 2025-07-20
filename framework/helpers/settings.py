@@ -222,7 +222,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "description": "Select provider for utility model used by the framework",
             "type": "select",
             "value": settings["util_model_provider"],
-            "options": [{"value": p.name, "label": p.value} for p in ModelProvider],
+            "options": provider_options,
         }
     )
     util_model_fields.append(
@@ -307,7 +307,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "description": "Select provider for embedding model used by the framework",
             "type": "select",
             "value": settings["embed_model_provider"],
-            "options": [{"value": p.name, "label": p.value} for p in ModelProvider],
+            "options": provider_options,
         }
     )
     embed_model_fields.append(
@@ -377,7 +377,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
     This determines which API or service to use for browser operations.""",
             "type": "select",
             "value": settings["browser_model_provider"],
-            "options": [{"value": p.name, "label": p.value} for p in ModelProvider],
+            "options": provider_options,
         }
     )
     browser_model_fields.append(
@@ -849,7 +849,8 @@ def convert_out(settings: Settings) -> SettingsOutput:
 
 
 def _get_api_key_field(settings: Settings, provider: str, title: str) -> SettingsField:
-    key = settings["api_keys"].get(provider, models.get_api_key(provider))
+    api_keys = settings.get("api_keys", {})
+    key = api_keys.get(provider, models.get_api_key(provider))
     return {
         "id": f"api_key_{provider}",
         "title": title,
@@ -860,6 +861,10 @@ def _get_api_key_field(settings: Settings, provider: str, title: str) -> Setting
 
 def convert_in(settings: dict) -> Settings:
     current = get_settings()
+    # Ensure api_keys exists
+    if "api_keys" not in current:
+        current["api_keys"] = {}
+    
     for section in settings["sections"]:
         if "fields" in section:
             for field in section["fields"]:

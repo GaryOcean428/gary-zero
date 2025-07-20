@@ -12,6 +12,9 @@ let lastSpokenNo = 0;
 // Message containers for tracking
 const messageContainers = new Map();
 
+// Track locally created user messages to prevent duplicates from server polling
+const localUserMessages = new Set();
+
 // --- Global UI Element Variables ---
 let leftPanel, rightPanel, chatInput, chatHistory;
 let inputSection, statusSection, chatsSection, tasksSection, progressBar, autoScrollSwitch;
@@ -22,6 +25,12 @@ let sidebarOverlay;
 function setMessage(id, type, heading, content, temp, kvps) {
     if (!chatHistory) {
         // console.warn('Chat history element not found, unable to set message');
+        return;
+    }
+
+    // Skip user messages that were already created locally to prevent duplicates
+    if (type === "user" && localUserMessages.has(id)) {
+        console.log(`🚫 Skipping duplicate user message from server: ${id}`);
         return;
     }
 
@@ -318,6 +327,8 @@ async function poll() {
 
         if (lastLogGuid !== response.log_guid) {
             if (chatHistory) chatHistory.innerHTML = "";
+            // Clear local user messages tracking when chat history is cleared
+            localUserMessages.clear();
             lastLogVersion = 0;
             lastLogGuid = response.log_guid;
         }
@@ -403,6 +414,8 @@ window.verifyUIVisibility = verifyUIVisibility;
 function newChat() {
     try {
         setContext(generateGUID());
+        // Clear local user messages tracking for new chat
+        localUserMessages.clear();
         updateAfterScroll();
     } catch {
         toastFetchError("Error creating new chat", new Error("Failed to create a new chat context."));
@@ -431,6 +444,8 @@ async function sendMessage() {
                 setMessage(messageId, "user", "", message, false, {
                     attachments: attachmentsWithUrls,
                 });
+                // Track this as a locally created user message
+                localUserMessages.add(messageId);
 
                 const formData = new FormData();
                 formData.append("text", message);
@@ -444,6 +459,8 @@ async function sendMessage() {
                 });
             } else {
                 setMessage(messageId, "user", "", message, false);
+                // Track this as a locally created user message
+                localUserMessages.add(messageId);
                 const data = { text: message, context, message_id: messageId };
                 response = await fetch("/message_async", {
                     method: "POST",
