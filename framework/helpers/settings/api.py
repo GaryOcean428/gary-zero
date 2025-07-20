@@ -18,6 +18,7 @@ from framework.helpers.settings.types import (
     SettingsOutput,
     SettingsSection,
 )
+from framework.helpers.model_catalog import get_models_for_provider, get_all_models
 
 # Constants
 SETTINGS_FILE = files.get_abs_path("tmp/settings.json")
@@ -88,14 +89,19 @@ def convert_out(settings: Settings) -> SettingsOutput:
     # Import models here to avoid circular imports
     try:
         import models
-
         ModelProvider = models.ModelProvider
+        # Create provider options from enum
+        provider_options = [{"value": p.name, "label": p.value} for p in ModelProvider]
     except ImportError:
-        # Fallback if models not available
-        class ModelProvider:
-            @classmethod
-            def __iter__(cls):
-                return iter([])
+        # Fallback provider options if models not available
+        provider_options = [
+            {"value": "ANTHROPIC", "label": "Anthropic"},
+            {"value": "OPENAI", "label": "OpenAI"},
+            {"value": "GOOGLE", "label": "Google"},
+            {"value": "GROQ", "label": "Groq"},
+            {"value": "MISTRALAI", "label": "Mistral AI"},
+            {"value": "OTHER", "label": "Other"},
+        ]
 
     # Main model section
     chat_model_fields: list[SettingsField] = []
@@ -106,17 +112,24 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "description": "Select provider for main chat model used by Gary-Zero",
             "type": "select",
             "value": settings["chat_model_provider"],
-            "options": [{"value": p.name, "label": p.value} for p in ModelProvider],
+            "options": provider_options,
         }
     )
+
+    # Get models for the current provider, fallback to all models if provider not found
+    current_provider = settings["chat_model_provider"]
+    provider_models = get_models_for_provider(current_provider)
+    if not provider_models:
+        provider_models = get_all_models()
 
     chat_model_fields.append(
         {
             "id": "chat_model_name",
             "title": "Chat model name",
-            "description": "Exact name of model from selected provider",
-            "type": "text",
+            "description": "Select model from the chosen provider",
+            "type": "select",
             "value": settings["chat_model_name"],
+            "options": provider_models,
         }
     )
 
