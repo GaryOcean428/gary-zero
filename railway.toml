@@ -10,6 +10,12 @@ restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 2
 replicas = 1
 
+# Volume configuration for persistent data storage
+[[volumes]]
+name = "gary-zero-data"
+mountPath = "/app/data"
+size = 10
+
 [[services]]
 name = "gary-zero"
 
@@ -23,3 +29,6 @@ PYTHONUNBUFFERED = "1"
 FLASK_ENV = "production"
 RAILPACK_PRUNE_DEPS = "false"
 NIXPACKS_PYTHON_VERSION = "3.11"
+# SearXNG Railway service URL (will be set by Railway)
+SEARXNG_URL = "http://${{searchxng.RAILWAY_PRIVATE_DOMAIN}}:${{searchxng.PORT}}"
+DATA_DIR = "/app/data"
