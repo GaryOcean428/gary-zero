@@ -1,6 +1,7 @@
 from typing import Any
 
 import models
+from framework.helpers.model_catalog import get_models_for_provider, get_all_models
 from framework.helpers.settings.constants import PASSWORD_PLACEHOLDER
 from framework.helpers.settings.types import Settings, SettingsField
 
@@ -59,13 +60,21 @@ class FieldBuilder:
                 "options": [{"value": p.name, "label": p.value} for p in model_providers],
             }
         )
+        
+        # Get models for the current provider
+        current_provider = settings[f"{model_type}_model_provider"]
+        provider_models = get_models_for_provider(current_provider)
+        if not provider_models:
+            provider_models = get_all_models()
+        
         fields.append(
             {
                 "id": f"{model_type}_model_name",
                 "title": f"{model_type.capitalize()} model name",
-                "description": "Exact name of model from selected provider",
-                "type": "text",
+                "description": "Select model from the chosen provider",
+                "type": "select",
                 "value": settings[f"{model_type}_model_name"],
+                "options": provider_models,
             }
         )
 
@@ -137,13 +146,17 @@ class FieldBuilder:
             })
 
         if model_params_description:
+            # Convert kwargs dict to environment string format for display
+            from framework.helpers.settings.api import _dict_to_env
+            kwargs_value = _dict_to_env(settings[f"{model_type}_model_kwargs"])
+            
             fields.append(
                 {
                     "id": f"{model_type}_model_kwargs",
                     "title": f"{model_type.capitalize()} model additional parameters",
                     "description": model_params_description,
                     "type": "textarea",
-                    "value": settings[f"{model_type}_model_kwargs"], # This will be converted later
+                    "value": kwargs_value,
                 }
             )
         return fields

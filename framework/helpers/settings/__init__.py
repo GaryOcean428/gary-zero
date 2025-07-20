@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from .types import Settings
 
 # Re-export the public API
-from .api import convert_out, get_settings, set_settings, set_settings_delta  # noqa: F401
+from .api import convert_in, convert_out, get_settings, set_settings, set_settings_delta, PASSWORD_PLACEHOLDER  # noqa: F401
 from .types import Settings  # noqa: F401
 
 __all__ = [
@@ -21,5 +21,7 @@ __all__ = [
     "get_settings",
     "set_settings",
     "set_settings_delta",
+    "convert_in",
     "convert_out",
+    "PASSWORD_PLACEHOLDER",
 ]

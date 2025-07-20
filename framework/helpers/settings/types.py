@@ -143,8 +143,23 @@ DEFAULT_SETTINGS: Settings = {
     "browser_model_name": "claude-3-5-sonnet-20241022",
     "browser_model_kwargs": {},
     "browser_model_vision": True,
-    # MCP Servers settings
+    "browser_model_rl_requests": 0,
+    "browser_model_rl_input": 0,
+    "browser_model_rl_output": 0,
+    # Agent configuration settings
+    "agent_prompts_subdir": "default",
+    "agent_memory_subdir": "default",
+    "agent_knowledge_subdir": "default",
+    # STT settings
+    "stt_model_size": "base",
+    "stt_language": "en",
+    "stt_silence_threshold": 0.5,
+    "stt_silence_duration": 1.0,
+    "stt_waiting_timeout": 30,
+    # MCP settings
     "mcp_servers": {},
+    "mcp_client_init_timeout": 30,
+    "mcp_client_tool_timeout": 300,
     # Database settings
     "database_url": "sqlite:///./zero.db",
     "database_name": "zero",
@@ -164,4 +179,8 @@ DEFAULT_SETTINGS: Settings = {
     "rfc_url": "http://localhost:8000",
     "rfc_password": "",
     "rfc_auto_docker": True,
+    "rfc_port_http": 8000,
+    "rfc_port_ssh": 22,
+    # API Keys (initially empty dict)
+    "api_keys": {},
 }

@@ -9,8 +9,11 @@ from typing import Dict, List
 # Comprehensive model catalog organized by provider
 MODEL_CATALOG: Dict[str, List[Dict[str, str]]] = {
     "ANTHROPIC": [
-        {"value": "claude-3-5-sonnet-20241022", "label": "Claude 3.5 Sonnet (Latest)"},
-        {"value": "claude-3-5-haiku-20241022", "label": "Claude 3.5 Haiku (Latest)"},
+        {"value": "claude-3-5-sonnet-latest", "label": "Claude 3.5 Sonnet (Latest)"},
+        {"value": "claude-3-5-haiku-latest", "label": "Claude 3.5 Haiku (Latest)"},
+        {"value": "claude-3-7-sonnet-20250219", "label": "Claude 3.7 Sonnet (2025-02-19)"},
+        {"value": "claude-3-5-sonnet-20241022", "label": "Claude 3.5 Sonnet (2024-10-22)"},
+        {"value": "claude-3-5-haiku-20241022", "label": "Claude 3.5 Haiku (2024-10-22)"},
         {"value": "claude-3-opus-20240229", "label": "Claude 3 Opus"},
         {"value": "claude-3-sonnet-20240229", "label": "Claude 3 Sonnet"},
         {"value": "claude-3-haiku-20240307", "label": "Claude 3 Haiku"},
@@ -21,6 +24,17 @@ MODEL_CATALOG: Dict[str, List[Dict[str, str]]] = {
     "OPENAI": [
         {"value": "gpt-4o", "label": "GPT-4o (Latest)"},
         {"value": "gpt-4o-mini", "label": "GPT-4o Mini"},
+        {"value": "gpt-4o-realtime-preview", "label": "GPT-4o Realtime Preview"},
+        {"value": "chatgpt-4.1", "label": "ChatGPT-4.1"},
+        {"value": "gpt-4.1", "label": "GPT-4.1"},
+        {"value": "gpt-4.1-vision", "label": "GPT-4.1 Vision"},
+        {"value": "gpt-4.1-embeddings", "label": "GPT-4.1 Embeddings"},
+        {"value": "o1", "label": "o1"},
+        {"value": "o1-mini", "label": "o1 Mini"},
+        {"value": "o1-pro", "label": "o1 Pro"},
+        {"value": "o3", "label": "o3"},
+        {"value": "o3-mini", "label": "o3 Mini"},
+        {"value": "o4-mini", "label": "o4 Mini"},
         {"value": "gpt-4-turbo", "label": "GPT-4 Turbo"},
         {"value": "gpt-4-turbo-preview", "label": "GPT-4 Turbo Preview"},
         {"value": "gpt-4", "label": "GPT-4"},
@@ -28,8 +42,12 @@ MODEL_CATALOG: Dict[str, List[Dict[str, str]]] = {
         {"value": "gpt-3.5-turbo", "label": "GPT-3.5 Turbo"},
         {"value": "gpt-3.5-turbo-16k", "label": "GPT-3.5 Turbo 16K"},
         {"value": "gpt-3.5-turbo-1106", "label": "GPT-3.5 Turbo (1106)"},
+        {"value": "text-embedding-3-large", "label": "Text Embedding 3 Large"},
+        {"value": "text-embedding-3-small", "label": "Text Embedding 3 Small"},
+        {"value": "text-embedding-ada-002", "label": "Text Embedding Ada 002"},
     ],
     "GOOGLE": [
+        {"value": "gemini-2.5-pro-exp-03-25", "label": "Gemini 2.5 Pro Exp (03-25)"},
         {"value": "gemini-1.5-pro", "label": "Gemini 1.5 Pro"},
         {"value": "gemini-1.5-flash", "label": "Gemini 1.5 Flash"},
         {"value": "gemini-pro", "label": "Gemini Pro"},
@@ -81,6 +99,9 @@ MODEL_CATALOG: Dict[str, List[Dict[str, str]]] = {
         {"value": "Meta-Llama-3.2-3B-Instruct", "label": "Llama 3.2 3B Instruct"},
     ],
     "XAI": [
+        {"value": "grok-4-latest", "label": "Grok 4 (Latest)"},
+        {"value": "grok-3", "label": "Grok 3"},
+        {"value": "grok-3-mini", "label": "Grok 3 Mini"},
         {"value": "grok-beta", "label": "Grok Beta"},
         {"value": "grok-2-1212", "label": "Grok 2 (1212)"},
         {"value": "grok-2-vision-1212", "label": "Grok 2 Vision (1212)"},
@@ -122,6 +143,7 @@ MODEL_CATALOG: Dict[str, List[Dict[str, str]]] = {
         {"value": "claude-3-sonnet", "label": "Claude 3 Sonnet (Chutes)"},
     ],
     "META": [
+        {"value": "llama-3.3", "label": "LLaMA 3.3"},
         {"value": "llama-3.3-70b-instruct", "label": "Llama 3.3 70B Instruct"},
         {"value": "llama-3.2-11b-vision-instruct", "label": "Llama 3.2 11B Vision"},
         {"value": "llama-3.2-90b-vision-instruct", "label": "Llama 3.2 90B Vision"},

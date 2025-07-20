@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from typing import Any, cast
 
 from framework.helpers import files
@@ -27,6 +28,46 @@ MODEL_PARAMS_DESCRIPTION = (
     """on individual lines, just like .env file."""
 )
 PASSWORD_PLACEHOLDER = "****PSWD****"
+
+
+def _dict_to_env(data_dict):
+    """Convert a dictionary to environment variable format.
+    
+    Args:
+        data_dict: Dictionary to convert
+        
+    Returns:
+        String in KEY=VALUE format
+    """
+    lines = []
+    for key, value in data_dict.items():
+        if "\n" in str(value):
+            value = f"'{value}'"
+        elif " " in str(value) or value == "" or any(c in str(value) for c in "\"'"):
+            value = f'"{value}"'
+        lines.append(f"{key}={value}")
+    return "\n".join(lines)
+
+
+def _env_to_dict(data: str) -> dict[str, str]:
+    """Convert environment variable format to dictionary.
+    
+    Args:
+        data: String in KEY=VALUE format
+        
+    Returns:
+        Dictionary with the parsed key-value pairs
+    """
+    env_dict = {}
+    line_pattern = re.compile(r"\s*([^#][^=]*)\s*=\s*(.*)")
+    for line in data.splitlines():
+        match = line_pattern.match(line)
+        if match:
+            key, value = match.groups()
+            # Remove optional surrounding quotes (single or double)
+            value = value.strip().strip('"').strip("'")
+            env_dict[key.strip()] = value
+    return env_dict
 
 
 def get_settings() -> Settings:
@@ -86,68 +127,67 @@ def convert_out(settings: Settings) -> SettingsOutput:
     Returns:
         Settings formatted for the UI
     """
-    # Import models here to avoid circular imports
-    try:
-        import models
-        ModelProvider = models.ModelProvider
-        # Create provider options from enum
-        provider_options = [{"value": p.name, "label": p.value} for p in ModelProvider]
-    except ImportError:
-        # Fallback provider options if models not available
-        provider_options = [
-            {"value": "ANTHROPIC", "label": "Anthropic"},
-            {"value": "OPENAI", "label": "OpenAI"},
-            {"value": "GOOGLE", "label": "Google"},
-            {"value": "GROQ", "label": "Groq"},
-            {"value": "MISTRALAI", "label": "Mistral AI"},
-            {"value": "OTHER", "label": "Other"},
-        ]
+    from framework.helpers.settings.section_builders import SectionBuilder
+    
+    # Build all sections using the section builders
+    sections = [
+        SectionBuilder.build_agent_config_section(settings),
+        SectionBuilder.build_chat_model_section(settings),
+        SectionBuilder.build_util_model_section(settings),
+        SectionBuilder.build_embed_model_section(settings),
+        SectionBuilder.build_browser_model_section(settings),
+        SectionBuilder.build_stt_section(settings),
+        SectionBuilder.build_api_keys_section(settings),
+        SectionBuilder.build_auth_section(settings),
+        SectionBuilder.build_mcp_client_section(settings),
+        SectionBuilder.build_mcp_server_section(settings),
+        SectionBuilder.build_dev_section(settings),
+    ]
 
-    # Main model section
-    chat_model_fields: list[SettingsField] = []
-    chat_model_fields.append(
-        {
-            "id": "chat_model_provider",
-            "title": "Chat model provider",
-            "description": "Select provider for main chat model used by Gary-Zero",
-            "type": "select",
-            "value": settings["chat_model_provider"],
-            "options": provider_options,
-        }
-    )
-
-    # Get models for the current provider, fallback to all models if provider not found
-    current_provider = settings["chat_model_provider"]
-    provider_models = get_models_for_provider(current_provider)
-    if not provider_models:
-        provider_models = get_all_models()
-
-    chat_model_fields.append(
-        {
-            "id": "chat_model_name",
-            "title": "Chat model name",
-            "description": "Select model from the chosen provider",
-            "type": "select",
-            "value": settings["chat_model_name"],
-            "options": provider_models,
-        }
-    )
-
-    chat_model_section: SettingsSection = {
-        "id": "chat_model",
-        "title": "Chat Model",
-        "description": "Selection and settings for main chat model used by Gary-Zero",
-        "fields": chat_model_fields,
-        "tab": "agent",
-    }
-
-    # Add the section to the result
+    # Return all sections
     result: SettingsOutput = {
-        "sections": [
-            chat_model_section,
-        ]
+        "sections": sections
     }
     return result
+
+
+def convert_in(settings_data: dict[str, Any]) -> Settings:
+    """Convert UI format settings to internal Settings format.
+
+    Args:
+        settings_data: Settings data from the UI (containing 'sections' with 'fields')
+
+    Returns:
+        Settings object ready for use by the application
+    """
+    current = get_settings()
+    
+    # Ensure api_keys exists
+    if "api_keys" not in current:
+        current["api_keys"] = {}
+    
+    # Process sections if they exist in the input data
+    if "sections" in settings_data:
+        for section in settings_data["sections"]:
+            if "fields" in section:
+                for field in section["fields"]:
+                    field_id = field.get("id")
+                    field_value = field.get("value")
+                    
+                    # Skip password placeholders - keep existing values
+                    if field_value != PASSWORD_PLACEHOLDER and field_id:
+                        if field_id.endswith("_kwargs"):
+                            # Convert environment-style string to dictionary
+                            current[field_id] = _env_to_dict(field_value)
+                        elif field_id.startswith("api_key_"):
+                            # Handle API keys specially - store in api_keys dict
+                            provider = field_id.replace("api_key_", "")
+                            current["api_keys"][provider] = field_value
+                        else:
+                            # Regular field - store directly
+                            current[field_id] = field_value
+    
+    return cast(Settings, current)
 
 
 def _apply_settings(settings: Settings) -> None:
