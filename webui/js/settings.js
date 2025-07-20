@@ -559,18 +559,21 @@ document.addEventListener("alpine:init", () => {
             },
 
             updateFilteredSections() {
-                // Filter sections based on active tab
+                // Filter sections based on active tab - use section.tab instead of section.group
                 if (this.activeTab === "agent") {
                     this.filteredSections =
-                        this.settingsData.sections?.filter((section) => section.group === "agent") || [];
+                        this.settingsData.sections?.filter((section) => section.tab === "agent") || [];
                 } else if (this.activeTab === "external") {
                     this.filteredSections =
-                        this.settingsData.sections?.filter((section) => section.group === "external") || [];
+                        this.settingsData.sections?.filter((section) => section.tab === "external") || [];
+                } else if (this.activeTab === "mcp") {
+                    this.filteredSections =
+                        this.settingsData.sections?.filter((section) => section.tab === "mcp") || [];
                 } else if (this.activeTab === "developer") {
                     this.filteredSections =
-                        this.settingsData.sections?.filter((section) => section.group === "developer") || [];
+                        this.settingsData.sections?.filter((section) => section.tab === "developer") || [];
                 } else {
-                    // For any other tab, show nothing since those tabs have custom UI
+                    // For any other tab (like scheduler), show nothing since those tabs have custom UI
                     this.filteredSections = [];
                 }
             },
