@@ -143,6 +143,7 @@ unit/
 # Scripts & Tools
 # ======================
 scripts/
+!scripts/init_volumes.py
 tools/
 Makefile
 *.sh
