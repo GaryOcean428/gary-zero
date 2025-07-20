@@ -51,14 +51,14 @@
             // Handle programmatic value changes (with browser compatibility check)
             try {
                 const textareaPrototype = Object.getPrototypeOf(textarea);
-                const originalSetter = Object.getOwnPropertyDescriptor(textareaPrototype, 'value')?.set;
-                if (originalSetter) {
+                const originalDescriptor = Object.getOwnPropertyDescriptor(textareaPrototype, 'value');
+                if (originalDescriptor && originalDescriptor.set && originalDescriptor.get) {
                     Object.defineProperty(textarea, 'value', {
                         get() {
-                            return originalSetter.call(this);
+                            return originalDescriptor.get.call(this);
                         },
                         set(newValue) {
-                            originalSetter.call(this, newValue);
+                            originalDescriptor.set.call(this, newValue);
                             autoResizeTextarea(this);
                         }
                     });
