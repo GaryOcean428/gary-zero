@@ -363,6 +363,56 @@ const settingsModalProxy = {
             openModal("settings/mcp/client/mcp-servers.html");
         }
     },
+
+    // Handle provider change for model filtering
+    async handleProviderChange(providerId, newProvider) {
+        try {
+            console.log(`Provider changed: ${providerId} to ${newProvider}`);
+            
+            // Get the new models for this provider
+            const response = await fetch("/get_models_for_provider", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ provider: newProvider }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const models = data.models || [];
+                
+                // Find the corresponding model name field and update its options
+                const modelFieldId = providerId.replace('_provider', '_name');
+                
+                // Get the current modal data
+                const modalEl = document.getElementById("settingsModal");
+                if (modalEl) {
+                    const modalAD = Alpine.$data(modalEl);
+                    if (modalAD && modalAD.settings && modalAD.settings.sections) {
+                        for (const section of modalAD.settings.sections) {
+                            for (const field of section.fields) {
+                                if (field.id === modelFieldId) {
+                                    field.options = models;
+                                    // Reset the model value if current value is not in new options
+                                    const currentValueExists = models.some(model => model.value === field.value);
+                                    if (!currentValueExists && models.length > 0) {
+                                        field.value = models[0].value; // Set to first available model
+                                    }
+                                    console.log(`Updated ${modelFieldId} with ${models.length} models`);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                console.error("Failed to fetch models for provider:", response.status);
+            }
+        } catch (error) {
+            console.error("Error handling provider change:", error);
+        }
+    },
 };
 
 // function initSettingsModal() {
@@ -565,6 +615,47 @@ document.addEventListener("alpine:init", () => {
                 } catch (error) {
                     console.error("Error saving settings:", error);
                     showToast("Failed to save settings: " + error.message, "error");
+                }
+            },
+
+            // Handle provider change for model filtering
+            async handleProviderChange(providerId, newProvider) {
+                try {
+                    console.log(`Provider changed to: ${newProvider}`);
+                    
+                    // Get the new models for this provider
+                    const response = await fetch("/get_models_for_provider", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ provider: newProvider }),
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const models = data.models || [];
+                        
+                        // Find the corresponding model name field and update its options
+                        const modelFieldId = providerId.replace('_provider', '_name');
+                        for (const section of this.settingsData.sections) {
+                            for (const field of section.fields) {
+                                if (field.id === modelFieldId) {
+                                    field.options = models;
+                                    // Reset the model value if current value is not in new options
+                                    const currentValueExists = models.some(model => model.value === field.value);
+                                    if (!currentValueExists && models.length > 0) {
+                                        field.value = models[0].value; // Set to first available model
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    } else {
+                        console.error("Failed to fetch models for provider:", response.status);
+                    }
+                } catch (error) {
+                    console.error("Error handling provider change:", error);
                 }
             },
 
