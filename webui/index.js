@@ -166,7 +166,10 @@ async function sendJsonData(url, data) {
     const retries = 3;
     let lastError = null;
     
-    console.log(`📡 Sending request to ${url}`, data);
+    // Only log requests for non-polling endpoints to reduce console noise
+    if (url !== "/poll") {
+        console.log(`📡 Sending request to ${url}`, data);
+    }
 
     for (let i = 0; i < retries; i++) {
         try {
@@ -176,7 +179,10 @@ async function sendJsonData(url, data) {
                 body: JSON.stringify(data),
             });
 
-            console.log(`📡 Response from ${url}: ${response.status} ${response.statusText}`);
+            // Only log responses for non-polling endpoints to reduce console noise
+            if (url !== "/poll") {
+                console.log(`📡 Response from ${url}: ${response.status} ${response.statusText}`);
+            }
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -198,7 +204,10 @@ async function sendJsonData(url, data) {
                 }
             } else {
                 const result = await response.json();
-                console.log(`✅ Success from ${url}:`, result);
+                // Only log success for non-polling endpoints to reduce console noise
+                if (url !== "/poll") {
+                    console.log(`✅ Success from ${url}:`, result);
+                }
                 return result;
             }
         } catch (error) {
