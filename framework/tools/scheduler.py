@@ -15,7 +15,7 @@ from agent import AgentContext
 
 # Use zero package imports
 from framework.helpers import persist_chat
-from framework.helpers.response import Response
+from framework.helpers.tool import Response
 from framework.helpers.task_scheduler import (
     AdHocTask,
     PlannedTask,
