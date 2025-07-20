@@ -101,6 +101,7 @@ MODEL_CATALOG: Dict[str, List[Dict[str, str]]] = {
     "XAI": [
         {"value": "grok-4-latest", "label": "Grok 4 (Latest)"},
         {"value": "grok-3", "label": "Grok 3"},
+        {"value": "grok-3-mini", "label": "Grok 3 Mini"},
         {"value": "grok-beta", "label": "Grok Beta"},
         {"value": "grok-2-1212", "label": "Grok 2 (1212)"},
         {"value": "grok-2-vision-1212", "label": "Grok 2 Vision (1212)"},
