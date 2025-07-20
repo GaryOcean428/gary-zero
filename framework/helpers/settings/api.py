@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from typing import Any, cast
 
 from framework.helpers import files
@@ -46,6 +47,27 @@ def _dict_to_env(data_dict):
             value = f'"{value}"'
         lines.append(f"{key}={value}")
     return "\n".join(lines)
+
+
+def _env_to_dict(data: str) -> dict[str, str]:
+    """Convert environment variable format to dictionary.
+    
+    Args:
+        data: String in KEY=VALUE format
+        
+    Returns:
+        Dictionary with the parsed key-value pairs
+    """
+    env_dict = {}
+    line_pattern = re.compile(r"\s*([^#][^=]*)\s*=\s*(.*)")
+    for line in data.splitlines():
+        match = line_pattern.match(line)
+        if match:
+            key, value = match.groups()
+            # Remove optional surrounding quotes (single or double)
+            value = value.strip().strip('"').strip("'")
+            env_dict[key.strip()] = value
+    return env_dict
 
 
 def get_settings() -> Settings:
@@ -127,6 +149,45 @@ def convert_out(settings: Settings) -> SettingsOutput:
         "sections": sections
     }
     return result
+
+
+def convert_in(settings_data: dict[str, Any]) -> Settings:
+    """Convert UI format settings to internal Settings format.
+
+    Args:
+        settings_data: Settings data from the UI (containing 'sections' with 'fields')
+
+    Returns:
+        Settings object ready for use by the application
+    """
+    current = get_settings()
+    
+    # Ensure api_keys exists
+    if "api_keys" not in current:
+        current["api_keys"] = {}
+    
+    # Process sections if they exist in the input data
+    if "sections" in settings_data:
+        for section in settings_data["sections"]:
+            if "fields" in section:
+                for field in section["fields"]:
+                    field_id = field.get("id")
+                    field_value = field.get("value")
+                    
+                    # Skip password placeholders - keep existing values
+                    if field_value != PASSWORD_PLACEHOLDER and field_id:
+                        if field_id.endswith("_kwargs"):
+                            # Convert environment-style string to dictionary
+                            current[field_id] = _env_to_dict(field_value)
+                        elif field_id.startswith("api_key_"):
+                            # Handle API keys specially - store in api_keys dict
+                            provider = field_id.replace("api_key_", "")
+                            current["api_keys"][provider] = field_value
+                        else:
+                            # Regular field - store directly
+                            current[field_id] = field_value
+    
+    return cast(Settings, current)
 
 
 def _apply_settings(settings: Settings) -> None:
