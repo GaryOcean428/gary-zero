@@ -35,6 +35,6 @@ webcolors==24.6.0
 nest-asyncio==1.6.0
 crontab==1.0.1
 openai>=1.12.0
-packaging==24.0
+packaging>=24.1,<25
 e2b-code-interpreter>=1.5.0
 gunicorn==23.0.0
