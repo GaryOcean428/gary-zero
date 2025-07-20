@@ -29,6 +29,25 @@ MODEL_PARAMS_DESCRIPTION = (
 PASSWORD_PLACEHOLDER = "****PSWD****"
 
 
+def _dict_to_env(data_dict):
+    """Convert a dictionary to environment variable format.
+    
+    Args:
+        data_dict: Dictionary to convert
+        
+    Returns:
+        String in KEY=VALUE format
+    """
+    lines = []
+    for key, value in data_dict.items():
+        if "\n" in str(value):
+            value = f"'{value}'"
+        elif " " in str(value) or value == "" or any(c in str(value) for c in "\"'"):
+            value = f'"{value}"'
+        lines.append(f"{key}={value}")
+    return "\n".join(lines)
+
+
 def get_settings() -> Settings:
     """Get the current settings.
 
@@ -86,66 +105,26 @@ def convert_out(settings: Settings) -> SettingsOutput:
     Returns:
         Settings formatted for the UI
     """
-    # Import models here to avoid circular imports
-    try:
-        import models
-        ModelProvider = models.ModelProvider
-        # Create provider options from enum
-        provider_options = [{"value": p.name, "label": p.value} for p in ModelProvider]
-    except ImportError:
-        # Fallback provider options if models not available
-        provider_options = [
-            {"value": "ANTHROPIC", "label": "Anthropic"},
-            {"value": "OPENAI", "label": "OpenAI"},
-            {"value": "GOOGLE", "label": "Google"},
-            {"value": "GROQ", "label": "Groq"},
-            {"value": "MISTRALAI", "label": "Mistral AI"},
-            {"value": "OTHER", "label": "Other"},
-        ]
+    from framework.helpers.settings.section_builders import SectionBuilder
+    
+    # Build all sections using the section builders
+    sections = [
+        SectionBuilder.build_agent_config_section(settings),
+        SectionBuilder.build_chat_model_section(settings),
+        SectionBuilder.build_util_model_section(settings),
+        SectionBuilder.build_embed_model_section(settings),
+        SectionBuilder.build_browser_model_section(settings),
+        SectionBuilder.build_stt_section(settings),
+        SectionBuilder.build_api_keys_section(settings),
+        SectionBuilder.build_auth_section(settings),
+        SectionBuilder.build_mcp_client_section(settings),
+        SectionBuilder.build_mcp_server_section(settings),
+        SectionBuilder.build_dev_section(settings),
+    ]
 
-    # Main model section
-    chat_model_fields: list[SettingsField] = []
-    chat_model_fields.append(
-        {
-            "id": "chat_model_provider",
-            "title": "Chat model provider",
-            "description": "Select provider for main chat model used by Gary-Zero",
-            "type": "select",
-            "value": settings["chat_model_provider"],
-            "options": provider_options,
-        }
-    )
-
-    # Get models for the current provider, fallback to all models if provider not found
-    current_provider = settings["chat_model_provider"]
-    provider_models = get_models_for_provider(current_provider)
-    if not provider_models:
-        provider_models = get_all_models()
-
-    chat_model_fields.append(
-        {
-            "id": "chat_model_name",
-            "title": "Chat model name",
-            "description": "Select model from the chosen provider",
-            "type": "select",
-            "value": settings["chat_model_name"],
-            "options": provider_models,
-        }
-    )
-
-    chat_model_section: SettingsSection = {
-        "id": "chat_model",
-        "title": "Chat Model",
-        "description": "Selection and settings for main chat model used by Gary-Zero",
-        "fields": chat_model_fields,
-        "tab": "agent",
-    }
-
-    # Add the section to the result
+    # Return all sections
     result: SettingsOutput = {
-        "sections": [
-            chat_model_section,
-        ]
+        "sections": sections
     }
     return result
 
