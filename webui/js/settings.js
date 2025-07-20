@@ -803,3 +803,6 @@ function showToast(message, type = "info") {
         }, 300);
     }, 3000);
 }
+
+// Make settingsModalProxy globally available for Alpine.js
+window.settingsModalProxy = settingsModalProxy;
