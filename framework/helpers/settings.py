@@ -449,6 +449,218 @@ def convert_out(settings: Settings) -> SettingsOutput:
         "tab": "agent",
     }
 
+    # Add coding agent configuration section
+    coding_agent_fields: list[SettingsField] = []
+    coding_agent_fields.append(
+        {
+            "id": "coding_agent_provider",
+            "title": "Coding agent provider",
+            "description": "Select provider for dedicated coding agent",
+            "type": "select",
+            "value": settings.get("coding_agent_provider", "ANTHROPIC"),
+            "options": provider_options,
+        }
+    )
+    
+    # Get models for the current coding agent provider
+    current_coding_provider = settings.get("coding_agent_provider", "ANTHROPIC")
+    coding_provider_models = get_models_for_provider(current_coding_provider)
+    if not coding_provider_models:
+        coding_provider_models = get_all_models()
+    
+    coding_agent_fields.append(
+        {
+            "id": "coding_agent_name",
+            "title": "Coding agent model name",
+            "description": "Select model for coding agent from the chosen provider",
+            "type": "select",
+            "value": settings.get("coding_agent_name", "claude-3-5-sonnet-20241022"),
+            "options": coding_provider_models,
+        }
+    )
+
+    coding_agent_fields.append(
+        {
+            "id": "coding_agent_enabled",
+            "title": "Enable dedicated coding agent",
+            "description": "Enable specialized coding agent for development tasks",
+            "type": "switch",
+            "value": settings.get("coding_agent_enabled", True),
+        }
+    )
+
+    coding_agent_fields.append(
+        {
+            "id": "coding_agent_ctx_length",
+            "title": "Coding agent context length",
+            "description": "Maximum number of tokens in the context window for coding agent",
+            "type": "number",
+            "value": settings.get("coding_agent_ctx_length", 200000),
+        }
+    )
+
+    coding_agent_fields.append(
+        {
+            "id": "coding_agent_kwargs",
+            "title": "Coding agent additional parameters",
+            "description": MODEL_PARAMS_DESCRIPTION,
+            "type": "textarea",
+            "value": _dict_to_env(settings.get("coding_agent_kwargs", {})),
+        }
+    )
+
+    coding_agent_section: SettingsSection = {
+        "id": "coding_agent",
+        "title": "Coding Agent",
+        "description": "Dedicated coding agent for software development tasks and code analysis",
+        "fields": coding_agent_fields,
+        "tab": "agent",
+    }
+
+    # Add supervisor agent configuration section
+    supervisor_agent_fields: list[SettingsField] = []
+    supervisor_agent_fields.append(
+        {
+            "id": "supervisor_agent_enabled",
+            "title": "Enable supervisor agent",
+            "description": "Enable supervisor agent for task orchestration and long-running processes",
+            "type": "switch",
+            "value": settings.get("supervisor_agent_enabled", True),
+        }
+    )
+
+    supervisor_agent_fields.append(
+        {
+            "id": "supervisor_agent_provider",
+            "title": "Supervisor agent provider",
+            "description": "Select provider for supervisor agent",
+            "type": "select",
+            "value": settings.get("supervisor_agent_provider", "ANTHROPIC"),
+            "options": provider_options,
+        }
+    )
+    
+    # Get models for the current supervisor agent provider
+    current_supervisor_provider = settings.get("supervisor_agent_provider", "ANTHROPIC")
+    supervisor_provider_models = get_models_for_provider(current_supervisor_provider)
+    if not supervisor_provider_models:
+        supervisor_provider_models = get_all_models()
+    
+    supervisor_agent_fields.append(
+        {
+            "id": "supervisor_agent_name",
+            "title": "Supervisor agent model name",
+            "description": "Select model for supervisor agent from the chosen provider",
+            "type": "select",
+            "value": settings.get("supervisor_agent_name", "claude-3-5-sonnet-20241022"),
+            "options": supervisor_provider_models,
+        }
+    )
+
+    supervisor_agent_fields.append(
+        {
+            "id": "task_handoff_enabled",
+            "title": "Enable task handoff",
+            "description": "Allow tasks to be handed off between agents for long-running operations",
+            "type": "switch",
+            "value": settings.get("task_handoff_enabled", True),
+        }
+    )
+
+    supervisor_agent_fields.append(
+        {
+            "id": "parallel_processing_enabled",
+            "title": "Enable parallel processing",
+            "description": "Allow multiple agents to work on different tasks simultaneously",
+            "type": "switch",
+            "value": settings.get("parallel_processing_enabled", True),
+        }
+    )
+
+    supervisor_agent_fields.append(
+        {
+            "id": "max_parallel_agents",
+            "title": "Maximum parallel agents",
+            "description": "Maximum number of agents that can work simultaneously",
+            "type": "number",
+            "value": settings.get("max_parallel_agents", 3),
+            "min": 1,
+            "max": 10,
+        }
+    )
+
+    supervisor_agent_section: SettingsSection = {
+        "id": "supervisor_agent",
+        "title": "Supervisor Agent",
+        "description": "Orchestration agent for managing long-running tasks and coordinating multiple agents",
+        "fields": supervisor_agent_fields,
+        "tab": "orchestration",
+    }
+
+    # Add task management configuration section
+    task_management_fields: list[SettingsField] = []
+    task_management_fields.append(
+        {
+            "id": "task_tracking_enabled",
+            "title": "Enable task tracking",
+            "description": "Track and categorize user-initiated tasks for full resolution",
+            "type": "switch",
+            "value": settings.get("task_tracking_enabled", True),
+        }
+    )
+
+    task_management_fields.append(
+        {
+            "id": "task_decomposition_enabled",
+            "title": "Enable task decomposition",
+            "description": "Automatically break down complex tasks into manageable subtasks",
+            "type": "switch",
+            "value": settings.get("task_decomposition_enabled", True),
+        }
+    )
+
+    task_management_fields.append(
+        {
+            "id": "task_categorization_enabled",
+            "title": "Enable task categorization",
+            "description": "Automatically categorize and group similar tasks",
+            "type": "switch",
+            "value": settings.get("task_categorization_enabled", True),
+        }
+    )
+
+    task_management_fields.append(
+        {
+            "id": "task_timeout_minutes",
+            "title": "Task timeout (minutes)",
+            "description": "Maximum time allowed for a single task before escalation",
+            "type": "number",
+            "value": settings.get("task_timeout_minutes", 30),
+            "min": 5,
+            "max": 480,
+        }
+    )
+
+    task_management_fields.append(
+        {
+            "id": "long_task_threshold_minutes",
+            "title": "Long task threshold (minutes)",
+            "description": "Tasks exceeding this duration are considered long-running",
+            "type": "number",
+            "value": settings.get("long_task_threshold_minutes", 10),
+            "min": 1,
+            "max": 60,
+        }
+    )
+
+    task_management_section: SettingsSection = {
+        "id": "task_management",
+        "title": "Task Management",
+        "description": "Configuration for task tracking, decomposition, and categorization",
+        "fields": task_management_fields,
+        "tab": "orchestration",
+    }
+
     # # Memory settings section
     # memory_fields: list[SettingsField] = []
     # memory_fields.append(
@@ -530,6 +742,8 @@ def convert_out(settings: Settings) -> SettingsOutput:
     api_keys_fields.append(_get_api_key_field(settings, "perplexity", "Perplexity API Key"))
     api_keys_fields.append(_get_api_key_field(settings, "sambanova", "Sambanova API Key"))
     api_keys_fields.append(_get_api_key_field(settings, "xai", "xAI API Key"))
+    api_keys_fields.append(_get_api_key_field(settings, "github", "GitHub API Key"))
+    api_keys_fields.append(_get_api_key_field(settings, "e2b", "E2B API Key"))
 
     api_keys_section: SettingsSection = {
         "id": "api_keys",
@@ -857,6 +1071,9 @@ def convert_out(settings: Settings) -> SettingsOutput:
             util_model_section,
             embed_model_section,
             browser_model_section,
+            coding_agent_section,
+            supervisor_agent_section,
+            task_management_section,
             # memory_section,
             stt_section,
             api_keys_section,
@@ -893,7 +1110,8 @@ def convert_in(settings: dict) -> Settings:
                     if field["id"].endswith("_kwargs"):
                         current[field["id"]] = _env_to_dict(field["value"])
                     elif field["id"].startswith("api_key_"):
-                        current["api_keys"][field["id"]] = field["value"]
+                        provider = field["id"].replace("api_key_", "")
+                        current["api_keys"][provider] = field["value"]
                     else:
                         current[field["id"]] = field["value"]
     return current
@@ -980,7 +1198,10 @@ def _remove_sensitive_settings(settings: Settings):
 
 def _write_sensitive_settings(settings: Settings):
     for key, val in settings["api_keys"].items():
-        dotenv.save_dotenv_value(key.upper(), val)
+        if val and val != PASSWORD_PLACEHOLDER:
+            # Convert api_key_provider format to provider format for dotenv
+            env_key = f"API_KEY_{key.upper()}" if not key.startswith("api_key_") else key.upper()
+            dotenv.save_dotenv_value(env_key, val)
 
     dotenv.save_dotenv_value(dotenv.KEY_AUTH_LOGIN, settings["auth_login"])
     if settings["auth_password"]:
@@ -1041,6 +1262,25 @@ def get_default_settings() -> Settings:
             "util_model_rl_requests": 0,
             "util_model_rl_input": 0,
             "util_model_rl_output": 0,
+            # Coding agent settings
+            "coding_agent_enabled": True,
+            "coding_agent_provider": "ANTHROPIC",
+            "coding_agent_name": "claude-3-5-sonnet-20241022",
+            "coding_agent_ctx_length": 200000,
+            "coding_agent_kwargs": {},
+            # Supervisor agent settings
+            "supervisor_agent_enabled": True,
+            "supervisor_agent_provider": "ANTHROPIC",
+            "supervisor_agent_name": "claude-3-5-sonnet-20241022",
+            "task_handoff_enabled": True,
+            "parallel_processing_enabled": True,
+            "max_parallel_agents": 3,
+            # Task management settings
+            "task_tracking_enabled": True,
+            "task_decomposition_enabled": True,
+            "task_categorization_enabled": True,
+            "task_timeout_minutes": 30,
+            "long_task_threshold_minutes": 10,
         }
     )
     return default_settings
