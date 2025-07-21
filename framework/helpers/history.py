@@ -155,9 +155,19 @@ class Topic(Record):
 
     async def compress_large_messages(self) -> bool:
         set = settings.get_settings()
+        # Ensure proper type conversion to avoid multiplication errors
+        try:
+            ctx_length = int(set["chat_model_ctx_length"])
+            ctx_history = float(set["chat_model_ctx_history"])
+        except (ValueError, TypeError) as e:
+            # Use default values if conversion fails
+            print(f"Warning: Error converting context settings to numbers: {e}. Using defaults.")
+            ctx_length = 128000  # Default context length
+            ctx_history = 0.5   # Default history ratio
+        
         msg_max_size = (
-            set["chat_model_ctx_length"]
-            * set["chat_model_ctx_history"]
+            ctx_length
+            * ctx_history
             * CURRENT_TOPIC_RATIO
             * LARGE_MESSAGE_TO_TOPIC_RATIO
         )
@@ -430,7 +440,15 @@ def deserialize_history(json_data: str, agent) -> History:
 
 def _get_ctx_size_for_history() -> int:
     set = settings.get_settings()
-    return int(set["chat_model_ctx_length"] * set["chat_model_ctx_history"])
+    # Ensure proper type conversion to avoid "can't multiply sequence by non-int of type 'float'" error
+    try:
+        ctx_length = int(set["chat_model_ctx_length"])
+        ctx_history = float(set["chat_model_ctx_history"])
+        return int(ctx_length * ctx_history)
+    except (ValueError, TypeError, KeyError) as e:
+        # Use default values if conversion fails or keys are missing
+        print(f"Warning: Error converting context settings to numbers: {e}. Using default values.")
+        return int(128000 * 0.5)  # Default: 128k tokens * 50% for history
 
 
 def _stringify_output(output: OutputMessage, ai_label="ai", human_label="human"):
