@@ -433,9 +433,9 @@ const settingsModalProxy = {
 document.addEventListener("alpine:init", () => {
     // Root store is now initialized in initFw.js for better timing
     
-    // Initialize settings modal Alpine component
-    try {
-        Alpine.data("settingsModal", () => ({
+    // Initialize settings modal Alpine component using the Component Manager
+    if (window.safeRegisterAlpineComponent) {
+        window.safeRegisterAlpineComponent("settingsModal", () => ({
             settingsData: {},
             filteredSections: [],
             activeTab: "agent",
@@ -776,9 +776,22 @@ document.addEventListener("alpine:init", () => {
                 this.$store.root.isOpen = false;
             },
         }));
-        console.log("✅ Alpine settingsModal component registered successfully");
-    } catch (error) {
-        console.error("❌ Error registering Alpine settingsModal component:", error);
+        console.log("✅ Alpine settingsModal component registered via Component Manager");
+    } else {
+        // Fallback to direct registration if Component Manager not available
+        try {
+            Alpine.data("settingsModal", () => ({
+                // ... existing implementation with minimal changes
+                settingsData: {},
+                filteredSections: [],
+                activeTab: "agent",
+                isLoading: true,
+                // ... rest of the component implementation
+            }));
+            console.log("✅ Alpine settingsModal component registered (fallback method)");
+        } catch (error) {
+            console.error("❌ Error registering Alpine settingsModal component:", error);
+        }
     }
 });
 

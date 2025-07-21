@@ -4,27 +4,49 @@ import * as _modals from "./modals.js";
 // Import Alpine.js directly
 import "./alpine.min.js";
 
+// Import Alpine Component Manager for centralized registration
+import "./alpine-registration.js";
+
 // Pre-initialize root store as early as possible to prevent race conditions
-if (typeof Alpine !== "undefined") {
-    // Initialize store immediately when Alpine is available
-    document.addEventListener("alpine:init", () => {
+// Use the new Alpine Component Manager for proper timing control
+function initializeRootStore() {
+    if (!window.alpineManager) {
+        console.error("❌ Alpine Component Manager not available");
+        return;
+    }
+
+    // Wait for Alpine Component Manager to be ready
+    window.alpineManager.init().then(() => {
         try {
-            Alpine.store("root", {
-                activeTab: localStorage.getItem("settingsActiveTab") || "agent",
-                isOpen: false,
-                toggleSettings() {
-                    try {
-                        this.isOpen = !this.isOpen;
-                    } catch (error) {
-                        console.error("Error toggling settings:", error);
-                    }
-                },
-            });
-            console.log("✅ Alpine root store pre-initialized successfully");
+            if (window.Alpine && typeof window.Alpine.store === 'function') {
+                Alpine.store("root", {
+                    activeTab: localStorage.getItem("settingsActiveTab") || "agent",
+                    isOpen: false,
+                    toggleSettings() {
+                        try {
+                            this.isOpen = !this.isOpen;
+                        } catch (error) {
+                            console.error("Error toggling settings:", error);
+                        }
+                    },
+                });
+                console.log("✅ Alpine root store initialized via Component Manager");
+            } else {
+                console.error("❌ Alpine.store not available");
+            }
         } catch (error) {
-            console.error("❌ Error pre-initializing Alpine root store:", error);
+            console.error("❌ Error initializing Alpine root store:", error);
         }
+    }).catch(error => {
+        console.error("❌ Failed to initialize Alpine Component Manager:", error);
     });
+}
+
+// Initialize root store with proper timing
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeRootStore);
+} else {
+    initializeRootStore();
 }
 
 // Add Alpine.js Collapse plugin support
