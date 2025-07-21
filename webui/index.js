@@ -430,8 +430,8 @@ async function sendMessage() {
 
     try {
         const message = chatInput.value.trim();
-        const inputAD = Alpine.$data(inputSection);
-        const attachments = inputAD.attachments;
+        const inputAD = window.Alpine && inputSection?.__x?.$data ? Alpine.$data(inputSection) : null;
+        const attachments = inputAD?.attachments || [];
         const hasAttachments = attachments && attachments.length > 0;
 
         if (message || hasAttachments) {
@@ -484,8 +484,10 @@ async function sendMessage() {
             }
 
             chatInput.value = "";
-            inputAD.attachments = [];
-            inputAD.hasAttachments = false;
+            if (inputAD) {
+                inputAD.attachments = [];
+                inputAD.hasAttachments = false;
+            }
             adjustTextareaHeight();
         }
     } catch (error) {
@@ -741,7 +743,8 @@ function openTaskDetail(taskId) {
 window.openTaskDetail = openTaskDetail;
 
 window.handleFileUpload = (event) => {
-    const inputAD = Alpine.$data(document.getElementById("input-attachments-display"));
+    const element = document.getElementById("input-attachments-display");
+    const inputAD = window.Alpine && element?.__x?.$data ? Alpine.$data(element) : null;
     if (!inputAD) return;
 
     Array.from(event.target.files).forEach((file) => {
