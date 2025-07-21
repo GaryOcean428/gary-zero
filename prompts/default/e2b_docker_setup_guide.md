@@ -27,215 +27,186 @@ Run this in the agent:
 
 Should return: `Execution environment: E2B Cloud Sandbox`
 
-## Docker Hub Access for Enhanced Sandboxes
+## Docker Hub Access for Enhanced Sandbox Capabilities
 
-### Why Give Gary-Zero Docker Hub Access?
+### Purpose
+Giving Gary-Zero access to Docker Hub allows the agent to:
+1. **Pull Specialized Images**: Access pre-built tool containers during execution
+2. **Use Custom Environments**: Run code in specialized Docker images
+3. **Access Private Images**: Use your proprietary or custom tools
+4. **Enhance Execution**: Go beyond standard E2B capabilities
 
-Providing Docker Hub credentials allows Gary-Zero to:
-1. **Pull specialized Docker images** for enhanced execution environments
-2. **Access private images** with custom tools and libraries
-3. **Use pre-configured environments** for specific tasks (ML, data science, etc.)
-4. **Create more powerful sandboxes** beyond standard E2B environments
-
-### Setting Up Docker Hub Access
+### Setup Docker Hub Credentials
 
 Add these environment variables to your Railway service:
-
-```bash
-# Required for Docker Hub access
+```
 DOCKER_USERNAME=your_dockerhub_username
-DOCKER_PASSWORD=your_dockerhub_password_or_token
-
-# Optional - for private registries
-DOCKER_REGISTRY=docker.io  # Default is Docker Hub
+DOCKER_PASSWORD=your_dockerhub_password
+DOCKER_REGISTRY=docker.io (optional, defaults to Docker Hub)
 ```
 
-**Security Note**: Use a Docker Hub access token instead of your password:
-1. Go to Docker Hub → Account Settings → Security
-2. Create a new Access Token
-3. Use this token as DOCKER_PASSWORD
+**Note**: This is NOT for deploying Gary-Zero itself. This gives the deployed Gary-Zero service the ability to pull and use Docker images to enhance its code execution capabilities.
 
 ### How Gary-Zero Uses Docker Hub
 
-With Docker Hub access configured, Gary-Zero can:
+With Docker Hub access, Gary-Zero can:
 
-1. **Pull and run specialized containers**:
-```python
-# Example: Using a data science image
-import os
-os.system("docker pull jupyter/datascience-notebook:latest")
-# Gary-Zero can now create sandboxes with this image
-```
+1. **Pull and Run Specialized Containers**
+   ```python
+   # Gary-Zero can now execute code like this internally:
+   import docker
+   client = docker.from_env()
+   
+   # Pull a specialized data science image
+   client.images.pull('jupyter/datascience-notebook:latest')
+   
+   # Run code in that container
+   container = client.containers.run(
+       'jupyter/datascience-notebook:latest',
+       'python -c "import tensorflow as tf; print(tf.__version__)"',
+       remove=True
+   )
+   ```
 
-2. **Access private tool images**:
-```python
-# If you have private images with custom tools
-os.system("docker pull yourusername/custom-ml-tools:latest")
-```
+2. **Access Tool-Specific Images**
+   - Machine Learning: `tensorflow/tensorflow`, `pytorch/pytorch`
+   - Data Science: `jupyter/datascience-notebook`
+   - Web Scraping: `scrapinghub/splash`
+   - Database Tools: `postgres`, `mysql`, `mongodb`
+   - Custom Tools: Your private images
 
-3. **Create enhanced E2B sandboxes**:
-```python
-# E2B can use custom Docker images as base
-os.environ['E2B_DOCKER_IMAGE'] = 'tensorflow/tensorflow:latest-gpu'
-```
+3. **Enhanced Code Execution**
+   When E2B doesn't have the right environment, Gary-Zero can:
+   - Pull a Docker image with required tools
+   - Execute code in that specialized environment
+   - Return results to the user
 
-### Use Cases for Docker Hub Integration
+### Security Considerations
 
-1. **Machine Learning Workloads**
-   - Pull GPU-enabled TensorFlow/PyTorch images
-   - Access pre-trained model containers
-   - Use specialized ML tool images
+1. **Credentials are Encrypted**: Railway encrypts environment variables
+2. **Sandboxed Execution**: Docker containers provide isolation
+3. **Resource Limits**: Gary-Zero respects Railway's resource constraints
+4. **Image Verification**: Only pulls from trusted sources
 
-2. **Data Science Tasks**
-   - Jupyter notebook environments
-   - R statistical computing images
-   - Big data processing tools (Spark, etc.)
+## E2B + Docker Hub Synergy
 
-3. **Development Environments**
-   - Language-specific images (Ruby, Go, Rust)
-   - Database client tools
-   - Testing frameworks
+### Primary Execution Path
+1. **E2B First**: Fast, secure, pre-configured sandboxes
+2. **Docker Fallback**: When specialized tools are needed
+3. **Local Last Resort**: Only if both are unavailable
 
-4. **Security Tools**
-   - Penetration testing images
-   - Security scanning tools
-   - Network analysis containers
+### Use Cases
 
-### Example: Enhanced Sandbox Usage
+**E2B is Best For:**
+- Quick Python/Node.js execution
+- Standard data processing
+- Web requests and API calls
+- General purpose computing
 
-Once Docker Hub is configured, you can request specialized environments:
+**Docker Hub Extends With:**
+- Specialized ML frameworks
+- Database-specific tools
+- Legacy software environments
+- Custom proprietary tools
 
-```json
-{
-  "thoughts": [
-    "User needs GPU-accelerated ML environment",
-    "I'll create a sandbox with TensorFlow GPU support"
-  ],
-  "tool": "code_execution_tool",
-  "runtime": "python",
-  "code": "# First ensure we have the right image\nimport subprocess\nsubprocess.run(['docker', 'pull', 'tensorflow/tensorflow:latest-gpu'])\n\n# Now run code in GPU-enabled environment\nimport tensorflow as tf\nprint(f'TensorFlow version: {tf.__version__}')\nprint(f'GPU available: {tf.config.list_physical_devices(\"GPU\")}')"
-}
-```
+### Example Workflow
 
-## E2B Sandbox Capabilities
+User asks Gary-Zero to: "Analyze this image using specialized computer vision tools"
 
-### Standard Runtimes
-1. **Python 3.11+**
-   - Pre-installed: numpy, pandas, requests, matplotlib
-   - Can install more with pip
-
-2. **Node.js 20+**
-   - Pre-installed: common npm packages
-   - Can install more with npm
-
-3. **Bash/Terminal**
-   - Full Linux environment
-   - apt-get available for system packages
-
-### Enhanced with Docker Hub
-- **Any Docker image** from Docker Hub
-- **Custom environments** for specific tasks
-- **Private images** with proprietary tools
-- **Layered caching** for faster starts
-
-### Resource Limits
-- CPU: 2 cores (configurable)
-- Memory: 2GB (configurable)
-- Execution time: 5 minutes default
-- Network: Full internet access
-
-### Security Features
-- Complete isolation between sandboxes
-- No access to Railway host system
-- Automatic cleanup after execution
-- Encrypted environment variables
+1. Gary-Zero checks if E2B has required libraries
+2. If not, pulls `opencv/opencv-python` from Docker Hub
+3. Runs analysis in the Docker container
+4. Returns results to user
 
 ## Best Practices
 
-### 1. Checking Available Resources
+### 1. Image Selection
+Gary-Zero will intelligently select images based on task:
 ```python
-# Check if Docker is available
-import subprocess
-try:
-    result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
-    print(f"Docker available: {result.stdout}")
-except:
-    print("Docker not available in this sandbox")
+task_images = {
+    "machine_learning": "tensorflow/tensorflow:latest-gpu",
+    "data_science": "jupyter/datascience-notebook",
+    "web_scraping": "scrapinghub/splash",
+    "nlp": "huggingface/transformers-pytorch-cpu"
+}
 ```
 
-### 2. Using Custom Images
-```python
-# Pull a specific image for the task
-import os
-
-# For data science
-os.system("docker pull jupyter/scipy-notebook:latest")
-
-# For web scraping
-os.system("docker pull scrapinghub/splash:latest")
-
-# For API testing
-os.system("docker pull postman/newman:latest")
+### 2. Private Images
+For proprietary tools, use private Docker Hub repos:
+```
+your-company/private-ml-tools:v2.0
+your-username/custom-agent-tools:latest
 ```
 
 ### 3. Resource Management
-```python
-# Clean up unused images to save space
-os.system("docker image prune -f")
-
-# List available images
-os.system("docker images")
-```
+Gary-Zero automatically:
+- Cleans up containers after use
+- Manages image cache
+- Respects memory limits
+- Handles timeouts gracefully
 
 ## Troubleshooting
 
 ### Docker Hub Access Issues
-1. **Authentication failed**
-   - Verify DOCKER_USERNAME and DOCKER_PASSWORD
-   - Use access token instead of password
-   - Check for typos in credentials
 
-2. **Rate limiting**
-   - Docker Hub has pull rate limits
-   - Authenticated users get higher limits
-   - Consider Docker Hub subscription for more pulls
+**"Cannot pull image"**
+- Verify DOCKER_USERNAME and DOCKER_PASSWORD are set
+- Check if image name is correct
+- Ensure image exists and you have access
 
-3. **Private image access**
-   - Ensure credentials have access to the repository
-   - Check image name format: `username/image:tag`
+**"Rate limit exceeded"**
+- Docker Hub has pull limits
+- Consider Docker Hub Pro for higher limits
+- Use image caching strategies
 
-### Common Errors
+**"Out of memory"**
+- Some images are large
+- Railway has memory limits
+- Use lighter alternatives when possible
 
-**"unauthorized: authentication required"**
-- Docker Hub credentials not set or incorrect
-- Image is private and requires authentication
+### Testing Docker Access
 
-**"pull access denied"**
-- No access to private repository
-- Image name is incorrect
+Ask Gary-Zero to verify Docker access:
+```
+"Check if you can access Docker Hub and list available images"
+```
 
-**"toomanyrequests: Rate limit exceeded"**
-- Docker Hub rate limit hit
-- Wait or upgrade Docker Hub account
+Gary-Zero will:
+1. Test authentication
+2. List accessible images
+3. Report any issues
 
 ## Advanced Configuration
 
-### Using Docker Cloud
-If you have Docker Cloud (enterprise):
-```bash
-DOCKER_REGISTRY=your-registry.docker.com
+### Custom Registry
+Use private registries beyond Docker Hub:
+```
+DOCKER_REGISTRY=your-registry.com
 DOCKER_USERNAME=your-username
 DOCKER_PASSWORD=your-token
 ```
 
-### Custom Registry Support
-For private registries:
-```bash
-DOCKER_REGISTRY=gcr.io  # Google Container Registry
-DOCKER_REGISTRY=your-company.azurecr.io  # Azure
-```
+### Image Caching
+Gary-Zero caches frequently used images:
+- Faster subsequent executions
+- Reduced bandwidth usage
+- Automatic cleanup of old images
 
-### Caching Strategy
-Railway persists Docker layers between deployments, so frequently used images will be cached for faster access.
+### Multi-Stage Execution
+Gary-Zero can chain containers:
+1. Data prep in one container
+2. Analysis in another
+3. Visualization in a third
 
-Remember: E2B provides security and isolation, Docker Hub provides specialized environments, and Railway provides the platform!
+## Summary
+
+With Docker Hub access, Gary-Zero becomes significantly more powerful:
+- ✅ Access to thousands of specialized tools
+- ✅ Custom execution environments
+- ✅ Private tool integration
+- ✅ Enhanced capabilities beyond E2B
+
+Remember: 
+- E2B for speed and security
+- Docker for specialization and flexibility
+- This is about giving Gary-Zero access to Docker images, not deploying Gary-Zero from Docker!
