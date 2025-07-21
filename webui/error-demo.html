@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Handling Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .demo-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #007cba;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #005a8b;
+        }
+        #error-log {
+            background: #333;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ff4444;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 4px;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        .toast.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Error reporting must be loaded first -->
+    <script src="js/error-reporting.js"></script>
+    <!-- Error boundary second -->
+    <script src="js/error-boundary.js"></script>
+
+    <h1>🛡️ Error Handling Demo</h1>
+    <p>This demo shows how the enhanced error handling works in the gary-zero application.</p>
+
+    <div class="demo-section">
+        <h2>🚨 Test Promise Rejections</h2>
+        <p>These buttons will trigger different types of promise rejections to test our error handling.</p>
+        
+        <button onclick="triggerUnhandledRejection()">Trigger Unhandled Promise Rejection</button>
+        <button onclick="triggerFetchError()">Trigger Fetch Error</button>
+        <button onclick="triggerAsyncError()">Trigger Async Function Error</button>
+        <button onclick="triggerJavaScriptError()">Trigger JavaScript Error</button>
+    </div>
+
+    <div class="demo-section">
+        <h2>📊 Error Statistics</h2>
+        <button onclick="showErrorStats()">Show Error Statistics</button>
+        <button onclick="clearErrorLog()">Clear Error Log</button>
+    </div>
+
+    <div class="demo-section">
+        <h2>📝 Error Log</h2>
+        <div id="error-log">Error log will appear here...\n</div>
+    </div>
+
+    <script>
+        // Mock toast function for demo
+        window.toast = function(message, type) {
+            logToDemo(`🍞 TOAST: ${type.toUpperCase()} - ${message}`);
+            showToastVisual(message, type);
+        };
+
+        function showToastVisual(message, type) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => document.body.removeChild(toast), 300);
+            }, 3000);
+        }
+
+        function logToDemo(message) {
+            const log = document.getElementById('error-log');
+            const timestamp = new Date().toLocaleTimeString();
+            log.textContent += `[${timestamp}] ${message}\n`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // Demo functions
+        function triggerUnhandledRejection() {
+            logToDemo('🔥 Triggering unhandled promise rejection...');
+            // This will be caught by our global error handler
+            Promise.reject(new Error('Demo unhandled promise rejection'));
+        }
+
+        function triggerFetchError() {
+            logToDemo('🌐 Triggering fetch error...');
+            // This will trigger network error handling
+            fetch('/non-existent-endpoint')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .catch(error => {
+                    logToDemo(`❌ Fetch failed: ${error.message}`);
+                    // This will be handled by our error reporting
+                    window.errorReporter.reportError(error, {
+                        type: 'api_failure',
+                        url: '/non-existent-endpoint',
+                        source: 'demo'
+                    });
+                });
+        }
+
+        async function triggerAsyncError() {
+            logToDemo('⚡ Triggering async function error...');
+            try {
+                await simulateAsyncOperation();
+            } catch (error) {
+                logToDemo(`❌ Async error caught: ${error.message}`);
+                window.errorReporter.reportError(error, {
+                    type: 'async_operation',
+                    source: 'demo'
+                });
+            }
+        }
+
+        async function simulateAsyncOperation() {
+            // Simulate some async work
+            await new Promise(resolve => setTimeout(resolve, 100));
+            throw new Error('Demo async operation failed');
+        }
+
+        function triggerJavaScriptError() {
+            logToDemo('💥 Triggering JavaScript error...');
+            // This will be caught by the global error handler
+            setTimeout(() => {
+                throw new Error('Demo JavaScript error');
+            }, 100);
+        }
+
+        function showErrorStats() {
+            const stats = window.errorReporter.getStats();
+            logToDemo('📊 ERROR STATISTICS:');
+            logToDemo(`   Total Errors: ${stats.totalErrors}`);
+            logToDemo(`   Session ID: ${stats.sessionId}`);
+            logToDemo(`   Recent Errors: ${stats.recentErrors.length}`);
+            
+            if (stats.recentErrors.length > 0) {
+                logToDemo('   Last 3 errors:');
+                stats.recentErrors.slice(-3).forEach((error, index) => {
+                    logToDemo(`     ${index + 1}. ${error.error.message} (${error.context.type || 'unknown'})`);
+                });
+            }
+        }
+
+        function clearErrorLog() {
+            document.getElementById('error-log').textContent = 'Error log cleared...\n';
+            window.errorReporter.clearErrorLog ? window.errorReporter.clearErrorLog() : null;
+            if (window.globalErrorBoundary) {
+                window.globalErrorBoundary.clearErrorLog();
+            }
+        }
+
+        // Log initialization
+        logToDemo('✅ Error handling demo initialized');
+        logToDemo('🛡️ Global error boundary active');
+        logToDemo('📊 Error reporter ready');
+        logToDemo('');
+        logToDemo('Try clicking the buttons above to test error handling!');
+    </script>
+</body>
+</html>

@@ -343,7 +343,8 @@ async function poll() {
             return true;
         }
     } catch (error) {
-        connectionStatus = false;
+        console.error("Network error during polling:", error);
+        setConnectionStatus(false);
         toastFetchError("Network error during polling", error);
     }
     return false;
@@ -417,8 +418,9 @@ function newChat() {
         // Clear local user messages tracking for new chat
         localUserMessages.clear();
         updateAfterScroll();
-    } catch {
-        toastFetchError("Error creating new chat", new Error("Failed to create a new chat context."));
+    } catch (error) {
+        console.error("Error creating new chat:", error);
+        toastFetchError("Error creating new chat", error);
     }
 }
 window.newChat = newChat;
@@ -469,11 +471,16 @@ async function sendMessage() {
                 });
             }
 
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
             const jsonResponse = await response.json();
             if (jsonResponse && jsonResponse.context) {
                 setContext(jsonResponse.context);
             } else {
-                toast("No response context returned.", "error");
+                console.warn("No response context returned from /message_async");
+                toast("No response context returned.", "warning");
             }
 
             chatInput.value = "";
@@ -481,8 +488,9 @@ async function sendMessage() {
             inputAD.hasAttachments = false;
             adjustTextareaHeight();
         }
-    } catch {
-        toastFetchError("Error sending message", new Error("An unexpected error occurred while sending your message."));
+    } catch (error) {
+        console.error("Error sending message:", error);
+        toastFetchError("Error sending message", error);
     }
 }
 window.sendMessage = sendMessage;
@@ -490,7 +498,8 @@ window.sendMessage = sendMessage;
 async function pauseAgent(paused) {
     try {
         await sendJsonData("/pause", { paused, context });
-    } catch {
+    } catch (error) {
+        console.error("Failed to pause agent:", error);
         toast("Failed to pause agent", "error");
     }
 }
@@ -500,7 +509,8 @@ async function resetChat(ctxid = null) {
     try {
         await sendJsonData("/chat_reset", { context: ctxid || context });
         if (!ctxid) updateAfterScroll();
-    } catch {
+    } catch (error) {
+        console.error("Failed to reset chat:", error);
         toast("Failed to reset chat", "error");
     }
 }
@@ -642,10 +652,12 @@ window.loadChats = async () => {
             setContext(response.ctxids[0]);
             toast("Chats loaded.", "success");
         } else {
-            toast("No response or chats returned.", "error");
+            console.warn("No chats returned from server");
+            toast("No chats could be loaded from the selected files.", "warning");
         }
-    } catch {
-        toastFetchError("Error loading chats", new Error("Could not load chat files."));
+    } catch (error) {
+        console.error("Error loading chats:", error);
+        toastFetchError("Error loading chats", error);
     }
 };
 
@@ -656,10 +668,12 @@ async function saveChat() {
             downloadFile(`${response.ctxid}.json`, response.content);
             toast("Chat file downloaded.", "success");
         } else {
-            toast("No response returned.", "error");
+            console.warn("No response returned from /chat_export");
+            toast("No response returned from server.", "error");
         }
-    } catch {
-        toastFetchError("Error saving chat", new Error("Could not save chat file."));
+    } catch (error) {
+        console.error("Error saving chat:", error);
+        toastFetchError("Error saving chat", error);
     }
 }
 window.saveChat = saveChat;
@@ -1048,11 +1062,21 @@ function initializeApp() {
                     if (shortIntervalCount > 0) shortIntervalCount--;
 
                     setTimeout(_doPoll, nextInterval);
-                } catch {
+                } catch (error) {
                     consecutiveErrors++;
+                    console.error(`Polling error (attempt ${consecutiveErrors}):`, error);
 
                     // Use progressively longer intervals on consecutive errors
                     const errorInterval = Math.min(longInterval * 2 ** Math.min(consecutiveErrors - 1, 4), 10000);
+                    
+                    // Show error to user after multiple consecutive failures
+                    if (consecutiveErrors >= 5) {
+                        console.warn(`Polling has failed ${consecutiveErrors} times consecutively`);
+                        if (consecutiveErrors === 5) {
+                            toast("Connection issues detected. Retrying...", "warning", 3000);
+                        }
+                    }
+                    
                     setTimeout(_doPoll, errorInterval);
                 }
             }
