@@ -4,10 +4,30 @@
 
 ### 1. **code_execution_tool**
 - **Purpose**: Execute code in secure E2B cloud sandboxes
-- **Runtimes**: python, javascript/nodejs, terminal, secure_info
+- **Runtimes**: 
+  - `python` - Python 3.11+ environment
+  - `javascript`/`nodejs` - Node.js environment
+  - `terminal` - Bash shell commands
+  - `secure_info` - Check execution environment
+  - `docker` - Run in Docker container (with Docker Hub access)
+- **Docker Hub Integration**: 
+  - Can pull any Docker image from Docker Hub
+  - Access to private images with configured credentials
+  - Run specialized environments (ML, databases, etc.)
 - **Railway Context**: All Railway env vars available in sandbox
 - **Security**: Complete isolation, no host access
 - **Usage**: Primary tool for any code execution needs
+
+#### Enhanced Docker Capabilities
+With Docker Hub credentials configured:
+```json
+{
+  "tool": "code_execution_tool",
+  "runtime": "docker",
+  "docker_image": "tensorflow/tensorflow:latest-gpu",
+  "code": "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
+}
+```
 
 ### 2. **response**
 - **Purpose**: Send final answer to user and end task
@@ -110,75 +130,89 @@ When calling other Railway services:
 }
 ```
 
-### Using E2B Effectively
-1. **Sandboxes are ephemeral** - Save outputs you need
-2. **Network access allowed** - Can call external APIs
-3. **Railway vars available** - All env vars accessible
-4. **Package installation** - Use terminal runtime first
-5. **File operations** - Limited to sandbox directory
+### Using E2B with Docker Hub
+1. **Standard E2B sandboxes** - Default Python/Node/Terminal environments
+2. **Docker-enhanced sandboxes** - Any Docker image from Docker Hub
+3. **Private images** - Your custom tools and environments
+4. **Specialized environments** - ML frameworks, databases, etc.
+5. **Full isolation** - Docker runs within E2B's secure sandbox
 
 ### Best Practices
 
 1. **Tool Selection**:
-   - Code execution → code_execution_tool
+   - Standard code → code_execution_tool with python/nodejs
+   - Specialized env → code_execution_tool with docker runtime
    - Web data → searchxng_tool or webpage_content_tool
    - Browser automation → browser_agent
    - Long-term storage → memorize/memory_load
 
-2. **Error Handling**:
+2. **Docker Image Selection**:
+   - Use official images when possible
+   - Specify exact tags for reproducibility
+   - Alpine variants for faster pulls
+   - Test with public images first
+
+3. **Error Handling**:
    - Always check tool responses
    - Use knowledge_tool for error research
    - Retry with modifications if needed
 
-3. **Security**:
+4. **Security**:
    - Never expose secrets in code
    - Use env vars for credentials
    - E2B provides isolation automatically
+   - Docker credentials never exposed to containers
 
-4. **Performance**:
+5. **Performance**:
    - Minimize tool calls
    - Batch operations when possible
    - Use appropriate session numbers
+   - Cache common Docker images
 
-### Tool Chaining Example
+### Advanced Docker Examples
 
-Research and implement a solution:
+Machine Learning with GPU:
 ```json
-// Step 1: Search for information
-{
-  "tool": "searchxng_tool",
-  "query": "Railway.com environment variables best practices"
-}
-
-// Step 2: Save important findings
-{
-  "tool": "memorize",
-  "memory": ["Railway uses PORT env var", "Must bind to 0.0.0.0"]
-}
-
-// Step 3: Implement solution
 {
   "tool": "code_execution_tool",
-  "runtime": "python",
-  "code": "# Implementation based on research"
-}
-
-// Step 4: Respond to user
-{
-  "tool": "response",
-  "text": "Task completed successfully!"
+  "runtime": "docker",
+  "docker_image": "pytorch/pytorch:2.0.0-cuda11.7-cudnn8-runtime",
+  "code": "import torch\nprint(f'CUDA available: {torch.cuda.is_available()}')\nprint(f'Device count: {torch.cuda.device_count()}')"
 }
 ```
 
-## Docker Hub Integration Benefits
+Database Operations:
+```json
+{
+  "tool": "code_execution_tool",
+  "runtime": "docker",
+  "docker_image": "mongo:7",
+  "code": "mongosh --eval 'db.version()'"
+}
+```
 
-When Docker Hub is connected:
-1. **Custom tool containers** - Deploy specialized environments
-2. **Private images** - Keep proprietary tools secure
-3. **Version control** - Tag and track tool versions
-4. **Faster deploys** - Cached layers speed up builds
+Custom Development:
+```json
+{
+  "tool": "code_execution_tool",
+  "runtime": "docker",
+  "docker_image": "golang:1.21-alpine",
+  "code": "go version && echo 'package main\nimport \"fmt\"\nfunc main() { fmt.Println(\"Hello from Go!\") }' > main.go && go run main.go"
+}
+```
 
-Connect via Railway dashboard or set:
-- `DOCKER_USERNAME`
-- `DOCKER_PASSWORD`
-- `DOCKER_REGISTRY` (optional)
+## Docker Hub Access Benefits
+
+With Docker Hub credentials configured:
+1. **Unlimited environments** - Any public Docker image
+2. **Private tools** - Your custom images
+3. **Specialized software** - Pre-configured environments
+4. **Version control** - Specific tagged versions
+5. **No setup required** - Images ready to use
+
+Your Gary-Zero now has access to:
+- `DOCKER_USERNAME` - For authentication
+- `DOCKER_PASSWORD` - For private images
+- `DOCKER_REGISTRY` - Docker Hub by default
+
+This dramatically expands execution capabilities beyond standard E2B environments!
