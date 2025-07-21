@@ -225,13 +225,20 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "options": provider_options,
         }
     )
+    # Get models for the current utility provider
+    current_util_provider = settings["util_model_provider"]
+    util_provider_models = get_models_for_provider(current_util_provider)
+    if not util_provider_models:
+        util_provider_models = get_all_models()
+    
     util_model_fields.append(
         {
             "id": "util_model_name",
             "title": "Utility model name",
-            "description": "Exact name of model from selected provider",
-            "type": "text",
+            "description": "Select model from the chosen provider",
+            "type": "select",
             "value": settings["util_model_name"],
+            "options": util_provider_models,
         }
     )
 
@@ -310,13 +317,20 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "options": provider_options,
         }
     )
+    # Get models for the current embedding provider
+    current_embed_provider = settings["embed_model_provider"]
+    embed_provider_models = get_models_for_provider(current_embed_provider)
+    if not embed_provider_models:
+        embed_provider_models = get_all_models()
+    
     embed_model_fields.append(
         {
             "id": "embed_model_name",
             "title": "Embedding model name",
-            "description": "Exact name of model from selected provider",
-            "type": "text",
+            "description": "Select model from the chosen provider",
+            "type": "select",
             "value": settings["embed_model_name"],
+            "options": embed_provider_models,
         }
     )
 
@@ -380,13 +394,20 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "options": provider_options,
         }
     )
+    # Get models for the current browser provider
+    current_browser_provider = settings["browser_model_provider"]
+    browser_provider_models = get_models_for_provider(current_browser_provider)
+    if not browser_provider_models:
+        browser_provider_models = get_all_models()
+    
     browser_model_fields.append(
         {
             "id": "browser_model_name",
             "title": "Web Browser model name",
-            "description": "Exact name of model from selected provider",
-            "type": "text",
+            "description": "Select model from the chosen provider",
+            "type": "select",
             "value": settings["browser_model_name"],
+            "options": browser_provider_models,
         }
     )
 

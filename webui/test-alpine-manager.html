@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpine.js Component Manager Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            border: 1px solid #ccc;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+        .status.success { background-color: #d4edda; color: #155724; }
+        .status.error { background-color: #f8d7da; color: #721c24; }
+        .status.warning { background-color: #fff3cd; color: #856404; }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            overflow-x: auto;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin: 5px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Alpine.js Component Manager Test</h1>
+    
+    <div class="test-section">
+        <h3>Component Manager Status</h3>
+        <div x-data="managerTest" x-init="checkStatus()">
+            <div class="status" :class="statusClass" x-text="statusMessage"></div>
+            <button @click="refreshStatus">Refresh Status</button>
+            <button @click="testRegistration">Test Registration</button>
+            
+            <h4>Manager Details:</h4>
+            <pre x-text="JSON.stringify(managerStatus, null, 2)"></pre>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Component 1</h3>
+        <div x-data="testComponent1" x-init="init()">
+            <p>Component 1 initialized: <span x-text="initialized ? 'Yes' : 'No'"></span></p>
+            <p>Registration time: <span x-text="registrationTime || 'Not set'"></span></p>
+            <button @click="updateTime">Update Time</button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Component 2 (Should demonstrate no duplicate)</h3>
+        <div x-data="testComponent2" x-init="init()">
+            <p>Component 2 initialized: <span x-text="initialized ? 'Yes' : 'No'"></span></p>
+            <p>Counter: <span x-text="counter"></span></p>
+            <button @click="increment">Increment</button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>Settings Modal Test</h3>
+        <div x-data="settingsModal" x-init="init()">
+            <p>Settings modal available: <span x-text="isLoading ? 'Loading...' : 'Ready'"></span></p>
+            <p>Active tab: <span x-text="activeTab"></span></p>
+            <button @click="switchTab('external')">Switch to External Tab</button>
+            <button @click="switchTab('developer')">Switch to Developer Tab</button>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>Console Log Monitor</h3>
+        <div id="console-output">
+            <p>Open browser console to see component registration logs.</p>
+            <p>Expected logs:</p>
+            <ul>
+                <li>🚀 Alpine Component Manager created and initializing</li>
+                <li>✅ Alpine Component Manager initialized</li>
+                <li>✅ Alpine component 'X' registered successfully</li>
+                <li>⚠️ Component 'X' already registered, skipping (for duplicates)</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Load Alpine.js -->
+    <script src="js/alpine.min.js" defer></script>
+    <!-- Load our Alpine Component Manager -->
+    <script type="module" src="js/alpine-registration.js"></script>
+    
+    <script>
+        // Test components to verify the manager is working
+        document.addEventListener('alpine:init', () => {
+            // Manager test component
+            if (window.safeRegisterAlpineComponent) {
+                window.safeRegisterAlpineComponent('managerTest', () => ({
+                    statusMessage: 'Checking...',
+                    statusClass: 'warning',
+                    managerStatus: {},
+                    
+                    checkStatus() {
+                        if (window.alpineManager) {
+                            this.managerStatus = window.alpineManager.getStatus();
+                            this.statusMessage = `Manager Ready - ${this.managerStatus.registeredCount} components registered`;
+                            this.statusClass = 'success';
+                        } else {
+                            this.statusMessage = 'Alpine Component Manager not found!';
+                            this.statusClass = 'error';
+                        }
+                    },
+                    
+                    refreshStatus() {
+                        this.checkStatus();
+                    },
+                    
+                    testRegistration() {
+                        if (window.safeRegisterAlpineComponent) {
+                            // Try to register a duplicate to test prevention
+                            window.safeRegisterAlpineComponent('testComponent1', () => ({
+                                test: 'duplicate attempt'
+                            }));
+                            this.checkStatus();
+                        }
+                    }
+                }));
+                
+                // Test component 1
+                window.safeRegisterAlpineComponent('testComponent1', () => ({
+                    initialized: false,
+                    registrationTime: null,
+                    
+                    init() {
+                        this.initialized = true;
+                        this.registrationTime = new Date().toLocaleTimeString();
+                        console.log('Test component 1 initialized');
+                    },
+                    
+                    updateTime() {
+                        this.registrationTime = new Date().toLocaleTimeString();
+                    }
+                }));
+                
+                // Test component 2 
+                window.safeRegisterAlpineComponent('testComponent2', () => ({
+                    initialized: false,
+                    counter: 0,
+                    
+                    init() {
+                        this.initialized = true;
+                        console.log('Test component 2 initialized');
+                    },
+                    
+                    increment() {
+                        this.counter++;
+                    }
+                }));
+                
+                console.log('✅ Test components registered via Component Manager');
+            } else {
+                console.error('❌ safeRegisterAlpineComponent not available!');
+            }
+        });
+    </script>
+</body>
+</html>

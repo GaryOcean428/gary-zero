@@ -1625,15 +1625,21 @@ if (!window.schedulerSettings) {
     };
 }
 
-// Force Alpine.js to register the component immediately
-if (window.Alpine) {
-    // Alpine is already loaded, register now
-    console.log("Alpine already loaded, registering schedulerSettings component now");
+// Force Alpine.js to register the component immediately using the Component Manager
+if (window.safeRegisterAlpineComponent) {
+    // Register the component using the Alpine Component Manager
+    window.safeRegisterAlpineComponent("schedulerSettings", window.schedulerSettings, {
+        allowOverride: true // Allow override since this component may be registered multiple times
+    });
+    console.log("✅ schedulerSettings component registered via Component Manager");
+} else if (window.Alpine) {
+    // Alpine is already loaded, register now as fallback
+    console.log("Alpine already loaded, registering schedulerSettings component now (fallback)");
     window.Alpine.data("schedulerSettings", window.schedulerSettings);
 } else {
-    // Wait for Alpine to load
+    // Wait for Alpine to load as final fallback
     document.addEventListener("alpine:init", () => {
-        console.log("Alpine:init - immediately registering schedulerSettings component");
+        console.log("Alpine:init - registering schedulerSettings component (final fallback)");
         Alpine.data("schedulerSettings", window.schedulerSettings);
     });
 }
