@@ -32,3 +32,6 @@ NIXPACKS_PYTHON_VERSION = "3.11"
 # SearXNG Railway service URL (will be set by Railway)
 SEARXNG_URL = "http://${{searchxng.RAILWAY_PRIVATE_DOMAIN}}:${{searchxng.PORT}}"
 DATA_DIR = "/app/data"
+# Code execution configuration for Railway deployment
+CODE_EXECUTION_MODE = "direct"
+DISABLE_SSH_EXECUTION = "true"

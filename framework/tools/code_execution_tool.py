@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from framework.helpers import rfc_exchange
 from framework.helpers.docker import DockerContainerManager
+from framework.helpers.execution_mode import should_use_ssh_execution, get_execution_info
 from framework.helpers.messages import truncate_text
 from framework.helpers.print_style import PrintStyle
 from framework.helpers.shell_local import LocalInteractiveSession
@@ -139,24 +140,40 @@ class CodeExecution(Tool):
 
             # initialize local or remote interactive shell interface for session 0 if needed
             if 0 not in shells:
-                if self.agent.config.code_exec_ssh_enabled:
-                    pswd = (
-                        self.agent.config.code_exec_ssh_pass
-                        if self.agent.config.code_exec_ssh_pass
-                        else await rfc_exchange.get_root_password()
-                    )
-                    shell = SSHInteractiveSession(
-                        self.agent.context.log,
-                        self.agent.config.code_exec_ssh_addr,
-                        self.agent.config.code_exec_ssh_port,
-                        self.agent.config.code_exec_ssh_user,
-                        pswd,
-                    )
-                else:
+                shell = None
+                
+                # Determine if SSH should be used based on environment and availability
+                use_ssh = self.agent.config.code_exec_ssh_enabled and should_use_ssh_execution()
+                
+                if use_ssh:
+                    try:
+                        PrintStyle(font_color="#85C1E9").print(f"🔗 Attempting SSH connection: {get_execution_info()}")
+                        pswd = (
+                            self.agent.config.code_exec_ssh_pass
+                            if self.agent.config.code_exec_ssh_pass
+                            else await rfc_exchange.get_root_password()
+                        )
+                        shell = SSHInteractiveSession(
+                            self.agent.context.log,
+                            self.agent.config.code_exec_ssh_addr,
+                            self.agent.config.code_exec_ssh_port,
+                            self.agent.config.code_exec_ssh_user,
+                            pswd,
+                        )
+                        shells[0] = shell
+                        await shell.connect()
+                        PrintStyle(font_color="#85C1E9").print("✅ SSH connection established successfully")
+                    except Exception as ssh_error:
+                        PrintStyle.warning(f"❌ SSH connection failed: {ssh_error}")
+                        PrintStyle.warning("🔄 Falling back to local execution")
+                        shell = None  # Reset shell to force local execution
+                
+                # Fallback to local execution if SSH failed or wasn't attempted
+                if shell is None:
+                    PrintStyle(font_color="#85C1E9").print(f"🖥️  Using direct execution: {get_execution_info()}")
                     shell = LocalInteractiveSession()
-
-                shells[0] = shell
-                await shell.connect()
+                    shells[0] = shell
+                    await shell.connect()
 
             self.state = State(shells=shells, docker=docker, secure_manager=secure_manager, secure_sessions=secure_sessions)
         self.agent.set_data("_cet_state", self.state)
@@ -395,23 +412,36 @@ class CodeExecution(Tool):
                     await self.reset_terminal()
 
                 if session not in self.state.shells:
-                    if self.agent.config.code_exec_ssh_enabled:
-                        pswd = (
-                            self.agent.config.code_exec_ssh_pass
-                            if self.agent.config.code_exec_ssh_pass
-                            else await rfc_exchange.get_root_password()
-                        )
-                        shell = SSHInteractiveSession(
-                            self.agent.context.log,
-                            self.agent.config.code_exec_ssh_addr,
-                            self.agent.config.code_exec_ssh_port,
-                            self.agent.config.code_exec_ssh_user,
-                            pswd,
-                        )
-                    else:
+                    shell = None
+                    
+                    # Determine if SSH should be used based on environment and availability
+                    use_ssh = self.agent.config.code_exec_ssh_enabled and should_use_ssh_execution()
+                    
+                    if use_ssh:
+                        try:
+                            pswd = (
+                                self.agent.config.code_exec_ssh_pass
+                                if self.agent.config.code_exec_ssh_pass
+                                else await rfc_exchange.get_root_password()
+                            )
+                            shell = SSHInteractiveSession(
+                                self.agent.context.log,
+                                self.agent.config.code_exec_ssh_addr,
+                                self.agent.config.code_exec_ssh_port,
+                                self.agent.config.code_exec_ssh_user,
+                                pswd,
+                            )
+                            self.state.shells[session] = shell
+                            await shell.connect()
+                        except Exception as ssh_error:
+                            PrintStyle.warning(f"SSH connection failed: {ssh_error}, falling back to local execution")
+                            shell = None  # Reset to force local execution
+                    
+                    # Fallback to local execution if SSH failed or wasn't attempted
+                    if shell is None:
                         shell = LocalInteractiveSession()
-                    self.state.shells[session] = shell
-                    await shell.connect()
+                        self.state.shells[session] = shell
+                        await shell.connect()
 
                 self.state.shells[session].send_command(command)
 
