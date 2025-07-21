@@ -114,6 +114,12 @@
 
     <!-- CSP and Alpine.js compatibility fix - load early -->
     <script type="text/javascript" src="js/csp-alpine-fix.js"></script>
+    
+    <!-- Error reporting - load before error boundary -->
+    <script type="text/javascript" src="js/error-reporting.js"></script>
+    
+    <!-- Error boundary - load early to catch all errors -->
+    <script type="text/javascript" src="js/error-boundary.js"></script>
 
     <!-- Load Alpine.js first -->
     <script defer type="module" src="js/initFw.js"></script>

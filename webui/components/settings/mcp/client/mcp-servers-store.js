@@ -9,45 +9,123 @@ const model = {
     loading: true,
     statusCheck: false,
     serverLog: "",
+    fallbackTextarea: null,
+    hasUnsavedChanges: false,
+    lastSavedContent: "",
 
     async initialize() {
         // Initialize the JSON Viewer after the modal is rendered
         const container = document.getElementById("mcp-servers-config-json");
         if (container) {
-            const editor = ace.edit("mcp-servers-config-json");
+            try {
+                const editor = ace.edit("mcp-servers-config-json");
 
-            const dark = localStorage.getItem("darkMode");
-            if (dark != "false") {
-                editor.setTheme("ace/theme/github_dark");
-            } else {
-                editor.setTheme("ace/theme/tomorrow");
+                const dark = localStorage.getItem("darkMode");
+                if (dark != "false") {
+                    editor.setTheme("ace/theme/github_dark");
+                } else {
+                    editor.setTheme("ace/theme/tomorrow");
+                }
+
+                editor.session.setMode("ace/mode/json");
+                
+                // Safely get the JSON value
+                let json = "";
+                try {
+                    const fieldConfig = this.getSettingsFieldConfigJson();
+                    if (fieldConfig && fieldConfig.value) {
+                        json = typeof fieldConfig.value === 'string' 
+                            ? fieldConfig.value 
+                            : JSON.stringify(fieldConfig.value, null, 2);
+                    } else {
+                        json = "{}"; // Default empty JSON object
+                    }
+                } catch (e) {
+                    console.warn("Failed to get initial JSON value:", e);
+                    json = "{}";
+                }
+                
+                // Safely set the value
+                if (typeof json === 'string' && json.trim()) {
+                    editor.setValue(json);
+                } else {
+                    editor.setValue("{}");
+                }
+                
+                editor.clearSelection();
+                this.editor = editor;
+                this.lastSavedContent = editor.getValue();
+                
+                // Set up change tracking
+                editor.on('change', () => {
+                    this.hasUnsavedChanges = this.editor.getValue() !== this.lastSavedContent;
+                    this.autoSave();
+                });
+                
+            } catch (error) {
+                console.error("Failed to initialize Ace editor, using fallback:", error);
+                this.initializeFallbackTextarea(container);
             }
-
-            editor.session.setMode("ace/mode/json");
-            const json = this.getSettingsFieldConfigJson().value;
-            editor.setValue(json);
-            editor.clearSelection();
-            this.editor = editor;
         }
 
         this.startStatusCheck();
     },
 
+    initializeFallbackTextarea(container) {
+        // Create a fallback textarea if Ace editor fails
+        const textarea = document.createElement('textarea');
+        textarea.id = 'mcp-servers-config-fallback';
+        textarea.style.width = '100%';
+        textarea.style.height = '400px';
+        textarea.style.fontFamily = 'monospace';
+        textarea.style.fontSize = '14px';
+        
+        // Get initial value
+        let json = "{}";
+        try {
+            const fieldConfig = this.getSettingsFieldConfigJson();
+            if (fieldConfig && fieldConfig.value) {
+                json = typeof fieldConfig.value === 'string' 
+                    ? fieldConfig.value 
+                    : JSON.stringify(fieldConfig.value, null, 2);
+            }
+        } catch (e) {
+            console.warn("Failed to get initial JSON value for fallback:", e);
+        }
+        
+        textarea.value = json;
+        this.lastSavedContent = json;
+        
+        // Replace the container content
+        container.innerHTML = '';
+        container.appendChild(textarea);
+        
+        this.fallbackTextarea = textarea;
+        
+        // Set up change tracking for fallback
+        textarea.addEventListener('input', () => {
+            this.hasUnsavedChanges = textarea.value !== this.lastSavedContent;
+            this.autoSave();
+        });
+    },
+
     formatJson() {
         try {
             // get current content
-            const currentContent = this.editor.getValue();
+            const currentContent = this.getEditorValue();
 
             // parse and format with 2 spaces indentation
             const parsed = JSON.parse(currentContent);
             const formatted = JSON.stringify(parsed, null, 2);
 
             // update editor content
-            this.editor.setValue(formatted);
-            this.editor.clearSelection();
-
-            // move cursor to start
-            this.editor.navigateFileStart();
+            if (this.editor) {
+                this.editor.setValue(formatted);
+                this.editor.clearSelection();
+                this.editor.navigateFileStart();
+            } else if (this.fallbackTextarea) {
+                this.fallbackTextarea.value = formatted;
+            }
         } catch (error) {
             console.error("Failed to format JSON:", error);
             alert("Invalid JSON: " + error.message);
@@ -55,7 +133,12 @@ const model = {
     },
 
     getEditorValue() {
-        return this.editor.getValue();
+        if (this.editor) {
+            return this.editor.getValue();
+        } else if (this.fallbackTextarea) {
+            return this.fallbackTextarea.value;
+        }
+        return "{}";
     },
 
     getSettingsFieldConfigJson() {
@@ -64,10 +147,45 @@ const model = {
             .fields.filter((x) => x.id == "mcp_servers")[0];
     },
 
+    autoSave() {
+        // Debounced auto-save to localStorage
+        if (this.autoSaveTimeout) {
+            clearTimeout(this.autoSaveTimeout);
+        }
+        
+        this.autoSaveTimeout = setTimeout(() => {
+            try {
+                const content = this.getEditorValue();
+                localStorage.setItem('mcp_servers_config_draft', content);
+                console.log('Auto-saved MCP servers config');
+            } catch (e) {
+                console.error('Failed to auto-save:', e);
+            }
+        }, 1000);
+    },
+
     onClose() {
-        const val = this.getEditorValue();
-        this.getSettingsFieldConfigJson().value = val;
-        this.stopStatusCheck();
+        try {
+            // Check for unsaved changes
+            if (this.hasUnsavedChanges) {
+                const confirmSave = confirm("You have unsaved changes. Do you want to save them?");
+                if (confirmSave) {
+                    const val = this.getEditorValue();
+                    const fieldConfig = this.getSettingsFieldConfigJson();
+                    if (fieldConfig) {
+                        fieldConfig.value = val;
+                    }
+                }
+            }
+            
+            // Clear auto-save draft
+            localStorage.removeItem('mcp_servers_config_draft');
+            
+            // Stop status check
+            this.stopStatusCheck();
+        } catch (error) {
+            console.error("Error in onClose:", error);
+        }
     },
 
     async startStatusCheck() {
@@ -101,12 +219,17 @@ const model = {
         this.loading = true;
         try {
             scrollModal("mcp-servers-status");
+            const currentContent = this.getEditorValue();
             const resp = await API.callJsonApi("mcp_servers_apply", {
-                mcp_servers: this.getEditorValue(),
+                mcp_servers: currentContent,
             });
             if (resp.success) {
                 this.servers = resp.status;
                 this.servers.sort((a, b) => a.name.localeCompare(b.name));
+                this.lastSavedContent = currentContent;
+                this.hasUnsavedChanges = false;
+                // Clear auto-save draft after successful save
+                localStorage.removeItem('mcp_servers_config_draft');
             }
             this.loading = false;
             await sleep(100); // wait for ui and scroll
