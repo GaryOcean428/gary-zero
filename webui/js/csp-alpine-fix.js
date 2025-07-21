@@ -2,59 +2,71 @@
 // Server-side CSP is now properly configured in run_ui.py
 
 (() => {
-    // Initialize Alpine.js components
+    // Initialize Alpine.js components using the Component Manager
     function initializeAlpineComponents() {
+        if (!window.safeRegisterAlpineComponent) {
+            console.warn("Alpine Component Manager not available, using direct registration");
+            // Fallback to direct registration
+            if (typeof Alpine !== "undefined") {
+                registerComponentsDirect();
+            }
+            return;
+        }
+
+        // Register global app state component for common data patterns
+        window.safeRegisterAlpineComponent("appState", () => ({
+            connected: true,
+            showQuickActions: true,
+            contexts: [],
+            tasks: [],
+            selected: "",
+
+            // Chat management methods
+            resetChat() {
+                if (window.resetChat) {
+                    window.resetChat();
+                } else {
+                    console.log("Reset chat - function not available");
+                }
+            },
+
+            newChat() {
+                if (window.newChat) {
+                    window.newChat();
+                } else {
+                    console.log("New chat - function not available");
+                }
+            },
+
+            loadChats() {
+                if (window.loadChats) {
+                    window.loadChats();
+                } else {
+                    console.log("Load chats - function not available");
+                }
+            },
+
+            saveChat() {
+                if (window.saveChat) {
+                    window.saveChat();
+                } else {
+                    console.log("Save chat - function not available");
+                }
+            },
+
+            restart() {
+                if (window.restart) {
+                    window.restart();
+                } else {
+                    console.log("Restart - function not available");
+                }
+            },
+        }));
+
+        console.log("✅ Alpine.js components registered via Component Manager");
+
+        // Register Alpine magic helpers using the standard Alpine APIs
         if (typeof Alpine !== "undefined") {
-            // Register global app state component for common data patterns
-            Alpine.data("appState", () => ({
-                connected: true,
-                showQuickActions: true,
-                contexts: [],
-                tasks: [],
-                selected: "",
-
-                // Chat management methods
-                resetChat() {
-                    if (window.resetChat) {
-                        window.resetChat();
-                    } else {
-                        console.log("Reset chat - function not available");
-                    }
-                },
-
-                newChat() {
-                    if (window.newChat) {
-                        window.newChat();
-                    } else {
-                        console.log("New chat - function not available");
-                    }
-                },
-
-                loadChats() {
-                    if (window.loadChats) {
-                        window.loadChats();
-                    } else {
-                        console.log("Load chats - function not available");
-                    }
-                },
-
-                saveChat() {
-                    if (window.saveChat) {
-                        window.saveChat();
-                    } else {
-                        console.log("Save chat - function not available");
-                    }
-                },
-
-                restart() {
-                    if (window.restart) {
-                        window.restart();
-                    } else {
-                        console.log("Restart - function not available");
-                    }
-                },
-            }));
-
             // Create global Alpine magic helpers
             Alpine.magic("safeCall", () => (name, ...args) => {
                 if (window[name] && typeof window[name] === "function") {
@@ -77,10 +89,86 @@
                 }
             });
 
-            console.log("✅ Alpine.js components registered successfully");
-        } else {
-            console.warn("Alpine.js not available for component registration");
+            console.log("✅ Alpine.js magic helpers registered");
         }
+    }
+
+    // Fallback direct registration function
+    function registerComponentsDirect() {
+        Alpine.data("appState", () => ({
+            connected: true,
+            showQuickActions: true,
+            contexts: [],
+            tasks: [],
+            selected: "",
+
+            // Chat management methods
+            resetChat() {
+                if (window.resetChat) {
+                    window.resetChat();
+                } else {
+                    console.log("Reset chat - function not available");
+                }
+            },
+
+            newChat() {
+                if (window.newChat) {
+                    window.newChat();
+                } else {
+                    console.log("New chat - function not available");
+                }
+            },
+
+            loadChats() {
+                if (window.loadChats) {
+                    window.loadChats();
+                } else {
+                    console.log("Load chats - function not available");
+                }
+            },
+
+            saveChat() {
+                if (window.saveChat) {
+                    window.saveChat();
+                } else {
+                    console.log("Save chat - function not available");
+                }
+            },
+
+            restart() {
+                if (window.restart) {
+                    window.restart();
+                } else {
+                    console.log("Restart - function not available");
+                }
+            },
+        }));
+
+        console.log("✅ Alpine.js components registered directly (fallback)");
+
+        // Create global Alpine magic helpers
+        Alpine.magic("safeCall", () => (name, ...args) => {
+            if (window[name] && typeof window[name] === "function") {
+                return window[name](...args);
+            } else {
+                console.warn(`Function ${name} not available`);
+            }
+        });
+
+        // Add null-safe text binding helper
+        Alpine.magic("safeText", () => (value, fallback = "") => {
+            try {
+                if (value === null || value === undefined) {
+                    return fallback;
+                }
+                return String(value);
+            } catch (error) {
+                console.warn("Alpine safeText error:", error);
+                return fallback;
+            }
+        });
+
+        console.log("✅ Alpine.js magic helpers registered (fallback)");
     }
 
     // 3. Fix ToastManager DOM initialization issues
