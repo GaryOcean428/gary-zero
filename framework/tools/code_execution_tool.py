@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from framework.helpers import rfc_exchange
 from framework.helpers.docker import DockerContainerManager
+from framework.helpers.execution_mode import should_use_ssh_execution, get_execution_info
 from framework.helpers.messages import truncate_text
 from framework.helpers.print_style import PrintStyle
 from framework.helpers.shell_local import LocalInteractiveSession
@@ -139,54 +140,79 @@ class CodeExecution(Tool):
 
             # initialize local or remote interactive shell interface for session 0 if needed
             if 0 not in shells:
-                if self.agent.config.code_exec_ssh_enabled:
-                    pswd = (
-                        self.agent.config.code_exec_ssh_pass
-                        if self.agent.config.code_exec_ssh_pass
-                        else await rfc_exchange.get_root_password()
-                    )
-                    shell = SSHInteractiveSession(
-                        self.agent.context.log,
-                        self.agent.config.code_exec_ssh_addr,
-                        self.agent.config.code_exec_ssh_port,
-                        self.agent.config.code_exec_ssh_user,
-                        pswd,
-                    )
-                else:
+                shell = None
+                
+                # Determine if SSH should be used based on environment and availability
+                use_ssh = self.agent.config.code_exec_ssh_enabled and should_use_ssh_execution()
+                
+                if use_ssh:
+                    try:
+                        PrintStyle(font_color="#85C1E9").print(f"🔗 Attempting SSH connection: {get_execution_info()}")
+                        pswd = (
+                            self.agent.config.code_exec_ssh_pass
+                            if self.agent.config.code_exec_ssh_pass
+                            else await rfc_exchange.get_root_password()
+                        )
+                        shell = SSHInteractiveSession(
+                            self.agent.context.log,
+                            self.agent.config.code_exec_ssh_addr,
+                            self.agent.config.code_exec_ssh_port,
+                            self.agent.config.code_exec_ssh_user,
+                            pswd,
+                        )
+                        shells[0] = shell
+                        await shell.connect()
+                        PrintStyle(font_color="#85C1E9").print("✅ SSH connection established successfully")
+                    except Exception as ssh_error:
+                        PrintStyle.warning(f"❌ SSH connection failed: {ssh_error}")
+                        PrintStyle.warning("🔄 Falling back to local execution")
+                        shell = None  # Reset shell to force local execution
+                
+                # Fallback to local execution if SSH failed or wasn't attempted
+                if shell is None:
+                    PrintStyle(font_color="#85C1E9").print(f"🖥️  Using direct execution: {get_execution_info()}")
                     shell = LocalInteractiveSession()
-
-                shells[0] = shell
-                await shell.connect()
+                    shells[0] = shell
+                    await shell.connect()
 
             self.state = State(shells=shells, docker=docker, secure_manager=secure_manager, secure_sessions=secure_sessions)
         self.agent.set_data("_cet_state", self.state)
 
     async def execute_python_code(self, session: int, code: str, reset: bool = False):
-        # Try secure execution first
-        if self.state.secure_manager and self.state.secure_manager.is_secure_execution_available():
-            return await self._execute_secure_python(session, code, reset)
+        # Prefer secure execution as primary path
+        if self.state.secure_manager:
+            if self.state.secure_manager.is_secure_execution_available():
+                return await self._execute_secure_python(session, code, reset)
+            else:
+                PrintStyle.warning("🔄 Secure execution not available, falling back to terminal execution")
         
-        # Fallback to legacy execution
+        # Fallback to legacy terminal execution
         escaped_code = shlex.quote(code)
         command = f"ipython -c {escaped_code}"
         return await self.terminal_session(session, command, reset)
 
     async def execute_nodejs_code(self, session: int, code: str, reset: bool = False):
-        # Try secure execution first
-        if self.state.secure_manager and self.state.secure_manager.is_secure_execution_available():
-            return await self._execute_secure_nodejs(session, code, reset)
+        # Prefer secure execution as primary path
+        if self.state.secure_manager:
+            if self.state.secure_manager.is_secure_execution_available():
+                return await self._execute_secure_nodejs(session, code, reset)
+            else:
+                PrintStyle.warning("🔄 Secure execution not available, falling back to terminal execution")
         
-        # Fallback to legacy execution
+        # Fallback to legacy terminal execution
         escaped_code = shlex.quote(code)
         command = f"node /exe/node_eval.js {escaped_code}"
         return await self.terminal_session(session, command, reset)
 
     async def execute_terminal_command(self, session: int, command: str, reset: bool = False):
-        # Try secure execution first
-        if self.state.secure_manager and self.state.secure_manager.is_secure_execution_available():
-            return await self._execute_secure_terminal(session, command, reset)
+        # Prefer secure execution as primary path
+        if self.state.secure_manager:
+            if self.state.secure_manager.is_secure_execution_available():
+                return await self._execute_secure_terminal(session, command, reset)
+            else:
+                PrintStyle.warning("🔄 Secure execution not available, falling back to terminal execution")
         
-        # Fallback to legacy execution
+        # Fallback to legacy terminal execution
         return await self.terminal_session(session, command, reset)
 
     async def _execute_secure_python(self, session: int, code: str, reset: bool = False):
@@ -395,23 +421,36 @@ class CodeExecution(Tool):
                     await self.reset_terminal()
 
                 if session not in self.state.shells:
-                    if self.agent.config.code_exec_ssh_enabled:
-                        pswd = (
-                            self.agent.config.code_exec_ssh_pass
-                            if self.agent.config.code_exec_ssh_pass
-                            else await rfc_exchange.get_root_password()
-                        )
-                        shell = SSHInteractiveSession(
-                            self.agent.context.log,
-                            self.agent.config.code_exec_ssh_addr,
-                            self.agent.config.code_exec_ssh_port,
-                            self.agent.config.code_exec_ssh_user,
-                            pswd,
-                        )
-                    else:
+                    shell = None
+                    
+                    # Determine if SSH should be used based on environment and availability
+                    use_ssh = self.agent.config.code_exec_ssh_enabled and should_use_ssh_execution()
+                    
+                    if use_ssh:
+                        try:
+                            pswd = (
+                                self.agent.config.code_exec_ssh_pass
+                                if self.agent.config.code_exec_ssh_pass
+                                else await rfc_exchange.get_root_password()
+                            )
+                            shell = SSHInteractiveSession(
+                                self.agent.context.log,
+                                self.agent.config.code_exec_ssh_addr,
+                                self.agent.config.code_exec_ssh_port,
+                                self.agent.config.code_exec_ssh_user,
+                                pswd,
+                            )
+                            self.state.shells[session] = shell
+                            await shell.connect()
+                        except Exception as ssh_error:
+                            PrintStyle.warning(f"SSH connection failed: {ssh_error}, falling back to local execution")
+                            shell = None  # Reset to force local execution
+                    
+                    # Fallback to local execution if SSH failed or wasn't attempted
+                    if shell is None:
                         shell = LocalInteractiveSession()
-                    self.state.shells[session] = shell
-                    await shell.connect()
+                        self.state.shells[session] = shell
+                        await shell.connect()
 
                 self.state.shells[session].send_command(command)
 

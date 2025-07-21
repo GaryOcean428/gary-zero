@@ -1,8 +1,8 @@
 ### code_execution_tool
 
-execute terminal commands python nodejs code for computation or software tasks
+execute code securely using E2B cloud sandbox, Docker, or local execution
 place code in "code" arg; escape carefully and indent properly
-select "runtime" arg: "terminal" "python" "nodejs" "output" "reset"
+select "runtime" arg: "terminal" "python" "nodejs" "output" "reset" "secure_info"
 select "session" number, 0 default, others for multitasking
 if code runs long, use "output" to wait, "reset" to kill process
 use "pip" "npm" "apt-get" in "terminal" to install packages
@@ -12,6 +12,10 @@ important: check code for placeholders or demo data; replace with real variables
 don't use with other tools except thoughts; wait for response before using others
 check dependencies before running code
 output may end with [SYSTEM: ...] information comming from framework, not terminal
+
+**secure execution**: Code runs in isolated E2B cloud sandboxes when available, providing enhanced security
+**runtime "secure_info"**: Get information about current execution environment (E2B, Docker, or local)
+
 usage:
 
 1 execute python code
@@ -72,6 +76,19 @@ usage:
     "tool_args": {
         "runtime": "reset",
         "session": 0,
+    }
+}
+~~~
+
+3 get secure execution environment info
+~~~json
+{
+    "thoughts": [
+        "Need to check what execution environment is available...",
+    ],
+    "tool_name": "code_execution_tool",
+    "tool_args": {
+        "runtime": "secure_info",
     }
 }
 ~~~

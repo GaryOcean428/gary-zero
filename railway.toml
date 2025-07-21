@@ -29,6 +29,20 @@ PYTHONUNBUFFERED = "1"
 FLASK_ENV = "production"
 RAILPACK_PRUNE_DEPS = "false"
 NIXPACKS_PYTHON_VERSION = "3.11"
+
 # SearXNG Railway service URL (will be set by Railway)
 SEARXNG_URL = "http://${{searchxng.RAILWAY_PRIVATE_DOMAIN}}:${{searchxng.PORT}}"
+
+# E2B Configuration (secure cloud sandbox execution)
+E2B_API_KEY = "${{E2B_API_KEY}}"
+
+# Data directory for persistent storage
 DATA_DIR = "/app/data"
+
+# Code execution configuration for Railway deployment
+CODE_EXECUTION_MODE = "secure"
+DISABLE_SSH_EXECUTION = "true"
+USE_E2B_EXECUTION = "true"
+
+# Search provider configuration
+SEARCH_PROVIDER = "searxng"
