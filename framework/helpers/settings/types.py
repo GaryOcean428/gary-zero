@@ -140,6 +140,7 @@ DEFAULT_SETTINGS: Settings = {
     "embed_model_rl_input": 0,
     # Browser model settings - using Claude 4 Sonnet for vision
     "browser_model_provider": "ANTHROPIC",
+    "browser_model_name": "claude-sonnet-4-20250514",
     "browser_model_name": "claude-sonnet-4-latest",
     "browser_model_kwargs": {},
     "browser_model_vision": True,
