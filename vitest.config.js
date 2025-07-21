@@ -1,4 +1,5 @@
 import { defineConfig } from "vitest/config";
+import { resolve } from "path";
 
 export default defineConfig({
     test: {
@@ -7,7 +8,7 @@ export default defineConfig({
         setupFiles: ["./tests/setup.js"],
         coverage: {
             provider: "v8",
-            reporter: ["text", "html", "lcov"],
+            reporter: ["text", "json", "html"],
             reportsDirectory: "./coverage",
             threshold: {
                 global: {
@@ -27,6 +28,8 @@ export default defineConfig({
                 "build/",
                 "webui/js/alpine*.js",
                 "webui/js/transformers*.js",
+                "webui/lib/",
+                "scripts/",
                 "**/*.min.js",
             ],
         },
@@ -36,11 +39,20 @@ export default defineConfig({
             "framework/**/*.{test,spec}.{js,ts}",
         ],
         exclude: ["node_modules/", "dist/", "build/", "**/*.min.js"],
+        // Railway-compatible settings
+        pool: "forks",
+        poolOptions: {
+            forks: {
+                singleFork: true,
+            },
+        },
     },
     resolve: {
         alias: {
-            "@": "./webui",
-            "@framework": "./framework",
+            "@": resolve(process.cwd(), "./webui"),
+            "@components": resolve(process.cwd(), "./webui/js"),
+            "@lib": resolve(process.cwd(), "./lib"),
+            "@framework": resolve(process.cwd(), "./framework"),
         },
     },
 });

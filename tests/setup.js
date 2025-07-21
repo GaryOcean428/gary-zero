@@ -1,5 +1,6 @@
 // Global test setup
 import { afterEach, beforeEach } from "vitest";
+import "@testing-library/jest-dom";
 
 // Mock global objects that might be needed in tests
 global.fetch = global.fetch || (() => Promise.resolve({ ok: true, json: () => Promise.resolve({}) }));

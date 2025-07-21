@@ -61,3 +61,7 @@ instruments/**
 !**/.gitkeep
 agent_history.gif.build-timestamp
 node_modules
+
+# Test coverage reports
+coverage/
+*.lcov

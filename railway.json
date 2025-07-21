@@ -1,6 +1,7 @@
 {
   "build": {
-    "builder": "nixpacks"
+    "builder": "nixpacks",
+    "buildCommand": "npm install && npm run test:ci"
   },
   "deploy": {
     "startCommand": "python run_ui.py --port $PORT --host 0.0.0.0 --dockerized",
@@ -10,6 +11,8 @@
     "RAILPACK_PRUNE_DEPS": "false",
     "WEB_UI_HOST": "0.0.0.0",
     "PYTHONUNBUFFERED": "1",
-    "NIXPACKS_PYTHON_VERSION": "3.11"
+    "NIXPACKS_PYTHON_VERSION": "3.11",
+    "NODE_ENV": "production",
+    "VITEST_ENVIRONMENT": "node"
   }
 }
