@@ -500,6 +500,48 @@ style.textContent = `
     textarea[aria-invalid="false"] {
         border-color: #10b981;
     }
+
+    /* Fallback component styling */
+    .fallback-component {
+        padding: 20px;
+        border: 2px dashed var(--color-border, #ccc);
+        border-radius: 8px;
+        text-align: center;
+        background: var(--bg-secondary, #f9f9f9);
+        color: var(--color-text, #333);
+        margin: 10px 0;
+    }
+
+    .fallback-component h3 {
+        margin: 0 0 10px 0;
+        color: var(--color-primary, #3b82f6);
+    }
+
+    .fallback-component .error-message {
+        color: #ef4444;
+        font-size: 0.9em;
+        margin: 10px 0;
+        padding: 8px;
+        background: rgba(239, 68, 68, 0.1);
+        border-radius: 4px;
+    }
+
+    .fallback-component .btn {
+        padding: 8px 16px;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+        font-size: 0.9em;
+    }
+
+    .fallback-component .btn-primary {
+        background: var(--color-primary, #3b82f6);
+        color: white;
+    }
+
+    .fallback-component .btn-primary:hover {
+        background: var(--color-primary-dark, #2563eb);
+    }
 `;
 document.head.appendChild(style);
 
