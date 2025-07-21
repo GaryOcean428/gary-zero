@@ -8,6 +8,8 @@
 
 {{ include './agent.system.tool.search_engine.md' }}
 
+{{ include './agent.system.tool.searchxng.md' }}
+
 {{ include './agent.system.tool.memory.md' }}
 
 {{ include './agent.system.tool.code_exe.md' }}

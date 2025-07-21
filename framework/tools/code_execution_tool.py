@@ -179,31 +179,40 @@ class CodeExecution(Tool):
         self.agent.set_data("_cet_state", self.state)
 
     async def execute_python_code(self, session: int, code: str, reset: bool = False):
-        # Try secure execution first
-        if self.state.secure_manager and self.state.secure_manager.is_secure_execution_available():
-            return await self._execute_secure_python(session, code, reset)
+        # Prefer secure execution as primary path
+        if self.state.secure_manager:
+            if self.state.secure_manager.is_secure_execution_available():
+                return await self._execute_secure_python(session, code, reset)
+            else:
+                PrintStyle.warning("🔄 Secure execution not available, falling back to terminal execution")
         
-        # Fallback to legacy execution
+        # Fallback to legacy terminal execution
         escaped_code = shlex.quote(code)
         command = f"ipython -c {escaped_code}"
         return await self.terminal_session(session, command, reset)
 
     async def execute_nodejs_code(self, session: int, code: str, reset: bool = False):
-        # Try secure execution first
-        if self.state.secure_manager and self.state.secure_manager.is_secure_execution_available():
-            return await self._execute_secure_nodejs(session, code, reset)
+        # Prefer secure execution as primary path
+        if self.state.secure_manager:
+            if self.state.secure_manager.is_secure_execution_available():
+                return await self._execute_secure_nodejs(session, code, reset)
+            else:
+                PrintStyle.warning("🔄 Secure execution not available, falling back to terminal execution")
         
-        # Fallback to legacy execution
+        # Fallback to legacy terminal execution
         escaped_code = shlex.quote(code)
         command = f"node /exe/node_eval.js {escaped_code}"
         return await self.terminal_session(session, command, reset)
 
     async def execute_terminal_command(self, session: int, command: str, reset: bool = False):
-        # Try secure execution first
-        if self.state.secure_manager and self.state.secure_manager.is_secure_execution_available():
-            return await self._execute_secure_terminal(session, command, reset)
+        # Prefer secure execution as primary path
+        if self.state.secure_manager:
+            if self.state.secure_manager.is_secure_execution_available():
+                return await self._execute_secure_terminal(session, command, reset)
+            else:
+                PrintStyle.warning("🔄 Secure execution not available, falling back to terminal execution")
         
-        # Fallback to legacy execution
+        # Fallback to legacy terminal execution
         return await self.terminal_session(session, command, reset)
 
     async def _execute_secure_python(self, session: int, code: str, reset: bool = False):
