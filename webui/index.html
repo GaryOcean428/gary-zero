@@ -335,7 +335,8 @@
                                         <span class="slider"></span>
                                     </label>
                                 </li>
-                                <li x-data="{ showThoughts: true }">
+                                <li x-data="{ showThoughts: localStorage.getItem('showThoughts') !== 'false' }"
+                                    x-init="$watch('showThoughts', val => { localStorage.setItem('showThoughts', val); window.safeCall('toggleThoughts', val); })">
                                     <span>Show thoughts</span>
                                     <label class="switch">
                                         <input type="checkbox" x-model="showThoughts"
@@ -343,7 +344,8 @@
                                         <span class="slider"></span>
                                     </label>
                                 </li>
-                                <li x-data="{ showJson: false }">
+                                <li x-data="{ showJson: localStorage.getItem('showJson') === 'true' }"
+                                    x-init="$watch('showJson', val => { localStorage.setItem('showJson', val); window.safeCall('toggleJson', val); })">
                                     <span>Show JSON</span>
                                     <label class="switch">
                                         <input type="checkbox" x-model="showJson"
@@ -351,7 +353,8 @@
                                         <span class="slider"></span>
                                     </label>
                                 </li>
-                                <li x-data="{ showUtils: false }">
+                                <li x-data="{ showUtils: localStorage.getItem('showUtils') === 'true' }"
+                                    x-init="$watch('showUtils', val => { localStorage.setItem('showUtils', val); window.safeCall('toggleUtils', val); })">
                                     <span>Show utility messages</span>
                                     <label class="switch">
                                         <input type="checkbox" x-model="showUtils"

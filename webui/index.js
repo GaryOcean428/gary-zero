@@ -94,6 +94,7 @@ function isMobile() {
 }
 
 function toggleCssProperty(selector, property, value) {
+    // First try the existing stylesheet approach for backward compatibility
     for (const sheet of document.styleSheets) {
         try {
             for (const rule of sheet.cssRules || sheet.rules) {
@@ -111,6 +112,36 @@ function toggleCssProperty(selector, property, value) {
             // Intentionally empty - ignoring CORS errors
         }
     }
+    
+    // Fallback: Create or update a dynamic style element
+    let dynamicStyleId = 'dynamic-toggle-styles';
+    let dynamicStyle = document.getElementById(dynamicStyleId);
+    
+    if (!dynamicStyle) {
+        dynamicStyle = document.createElement('style');
+        dynamicStyle.id = dynamicStyleId;
+        dynamicStyle.type = 'text/css';
+        document.head.appendChild(dynamicStyle);
+    }
+    
+    // Track current rules in the dynamic style element
+    if (!window._dynamicToggleRules) {
+        window._dynamicToggleRules = new Map();
+    }
+    
+    const ruleKey = `${selector}:${property}`;
+    
+    if (value === undefined) {
+        // Remove the rule
+        window._dynamicToggleRules.delete(ruleKey);
+    } else {
+        // Add or update the rule
+        window._dynamicToggleRules.set(ruleKey, `${selector} { ${property}: ${value} !important; }`);
+    }
+    
+    // Rebuild the dynamic stylesheet
+    const allRules = Array.from(window._dynamicToggleRules.values()).join('\n');
+    dynamicStyle.textContent = allRules;
 }
 
 // --- Toast Notifications ---
@@ -1042,6 +1073,16 @@ function initializeApp() {
             autoScrollSwitch.checked = savedAutoScroll;
             toggleAutoScroll(savedAutoScroll);
         }
+        
+        // Initialize toggle states for thoughts and utilities
+        const showThoughts = localStorage.getItem("showThoughts") !== "false"; // Default to true
+        const showUtils = localStorage.getItem("showUtils") === "true"; // Default to false
+        const showJson = localStorage.getItem("showJson") === "true"; // Default to false
+        
+        // Apply the toggle states
+        if (window.toggleThoughts) window.toggleThoughts(showThoughts);
+        if (window.toggleUtils) window.toggleUtils(showUtils);
+        if (window.toggleJson) window.toggleJson(showJson);
     }
 
     function setupPolling() {
