@@ -16,7 +16,7 @@ MODEL_PARAMETERS: Dict[str, Dict[str, Dict[str, Any]]] = {
             "rl_input": 400000,
             "rl_output": 50000,
         },
-        "claude-sonnet-4-latest": {
+        "claude-3-5-sonnet-20241022": {
             "ctx_length": 200000,
             "vision": True,
             "rl_requests": 1000,

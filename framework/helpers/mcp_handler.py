@@ -25,7 +25,7 @@ from anyio.streams.memory import (
     MemoryObjectSendStream,
 )
 
-# print(f"DEBUG: Listing /opt/venv/lib/python3.11/site-packages/ before mcp import: {os.listdir('/opt/venv/lib/python3.11/site-packages/')}") # This line caused FileNotFoundError, **FOR CUDA CHANGE TO '3.12'**
+# print(f"DEBUG: Listing /opt/venv/lib/python3.13/site-packages/ before mcp import: {os.listdir('/opt/venv/lib/python3.13/site-packages/')}") # This line caused FileNotFoundError, **FOR CUDA CHANGE TO '3.13'**
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.sse import sse_client
 from mcp.client.stdio import stdio_client
