@@ -9,6 +9,20 @@ from typing import Dict, Optional, Any
 # Model parameters database - organized by provider and model
 MODEL_PARAMETERS: Dict[str, Dict[str, Dict[str, Any]]] = {
     "ANTHROPIC": {
+        "claude-sonnet-4-20250514": {
+            "ctx_length": 200000,
+            "vision": True,
+            "rl_requests": 1000,
+            "rl_input": 400000,
+            "rl_output": 50000,
+        },
+        "claude-opus-4-20250514": {
+            "ctx_length": 200000,
+            "vision": True,
+            "rl_requests": 1000,
+            "rl_input": 400000,
+            "rl_output": 50000,
+        },
         "claude-opus-4-latest": {
             "ctx_length": 200000,
             "vision": True,

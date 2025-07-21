@@ -9,6 +9,8 @@ from typing import Dict, List
 # Comprehensive model catalog organized by provider
 MODEL_CATALOG: Dict[str, List[Dict[str, str]]] = {
     "ANTHROPIC": [
+        {"value": "claude-sonnet-4-20250514", "label": "Claude 4 Sonnet (2025-05-14)"},
+        {"value": "claude-opus-4-20250514", "label": "Claude 4 Opus (2025-05-14)"},
         {"value": "claude-opus-4-latest", "label": "Claude 4 Opus"},
         {"value": "claude-3-5-sonnet-20241022", "label": "Claude 3.5 Sonnet (Latest)"},
         {"value": "claude-code", "label": "Claude Code"},
