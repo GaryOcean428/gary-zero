@@ -366,7 +366,26 @@ _supervisor_instance: Optional[SupervisorAgent] = None
 def get_supervisor_agent(config: Optional[Dict[str, Any]] = None) -> SupervisorAgent:
     """Get the global supervisor agent instance."""
     global _supervisor_instance
-    if _supervisor_instance is None and config:
+    if _supervisor_instance is None:
+        # Initialize with default config if none provided
+        if config is None:
+            try:
+                from framework.helpers import settings
+                current_settings = settings.get_settings()
+                config = {
+                    "monitoring_interval": current_settings.get("supervisor_monitoring_interval", 30),
+                    "max_retries": current_settings.get("supervisor_max_retries", 3),
+                    "enable_handoffs": current_settings.get("supervisor_enable_handoffs", True),
+                    "enable_parallel_execution": current_settings.get("supervisor_enable_parallel", False)
+                }
+            except Exception:
+                # Fallback to minimal default config
+                config = {
+                    "monitoring_interval": 30,
+                    "max_retries": 3,
+                    "enable_handoffs": True,
+                    "enable_parallel_execution": False
+                }
         _supervisor_instance = SupervisorAgent(config)
     return _supervisor_instance
 

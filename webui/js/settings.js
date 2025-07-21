@@ -398,6 +398,9 @@ const settingsModalProxy = {
                                     const currentValueExists = models.some(model => model.value === field.value);
                                     if (!currentValueExists && models.length > 0) {
                                         field.value = models[0].value; // Set to first available model
+                                        
+                                        // Auto-update model parameters when model changes
+                                        await this.handleModelChange(modelFieldId, field.value, newProvider);
                                     }
                                     console.log(`Updated ${modelFieldId} with ${models.length} models`);
                                     break;
@@ -411,6 +414,67 @@ const settingsModalProxy = {
             }
         } catch (error) {
             console.error("Error handling provider change:", error);
+        }
+    },
+
+    // Handle model change for automatic parameter updates
+    async handleModelChange(modelFieldId, newModel, provider) {
+        try {
+            console.log(`Model changed: ${modelFieldId} to ${newModel} (provider: ${provider})`);
+            
+            // Get parameters for this model
+            const response = await fetch("/get_model_parameters", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ 
+                    provider: provider, 
+                    model_name: newModel 
+                }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const parameters = data.parameters || {};
+                
+                console.log(`Received parameters for ${newModel}:`, parameters);
+                
+                // Update related parameter fields
+                const modalEl = document.getElementById("settingsModal");
+                if (modalEl) {
+                    const modalAD = Alpine.$data(modalEl);
+                    if (modalAD && modalAD.settings && modalAD.settings.sections) {
+                        const baseId = modelFieldId.replace('_name', '');
+                        
+                        // Map of parameter keys to field suffixes
+                        const parameterMapping = {
+                            'ctx_length': '_ctx_length',
+                            'vision': '_vision',
+                            'rl_requests': '_rl_requests',
+                            'rl_input': '_rl_input',
+                            'rl_output': '_rl_output'
+                        };
+                        
+                        for (const section of modalAD.settings.sections) {
+                            for (const field of section.fields) {
+                                // Check if this field corresponds to a model parameter
+                                for (const [paramKey, fieldSuffix] of Object.entries(parameterMapping)) {
+                                    if (field.id === baseId + fieldSuffix && parameters.hasOwnProperty(paramKey)) {
+                                        const oldValue = field.value;
+                                        field.value = parameters[paramKey];
+                                        console.log(`Updated ${field.id}: ${oldValue} → ${field.value}`);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                console.error("Failed to fetch model parameters:", response.status);
+            }
+        } catch (error) {
+            console.error("Error handling model change:", error);
         }
     },
 };
@@ -649,6 +713,9 @@ document.addEventListener("alpine:init", () => {
                                     const currentValueExists = models.some(model => model.value === field.value);
                                     if (!currentValueExists && models.length > 0) {
                                         field.value = models[0].value; // Set to first available model
+                                        
+                                        // Auto-update model parameters when model changes
+                                        await this.handleModelChange(modelFieldId, field.value, newProvider);
                                     }
                                     break;
                                 }
@@ -659,6 +726,61 @@ document.addEventListener("alpine:init", () => {
                     }
                 } catch (error) {
                     console.error("Error handling provider change:", error);
+                }
+            },
+
+            // Handle model change for automatic parameter updates
+            async handleModelChange(modelFieldId, newModel, provider) {
+                try {
+                    console.log(`Model changed: ${modelFieldId} to ${newModel} (provider: ${provider})`);
+                    
+                    // Get parameters for this model
+                    const response = await fetch("/get_model_parameters", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ 
+                            provider: provider, 
+                            model_name: newModel 
+                        }),
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const parameters = data.parameters || {};
+                        
+                        console.log(`Received parameters for ${newModel}:`, parameters);
+                        
+                        // Update related parameter fields
+                        const baseId = modelFieldId.replace('_name', '');
+                        
+                        // Map of parameter keys to field suffixes
+                        const parameterMapping = {
+                            'ctx_length': '_ctx_length',
+                            'vision': '_vision',
+                            'rl_requests': '_rl_requests',
+                            'rl_input': '_rl_input',
+                            'rl_output': '_rl_output'
+                        };
+                        
+                        for (const section of this.settingsData.sections) {
+                            for (const field of section.fields) {
+                                // Check if this field corresponds to a model parameter
+                                for (const [paramKey, fieldSuffix] of Object.entries(parameterMapping)) {
+                                    if (field.id === baseId + fieldSuffix && parameters.hasOwnProperty(paramKey)) {
+                                        const oldValue = field.value;
+                                        field.value = parameters[paramKey];
+                                        console.log(`Updated ${field.id}: ${oldValue} → ${field.value}`);
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        console.error("Failed to fetch model parameters:", response.status);
+                    }
+                } catch (error) {
+                    console.error("Error handling model change:", error);
                 }
             },
 
