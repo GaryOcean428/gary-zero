@@ -1,13 +1,48 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "zero"
-version = "0.1.0"
-description = "Zero AI Assistant"
+name = "gary-zero"
+version = "0.9.0"
+description = "Autonomous AI Agent Framework with Multi-Agent Cooperation"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
+license = {file = "LICENSE"}
+authors = [
+  {name = "Gary Ocean", email = "gary@garyocean.com"}
+]
+dependencies = [
+  "fastapi>=0.115.0",
+  "uvicorn[standard]>=0.32.0",
+  "pydantic>=2.8.0",
+  "asyncio-mqtt>=0.16.0",
+  "playwright>=1.45.0",
+  "docker>=7.1.0",
+  "requests>=2.32.0",
+  "websockets>=12.0",
+  "psutil>=7.0.0",
+  "langchain-core>=0.3.0",
+  "langchain-anthropic>=0.3.3",
+  "langchain-openai>=0.3.11",
+  "python-dotenv>=1.1.0",
+  "flask>=3.0.3",
+  "gunicorn>=23.0.0"
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.2.0", "black>=24.4.0", "mypy>=1.10.0", "pre-commit>=3.7.0", "ruff>=0.11.13"]
+test = ["pytest-cov>=5.0.0", "pytest-asyncio>=0.23.0", "httpx>=0.28.0", "pytest-mock>=3.12.0"]
+security = ["bandit>=1.7.5", "safety>=2.3.0"]
+
+[project.scripts]
+gary-zero = "main:app"
+gary-zero-cli = "run_cli:main"
+
+[project.urls]
+Homepage = "https://github.com/GaryOcean428/gary-zero"
+Repository = "https://github.com/GaryOcean428/gary-zero"
+Issues = "https://github.com/GaryOcean428/gary-zero/issues"
 
 [tool.setuptools.packages.find]
 where = ["framework"]
