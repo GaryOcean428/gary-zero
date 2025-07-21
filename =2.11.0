@@ -1,0 +1,6 @@
+Collecting pydantic
+  Using cached pydantic-2.11.7-py3-none-any.whl.metadata (67 kB)
+Downloading pydantic-2.11.7-py3-none-any.whl (444 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 444.8/444.8 kB 17.8 MB/s eta 0:00:00
+Installing collected packages: pydantic
+Successfully installed pydantic-2.11.7
