@@ -3,7 +3,7 @@
 
 # import numpy  # real numpy
 
-# # for python 3.12 on arm, faiss needs a fake cpuinfo module
+# # for python 3.13 on arm, faiss needs a fake cpuinfo module
 
 
 # """ This disgusting hack was brought to you by:
