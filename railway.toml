@@ -4,10 +4,11 @@ timeout = 1800  # 30 minutes
 retries = 3
 
 [deploy]
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT --workers 4 --loop uvloop"
 healthcheckPath = "/health"
-healthcheckTimeout = 300
+healthcheckTimeout = 30
 restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 2
+restartPolicyMaxRetries = 3
 replicas = 1
 
 # Volume configuration for persistent data storage
@@ -26,9 +27,13 @@ branch = "main"
 [services.variables]
 WEB_UI_HOST = "0.0.0.0"
 PYTHONUNBUFFERED = "1"
-FLASK_ENV = "production"
+RAILWAY_ENVIRONMENT = "production"
 RAILPACK_PRUNE_DEPS = "false"
 NIXPACKS_PYTHON_VERSION = "3.11"
+
+# FastAPI Configuration
+API_DOCS_ENABLED = "false"  # Disable docs in production
+CORS_ORIGINS = "*"
 
 # SearXNG Railway service URL (will be set by Railway)
 SEARXNG_URL = "http://${{searchxng.RAILWAY_PRIVATE_DOMAIN}}:${{searchxng.PORT}}"
@@ -46,3 +51,7 @@ USE_E2B_EXECUTION = "true"
 
 # Search provider configuration
 SEARCH_PROVIDER = "searxng"
+
+# Logging configuration
+LOG_LEVEL = "INFO"
+ENABLE_REQUEST_LOGGING = "false"

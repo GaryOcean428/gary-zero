@@ -1,0 +1,1 @@
+"""AI Model Registry for Gary-Zero."""
