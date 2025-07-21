@@ -659,7 +659,7 @@ starlette==0.47.0
     # via mcp
 sympy==1.14.0
     # via torch
-tenacity==9.1.2
+tenacity>=8.2.3,<9.0.0
     # via
     #   langchain-community
     #   langchain-core
