@@ -179,7 +179,10 @@ class ErrorBoundary {
         let messageShown = false;
         
         // Try to use existing toast/notification system
-        if (typeof window.showToast === 'function') {
+        if (typeof window.toast === 'function') {
+            window.toast(message, 'error');
+            messageShown = true;
+        } else if (typeof window.showToast === 'function') {
             window.showToast(message, 'error');
             messageShown = true;
         } else if (typeof window.Alpine?.store === 'function') {
@@ -283,6 +286,19 @@ class ErrorBoundary {
      * Report error to external service (implement based on your needs)
      */
     reportError(errorEntry) {
+        // Use global error reporter if available
+        if (window.errorReporter) {
+            window.errorReporter.reportError(
+                new Error(errorEntry.message), 
+                {
+                    type: errorEntry.type,
+                    metadata: errorEntry.metadata,
+                    stack: errorEntry.stack,
+                    source: 'error-boundary'
+                }
+            );
+        }
+        
         // Example: Send to error reporting service
         // if (window.Sentry) {
         //     window.Sentry.captureException(new Error(errorEntry.message), {
