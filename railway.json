@@ -5,7 +5,11 @@
   },
   "deploy": {
     "startCommand": "python run_ui.py --port $PORT --host 0.0.0.0 --dockerized",
-    "healthcheckPath": "/health"
+    "healthcheckPath": "/health",
+    "healthcheckMethod": "GET",
+    "healthcheckTimeout": 30,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 3
   },
   "env": {
     "RAILPACK_PRUNE_DEPS": "false",
@@ -13,6 +17,10 @@
     "PYTHONUNBUFFERED": "1",
     "NIXPACKS_PYTHON_VERSION": "3.11",
     "NODE_ENV": "production",
-    "VITEST_ENVIRONMENT": "node"
+    "VITEST_ENVIRONMENT": "node",
+    "PORT": "8080",
+    "DISABLE_SSH_EXECUTION": "true",
+    "CODE_EXECUTION_MODE": "secure",
+    "USE_E2B_EXECUTION": "true"
   }
 }
