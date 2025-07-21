@@ -113,7 +113,7 @@ class Settings(TypedDict):
 DEFAULT_SETTINGS: Settings = {
     # Chat model settings - using Claude 4 Sonnet for high performance
     "chat_model_provider": "ANTHROPIC",
-    "chat_model_name": "claude-4-sonnet",
+    "chat_model_name": "claude-sonnet-4-latest",
     "chat_model_kwargs": {},
     "chat_model_ctx_length": 200000,  # 200K tokens as per spec
     "chat_model_ctx_history": 0.9,
@@ -140,7 +140,7 @@ DEFAULT_SETTINGS: Settings = {
     "embed_model_rl_input": 0,
     # Browser model settings - using Claude 4 Sonnet for vision
     "browser_model_provider": "ANTHROPIC",
-    "browser_model_name": "claude-4-sonnet",
+    "browser_model_name": "claude-sonnet-4-latest",
     "browser_model_kwargs": {},
     "browser_model_vision": True,
     "browser_model_rl_requests": 0,
