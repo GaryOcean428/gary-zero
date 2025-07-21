@@ -53,6 +53,7 @@
     <div class="test-section">
         <h2>Test Controls</h2>
         <button onclick="addTestActivity()">Add Test Activity</button>
+        <button onclick="populateSampleData()">Populate Sample Data</button>
         <button onclick="testAPIConnection()">Test API Connection</button>
         <button onclick="clearAllActivities()">Clear Activities</button>
     </div>
@@ -98,6 +99,25 @@
                 }
             } catch (error) {
                 updateStatus('error', '❌ Error adding activity: ' + error.message);
+            }
+        }
+        
+        async function populateSampleData() {
+            try {
+                const response = await fetch('/activity_monitor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'populate_sample_data' })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    updateStatus('success', `✅ Sample data populated: ${result.count} activities added`);
+                } else {
+                    updateStatus('error', '❌ Failed to populate sample data: ' + result.error);
+                }
+            } catch (error) {
+                updateStatus('error', '❌ Error populating sample data: ' + error.message);
             }
         }
         

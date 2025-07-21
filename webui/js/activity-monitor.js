@@ -243,6 +243,86 @@ class ActivityMonitorManager {
                 return result;
             };
         }
+
+        // Monitor page navigation
+        const originalPushState = history.pushState;
+        const originalReplaceState = history.replaceState;
+        
+        history.pushState = function(...args) {
+            const result = originalPushState.apply(this, args);
+            window.activityMonitor?.logActivity(
+                'browser',
+                `Navigation: ${args[2] || window.location.pathname}`,
+                window.location.href,
+                { action: 'pushState' }
+            );
+            return result;
+        };
+
+        history.replaceState = function(...args) {
+            const result = originalReplaceState.apply(this, args);
+            window.activityMonitor?.logActivity(
+                'browser', 
+                `Navigation: ${args[2] || window.location.pathname}`,
+                window.location.href,
+                { action: 'replaceState' }
+            );
+            return result;
+        };
+
+        // Monitor window focus/blur for activity tracking
+        let lastActiveTime = Date.now();
+        
+        window.addEventListener('focus', () => {
+            const inactiveTime = Date.now() - lastActiveTime;
+            if (inactiveTime > 30000) { // More than 30 seconds
+                window.activityMonitor?.logActivity(
+                    'browser',
+                    'User returned to application',
+                    null,
+                    { inactiveTimeMs: inactiveTime }
+                );
+            }
+        });
+
+        window.addEventListener('blur', () => {
+            lastActiveTime = Date.now();
+            window.activityMonitor?.logActivity(
+                'browser',
+                'User left application',
+                null,
+                { timestamp: lastActiveTime }
+            );
+        });
+
+        // Monitor settings changes
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+            const url = args[0];
+            const options = args[1];
+            
+            // Log settings API calls
+            if (typeof url === 'string' && url.includes('/settings_')) {
+                window.activityMonitor?.logActivity(
+                    'coding',
+                    `Settings ${url.includes('set') ? 'updated' : 'retrieved'}`,
+                    url,
+                    { method: options?.method || 'GET' }
+                );
+            }
+            
+            // Log external API calls
+            if (typeof url === 'string' && url.startsWith('http') && !url.includes(window.location.hostname)) {
+                window.activityMonitor?.logActivity(
+                    'browser',
+                    `External API call: ${new URL(url).hostname}`,
+                    url,
+                    { method: options?.method || 'GET' }
+                );
+            }
+            
+            return originalFetch.apply(this, args);
+        };
     }
 
     // Public API methods

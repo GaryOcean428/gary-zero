@@ -41,10 +41,12 @@ class ActivityMonitor(ApiHandler):
             return self._get_iframe_src()
         elif action == "clear_activities":
             return self._clear_activities()
+        elif action == "populate_sample_data":
+            return self._populate_sample_data()
         else:
             return {
                 "success": False,
-                "error": f"Unknown action: {action}. Valid actions: get_status, get_activities, add_activity, set_iframe_src, get_iframe_src, clear_activities"
+                "error": f"Unknown action: {action}. Valid actions: get_status, get_activities, add_activity, set_iframe_src, get_iframe_src, clear_activities, populate_sample_data"
             }
     
     def _get_status(self) -> Dict[str, Any]:
@@ -159,6 +161,56 @@ class ActivityMonitor(ApiHandler):
         return {
             "success": True,
             "message": "All activities cleared"
+        }
+    
+    def _populate_sample_data(self) -> Dict[str, Any]:
+        """Populate with sample activities for testing."""
+        sample_activities = [
+            {
+                "type": "browser",
+                "description": "User navigated to GitHub repository",
+                "url": "https://github.com/GaryOcean428/gary-zero",
+                "data": {"action": "navigate", "referrer": "search"}
+            },
+            {
+                "type": "coding", 
+                "description": "Opened file for editing: activity_monitor.py",
+                "url": "framework/api/activity_monitor.py",
+                "data": {"action": "open", "editor": "vscode"}
+            },
+            {
+                "type": "browser",
+                "description": "AI performed web search for 'Flask API best practices'",
+                "url": "https://search.example.com/q=flask+api+best+practices",
+                "data": {"action": "search", "query": "Flask API best practices"}
+            },
+            {
+                "type": "coding",
+                "description": "Created new JavaScript file: activity-monitor.js", 
+                "url": "webui/js/activity-monitor.js",
+                "data": {"action": "create", "fileSize": 10748}
+            },
+            {
+                "type": "iframe_change",
+                "description": "Activity monitor iframe source changed to activity viewer",
+                "url": "./activity-monitor.html",
+                "data": {"previousSrc": "about:blank"}
+            }
+        ]
+        
+        with self._activity_lock:
+            for activity_data in sample_activities:
+                activity = {
+                    "id": f"sample_{int(time.time() * 1000)}_{len(self._activities)}",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    **activity_data
+                }
+                self._activities.append(activity)
+        
+        return {
+            "success": True,
+            "message": f"Added {len(sample_activities)} sample activities",
+            "count": len(sample_activities)
         }
     
     @classmethod
