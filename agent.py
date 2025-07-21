@@ -539,6 +539,44 @@ class Agent:
     def hist_add_user_message(self, message: UserMessage, intervention: bool = False):
         self.history.new_topic()  # user message starts a new topic in history
 
+        # Integrate with task management system for new user messages
+        if not intervention:
+            try:
+                from framework.helpers.task_manager import get_task_manager
+                from framework.helpers.supervisor_agent import get_supervisor_agent
+                
+                task_manager = get_task_manager()
+                supervisor = get_supervisor_agent()
+                
+                # Create a new task for this user message
+                task_id = task_manager.create_task(
+                    title=f"User Request: {message.message[:50]}...",
+                    description=message.message,
+                    context_id=self.context.id,
+                    agent_id=self.agent_name
+                )
+                
+                # Start the task
+                task_manager.start_task(task_id)
+                
+                # Notify supervisor about the new task
+                supervisor.register_new_task(task_id, self.context.id)
+                
+                # Store task ID for later reference
+                self.set_data("current_task_id", task_id)
+                
+                self.context.log.log(
+                    type="info", 
+                    content=f"Created task {task_id[:8]} for user message"
+                )
+                
+            except Exception as e:
+                # Don't let task management errors break the core functionality
+                self.context.log.log(
+                    type="warning", 
+                    content=f"Task management integration failed: {e}"
+                )
+
         # load message template based on intervention
         if intervention:
             content = self.parse_prompt(
@@ -567,7 +605,43 @@ class Agent:
     def hist_add_ai_response(self, message: str):
         self.loop_data.last_response = message
         content = self.parse_prompt("fw.ai_response.md", message=message)
-        return self.hist_add_message(True, content=content)
+        response_msg = self.hist_add_message(True, content=content)
+        
+        # Integrate with task management system - mark task as completed when agent responds
+        try:
+            from framework.helpers.task_manager import get_task_manager
+            from framework.helpers.supervisor_agent import get_supervisor_agent
+            
+            task_id = self.get_data("current_task_id")
+            if task_id:
+                task_manager = get_task_manager()
+                supervisor = get_supervisor_agent()
+                
+                # Update task progress
+                task_manager.update_task_progress(task_id, 1.0, "Agent response completed")
+                
+                # Mark task as completed
+                task_manager.complete_task(task_id, message[:200] + "..." if len(message) > 200 else message)
+                
+                # Notify supervisor
+                supervisor.handle_task_completion(task_id, self.context.id)
+                
+                # Clear the current task ID
+                self.set_data("current_task_id", None)
+                
+                self.context.log.log(
+                    type="success", 
+                    content=f"Completed task {task_id[:8]}"
+                )
+                
+        except Exception as e:
+            # Don't let task management errors break the core functionality
+            self.context.log.log(
+                type="warning", 
+                content=f"Task completion integration failed: {e}"
+            )
+        
+        return response_msg
 
     def hist_add_warning(self, message: history.MessageContent):
         content = self.parse_prompt("fw.warning.md", message=message)

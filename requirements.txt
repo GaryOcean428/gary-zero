@@ -58,7 +58,7 @@ botocore==1.38.36
     # via
     #   boto3
     #   s3transfer
-browser-use==0.2.5
+browser-use==0.5.5
     # via -r requirements.in
 cachetools==5.5.2
     # via google-auth
@@ -352,7 +352,7 @@ marshmallow==3.26.1
     # via
     #   dataclasses-json
     #   unstructured-client
-mcp==1.9.0
+mcp>=1.10.1
     # via
     #   -r requirements.in
     #   fastmcp
@@ -508,26 +508,7 @@ pyasn1-modules==0.4.2
     # via google-auth
 pycparser==2.22
     # via cffi
-pydantic==2.10.6
-    # via
-    #   anthropic
-    #   browser-use
-    #   groq
-    #   langchain
-    #   langchain-anthropic
-    #   langchain-aws
-    #   langchain-core
-    #   langchain-google-genai
-    #   langchain-mistralai
-    #   langsmith
-    #   mcp
-    #   mem0ai
-    #   ollama
-    #   openai
-    #   openapi-pydantic
-    #   pydantic-settings
-    #   qdrant-client
-pydantic-core==2.27.2
+pydantic-core>=2.33.0
     # via pydantic
 pydantic-settings==2.9.1
     # via
@@ -541,7 +522,7 @@ pygments==2.19.1
     # via rich
 pynacl==1.5.0
     # via paramiko
-pypdf==4.3.1
+pypdf>=5.7.0
     # via
     #   -r requirements.in
     #   unstructured-client
@@ -678,7 +659,7 @@ starlette==0.47.0
     # via mcp
 sympy==1.14.0
     # via torch
-tenacity==9.1.2
+tenacity>=8.2.3,<9.0.0
     # via
     #   langchain-community
     #   langchain-core
