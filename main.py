@@ -120,6 +120,9 @@ async def lifespan(app: FastAPI):
     await cleanup_agent_systems()
     logger.info('🛑 Gary-Zero shutdown complete')
 
+# Add API bridge integration
+from api_bridge_simple import create_api_bridge, add_enhanced_endpoints
+
 # Create FastAPI application with lifecycle management
 app = FastAPI(
     title="Gary-Zero AI Agent Framework",
@@ -150,6 +153,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+# Initialize API bridge for backward compatibility
+try:
+    create_api_bridge(app)
+    logger.info("API bridge initialized successfully")
+except Exception as e:
+    logger.warning(f"Could not initialize API bridge: {e}")
+    logger.info("Continuing with FastAPI-only functionality")
+
+# Add enhanced API endpoints
+add_enhanced_endpoints(app)
 
 async def verify_api_key(credentials: HTTPAuthorizationCredentials = Depends(security)):
     """Verify API key for protected endpoints."""
