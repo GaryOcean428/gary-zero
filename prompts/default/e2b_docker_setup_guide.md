@@ -27,52 +27,99 @@ Run this in the agent:
 
 Should return: `Execution environment: E2B Cloud Sandbox`
 
-## Docker Hub Integration (Recommended)
+## Docker Hub Access for Enhanced Sandboxes
 
-### Benefits of Connecting Docker Hub
-1. **Custom Images**: Deploy specialized tool containers
-2. **Private Registry**: Keep proprietary tools secure
-3. **Faster Deployments**: Utilize Docker layer caching
-4. **Version Control**: Tag and manage image versions
+### Why Give Gary-Zero Docker Hub Access?
 
-### Setup Steps
+Providing Docker Hub credentials allows Gary-Zero to:
+1. **Pull specialized Docker images** for enhanced execution environments
+2. **Access private images** with custom tools and libraries
+3. **Use pre-configured environments** for specific tasks (ML, data science, etc.)
+4. **Create more powerful sandboxes** beyond standard E2B environments
 
-#### Option 1: Railway Dashboard
-1. Go to Railway project settings
-2. Click "Integrations"
-3. Select "Docker Hub"
-4. Authorize with your Docker Hub account
-5. Railway can now pull private images
+### Setting Up Docker Hub Access
 
-#### Option 2: Environment Variables
-Add these to your Railway service:
-```
+Add these environment variables to your Railway service:
+
+```bash
+# Required for Docker Hub access
 DOCKER_USERNAME=your_dockerhub_username
-DOCKER_PASSWORD=your_dockerhub_password
-DOCKER_REGISTRY=docker.io (optional, this is default)
+DOCKER_PASSWORD=your_dockerhub_password_or_token
+
+# Optional - for private registries
+DOCKER_REGISTRY=docker.io  # Default is Docker Hub
 ```
 
-### Using Custom Images
+**Security Note**: Use a Docker Hub access token instead of your password:
+1. Go to Docker Hub → Account Settings → Security
+2. Create a new Access Token
+3. Use this token as DOCKER_PASSWORD
 
-In `railway.toml`:
-```toml
-[build]
-image = "yourdockerhub/custom-agent:latest"
+### How Gary-Zero Uses Docker Hub
 
-[deploy]
-startCommand = "python app.py"
+With Docker Hub access configured, Gary-Zero can:
+
+1. **Pull and run specialized containers**:
+```python
+# Example: Using a data science image
+import os
+os.system("docker pull jupyter/datascience-notebook:latest")
+# Gary-Zero can now create sandboxes with this image
 ```
 
-Or for specific services:
-```toml
-[[services]]
-name = "special-tool"
-image = "yourdockerhub/special-tool:v1.0"
+2. **Access private tool images**:
+```python
+# If you have private images with custom tools
+os.system("docker pull yourusername/custom-ml-tools:latest")
+```
+
+3. **Create enhanced E2B sandboxes**:
+```python
+# E2B can use custom Docker images as base
+os.environ['E2B_DOCKER_IMAGE'] = 'tensorflow/tensorflow:latest-gpu'
+```
+
+### Use Cases for Docker Hub Integration
+
+1. **Machine Learning Workloads**
+   - Pull GPU-enabled TensorFlow/PyTorch images
+   - Access pre-trained model containers
+   - Use specialized ML tool images
+
+2. **Data Science Tasks**
+   - Jupyter notebook environments
+   - R statistical computing images
+   - Big data processing tools (Spark, etc.)
+
+3. **Development Environments**
+   - Language-specific images (Ruby, Go, Rust)
+   - Database client tools
+   - Testing frameworks
+
+4. **Security Tools**
+   - Penetration testing images
+   - Security scanning tools
+   - Network analysis containers
+
+### Example: Enhanced Sandbox Usage
+
+Once Docker Hub is configured, you can request specialized environments:
+
+```json
+{
+  "thoughts": [
+    "User needs GPU-accelerated ML environment",
+    "I'll create a sandbox with TensorFlow GPU support"
+  ],
+  "tool": "code_execution_tool",
+  "runtime": "python",
+  "code": "# First ensure we have the right image\nimport subprocess\nsubprocess.run(['docker', 'pull', 'tensorflow/tensorflow:latest-gpu'])\n\n# Now run code in GPU-enabled environment\nimport tensorflow as tf\nprint(f'TensorFlow version: {tf.__version__}')\nprint(f'GPU available: {tf.config.list_physical_devices(\"GPU\")}')"
+}
 ```
 
 ## E2B Sandbox Capabilities
 
-### Available Runtimes
+### Standard Runtimes
 1. **Python 3.11+**
    - Pre-installed: numpy, pandas, requests, matplotlib
    - Can install more with pip
@@ -84,6 +131,12 @@ image = "yourdockerhub/special-tool:v1.0"
 3. **Bash/Terminal**
    - Full Linux environment
    - apt-get available for system packages
+
+### Enhanced with Docker Hub
+- **Any Docker image** from Docker Hub
+- **Custom environments** for specific tasks
+- **Private images** with proprietary tools
+- **Layered caching** for faster starts
 
 ### Resource Limits
 - CPU: 2 cores (configurable)
@@ -99,99 +152,90 @@ image = "yourdockerhub/special-tool:v1.0"
 
 ## Best Practices
 
-### 1. Code Execution Pattern
+### 1. Checking Available Resources
 ```python
-# Always check environment first
+# Check if Docker is available
+import subprocess
+try:
+    result = subprocess.run(['docker', '--version'], capture_output=True, text=True)
+    print(f"Docker available: {result.stdout}")
+except:
+    print("Docker not available in this sandbox")
+```
+
+### 2. Using Custom Images
+```python
+# Pull a specific image for the task
 import os
-import json
 
-# Verify E2B sandbox
-sandbox_id = os.getenv('E2B_SANDBOX_ID', 'Not in E2B')
-print(f"Running in sandbox: {sandbox_id}")
+# For data science
+os.system("docker pull jupyter/scipy-notebook:latest")
 
-# Access Railway variables
-railway_env = os.getenv('RAILWAY_ENVIRONMENT', 'local')
-print(f"Railway environment: {railway_env}")
+# For web scraping
+os.system("docker pull scrapinghub/splash:latest")
 
-# Your code here
-result = process_data()
-print(json.dumps(result, indent=2))
+# For API testing
+os.system("docker pull postman/newman:latest")
 ```
 
-### 2. Package Installation
-```bash
-# Python packages
-pip install scikit-learn torch transformers
-
-# Node packages
-npm install axios cheerio puppeteer
-
-# System packages
-apt-get update && apt-get install -y imagemagick ffmpeg
-```
-
-### 3. File Handling
+### 3. Resource Management
 ```python
-# Files are temporary in sandbox
-with open('/tmp/data.json', 'w') as f:
-    json.dump(data, f)
+# Clean up unused images to save space
+os.system("docker image prune -f")
 
-# Read and process
-with open('/tmp/data.json', 'r') as f:
-    processed = json.load(f)
-
-# IMPORTANT: Save output before sandbox closes
-print(f"Results: {processed}")
+# List available images
+os.system("docker images")
 ```
 
 ## Troubleshooting
 
-### E2B Not Working?
-1. Check E2B_API_KEY is set correctly
-2. Verify key starts with `e2b_`
-3. Check E2B service status: https://status.e2b.dev
-4. Falls back to Docker/local automatically
+### Docker Hub Access Issues
+1. **Authentication failed**
+   - Verify DOCKER_USERNAME and DOCKER_PASSWORD
+   - Use access token instead of password
+   - Check for typos in credentials
 
-### Docker Hub Issues?
-1. Verify credentials are correct
-2. Check image name format: `user/image:tag`
-3. Ensure image is public or credentials provided
-4. Check Railway build logs for pull errors
+2. **Rate limiting**
+   - Docker Hub has pull rate limits
+   - Authenticated users get higher limits
+   - Consider Docker Hub subscription for more pulls
+
+3. **Private image access**
+   - Ensure credentials have access to the repository
+   - Check image name format: `username/image:tag`
 
 ### Common Errors
 
-**"E2B API key not found"**
-- Set E2B_API_KEY in Railway variables
+**"unauthorized: authentication required"**
+- Docker Hub credentials not set or incorrect
+- Image is private and requires authentication
 
-**"Cannot pull Docker image"**
-- Check Docker Hub credentials
-- Verify image exists and is accessible
+**"pull access denied"**
+- No access to private repository
+- Image name is incorrect
 
-**"Sandbox timeout"**
-- Break long tasks into smaller chunks
-- Use session management for long processes
+**"toomanyrequests: Rate limit exceeded"**
+- Docker Hub rate limit hit
+- Wait or upgrade Docker Hub account
 
 ## Advanced Configuration
 
-### Custom E2B Templates
-Create specialized sandboxes:
-```python
-# In your code
-os.environ['E2B_TEMPLATE'] = 'data-science'  # Uses GPU-enabled template
+### Using Docker Cloud
+If you have Docker Cloud (enterprise):
+```bash
+DOCKER_REGISTRY=your-registry.docker.com
+DOCKER_USERNAME=your-username
+DOCKER_PASSWORD=your-token
 ```
 
-### Persistence Between Executions
-Use Railway volumes for persistent storage:
-```toml
-[[volumes]]
-mountPath = "/data"
+### Custom Registry Support
+For private registries:
+```bash
+DOCKER_REGISTRY=gcr.io  # Google Container Registry
+DOCKER_REGISTRY=your-company.azurecr.io  # Azure
 ```
 
-Then in code:
-```python
-# Save to persistent volume
-with open('/data/results.json', 'w') as f:
-    json.dump(results, f)
-```
+### Caching Strategy
+Railway persists Docker layers between deployments, so frequently used images will be cached for faster access.
 
-Remember: E2B provides security, Docker Hub provides flexibility, and Railway provides the platform!
+Remember: E2B provides security and isolation, Docker Hub provides specialized environments, and Railway provides the platform!
