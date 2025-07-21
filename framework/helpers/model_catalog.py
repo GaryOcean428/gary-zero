@@ -9,6 +9,9 @@ from typing import Dict, List
 # Comprehensive model catalog organized by provider
 MODEL_CATALOG: Dict[str, List[Dict[str, str]]] = {
     "ANTHROPIC": [
+        {"value": "claude-4-opus", "label": "Claude 4 Opus"},
+        {"value": "claude-4-sonnet", "label": "Claude 4 Sonnet"},
+        {"value": "claude-code", "label": "Claude Code"},
         {"value": "claude-3-5-sonnet-latest", "label": "Claude 3.5 Sonnet (Latest)"},
         {"value": "claude-3-5-haiku-latest", "label": "Claude 3.5 Haiku (Latest)"},
         {"value": "claude-3-7-sonnet-20250219", "label": "Claude 3.7 Sonnet (2025-02-19)"},
@@ -56,8 +59,13 @@ MODEL_CATALOG: Dict[str, List[Dict[str, str]]] = {
         {"value": "text-embedding-ada-002", "label": "Text Embedding Ada 002"},
     ],
     "GOOGLE": [
+        {"value": "gemini-2.5-pro-preview-06-05", "label": "Gemini 2.5 Pro Preview (06-05)"},
+        {"value": "gemini-2.5-flash-preview-05-20", "label": "Gemini 2.5 Flash Preview (05-20)"},
+        {"value": "gemini-2.5-flash-preview-tts", "label": "Gemini 2.5 Flash Preview TTS"},
+        {"value": "gemini-2.5-pro-preview-tts", "label": "Gemini 2.5 Pro Preview TTS"},
         {"value": "gemini-2.5-pro-exp-03-25", "label": "Gemini 2.5 Pro Exp (03-25)"},
         {"value": "gemini-2.0-flash", "label": "Gemini 2.0 Flash"},
+        {"value": "gemini-2.0-flash-preview-image-generation", "label": "Gemini 2.0 Flash Preview Image Generation"},
         {"value": "gemini-2.0-flash-thinking-exp", "label": "Gemini 2.0 Flash Thinking Exp"},
         {"value": "gemini-2.0-pro-experimental", "label": "Gemini 2.0 Pro Experimental"},
         {"value": "gemini-2.0-flash-lite", "label": "Gemini 2.0 Flash Lite"},
@@ -69,6 +77,8 @@ MODEL_CATALOG: Dict[str, List[Dict[str, str]]] = {
         {"value": "chat-bison", "label": "Chat Bison"},
     ],
     "GROQ": [
+        {"value": "compound-beta", "label": "Compound Beta"},
+        {"value": "kimi-k2-instruct", "label": "Kimi K2 Instruct"},
         {"value": "llama-3.3-70b-versatile", "label": "Llama 3.3 70B Versatile"},
         {"value": "llama-3.1-70b-versatile", "label": "Llama 3.1 70B Versatile"},
         {"value": "llama-3.1-8b-instant", "label": "Llama 3.1 8B Instant"},
@@ -123,6 +133,8 @@ MODEL_CATALOG: Dict[str, List[Dict[str, str]]] = {
         {"value": "grok-2-vision-1212", "label": "Grok 2 Vision (1212)"},
     ],
     "PERPLEXITY": [
+        {"value": "sonar-reasoning-pro", "label": "Sonar Reasoning Pro"},
+        {"value": "sonar-pro", "label": "Sonar Pro"},
         {"value": "llama-3.1-sonar-small-128k-online", "label": "Llama 3.1 Sonar Small 128K"},
         {"value": "llama-3.1-sonar-large-128k-online", "label": "Llama 3.1 Sonar Large 128K"},
         {"value": "llama-3.1-sonar-huge-128k-online", "label": "Llama 3.1 Sonar Huge 128K"},
