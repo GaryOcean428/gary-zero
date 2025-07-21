@@ -618,3 +618,69 @@ def auto_optimize(memory_threshold: float = 0.8, cpu_threshold: float = 0.8):
         
         return wrapper
     return decorator
+
+
+# Global optimizer instances
+_default_memory_optimizer = None
+_default_cpu_optimizer = None
+_default_resource_optimizer = None
+
+
+def get_memory_optimizer() -> MemoryOptimizer:
+    """Get the default memory optimizer instance."""
+    global _default_memory_optimizer
+    if _default_memory_optimizer is None:
+        _default_memory_optimizer = MemoryOptimizer()
+    return _default_memory_optimizer
+
+
+def get_cpu_optimizer() -> CPUOptimizer:
+    """Get the default CPU optimizer instance."""
+    global _default_cpu_optimizer
+    if _default_cpu_optimizer is None:
+        _default_cpu_optimizer = CPUOptimizer()
+    return _default_cpu_optimizer
+
+
+def get_resource_optimizer() -> ResourceOptimizer:
+    """Get the default resource optimizer instance."""
+    global _default_resource_optimizer
+    if _default_resource_optimizer is None:
+        _default_resource_optimizer = ResourceOptimizer()
+    return _default_resource_optimizer
+
+
+def memory_optimize():
+    """Decorator for memory optimization using the default optimizer."""
+    optimizer = get_memory_optimizer()
+    
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            optimizer.optimize()
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
+def cpu_optimize():
+    """Decorator for CPU optimization using the default optimizer.""" 
+    optimizer = get_cpu_optimizer()
+    
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            optimizer.optimize()
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
+def auto_optimize():
+    """Decorator for automatic resource optimization using the default optimizer."""
+    optimizer = get_resource_optimizer()
+    
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            optimizer.optimize_all()
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator

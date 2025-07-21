@@ -8,10 +8,13 @@ This module provides comprehensive performance optimization tools including:
 - Resource optimization utilities
 """
 
-from .cache import CacheManager, CacheBackend, MemoryCache, PersistentCache
+from .cache import CacheManager, CacheBackend, MemoryCache, PersistentCache, cached
 from .async_utils import AsyncPool, BackgroundTaskManager, AsyncContextManager
-from .monitor import PerformanceMonitor, MetricsCollector, ResourceTracker
-from .optimizer import ResourceOptimizer, MemoryOptimizer, CPUOptimizer
+from .monitor import PerformanceMonitor, MetricsCollector, ResourceTracker, timer, async_timer
+from .optimizer import (
+    ResourceOptimizer, MemoryOptimizer, CPUOptimizer, 
+    memory_optimize, cpu_optimize, auto_optimize
+)
 
 __all__ = [
     # Caching
@@ -19,6 +22,7 @@ __all__ = [
     'CacheBackend', 
     'MemoryCache',
     'PersistentCache',
+    'cached',
     
     # Async utilities
     'AsyncPool',
@@ -29,11 +33,16 @@ __all__ = [
     'PerformanceMonitor',
     'MetricsCollector',
     'ResourceTracker',
+    'timer',
+    'async_timer',
     
     # Optimization
     'ResourceOptimizer',
     'MemoryOptimizer',
     'CPUOptimizer',
+    'memory_optimize',
+    'cpu_optimize', 
+    'auto_optimize',
 ]
 
 __version__ = "1.0.0"
