@@ -91,12 +91,31 @@ async def validate_searchxng(issues, successes):
     print("\n🔍 Checking SearchXNG integration...")
     
     searxng_url = os.getenv('SEARXNG_URL')
+    
+    # Check if SEARXNG_URL is set
     if not searxng_url:
         issues.append("SEARXNG_URL not configured")
         print("   ❌ SEARXNG_URL not found")
         return
     
+    # Check if SEARXNG_URL contains unresolved reference variables
+    if '${{' in searxng_url:
+        issues.append(f"SEARXNG_URL contains unresolved reference variables: {searxng_url}")
+        print(f"   ❌ SEARXNG_URL not properly resolved: {searxng_url}")
+        print("   💡 Hint: Ensure the searchxng service has a PORT environment variable set")
+        return
+    
     print(f"   ✓ SEARXNG_URL configured: {searxng_url}")
+    
+    # Check Railway environment for additional context
+    railway_env = os.getenv('RAILWAY_ENVIRONMENT')
+    if railway_env:
+        print(f"   ℹ️  Railway environment: {railway_env}")
+        
+        # Check if SearchXNG service URL is available in Railway
+        searchxng_service_url = os.getenv('RAILWAY_SERVICE_SEARXNG_URL')
+        if searchxng_service_url:
+            print(f"   ✓ SearchXNG public URL found: {searchxng_service_url}")
     
     try:
         async with aiohttp.ClientSession() as session:
@@ -119,9 +138,11 @@ async def validate_searchxng(issues, successes):
     except aiohttp.ClientError as e:
         issues.append(f"SearchXNG connection failed: {e}")
         print(f"   ❌ SearchXNG connection failed: {e}")
+        print("   💡 Hint: Check if SearchXNG service is running and accessible")
     except asyncio.TimeoutError:
         issues.append("SearchXNG connection timeout")
         print("   ❌ SearchXNG connection timeout")
+        print("   💡 Hint: SearchXNG might be starting up, try again in a moment")
     except Exception as e:
         issues.append(f"SearchXNG error: {e}")
         print(f"   ❌ SearchXNG error: {e}")
@@ -141,20 +162,33 @@ def validate_execution_config(issues, successes):
     
     # Check for Railway environment
     railway_env = os.getenv('RAILWAY_ENVIRONMENT')
+    railway_project = os.getenv('RAILWAY_PROJECT_NAME')
+    
     if railway_env:
         print(f"   RAILWAY_ENVIRONMENT: {railway_env}")
+        print(f"   RAILWAY_PROJECT_NAME: {railway_project}")
+        
         if not disable_ssh:
             issues.append("Railway deployment should have DISABLE_SSH_EXECUTION=true")
         else:
-            successes.append("Railway deployment properly configured")
+            successes.append("Railway deployment properly configured for secure execution")
     
     # Check execution mode consistency
     if code_execution_mode == 'direct' and not disable_ssh:
         issues.append("CODE_EXECUTION_MODE=direct but SSH not disabled")
     elif code_execution_mode == 'ssh' and disable_ssh:
         issues.append("CODE_EXECUTION_MODE=ssh but SSH execution disabled")
+    elif code_execution_mode == 'secure' and not e2b_api_key:
+        issues.append("CODE_EXECUTION_MODE=secure but E2B_API_KEY not set")
     else:
         successes.append(f"Execution mode configured correctly ({code_execution_mode})")
+    
+    # Check SearchXNG fallback configuration
+    search_provider = os.getenv('SEARCH_PROVIDER', 'duckduckgo')
+    print(f"   SEARCH_PROVIDER: {search_provider}")
+    
+    if search_provider == 'searxng' and not os.getenv('SEARXNG_URL'):
+        issues.append("SEARCH_PROVIDER set to searxng but SEARXNG_URL not configured")
 
 
 def main():
