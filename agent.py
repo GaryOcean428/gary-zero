@@ -11,6 +11,7 @@ from enum import Enum
 from typing import Any, Callable
 
 # Third-party imports
+import httpx
 import nest_asyncio
 from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langchain_core.prompts import ChatPromptTemplate
@@ -724,15 +725,45 @@ class Agent:
         # rate limiter
         limiter = await self.rate_limiter(self.config.chat_model, prompt.format())
 
-        async for chunk in (prompt | model).astream({}):
-            await self.handle_intervention()  # wait for intervention and handle it, if paused
+        # Retry logic for connection failures
+        max_retries = 3
+        retry_delay = 1  # Start with 1 second
+        
+        for attempt in range(max_retries):
+            try:
+                async for chunk in (prompt | model).astream({}):
+                    await self.handle_intervention()  # wait for intervention and handle it, if paused
 
-            content = models.parse_chunk(chunk)
-            limiter.add(output=tokens.approximate_tokens(content))
-            response += content
+                    content = models.parse_chunk(chunk)
+                    limiter.add(output=tokens.approximate_tokens(content))
+                    response += content
 
-            if callback:
-                await callback(content, response)
+                    if callback:
+                        await callback(content, response)
+                
+                # If we reach here, streaming completed successfully
+                break
+                
+            except (httpx.RemoteProtocolError, httpx.ConnectError, httpx.ReadError) as e:
+                if attempt < max_retries - 1:  # Don't retry on last attempt
+                    self.context.log.log(
+                        type="warning",
+                        content=f"HTTP connection error (attempt {attempt + 1}/{max_retries}): {str(e)}. Retrying in {retry_delay}s..."
+                    )
+                    await asyncio.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                    response = ""  # Reset response for retry
+                    continue
+                else:
+                    # On final attempt, raise a more user-friendly error
+                    error_msg = f"Failed to connect to AI model service after {max_retries} attempts. Please check your internet connection and try again."
+                    self.context.log.log(type="error", content=error_msg)
+                    raise RepairableError(error_msg) from e
+            except Exception as e:
+                # For other exceptions, don't retry but still log appropriately
+                error_msg = f"Unexpected error during AI model communication: {str(e)}"
+                self.context.log.log(type="error", content=error_msg)
+                raise RepairableError(error_msg) from e
 
         return response
 
