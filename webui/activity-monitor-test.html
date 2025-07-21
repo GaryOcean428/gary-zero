@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Monitor Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h1>🔄 Activity Monitor Test Page</h1>
+    
+    <div class="test-section">
+        <h2>Integration Test</h2>
+        <p>This page tests the activity monitor functionality in isolation.</p>
+        
+        <div id="test-status" class="status warning">
+            ⏳ Testing activity monitor...
+        </div>
+        
+        <h3>Standalone Activity Monitor</h3>
+        <iframe src="activity-monitor.html" title="Activity Monitor Test"></iframe>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Controls</h2>
+        <button onclick="addTestActivity()">Add Test Activity</button>
+        <button onclick="testAPIConnection()">Test API Connection</button>
+        <button onclick="clearAllActivities()">Clear Activities</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Expected Features</h2>
+        <ul>
+            <li>✅ Activity monitor loads in iframe</li>
+            <li>✅ Real-time activity updates every 3 seconds</li>
+            <li>✅ Filter buttons work (All, Browser, Coding, Iframe Changes)</li>
+            <li>✅ Activity list shows with timestamps</li>
+            <li>✅ Auto-refresh can be toggled on/off</li>
+            <li>✅ Clear all activities function works</li>
+            <li>✅ Beautiful gradient design with glassmorphism effects</li>
+        </ul>
+    </div>
+
+    <script>
+        async function addTestActivity() {
+            try {
+                const activities = [
+                    { type: 'browser', description: 'Test browser navigation', url: 'https://example.com' },
+                    { type: 'coding', description: 'Test file edit', url: 'test.js' },
+                    { type: 'iframe_change', description: 'Test iframe change', url: 'test.html' }
+                ];
+                
+                const activity = activities[Math.floor(Math.random() * activities.length)];
+                
+                const response = await fetch('/activity_monitor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'add_activity',
+                        ...activity
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    updateStatus('success', '✅ Test activity added successfully');
+                } else {
+                    updateStatus('error', '❌ Failed to add activity: ' + result.error);
+                }
+            } catch (error) {
+                updateStatus('error', '❌ Error adding activity: ' + error.message);
+            }
+        }
+        
+        async function testAPIConnection() {
+            try {
+                const response = await fetch('/activity_monitor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'get_status' })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    updateStatus('success', `✅ API connection successful. Total activities: ${result.total_activities || 0}`);
+                } else {
+                    updateStatus('error', '❌ API error: ' + result.error);
+                }
+            } catch (error) {
+                updateStatus('error', '❌ Connection error: ' + error.message);
+            }
+        }
+        
+        async function clearAllActivities() {
+            try {
+                const response = await fetch('/activity_monitor', {
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'clear_activities' })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    updateStatus('success', '✅ All activities cleared');
+                } else {
+                    updateStatus('error', '❌ Failed to clear activities: ' + result.error);
+                }
+            } catch (error) {
+                updateStatus('error', '❌ Error clearing activities: ' + error.message);
+            }
+        }
+        
+        function updateStatus(type, message) {
+            const statusEl = document.getElementById('test-status');
+            statusEl.className = `status ${type}`;
+            statusEl.textContent = message;
+        }
+        
+        // Initial API test
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(testAPIConnection, 1000);
+        });
+    </script>
+</body>
+</html>

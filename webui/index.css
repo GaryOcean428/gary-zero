@@ -3329,3 +3329,198 @@ nav ul li a img {
     padding: 0 var(--spacing-md);
   }
 }
+
+/* ====== ACTIVITY MONITOR STYLES ====== */
+
+.activity-monitor-section {
+  margin-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--spacing-md);
+}
+
+.activity-monitor-header {
+  margin-bottom: var(--spacing-sm);
+}
+
+.activity-monitor-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  color: var(--color-text);
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  gap: var(--spacing-sm);
+}
+
+.activity-monitor-toggle:hover {
+  background: var(--color-secondary);
+  border-color: var(--color-primary);
+}
+
+.activity-monitor-toggle.active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: white;
+}
+
+.toggle-icon {
+  font-size: 16px;
+  min-width: 20px;
+}
+
+.toggle-text {
+  flex: 1;
+  text-align: left;
+}
+
+.activity-indicator {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 20px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.chevron {
+  transition: transform 0.2s ease;
+  font-size: 12px;
+}
+
+.chevron.rotated {
+  transform: rotate(180deg);
+}
+
+.activity-monitor-content {
+  overflow: hidden;
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-sm);
+}
+
+.activity-monitor-controls {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.monitor-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.monitor-btn:hover:not(:disabled) {
+  background: var(--color-secondary);
+  border-color: var(--color-primary);
+}
+
+.monitor-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.activity-monitor-frame-container {
+  position: relative;
+  height: 400px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.activity-monitor-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 4px;
+}
+
+.iframe-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.loading-content {
+  text-align: center;
+  color: white;
+}
+
+.loading-spinner-large {
+  font-size: 2rem;
+  margin-bottom: var(--spacing-sm);
+  animation: spin 1s linear infinite;
+}
+
+.loading-content p {
+  margin: 0;
+  font-size: var(--font-size-small);
+}
+
+/* Responsive adjustments for activity monitor */
+@media (max-width: 768px) {
+  .activity-monitor-controls {
+    flex-direction: column;
+  }
+  
+  .monitor-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .activity-monitor-frame-container {
+    height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  .activity-monitor-toggle {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 12px;
+  }
+  
+  .toggle-icon {
+    font-size: 14px;
+  }
+  
+  .activity-monitor-frame-container {
+    height: 250px;
+  }
+}

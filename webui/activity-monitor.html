@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Activity Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4CAF50;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn.active {
+            background: rgba(255,255,255,0.4);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .activity-container {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .activity-list {
+            padding: 20px;
+        }
+
+        .activity-item {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+            transition: transform 0.2s ease;
+        }
+
+        .activity-item:hover {
+            transform: translateX(5px);
+        }
+
+        .activity-item.browser {
+            border-left-color: #2196F3;
+        }
+
+        .activity-item.coding {
+            border-left-color: #FF9800;
+        }
+
+        .activity-item.iframe_change {
+            border-left-color: #9C27B0;
+        }
+
+        .activity-item.unknown {
+            border-left-color: #607D8B;
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .activity-type {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .activity-time {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .activity-description {
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+
+        .activity-url {
+            font-size: 12px;
+            opacity: 0.7;
+            word-break: break-all;
+            background: rgba(0,0,0,0.2);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            opacity: 0.7;
+        }
+
+        .empty-state .icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Scrollbar styling */
+        .activity-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .activity-container::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+
+        .activity-container::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 4px;
+        }
+
+        .activity-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.5);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .status-bar {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .controls {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 Live Activity Monitor</h1>
+            <p>Real-time tracking of browser and coding activities</p>
+        </div>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-dot"></div>
+                <span>Status: <span id="status">Loading...</span></span>
+            </div>
+            <div class="status-item">
+                <span>Activities: <span id="activity-count">0</span></span>
+            </div>
+            <div class="status-item">
+                <span>Last Update: <span id="last-update">Never</span></span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn active" onclick="setFilter('all')">All Activities</button>
+            <button class="btn" onclick="setFilter('browser')">Browser</button>
+            <button class="btn" onclick="setFilter('coding')">Coding</button>
+            <button class="btn" onclick="setFilter('iframe_change')">Iframe Changes</button>
+            <button class="btn" onclick="clearActivities()">Clear All</button>
+            <button class="btn" onclick="toggleAutoRefresh()">
+                <span id="auto-refresh-text">Auto Refresh: ON</span>
+            </button>
+        </div>
+
+        <div class="activity-container">
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading activities...</p>
+            </div>
+            <div id="activity-list" class="activity-list" style="display: none;"></div>
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <div class="icon">📋</div>
+                <h3>No Activities Yet</h3>
+                <p>Activities will appear here as they occur</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentFilter = 'all';
+        let autoRefresh = true;
+        let refreshInterval;
+
+        // Initialize the activity monitor
+        document.addEventListener('DOMContentLoaded', function() {
+            loadActivities();
+            startAutoRefresh();
+        });
+
+        async function loadActivities() {
+            try {
+                const response = await fetch('/activity_monitor', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'get_activities',
+                        limit: 50,
+                        type: currentFilter === 'all' ? null : currentFilter
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateActivityList(data.activities);
+                    updateStatusBar(data);
+                } else {
+                    console.error('Failed to load activities:', data.error);
+                    showError('Failed to load activities');
+                }
+            } catch (error) {
+                console.error('Error loading activities:', error);
+                showError('Connection error');
+            }
+        }
+
+        function updateActivityList(activities) {
+            const loadingEl = document.getElementById('loading');
+            const listEl = document.getElementById('activity-list');
+            const emptyEl = document.getElementById('empty-state');
+
+            loadingEl.style.display = 'none';
+
+            if (activities.length === 0) {
+                listEl.style.display = 'none';
+                emptyEl.style.display = 'block';
+                return;
+            }
+
+            emptyEl.style.display = 'none';
+            listEl.style.display = 'block';
+
+            // Sort activities by timestamp (newest first)
+            activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+            listEl.innerHTML = activities.map(activity => {
+                const time = new Date(activity.timestamp).toLocaleString();
+                const typeClass = activity.type || 'unknown';
+                
+                return `
+                    <div class="activity-item ${typeClass}">
+                        <div class="activity-header">
+                            <span class="activity-type">${activity.type || 'Unknown'}</span>
+                            <span class="activity-time">${time}</span>
+                        </div>
+                        <div class="activity-description">${activity.description || 'No description'}</div>
+                        ${activity.url ? `<div class="activity-url">${activity.url}</div>` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            // Auto-scroll to top for newest activities
+            listEl.scrollTop = 0;
+        }
+
+        function updateStatusBar(data) {
+            document.getElementById('status').textContent = 'Active';
+            document.getElementById('activity-count').textContent = data.total || 0;
+            document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            
+            // Update button states
+            document.querySelectorAll('.controls .btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Reload activities with new filter
+            loadActivities();
+        }
+
+        async function clearActivities() {
+            if (!confirm('Are you sure you want to clear all activities?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/activity_monitor', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'clear_activities'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    loadActivities();
+                } else {
+                    console.error('Failed to clear activities:', data.error);
+                    alert('Failed to clear activities');
+                }
+            } catch (error) {
+                console.error('Error clearing activities:', error);
+                alert('Connection error');
+            }
+        }
+
+        function toggleAutoRefresh() {
+            autoRefresh = !autoRefresh;
+            const textEl = document.getElementById('auto-refresh-text');
+            textEl.textContent = `Auto Refresh: ${autoRefresh ? 'ON' : 'OFF'}`;
+
+            if (autoRefresh) {
+                startAutoRefresh();
+            } else {
+                stopAutoRefresh();
+            }
+        }
+
+        function startAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+            refreshInterval = setInterval(loadActivities, 3000); // Refresh every 3 seconds
+        }
+
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+        }
+
+        function showError(message) {
+            const listEl = document.getElementById('activity-list');
+            const loadingEl = document.getElementById('loading');
+            const emptyEl = document.getElementById('empty-state');
+
+            loadingEl.style.display = 'none';
+            listEl.style.display = 'none';
+            emptyEl.style.display = 'block';
+
+            emptyEl.innerHTML = `
+                <div class="icon">⚠️</div>
+                <h3>Error</h3>
+                <p>${message}</p>
+                <button class="btn" onclick="loadActivities()">Retry</button>
+            `;
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            stopAutoRefresh();
+        });
+    </script>
+</body>
+</html>
