@@ -164,12 +164,11 @@ class TaskManager:
                     description=task.description,
                     category=PersistenceTaskCategory(task.category.value),
                     status=PersistenceTaskStatus(task.status.value),
-                    priority=task.priority.value if hasattr(task.priority, 'value') else 1,
+                    priority=1,  # Default priority
                     progress=task.progress,
                     created_at=task.created_at,
                     started_at=task.started_at,
                     completed_at=task.completed_at,
-                    context_id=task.context.get('context_id'),
                     agent_id=task.assigned_agent,
                     parent_id=task.parent_id,
                     subtask_ids=list(task.subtask_ids),
