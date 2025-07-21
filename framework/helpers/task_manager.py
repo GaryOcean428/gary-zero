@@ -89,6 +89,109 @@ class TaskManager:
         self.completed_tasks: Set[str] = set()
         self.failed_tasks: Set[str] = set()
         
+        # Enable database persistence
+        self.persistence_enabled = True
+        self._db: Optional[Any] = None
+        
+        # Load existing tasks from database
+        self._load_from_database()
+    
+    @property
+    def database(self):
+        """Get the task database instance."""
+        if self._db is None:
+            try:
+                from framework.helpers.task_persistence import get_task_database
+                self._db = get_task_database()
+            except ImportError:
+                self.persistence_enabled = False
+                print("Warning: Task persistence not available")
+        return self._db
+    
+    def _load_from_database(self):
+        """Load existing tasks from database."""
+        if not self.persistence_enabled:
+            return
+        
+        try:
+            db = self.database
+            if db:
+                tasks = db.load_all_tasks()
+                for task in tasks:
+                    # Convert from persistence Task to current Task format
+                    current_task = Task(
+                        id=task.id,
+                        title=task.title,
+                        description=task.description,
+                        status=TaskStatus(task.status.value),
+                        category=TaskCategory(task.category.value) if task.category else TaskCategory.OTHER,
+                        created_at=task.created_at or datetime.now(timezone.utc),
+                        started_at=task.started_at,
+                        completed_at=task.completed_at,
+                        assigned_agent=task.agent_id,
+                        context=task.metadata or {},
+                        progress=task.progress
+                    )
+                    
+                    self.tasks[current_task.id] = current_task
+                    
+                    # Organize tasks by status
+                    if current_task.status == TaskStatus.IN_PROGRESS:
+                        self.active_tasks.add(current_task.id)
+                    elif current_task.status == TaskStatus.COMPLETED:
+                        self.completed_tasks.add(current_task.id)
+                    elif current_task.status == TaskStatus.FAILED:
+                        self.failed_tasks.add(current_task.id)
+                
+                print(f"Loaded {len(tasks)} tasks from database")
+        except Exception as e:
+            print(f"Error loading tasks from database: {e}")
+    
+    def _save_to_database(self, task: Task):
+        """Save a task to database."""
+        if not self.persistence_enabled:
+            return
+        
+        try:
+            db = self.database
+            if db:
+                # Convert from current Task to persistence Task format
+                from framework.helpers.task_persistence import Task as PersistenceTask, TaskStatus as PersistenceTaskStatus, TaskCategory as PersistenceTaskCategory
+                
+                persistence_task = PersistenceTask(
+                    id=task.id,
+                    title=task.title,
+                    description=task.description,
+                    category=PersistenceTaskCategory(task.category.value),
+                    status=PersistenceTaskStatus(task.status.value),
+                    priority=task.priority.value if hasattr(task.priority, 'value') else 1,
+                    progress=task.progress,
+                    created_at=task.created_at,
+                    started_at=task.started_at,
+                    completed_at=task.completed_at,
+                    context_id=task.context.get('context_id'),
+                    agent_id=task.assigned_agent,
+                    parent_id=task.parent_id,
+                    subtask_ids=list(task.subtask_ids),
+                    metadata=task.context
+                )
+                
+                db.save_task(persistence_task)
+        except Exception as e:
+            print(f"Error saving task to database: {e}")
+    
+    def _save_update_to_database(self, update: TaskUpdate):
+        """Save a task update to database."""
+        if not self.persistence_enabled:
+            return
+        
+        try:
+            db = self.database
+            if db:
+                db.save_task_update(update)
+        except Exception as e:
+            print(f"Error saving task update to database: {e}")
+        
     @classmethod
     def get_instance(cls) -> 'TaskManager':
         """Get the singleton task manager instance."""
@@ -120,6 +223,9 @@ class TaskManager:
         # Add to parent's subtasks if applicable
         if parent_id and parent_id in self.tasks:
             self.tasks[parent_id].subtask_ids.add(task.id)
+        
+        # Save to database
+        self._save_to_database(task)
         
         self._log_task_event(task.id, "Task created", TaskStatus.PENDING)
         return task
@@ -156,6 +262,10 @@ class TaskManager:
         task.updated_at = datetime.now(timezone.utc)
         
         self.active_tasks.add(task_id)
+        
+        # Save to database
+        self._save_to_database(task)
+        
         self._log_task_event(task_id, "Task started", TaskStatus.IN_PROGRESS, agent_id)
     
     def update_task_progress(self, task_id: str, progress: float, message: str = "") -> None:
@@ -166,6 +276,9 @@ class TaskManager:
         task = self.tasks[task_id]
         task.progress = max(0.0, min(1.0, progress))
         task.updated_at = datetime.now(timezone.utc)
+        
+        # Save to database
+        self._save_to_database(task)
         
         self._log_task_event(task_id, message or f"Progress updated to {progress:.1%}", task.status)
     
@@ -190,6 +303,9 @@ class TaskManager:
         self.active_tasks.discard(task_id)
         self.completed_tasks.add(task_id)
         
+        # Save to database
+        self._save_to_database(task)
+        
         self._log_task_event(task_id, "Task completed", TaskStatus.COMPLETED)
         
         # Check if parent task should be completed
@@ -208,6 +324,9 @@ class TaskManager:
         
         self.active_tasks.discard(task_id)
         self.failed_tasks.add(task_id)
+        
+        # Save to database
+        self._save_to_database(task)
         
         self._log_task_event(task_id, f"Task failed: {error}", TaskStatus.FAILED)
     
@@ -311,6 +430,9 @@ class TaskManager:
             agent_id=agent_id
         )
         self.task_updates.append(update)
+        
+        # Save update to database
+        self._save_update_to_database(update)
         
         # Print to console for debugging (lazy import to avoid circular dependencies)
         try:
