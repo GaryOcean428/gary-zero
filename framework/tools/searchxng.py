@@ -14,7 +14,24 @@ class SearchXng(Tool):
     
     def __init__(self, agent, name: str, method: str | None, args: dict[str, str], message: str, **kwargs):
         super().__init__(agent, name, method, args, message, **kwargs)
-        self.searxng_url = os.getenv('SEARXNG_URL', 'http://localhost:55510')
+        
+        # Get SearchXNG URL with proper fallback handling
+        self.searxng_url = os.getenv('SEARXNG_URL', '')
+        
+        # Check if URL contains unresolved Railway reference variables
+        if not self.searxng_url or '${{' in self.searxng_url:
+            # Try Railway internal domain as fallback
+            if os.getenv('RAILWAY_ENVIRONMENT'):
+                self.searxng_url = 'http://searchxng.railway.internal:8080'
+                PrintStyle(font_color="#FFA500").print(
+                    f"⚠️  Using fallback SearchXNG URL: {self.searxng_url}"
+                )
+            else:
+                # Local development fallback
+                self.searxng_url = 'http://localhost:55510'
+        
+        # Log the URL being used
+        PrintStyle(font_color="#85C1E9").print(f"🔍 SearchXNG URL: {self.searxng_url}")
     
     async def execute(self, **kwargs):
         """Perform search using SearchXNG."""
@@ -33,6 +50,11 @@ class SearchXng(Tool):
             if isinstance(results, dict) and 'error' in results:
                 error_msg = f"❌ SearchXNG search failed: {results['error']}"
                 PrintStyle.error(error_msg)
+                
+                # Suggest fallback to DuckDuckGo if SearchXNG fails
+                if 'connection' in results['error'].lower():
+                    error_msg += "\n💡 Hint: SearchXNG may not be accessible. Consider using DuckDuckGo as fallback."
+                
                 return Response(message=error_msg, break_loop=False)
             
             formatted_results = self._format_search_results(results, "SearchXNG")
