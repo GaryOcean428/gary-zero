@@ -13,7 +13,7 @@ from .base_executor import BaseCodeExecutor
 class DockerCodeExecutor(BaseCodeExecutor):
     """Secure code execution using Docker containers."""
     
-    def __init__(self, image_name: str = "python:3.11-slim", network_name: str = "gary-zero-net"):
+    def __init__(self, image_name: str = "python:3.13-slim", network_name: str = "gary-zero-net"):
         super().__init__()
         self.image_name = image_name
         self.network_name = network_name

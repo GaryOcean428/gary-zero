@@ -20,7 +20,7 @@ setup(
     package_dir={"": "."},
     # Include all Python files in the package
     package_data={"zero": ["*.py", "*/*.py", "*/*/*.py", "*/*/*/*.py"]},
-    python_requires=">=3.9",
+    python_requires=">=3.13",
     install_requires=[
         # Core dependencies
         "pydantic>=1.10.0",
@@ -54,9 +54,8 @@ setup(
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],

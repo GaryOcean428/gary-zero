@@ -22,7 +22,7 @@ from langchain_core.documents import Document
 import models
 from agent import Agent, ModelConfig
 
-# faiss needs to be patched for python 3.12 on arm #TODO remove once not needed
+# faiss needs to be patched for python 3.13 on arm #TODO remove once not needed
 from framework.helpers import knowledge_import
 from framework.helpers.log import LogItem
 from framework.helpers.print_style import PrintStyle

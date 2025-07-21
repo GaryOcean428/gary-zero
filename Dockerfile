@@ -14,7 +14,7 @@ ARG RAILWAY_DEPLOYMENT_ID
 ARG PORT=8000
 
 # ========== Builder Stage ==========
-FROM python:3.11-slim AS builder
+FROM python:3.13-slim AS builder
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
@@ -53,7 +53,7 @@ RUN --mount=type=cache,id=s/eef92461-60f6-4937-a828-fd5cfd6440d7-pip,target=/roo
     pip install --no-cache-dir -r requirements.txt
 
 # ========== Runtime Stage ==========
-FROM python:3.11-slim
+FROM python:3.13-slim
 
 # Re-declare build arguments to use in this stage
 ARG BUILD_DATE
@@ -107,7 +107,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Copy installed packages from builder
-COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application code - adjusted for actual project structure
