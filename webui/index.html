@@ -173,6 +173,7 @@
     <script type="text/javascript" src="js/file_browser.js"></script>
     <script type="text/javascript" src="js/modal.js"></script>
     <script type="text/javascript" src="js/sidebar-tabs.js"></script>
+    <script type="text/javascript" src="js/activity-monitor.js"></script>
 </head>
 
 <body class="dark-mode">
@@ -497,6 +498,127 @@
                                 <line x1="8" y1="23" x2="16" y2="23"></line>
                             </svg>
                         </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Monitor Section -->
+            <div id="activity-monitor-section" 
+                 x-data="{
+                    isVisible: false,
+                    isLoading: false,
+                    activityCount: 0,
+                    currentSrc: './activity-monitor.html',
+                    
+                    async toggleMonitor() {
+                        this.isVisible = !this.isVisible;
+                        if (this.isVisible) {
+                            this.refreshActivityFrame();
+                        }
+                    },
+                    
+                    async refreshActivityFrame() {
+                        this.isLoading = true;
+                        // Force iframe reload by changing src
+                        const timestamp = Date.now();
+                        this.currentSrc = './activity-monitor.html?t=' + timestamp;
+                        setTimeout(() => {
+                            this.isLoading = false;
+                        }, 1000);
+                    },
+                    
+                    async loadExternalUrl() {
+                        const url = prompt('Enter URL to load in activity monitor:');
+                        if (url) {
+                            try {
+                                await fetch('/activity_monitor', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        action: 'set_iframe_src',
+                                        src: url
+                                    })
+                                });
+                                this.currentSrc = url;
+                            } catch (error) {
+                                console.error('Failed to set iframe source:', error);
+                                alert('Failed to load URL');
+                            }
+                        }
+                    }
+                 }"
+                 class="activity-monitor-section">
+                
+                <!-- Activity Monitor Toggle Button -->
+                <div class="activity-monitor-header">
+                    <button @click="toggleMonitor()" 
+                            class="activity-monitor-toggle"
+                            :class="{ 'active': isVisible }"
+                            aria-label="Toggle Activity Monitor">
+                        <span class="toggle-icon">📺</span>
+                        <span class="toggle-text">Live Activity Monitor</span>
+                        <span class="activity-indicator" x-show="activityCount > 0" x-text="activityCount"></span>
+                        <span class="chevron" :class="{ 'rotated': isVisible }">▼</span>
+                    </button>
+                </div>
+                
+                <!-- Activity Monitor Content -->
+                <div x-show="isVisible" 
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 max-h-0"
+                     x-transition:enter-end="opacity-100 max-h-96"
+                     x-transition:leave="transition ease-in duration-300"
+                     x-transition:leave-start="opacity-100 max-h-96"
+                     x-transition:leave-end="opacity-0 max-h-0"
+                     class="activity-monitor-content">
+                    
+                    <!-- Monitor Controls -->
+                    <div class="activity-monitor-controls">
+                        <button @click="refreshActivityFrame()" 
+                                class="monitor-btn"
+                                :disabled="isLoading"
+                                title="Refresh activity monitor">
+                            <span x-show="!isLoading">🔄</span>
+                            <span x-show="isLoading" class="loading-spinner">⏳</span>
+                            Refresh
+                        </button>
+                        
+                        <button @click="currentSrc = './activity-monitor.html'" 
+                                class="monitor-btn"
+                                title="Show activity monitor">
+                            📊 Activities
+                        </button>
+                        
+                        <button @click="loadExternalUrl()" 
+                                class="monitor-btn"
+                                title="Load external URL">
+                            🌐 Load URL
+                        </button>
+                        
+                        <button @click="currentSrc = 'about:blank'" 
+                                class="monitor-btn"
+                                title="Clear display">
+                            ✖️ Clear
+                        </button>
+                    </div>
+                    
+                    <!-- Activity Monitor Iframe -->
+                    <div class="activity-monitor-frame-container">
+                        <iframe :src="currentSrc"
+                                class="activity-monitor-frame"
+                                frameborder="0"
+                                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
+                                loading="lazy"
+                                title="Live Activity Monitor"
+                                @load="isLoading = false">
+                        </iframe>
+                        
+                        <div x-show="isLoading" class="iframe-loading-overlay">
+                            <div class="loading-content">
+                                <div class="loading-spinner-large">⏳</div>
+                                <p>Loading activity monitor...</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

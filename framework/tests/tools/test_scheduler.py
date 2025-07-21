@@ -20,18 +20,17 @@ class TestSchedulerTool:
     """Test cases for the SchedulerTool class."""
 
     @pytest.fixture
-    def scheduler_tool(self):
+    def scheduler_tool(self, mock_agent, mock_tool_args):
         """Fixture to create a SchedulerTool instance with a mock agent."""
-        tool = SchedulerTool()
-        tool.agent = MagicMock()
-        tool.agent.context = MagicMock()
-        tool.agent.context.id = "test_context_id"
-        return tool
+        return SchedulerTool(
+            agent=mock_agent,
+            **mock_tool_args
+        )
 
     @pytest.fixture
     def mock_task_scheduler(self):
         """Fixture to mock the TaskScheduler singleton."""
-        with patch("zero.helpers.task_scheduler.TaskScheduler") as mock_scheduler:
+        with patch("framework.helpers.task_scheduler.TaskScheduler") as mock_scheduler:
             mock_instance = mock_scheduler.get.return_value
             yield mock_instance
 
