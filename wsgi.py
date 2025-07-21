@@ -133,8 +133,17 @@ def create_app():
         
         emergency_app = Flask(__name__)
         
-        @emergency_app.route('/health')
+        @emergency_app.route('/health', methods=['GET'])
         def emergency_health():
+            return jsonify({
+                "status": "error",
+                "error": error_message,
+                "timestamp": time.time(),
+                "startup_failed": True
+            })
+            
+        @emergency_app.route('/ready', methods=['GET'])
+        def emergency_ready():
             return jsonify({
                 "status": "error",
                 "error": error_message,
