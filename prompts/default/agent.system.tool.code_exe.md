@@ -1,94 +1,107 @@
 ### code_execution_tool
 
-execute code securely using E2B cloud sandbox, Docker, or local execution
-place code in "code" arg; escape carefully and indent properly
-select "runtime" arg: "terminal" "python" "nodejs" "output" "reset" "secure_info"
-select "session" number, 0 default, others for multitasking
-if code runs long, use "output" to wait, "reset" to kill process
-use "pip" "npm" "apt-get" in "terminal" to install packages
-to output, use print() or console.log()
-if tool outputs error, adjust code before retrying; knowledge_tool can help
-important: check code for placeholders or demo data; replace with real variables; don't reuse snippets
-don't use with other tools except thoughts; wait for response before using others
-check dependencies before running code
-output may end with [SYSTEM: ...] information comming from framework, not terminal
+Execute code securely using E2B cloud sandbox, Docker, or local execution
+Primary method: E2B Cloud Sandboxes for maximum security and isolation
 
-**secure execution**: Code runs in isolated E2B cloud sandboxes when available, providing enhanced security
-**runtime "secure_info"**: Get information about current execution environment (E2B, Docker, or local)
+**Arguments**:
+- `code`: The code to execute (properly escaped and indented)
+- `runtime`: Execution environment
+  - `"python"` - Python 3.11+ with common libraries
+  - `"javascript"` or `"nodejs"` - Node.js environment
+  - `"terminal"` - Shell commands (bash)
+  - `"output"` - Get output from long-running process
+  - `"reset"` - Kill process in session
+  - `"secure_info"` - Check current execution environment
+- `session`: Session number (0 default, use others for multitasking)
 
-usage:
+**E2B Cloud Sandbox Features**:
+- Isolated execution environment per session
+- No local file system access outside sandbox
+- Automatic cleanup after execution
+- Network access available
+- Pre-installed common libraries
+- Package installation via pip/npm/apt-get
 
-1 execute python code
+**Railway Production Environment**:
+- Access to Railway environment variables
+- Can interact with other Railway services via private network
+- Use RAILWAY_PRIVATE_DOMAIN for internal service communication
+- All code runs in secure, isolated E2B sandboxes by default
 
+**Best Practices**:
+1. Always check code for placeholders before running
+2. Install dependencies in terminal runtime first if needed
+3. Save important outputs - sandboxes are ephemeral
+4. Use print() or console.log() for output
+5. Don't assume file persistence between executions
+6. Wait for response before using other tools
+
+**Example Usage**:
+
+1. Python code execution:
 ~~~json
 {
     "thoughts": [
-        "Need to do...",
-        "I can use...",
-        "Then I can...",
+        "Need to analyze data",
+        "Will use pandas for processing",
+        "Output results as JSON"
     ],
     "tool_name": "code_execution_tool",
     "tool_args": {
         "runtime": "python",
         "session": 0,
-        "code": "import os\nprint(os.getcwd())",
+        "code": "import os\nimport json\n\n# Check environment\nprint(f'Environment: {os.getenv(\"RAILWAY_ENVIRONMENT\", \"local\")}')\nprint(f'E2B Sandbox: {os.getenv(\"E2B_SANDBOX_ID\", \"Not in E2B\")}')\n\n# Your code here\nresult = {'status': 'success', 'env': 'E2B'}\nprint(json.dumps(result, indent=2))"
     }
 }
 ~~~
 
-2 execute terminal command
+2. Install packages and run:
 ~~~json
 {
     "thoughts": [
-        "Need to do...",
-        "Need to install...",
+        "Need to install requests library",
+        "Then make API call"
     ],
     "tool_name": "code_execution_tool",
     "tool_args": {
         "runtime": "terminal",
         "session": 0,
-        "code": "apt-get install zip",
+        "code": "pip install requests"
     }
 }
 ~~~
 
-2.1 wait for output with long-running scripts
+3. Check execution environment:
 ~~~json
 {
     "thoughts": [
-        "Waiting for program to finish...",
-    ],
-    "tool_name": "code_execution_tool",
-    "tool_args": {
-        "runtime": "output",
-        "session": 0,
-    }
-}
-~~~
-
-2.2 reset terminal
-~~~json
-{
-    "thoughts": [
-        "code_execution_tool not responding...",
-    ],
-    "tool_name": "code_execution_tool",
-    "tool_args": {
-        "runtime": "reset",
-        "session": 0,
-    }
-}
-~~~
-
-3 get secure execution environment info
-~~~json
-{
-    "thoughts": [
-        "Need to check what execution environment is available...",
+        "Need to verify we're in secure environment",
+        "Check E2B status"
     ],
     "tool_name": "code_execution_tool",
     "tool_args": {
         "runtime": "secure_info",
+        "session": 0,
+        "code": ""
     }
 }
 ~~~
+
+**Security Notes**:
+- E2B sandboxes are completely isolated
+- No access to host file system
+- Network requests are allowed but monitored
+- Execution time limits apply (configurable)
+- Resource usage is constrained
+- All Railway secrets/env vars available in sandbox
+
+**Fallback Behavior**:
+1. Primary: E2B Cloud Sandbox (when E2B_API_KEY configured)
+2. Fallback 1: Docker container (if E2B unavailable)
+3. Fallback 2: Local execution (only if explicitly enabled)
+
+**Output Format**:
+- Tool returns execution output as text
+- May include [SYSTEM: ...] messages from framework
+- Error messages help debug issues
+- Use knowledge_tool to research error solutions
