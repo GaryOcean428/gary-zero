@@ -145,5 +145,57 @@ dev = [
 # Frontend linting tools (install separately with npm/yarn)
 # npm install -g markdownlint-cli2 stylelint htmlhint prettier
 
+[tool.coverage.run]
+source = ["framework", "api", "security"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/migrations/*",
+    "*/venv/*", 
+    "*/.venv/*",
+    "*/build/*",
+    "*/dist/*",
+    "*/setup.py",
+    "*/conftest.py",
+    "*/tmp/*",
+    "*/logs/*",
+    "*/memory/*",
+    "*/prompts/*",
+    "*/knowledge/*",
+    "*/instruments/*",
+    "*/webui/*",
+    "*/lib/*",
+    "*/docker/*",
+    "*/docs/*"
+]
+parallel = true
+branch = true
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError", 
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+    "except ImportError:",
+    "pass"
+]
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
 # detect-secrets configuration will be handled via command line args
 # to avoid TOML regex escape issues
