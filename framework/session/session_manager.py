@@ -9,7 +9,7 @@ import asyncio
 import logging
 import uuid
 from typing import Any, Dict, List, Optional, Callable
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from .session_interface import (
     SessionInterface, SessionType, SessionState, SessionMessage, 
