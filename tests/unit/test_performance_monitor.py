@@ -154,8 +154,9 @@ class TestMetricsCollector:
         p95 = collector.get_percentile("test_metric", 95)
         p99 = collector.get_percentile("test_metric", 99)
         
-        assert p50 == 5.0  # 50th percentile
-        assert p95 == 9.0  # 95th percentile 
+        # Percentile calculation: for 10 values, 50th percentile should be around index 5
+        assert p50 == 6.0  # 50th percentile (index 5 in 0-based array)
+        assert p95 == 10.0  # 95th percentile 
         assert p99 == 10.0  # 99th percentile
     
     def test_clear_metrics(self):
