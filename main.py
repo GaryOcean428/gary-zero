@@ -19,7 +19,6 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
-from starlette.exceptions import HTTPException as StarletteHTTPException
 from pydantic import BaseModel, Field
 
 from framework.helpers import dotenv, git
@@ -40,19 +39,6 @@ _startup_time = time.time()
 
 # Security scheme
 security = HTTPBearer()
-
-# SPA-compatible StaticFiles class
-class SPAStaticFiles(StaticFiles):
-    """StaticFiles subclass that serves index.html for SPA routing."""
-    async def get_response(self, path: str, scope):
-        try:
-            response = await super().get_response(path, scope)
-            return response
-        except (HTTPException, StarletteHTTPException) as ex:
-            if ex.status_code == 404:
-                # Serve index.html for client-side routing
-                return await super().get_response('index.html', scope)
-            raise ex
 
 # Pydantic models for request/response validation
 class HealthResponse(BaseModel):
@@ -226,12 +212,10 @@ except Exception as e:
     logger.warning(f"Could not initialize API bridge: {e}")
     logger.info("Continuing with FastAPI-only functionality")
 
-# Mount webui static files - BEFORE API routes
+# Mount webui static files for non-root paths first
 app.mount("/public", StaticFiles(directory="webui/public"), name="public")
 app.mount("/css", StaticFiles(directory="webui/css"), name="css")
 app.mount("/js", StaticFiles(directory="webui/js"), name="js")
-# Mount root SPA LAST to catch all remaining routes
-app.mount("/", SPAStaticFiles(directory="webui", html=True), name="webui")
 
 # Add enhanced API endpoints
 add_enhanced_endpoints(app)
@@ -383,6 +367,26 @@ async def global_exception_handler(request, exc):
         status_code=500,
         content={"detail": "Internal server error"}
     )
+
+# Serve index.html at root without blocking other routes
+@app.get("/")
+async def serve_ui():
+    """Serve the web UI index.html at root."""
+    from fastapi.responses import FileResponse
+    return FileResponse("webui/index.html", media_type="text/html")
+
+# Serve critical webui root files
+@app.get("/index.css")
+async def serve_index_css():
+    """Serve index.css from webui root."""
+    from fastapi.responses import FileResponse
+    return FileResponse("webui/index.css", media_type="text/css")
+
+@app.get("/index.js")
+async def serve_index_js():
+    """Serve index.js from webui root."""
+    from fastapi.responses import FileResponse
+    return FileResponse("webui/index.js", media_type="application/javascript")
 
 if __name__ == "__main__":
     import uvicorn
