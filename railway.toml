@@ -26,6 +26,7 @@ repo = "GaryOcean428/gary-zero"
 branch = "main"
 
 [services.variables]
+PORT = "8000"  # Default port, Railway will override this
 WEB_UI_HOST = "0.0.0.0"
 PYTHONUNBUFFERED = "1"
 RAILWAY_ENVIRONMENT = "production"
