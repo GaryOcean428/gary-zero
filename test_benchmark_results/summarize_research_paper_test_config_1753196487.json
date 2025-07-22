@@ -1,0 +1,27 @@
+{
+  "task_id": "summarize_research_paper",
+  "run_id": "summarize_research_paper_test_config_1753196487",
+  "timestamp": 1753196487.2772267,
+  "timestamp_iso": "2025-07-22T15:01:27.277227+00:00",
+  "status": "completed",
+  "duration_seconds": 0.10022282600402832,
+  "score": 0.85,
+  "scores": {
+    "accuracy": 0.9,
+    "completeness": 0.8
+  },
+  "output_data": {
+    "generated": "dummy output"
+  },
+  "error_message": null,
+  "logs": [],
+  "resource_usage": {},
+  "configuration": {
+    "model": "test-model",
+    "temperature": 0.7,
+    "max_tokens": 1000,
+    "executor_name": "dummy",
+    "config_name": "test_config"
+  },
+  "artifacts": []
+}

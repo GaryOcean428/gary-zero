@@ -17,7 +17,7 @@
   },
   "systemDependencies": [
     "portaudio19-dev",
-    "libasound-dev", 
+    "libasound-dev",
     "libportaudio2",
     "libportaudiocpp0",
     "gcc",

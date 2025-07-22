@@ -1,0 +1,9 @@
+{
+  "name": "data_summariser",
+  "version": "1.0.0", 
+  "description": "Summarize and analyze data from various sources",
+  "author": "gary-zero-official",
+  "capabilities": ["data-analysis", "summarization", "statistics"],
+  "dependencies": ["json"],
+  "entry_point": "plugin.py"
+}

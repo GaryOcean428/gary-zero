@@ -1,0 +1,9 @@
+README.md
+pyproject.toml
+shared_mcp.egg-info/PKG-INFO
+shared_mcp.egg-info/SOURCES.txt
+shared_mcp.egg-info/dependency_links.txt
+shared_mcp.egg-info/requires.txt
+shared_mcp.egg-info/top_level.txt
+tests/test_backward_compatibility.py
+tests/test_shared_mcp.py
