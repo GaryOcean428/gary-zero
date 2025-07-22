@@ -114,7 +114,7 @@ function toggleCssProperty(selector, property, value) {
     }
     
     // Fallback: Create or update a dynamic style element
-    let dynamicStyleId = 'dynamic-toggle-styles';
+    const dynamicStyleId = 'dynamic-toggle-styles';
     let dynamicStyle = document.getElementById(dynamicStyleId);
     
     if (!dynamicStyle) {
