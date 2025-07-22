@@ -18,6 +18,8 @@ class AuditEventType(Enum):
     CONFIG_CHANGE = "config_change"
     AUTHENTICATION = "authentication"
     AUTHORIZATION = "authorization"
+    APPROVAL_REQUEST = "approval_request"
+    APPROVAL_DECISION = "approval_decision"
     RATE_LIMIT = "rate_limit"
     SECURITY_VIOLATION = "security_violation"
     SYSTEM_EVENT = "system_event"
@@ -235,6 +237,48 @@ class AuditLogger:
             timestamp=time.time(),
             user_id=user_id,
             error_details=error_message,
+            **kwargs
+        )
+        await self.log_event(event)
+    
+    async def log_approval_request(self, user_id: str, action_type: str, 
+                                 risk_level: str, request_id: str, **kwargs) -> None:
+        """Log approval request event."""
+        event = AuditEvent(
+            event_type=AuditEventType.APPROVAL_REQUEST,
+            level=AuditLevel.INFO,
+            message=f"Approval requested for {action_type}",
+            timestamp=time.time(),
+            user_id=user_id,
+            input_data={
+                "action_type": action_type,
+                "risk_level": risk_level,
+                "request_id": request_id
+            },
+            **kwargs
+        )
+        await self.log_event(event)
+    
+    async def log_approval_decision(self, user_id: str, action_type: str,
+                                  approved: bool, approver_id: str, 
+                                  request_id: str, reason: Optional[str] = None, **kwargs) -> None:
+        """Log approval decision event."""
+        level = AuditLevel.INFO if approved else AuditLevel.WARNING
+        message = f"Action {action_type} {'approved' if approved else 'denied'}"
+        
+        event = AuditEvent(
+            event_type=AuditEventType.APPROVAL_DECISION,
+            level=level,
+            message=message,
+            timestamp=time.time(),
+            user_id=user_id,
+            input_data={
+                "action_type": action_type,
+                "approved": approved,
+                "approver_id": approver_id,
+                "request_id": request_id,
+                "reason": reason
+            },
             **kwargs
         )
         await self.log_event(event)
