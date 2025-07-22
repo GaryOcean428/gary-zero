@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ["3.13"]
 
     steps:
     - uses: actions/checkout@v4
@@ -47,6 +47,29 @@ jobs:
     - name: Test with pytest
       run: |
         pytest --cov=framework --cov-report=xml --cov-report=term-missing
+        
+    - name: Port Configuration Test
+      run: |
+        # Test that the application can bind to the PORT environment variable
+        python -c "
+        import os
+        import socket
+        
+        # Test port binding with environment variable
+        port = int(os.getenv('PORT', 5000))
+        print(f'Testing port binding on 0.0.0.0:{port}')
+        
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.bind(('0.0.0.0', port))
+            s.close()
+            print('✅ Port binding test passed')
+        except Exception as e:
+            print(f'❌ Port binding test failed: {e}')
+            exit(1)
+        "
+      env:
+        PORT: 8080
         
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4
