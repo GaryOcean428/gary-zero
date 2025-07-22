@@ -1,12 +1,13 @@
 [build]
 builder = "railpack"
+buildCommand = "./scripts/build.sh"
 timeout = 1800  # 30 minutes
 retries = 3
 
 [deploy]
-startCommand = "python start_uvicorn.py"
+startCommand = "./scripts/start.sh"
 healthcheckPath = "/health"
-healthcheckTimeout = 30
+healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
 replicas = 1
@@ -25,9 +26,11 @@ repo = "GaryOcean428/gary-zero"
 branch = "main"
 
 [services.variables]
+PORT = "8000"  # Default port, Railway will override this
 WEB_UI_HOST = "0.0.0.0"
 PYTHONUNBUFFERED = "1"
 RAILWAY_ENVIRONMENT = "production"
+RAILPACK_PRUNE_DEPS = "false"
 RAILPACK_PYTHON_VERSION = "3.13"
 RAILPACK_PACKAGE_MANAGER = "uv"
 
