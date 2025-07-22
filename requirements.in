@@ -25,7 +25,7 @@ langchain-ollama==0.3.0
 langchain-openai==0.3.11
 lxml_html_clean==0.3.1
 markdown==3.7
-mcp==1.9.0
+mcp>=1.10.1
 newspaper3k==0.2.8
 paramiko==3.5.0
 playwright==1.52.0
