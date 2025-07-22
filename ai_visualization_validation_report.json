@@ -4,14 +4,13 @@
   "tests_failed": 1,
   "errors": [],
   "warnings": [
-    "Optional dependency WebSockets not available",
     "Optional dependency PIL not available",
     "Optional dependency PyAutoGUI not available",
     "Environment variable AI_VISUALIZATION_AUTO_START not set (using defaults)",
     "Environment variable AI_STREAMING_AUTO_START not set (using defaults)",
     "Environment variable AI_STREAMING_HOST not set (using defaults)",
     "Environment variable AI_STREAMING_PORT not set (using defaults)",
-    "Tool import failed (dependencies missing): No module named 'dotenv'"
+    "Tool import failed (dependencies missing): No module named 'httpx'"
   ],
   "components": {
     "File framework/helpers/ai_action_interceptor.py": "\u2705 PASS",
