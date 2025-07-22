@@ -1,0 +1,21 @@
+#!/bin/sh
+# Pre-commit hook to ensure requirements.txt is in sync with requirements.in
+
+# Check if requirements.in has been modified
+if git diff --cached --name-only | grep -q "requirements.in"; then
+    echo "📦 requirements.in modified - regenerating requirements.txt..."
+    
+    # Check if uv is installed
+    if ! command -v uv &> /dev/null; then
+        echo "❌ Error: 'uv' is not installed. Please install with: pip install uv"
+        exit 1
+    fi
+    
+    # Regenerate requirements.txt
+    uv pip compile requirements.in -o requirements.txt
+    
+    # Add the updated requirements.txt to the commit
+    git add requirements.txt
+    
+    echo "✅ requirements.txt regenerated and added to commit"
+fi
