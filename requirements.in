@@ -47,3 +47,6 @@ openai-agents>=0.1.0
 packaging>=24.1,<25
 e2b-code-interpreter>=1.5.0
 gunicorn==23.0.0
+
+# Shared MCP library (local installation)
+./shared_mcp
