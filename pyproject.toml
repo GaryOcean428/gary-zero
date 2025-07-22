@@ -27,7 +27,10 @@ dependencies = [
   "langchain-openai>=0.3.11",
   "python-dotenv>=1.1.0",
   "flask>=3.0.3",
-  "gunicorn>=23.0.0"
+  "gunicorn>=23.0.0",
+  "fastmcp>=2.3.0",
+  "mcp>=1.12.0",
+  "shared-mcp @ file:///${PWD}/shared_mcp"
 ]
 
 [project.optional-dependencies]

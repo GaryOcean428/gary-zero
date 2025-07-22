@@ -22,6 +22,7 @@ anyio==4.9.0
     #   httpx
     #   mcp
     #   openai
+    #   shared-mcp
     #   sse-starlette
     #   starlette
     #   watchfiles
@@ -126,7 +127,9 @@ faiss-cpu==1.11.0
 fastapi==0.116.1
     # via -r requirements.in
 fastmcp==2.3.4
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   shared-mcp
 feedfinder2==0.0.4
     # via newspaper3k
 feedparser==6.0.11
@@ -228,6 +231,7 @@ httpx==0.28.1
     #   ollama
     #   openai
     #   qdrant-client
+    #   shared-mcp
     #   unstructured-client
 httpx-sse==0.4.0
     # via
@@ -365,6 +369,7 @@ mcp==1.12.0
     #   -r requirements.in
     #   fastmcp
     #   openai-agents
+    #   shared-mcp
 mdurl==0.1.2
     # via markdown-it-py
 mem0ai==0.1.93
@@ -543,6 +548,7 @@ pydantic==2.10.6
     #   openapi-pydantic
     #   pydantic-settings
     #   qdrant-client
+    #   shared-mcp
 pydantic-core==2.27.2
     # via pydantic
 pydantic-settings==2.9.1
@@ -673,6 +679,8 @@ setuptools==80.9.0
     #   triton
 sgmllib3k==1.0.0
     # via feedparser
+./shared_mcp
+    # via -r requirements.in
 shellingham==1.5.4
     # via typer
 six==1.17.0
@@ -705,6 +713,7 @@ starlette==0.47.0
     # via
     #   fastapi
     #   mcp
+    #   shared-mcp
 sympy==1.14.0
     # via torch
 tenacity==9.1.2
