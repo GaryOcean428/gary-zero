@@ -18,6 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from framework.helpers import dotenv, git
@@ -211,6 +212,11 @@ except Exception as e:
     logger.warning(f"Could not initialize API bridge: {e}")
     logger.info("Continuing with FastAPI-only functionality")
 
+# Mount webui static files for non-root paths first
+app.mount("/public", StaticFiles(directory="webui/public"), name="public")
+app.mount("/css", StaticFiles(directory="webui/css"), name="css")
+app.mount("/js", StaticFiles(directory="webui/js"), name="js")
+
 # Add enhanced API endpoints
 add_enhanced_endpoints(app)
 
@@ -343,17 +349,6 @@ async def process_agent_message(message: MessageRequest) -> MessageResponse:
         agent_id=message.agent_id
     )
 
-@app.get("/")
-async def read_root():
-    """Root endpoint returning API information."""
-    return {
-        "message": "Gary-Zero AI Agent Framework",
-        "version": "0.9.0",
-        "docs": "/docs" if os.getenv("RAILWAY_ENVIRONMENT") != "production" else "disabled",
-        "health": "/health",
-        "websocket": "/ws"
-    }
-
 # Error handler for 404 errors
 @app.exception_handler(404)
 async def not_found_handler(request, exc):
@@ -372,6 +367,26 @@ async def global_exception_handler(request, exc):
         status_code=500,
         content={"detail": "Internal server error"}
     )
+
+# Serve index.html at root without blocking other routes
+@app.get("/")
+async def serve_ui():
+    """Serve the web UI index.html at root."""
+    from fastapi.responses import FileResponse
+    return FileResponse("webui/index.html", media_type="text/html")
+
+# Serve critical webui root files
+@app.get("/index.css")
+async def serve_index_css():
+    """Serve index.css from webui root."""
+    from fastapi.responses import FileResponse
+    return FileResponse("webui/index.css", media_type="text/css")
+
+@app.get("/index.js")
+async def serve_index_js():
+    """Serve index.js from webui root."""
+    from fastapi.responses import FileResponse
+    return FileResponse("webui/index.js", media_type="application/javascript")
 
 if __name__ == "__main__":
     import uvicorn
