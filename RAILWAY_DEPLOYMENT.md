@@ -5,11 +5,11 @@ This document explains the Railway deployment configuration for the gary-zero pr
 ## Configuration Files
 
 ### nixpacks.toml
-Explicitly specifies Python 3.12 as the provider to prevent Railway from misidentifying the project as Node.js due to the presence of `package-lock.json`.
+Explicitly specifies Python 3.13 as the provider to prevent Railway from misidentifying the project as Node.js due to the presence of `package-lock.json`.
 
 ```toml
 [providers]
-python = "3.12"
+python = "3.13"
 ```
 
 ### Procfile
