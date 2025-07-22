@@ -14,6 +14,9 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import threading
 
+# Set up logger
+logger = logging.getLogger(__name__)
+
 try:
     from framework.helpers.api import ApiHandler as FlaskApiHandler
 except ImportError as e:
