@@ -1,0 +1,9 @@
+{
+  "name": "slack_notifier",
+  "version": "1.0.0",
+  "description": "Send notifications and messages to Slack channels",
+  "author": "gary-zero-official",
+  "capabilities": ["messaging", "notifications", "collaboration"],
+  "dependencies": ["json"],
+  "entry_point": "plugin.py"
+}
