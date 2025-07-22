@@ -18,6 +18,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from pydantic import BaseModel, Field
 
 from framework.helpers import dotenv, git
@@ -38,6 +40,19 @@ _startup_time = time.time()
 
 # Security scheme
 security = HTTPBearer()
+
+# SPA-compatible StaticFiles class
+class SPAStaticFiles(StaticFiles):
+    """StaticFiles subclass that serves index.html for SPA routing."""
+    async def get_response(self, path: str, scope):
+        try:
+            response = await super().get_response(path, scope)
+            return response
+        except (HTTPException, StarletteHTTPException) as ex:
+            if ex.status_code == 404:
+                # Serve index.html for client-side routing
+                return await super().get_response('index.html', scope)
+            raise ex
 
 # Pydantic models for request/response validation
 class HealthResponse(BaseModel):
@@ -211,6 +226,13 @@ except Exception as e:
     logger.warning(f"Could not initialize API bridge: {e}")
     logger.info("Continuing with FastAPI-only functionality")
 
+# Mount webui static files - BEFORE API routes
+app.mount("/public", StaticFiles(directory="webui/public"), name="public")
+app.mount("/css", StaticFiles(directory="webui/css"), name="css")
+app.mount("/js", StaticFiles(directory="webui/js"), name="js")
+# Mount root SPA LAST to catch all remaining routes
+app.mount("/", SPAStaticFiles(directory="webui", html=True), name="webui")
+
 # Add enhanced API endpoints
 add_enhanced_endpoints(app)
 
@@ -342,17 +364,6 @@ async def process_agent_message(message: MessageRequest) -> MessageResponse:
         response=f"Received message: {message.message}",
         agent_id=message.agent_id
     )
-
-@app.get("/")
-async def read_root():
-    """Root endpoint returning API information."""
-    return {
-        "message": "Gary-Zero AI Agent Framework",
-        "version": "0.9.0",
-        "docs": "/docs" if os.getenv("RAILWAY_ENVIRONMENT") != "production" else "disabled",
-        "health": "/health",
-        "websocket": "/ws"
-    }
 
 # Error handler for 404 errors
 @app.exception_handler(404)
