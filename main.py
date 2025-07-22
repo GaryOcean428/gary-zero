@@ -102,7 +102,32 @@ manager = ConnectionManager()
 async def initialize_agent_systems():
     """Initialize agent systems on startup."""
     logger.info(f'🚀 Gary-Zero starting on Railway: {os.getenv("RAILWAY_ENVIRONMENT", "local")}')
-    # TODO: Initialize your agent systems here
+    
+    # Initialize OpenAI Agents SDK integration
+    try:
+        from framework.helpers.sdk_integration import initialize_sdk_integration, get_sdk_status
+        
+        # Initialize SDK components
+        init_results = initialize_sdk_integration({
+            "enable_tracing": True,
+            "strict_mode": False  # Start with permissive guardrails
+        })
+        
+        # Log initialization results
+        if init_results.get("errors"):
+            logger.warning(f"SDK initialization had errors: {init_results['errors']}")
+        else:
+            logger.info("OpenAI Agents SDK integration initialized successfully")
+        
+        # Get and log status
+        status = get_sdk_status()
+        logger.info(f"SDK integration status: {status['overall_status']}")
+        
+    except Exception as e:
+        logger.warning(f"Could not initialize SDK integration: {e}")
+        logger.info("Continuing with traditional Gary-Zero functionality")
+    
+    # TODO: Initialize other agent systems here
     # This will be connected to the existing agent initialization logic
 
 async def cleanup_agent_systems():
