@@ -11,6 +11,7 @@
     "Environment variable AI_STREAMING_AUTO_START not set (using defaults)",
     "Environment variable AI_STREAMING_HOST not set (using defaults)",
     "Environment variable AI_STREAMING_PORT not set (using defaults)",
+    "Tool import failed (dependencies missing): No module named 'httpx'"
     "Tool import failed (dependencies missing): No module named 'dotenv'"
   ],
   "components": {
