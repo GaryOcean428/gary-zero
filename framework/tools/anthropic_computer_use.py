@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 
 from framework.helpers.tool import Response, Tool
 from framework.helpers.print_style import PrintStyle
+from framework.security import require_approval, RiskLevel
 
 # Import GUI dependencies conditionally
 try:
@@ -95,9 +96,13 @@ class AnthropicComputerUse(Tool):
         # Set pause between actions
         pyautogui.PAUSE = 0.1
 
+    @require_approval("computer_control", RiskLevel.CRITICAL, "Control desktop/GUI automation")
     async def execute(self, **kwargs) -> Response:
-        """Execute computer use action."""
+        """Execute computer use action with approval workflow."""
         try:
+            # Extract user_id for approval system
+            user_id = kwargs.get('user_id', 'system')
+            
             # Check if GUI is available
             if not GUI_AVAILABLE:
                 return Response(

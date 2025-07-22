@@ -4,6 +4,10 @@
 **/__pycache__/
 **/.conda/
 
+# Plugin system
+plugins.db
+plugins.db-*
+
 # Ignore docker/run/gary-zero directory
 docker/run/gary-zero/
 
