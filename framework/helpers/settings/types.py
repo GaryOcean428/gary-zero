@@ -119,6 +119,18 @@ class Settings(TypedDict):
     gemini_cli_path: str
     gemini_cli_approval_mode: str
     gemini_cli_auto_install: bool
+      
+    # Anthropic Computer Use settings
+    computer_use_enabled: bool
+    computer_use_require_approval: bool
+    computer_use_screenshot_interval: float
+    computer_use_max_actions_per_session: int
+
+    # Claude Code settings
+    claude_code_enabled: bool
+    claude_code_max_file_size: int
+    claude_code_enable_git_ops: bool
+    claude_code_enable_terminal: bool
 
 
 # Default settings values that can be used across modules
@@ -193,16 +205,31 @@ DEFAULT_SETTINGS: Settings = {
     "rfc_auto_docker": True,
     "rfc_port_http": 8000,
     "rfc_port_ssh": 22,
+  
     # OpenAI Codex CLI settings
     "codex_cli_enabled": False,
     "codex_cli_path": "codex",
     "codex_cli_approval_mode": "suggest",
     "codex_cli_auto_install": True,
+  
     # Google Gemini CLI settings
     "gemini_cli_enabled": False,
     "gemini_cli_path": "gemini",
     "gemini_cli_approval_mode": "suggest", 
     "gemini_cli_auto_install": True,
+  
+    # Anthropic Computer Use settings
+    "computer_use_enabled": True,
+    "computer_use_require_approval": False,
+    "computer_use_screenshot_interval": 1.0,
+    "computer_use_max_actions_per_session": 50,
+  
+    # Claude Code settings
+    "claude_code_enabled": True,
+    "claude_code_max_file_size": 1048576,  # 1MB
+    "claude_code_enable_git_ops": True,
+    "claude_code_enable_terminal": True,
+
     # API Keys (initially empty dict)
     "api_keys": {},
 }

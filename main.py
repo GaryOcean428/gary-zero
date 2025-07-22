@@ -102,7 +102,32 @@ manager = ConnectionManager()
 async def initialize_agent_systems():
     """Initialize agent systems on startup."""
     logger.info(f'🚀 Gary-Zero starting on Railway: {os.getenv("RAILWAY_ENVIRONMENT", "local")}')
-    # TODO: Initialize your agent systems here
+    
+    # Initialize OpenAI Agents SDK integration
+    try:
+        from framework.helpers.sdk_integration import initialize_sdk_integration, get_sdk_status
+        
+        # Initialize SDK components
+        init_results = initialize_sdk_integration({
+            "enable_tracing": True,
+            "strict_mode": False  # Start with permissive guardrails
+        })
+        
+        # Log initialization results
+        if init_results.get("errors"):
+            logger.warning(f"SDK initialization had errors: {init_results['errors']}")
+        else:
+            logger.info("OpenAI Agents SDK integration initialized successfully")
+        
+        # Get and log status
+        status = get_sdk_status()
+        logger.info(f"SDK integration status: {status['overall_status']}")
+        
+    except Exception as e:
+        logger.warning(f"Could not initialize SDK integration: {e}")
+        logger.info("Continuing with traditional Gary-Zero functionality")
+    
+    # TODO: Initialize other agent systems here
     # This will be connected to the existing agent initialization logic
 
 async def cleanup_agent_systems():
@@ -123,6 +148,9 @@ async def lifespan(app: FastAPI):
 # Add API bridge integration
 from api_bridge_simple import create_api_bridge, add_enhanced_endpoints
 
+# Import Gemini Live API router
+from api.gemini_live_api import router as gemini_live_router
+
 # Create FastAPI application with lifecycle management
 app = FastAPI(
     title="Gary-Zero AI Agent Framework",
@@ -132,6 +160,9 @@ app = FastAPI(
     docs_url="/docs" if os.getenv("RAILWAY_ENVIRONMENT") != "production" else None,
     redoc_url="/redoc" if os.getenv("RAILWAY_ENVIRONMENT") != "production" else None
 )
+
+# Include API routers
+app.include_router(gemini_live_router)
 
 # Add middleware for Railway optimization
 app.add_middleware(GZipMiddleware, minimum_size=1000)
@@ -268,6 +299,16 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
         manager.disconnect(websocket)
+
+@app.websocket("/a2a/stream")
+async def a2a_stream_endpoint(websocket: WebSocket, agent_id: str, session_id: str, session_token: str = None):
+    """
+    A2A WebSocket endpoint for real-time agent-to-agent streaming communication.
+    
+    Enables persistent bidirectional communication between A2A-compliant agents.
+    """
+    from framework.api.a2a_stream import handle_websocket_connection
+    await handle_websocket_connection(websocket, agent_id, session_id, session_token)
 
 async def process_agent_message(message: MessageRequest) -> MessageResponse:
     """

@@ -886,6 +886,115 @@ def convert_out(settings: Settings) -> SettingsOutput:
         "tab": "developer",
     }
 
+    # Anthropic Computer Use section
+    computer_use_fields: list[SettingsField] = []
+    
+    computer_use_fields.append(
+        {
+            "id": "computer_use_enabled",
+            "title": "Enable Computer Use",
+            "description": "Enable Anthropic Computer Use tool for desktop automation (keyboard, mouse, window control)",
+            "type": "switch",
+            "value": settings.get("computer_use_enabled", False),
+        }
+    )
+    
+    computer_use_fields.append(
+        {
+            "id": "computer_use_require_approval",
+            "title": "Require Approval",
+            "description": "Require user approval before executing desktop automation actions",
+            "type": "switch",
+            "value": settings.get("computer_use_require_approval", True),
+        }
+    )
+    
+    computer_use_fields.append(
+        {
+            "id": "computer_use_screenshot_interval",
+            "title": "Screenshot Interval (seconds)",
+            "description": "Interval between automatic screenshots for computer use operations",
+            "type": "number",
+            "value": settings.get("computer_use_screenshot_interval", 1.0),
+            "min": 0.1,
+            "max": 10.0,
+            "step": 0.1,
+        }
+    )
+    
+    computer_use_fields.append(
+        {
+            "id": "computer_use_max_actions_per_session",
+            "title": "Max Actions Per Session",
+            "description": "Maximum number of desktop automation actions allowed per session",
+            "type": "number",
+            "value": settings.get("computer_use_max_actions_per_session", 50),
+            "min": 1,
+            "max": 1000,
+        }
+    )
+
+    computer_use_section: SettingsSection = {
+        "id": "computer_use",
+        "title": "Computer Use",
+        "description": "Anthropic Computer Use tool for desktop automation via keyboard, mouse, and window control",
+        "fields": computer_use_fields,
+        "tab": "tools",
+    }
+
+    # Claude Code section
+    claude_code_fields: list[SettingsField] = []
+    
+    claude_code_fields.append(
+        {
+            "id": "claude_code_enabled",
+            "title": "Enable Claude Code",
+            "description": "Enable Claude Code tool for advanced code editing, Git operations, and terminal commands",
+            "type": "switch",
+            "value": settings.get("claude_code_enabled", False),
+        }
+    )
+    
+    claude_code_fields.append(
+        {
+            "id": "claude_code_max_file_size",
+            "title": "Max File Size (bytes)",
+            "description": "Maximum file size that can be processed by Claude Code tool",
+            "type": "number",
+            "value": settings.get("claude_code_max_file_size", 1048576),
+            "min": 1024,
+            "max": 10485760,  # 10MB
+        }
+    )
+    
+    claude_code_fields.append(
+        {
+            "id": "claude_code_enable_git_ops",
+            "title": "Enable Git Operations",
+            "description": "Allow Claude Code to perform Git operations (status, add, commit, push, pull)",
+            "type": "switch",
+            "value": settings.get("claude_code_enable_git_ops", True),
+        }
+    )
+    
+    claude_code_fields.append(
+        {
+            "id": "claude_code_enable_terminal",
+            "title": "Enable Terminal Commands",
+            "description": "Allow Claude Code to execute terminal commands",
+            "type": "switch",
+            "value": settings.get("claude_code_enable_terminal", True),
+        }
+    )
+
+    claude_code_section: SettingsSection = {
+        "id": "claude_code",
+        "title": "Claude Code",
+        "description": "Claude Code tool for context-aware multi-file editing, Git operations, and terminal commands",
+        "fields": claude_code_fields,
+        "tab": "tools",
+    }
+
     # Speech to text section
     stt_fields: list[SettingsField] = []
 
@@ -1186,6 +1295,8 @@ def convert_out(settings: Settings) -> SettingsOutput:
             auth_section,
             mcp_client_section,
             mcp_server_section,
+            computer_use_section,
+            claude_code_section,
             dev_section,
         ]
     }
