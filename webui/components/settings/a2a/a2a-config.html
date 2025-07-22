@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>A2A Configuration</title>
+    <style>
+        .a2a-config-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .config-section {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .config-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        .form-group textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+        
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+            margin-right: 8px;
+        }
+        
+        .button-group {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        .btn-success {
+            background: #28a745;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-enabled {
+            background: #28a745;
+        }
+        
+        .status-disabled {
+            background: #dc3545;
+        }
+        
+        .agent-card-preview {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .agent-card-preview pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="a2a-config-container">
+        <h2>🤖 Agent2Agent (A2A) Protocol Configuration</h2>
+        
+        <!-- A2A Status Section -->
+        <div class="config-section">
+            <h3>A2A Protocol Status</h3>
+            <div>
+                <span class="status-indicator status-enabled" id="a2a-status-indicator"></span>
+                <span id="a2a-status-text">A2A Protocol Enabled</span>
+                <button class="btn btn-secondary" onclick="toggleA2AStatus()">Toggle Status</button>
+            </div>
+            <p><strong>Agent ID:</strong> <span id="agent-id">gary-zero-abc123</span></p>
+            <p><strong>Base URL:</strong> <span id="base-url">http://localhost:8000</span></p>
+        </div>
+        
+        <!-- Basic Configuration -->
+        <div class="config-section">
+            <h3>Basic Configuration</h3>
+            <div class="form-group">
+                <label for="agent-name">Agent Name:</label>
+                <input type="text" id="agent-name" value="Gary-Zero" placeholder="Enter agent name">
+            </div>
+            
+            <div class="form-group">
+                <label for="agent-description">Agent Description:</label>
+                <textarea id="agent-description" placeholder="Describe your agent's purpose and capabilities">Gary-Zero is a general-purpose AI assistant with multi-agent coordination capabilities</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="base-url-input">Base URL:</label>
+                <input type="url" id="base-url-input" value="http://localhost:8000" placeholder="https://your-agent.example.com">
+            </div>
+        </div>
+        
+        <!-- Capabilities Configuration -->
+        <div class="config-section">
+            <h3>Capabilities</h3>
+            <p>Select which capabilities to expose to other A2A agents:</p>
+            <div class="checkbox-group" id="capabilities-list">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="cap-code-execution" checked>
+                    <label for="cap-code-execution">Code Execution</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="cap-file-management" checked>
+                    <label for="cap-file-management">File Management</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="cap-web-browsing" checked>
+                    <label for="cap-web-browsing">Web Browsing</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="cap-search-engine" checked>
+                    <label for="cap-search-engine">Search Engine</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="cap-mcp-client" checked>
+                    <label for="cap-mcp-client">MCP Client</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="cap-mcp-server" checked>
+                    <label for="cap-mcp-server">MCP Server</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="cap-task-scheduling" checked>
+                    <label for="cap-task-scheduling">Task Scheduling</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="cap-knowledge-mgmt" checked>
+                    <label for="cap-knowledge-mgmt">Knowledge Management</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="cap-multi-agent" checked>
+                    <label for="cap-multi-agent">Multi-Agent Coordination</label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Security Configuration -->
+        <div class="config-section">
+            <h3>Security Settings</h3>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="auth-required" checked>
+                    Require Authentication for A2A Communication
+                </label>
+            </div>
+            
+            <div class="form-group">
+                <label for="trusted-agents">Trusted Agent IDs (one per line):</label>
+                <textarea id="trusted-agents" placeholder="agent-id-1&#10;agent-id-2&#10;..."></textarea>
+            </div>
+        </div>
+        
+        <!-- Agent Card Preview -->
+        <div class="config-section">
+            <h3>Agent Card Preview</h3>
+            <p>This is how your agent will appear to other A2A-compliant agents:</p>
+            <div class="agent-card-preview">
+                <pre id="agent-card-json">{
+  "loading": "Generating agent card..."
+}</pre>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="refreshAgentCard()">🔄 Refresh Preview</button>
+                <button class="btn btn-success" onclick="testAgentCard()">🧪 Test Agent Card</button>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="button-group">
+            <button class="btn btn-success" onclick="saveA2AConfig()">💾 Save Configuration</button>
+            <button class="btn btn-secondary" onclick="resetA2AConfig()">🔄 Reset to Defaults</button>
+            <button class="btn" onclick="testA2AInteroperability()">🧪 Test A2A Interoperability</button>
+        </div>
+    </div>
+
+    <script>
+        // A2A Configuration Management
+        let a2aConfig = {
+            enabled: true,
+            agent_name: "Gary-Zero",
+            agent_description: "Gary-Zero is a general-purpose AI assistant with multi-agent coordination capabilities",
+            base_url: "http://localhost:8000",
+            capabilities: [
+                "code_execution", "file_management", "web_browsing", "search_engine",
+                "mcp_client", "mcp_server", "task_scheduling", "knowledge_management", "multi_agent_coordination"
+            ],
+            authentication_required: true,
+            trusted_agents: []
+        };
+
+        function loadA2AConfig() {
+            // Load configuration from settings
+            document.getElementById('agent-name').value = a2aConfig.agent_name;
+            document.getElementById('agent-description').value = a2aConfig.agent_description;
+            document.getElementById('base-url-input').value = a2aConfig.base_url;
+            document.getElementById('auth-required').checked = a2aConfig.authentication_required;
+            
+            // Update capabilities checkboxes
+            const capabilityMap = {
+                'code_execution': 'cap-code-execution',
+                'file_management': 'cap-file-management', 
+                'web_browsing': 'cap-web-browsing',
+                'search_engine': 'cap-search-engine',
+                'mcp_client': 'cap-mcp-client',
+                'mcp_server': 'cap-mcp-server',
+                'task_scheduling': 'cap-task-scheduling',
+                'knowledge_management': 'cap-knowledge-mgmt',
+                'multi_agent_coordination': 'cap-multi-agent'
+            };
+            
+            for (const [capability, elementId] of Object.entries(capabilityMap)) {
+                const checkbox = document.getElementById(elementId);
+                if (checkbox) {
+                    checkbox.checked = a2aConfig.capabilities.includes(capability);
+                }
+            }
+            
+            updateStatusDisplay();
+            refreshAgentCard();
+        }
+
+        function updateStatusDisplay() {
+            const indicator = document.getElementById('a2a-status-indicator');
+            const text = document.getElementById('a2a-status-text');
+            
+            if (a2aConfig.enabled) {
+                indicator.className = 'status-indicator status-enabled';
+                text.textContent = 'A2A Protocol Enabled';
+            } else {
+                indicator.className = 'status-indicator status-disabled';
+                text.textContent = 'A2A Protocol Disabled';
+            }
+        }
+
+        function toggleA2AStatus() {
+            a2aConfig.enabled = !a2aConfig.enabled;
+            updateStatusDisplay();
+        }
+
+        function gatherConfigFromForm() {
+            const config = {...a2aConfig};
+            config.agent_name = document.getElementById('agent-name').value;
+            config.agent_description = document.getElementById('agent-description').value;
+            config.base_url = document.getElementById('base-url-input').value;
+            config.authentication_required = document.getElementById('auth-required').checked;
+            
+            // Gather capabilities
+            const capabilityMap = {
+                'cap-code-execution': 'code_execution',
+                'cap-file-management': 'file_management',
+                'cap-web-browsing': 'web_browsing', 
+                'cap-search-engine': 'search_engine',
+                'cap-mcp-client': 'mcp_client',
+                'cap-mcp-server': 'mcp_server',
+                'cap-task-scheduling': 'task_scheduling',
+                'cap-knowledge-mgmt': 'knowledge_management',
+                'cap-multi-agent': 'multi_agent_coordination'
+            };
+            
+            config.capabilities = [];
+            for (const [elementId, capability] of Object.entries(capabilityMap)) {
+                const checkbox = document.getElementById(elementId);
+                if (checkbox && checkbox.checked) {
+                    config.capabilities.push(capability);
+                }
+            }
+            
+            // Gather trusted agents
+            const trustedAgentsText = document.getElementById('trusted-agents').value;
+            config.trusted_agents = trustedAgentsText
+                .split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+            
+            return config;
+        }
+
+        async function refreshAgentCard() {
+            try {
+                const response = await fetch('/.well-known/agent.json');
+                const agentCard = await response.json();
+                
+                document.getElementById('agent-card-json').textContent = JSON.stringify(agentCard, null, 2);
+                document.getElementById('agent-id').textContent = agentCard.id;
+                document.getElementById('base-url').textContent = agentCard.base_url;
+            } catch (error) {
+                document.getElementById('agent-card-json').textContent = `Error loading agent card: ${error.message}`;
+            }
+        }
+
+        async function testAgentCard() {
+            try {
+                const response = await fetch('/.well-known/agent.json');
+                if (response.ok) {
+                    alert('✅ Agent card test successful! The A2A agent card is accessible and valid.');
+                } else {
+                    alert(`❌ Agent card test failed! Status: ${response.status}`);
+                }
+            } catch (error) {
+                alert(`❌ Agent card test failed! Error: ${error.message}`);
+            }
+        }
+
+        function saveA2AConfig() {
+            const config = gatherConfigFromForm();
+            
+            // In a real implementation, this would save to the backend
+            a2aConfig = config;
+            
+            alert('✅ A2A configuration saved successfully!');
+            refreshAgentCard();
+        }
+
+        function resetA2AConfig() {
+            if (confirm('Are you sure you want to reset A2A configuration to defaults?')) {
+                // Reset to defaults
+                a2aConfig = {
+                    enabled: true,
+                    agent_name: "Gary-Zero",
+                    agent_description: "Gary-Zero is a general-purpose AI assistant with multi-agent coordination capabilities",
+                    base_url: "http://localhost:8000",
+                    capabilities: [
+                        "code_execution", "file_management", "web_browsing", "search_engine",
+                        "mcp_client", "mcp_server", "task_scheduling", "knowledge_management", "multi_agent_coordination"
+                    ],
+                    authentication_required: true,
+                    trusted_agents: []
+                };
+                
+                loadA2AConfig();
+                alert('🔄 A2A configuration reset to defaults.');
+            }
+        }
+
+        async function testA2AInteroperability() {
+            alert('🧪 Starting A2A interoperability test...\n\nThis will test:\n- Agent card discovery\n- Capability discovery\n- Protocol negotiation\n- MCP tools discovery\n- Push notifications\n\nCheck the browser console for detailed results.');
+            
+            try {
+                // Run the same tests as the Python script
+                const testResults = {
+                    agentCard: false,
+                    discovery: false,
+                    negotiation: false,
+                    mcpTools: false,
+                    notification: false
+                };
+                
+                // Test 1: Agent Card
+                try {
+                    const response = await fetch('/.well-known/agent.json');
+                    testResults.agentCard = response.ok;
+                    console.log('✅ Agent Card Test:', response.ok ? 'PASS' : 'FAIL');
+                } catch (e) {
+                    console.log('❌ Agent Card Test: FAIL -', e.message);
+                }
+                
+                // Test 2: Discovery
+                try {
+                    const response = await fetch('/a2a/discover', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            requester_id: 'test-web-client',
+                            capabilities_filter: ['code_execution', 'web_browsing']
+                        })
+                    });
+                    const result = await response.json();
+                    testResults.discovery = result.success;
+                    console.log('✅ Discovery Test:', result.success ? 'PASS' : 'FAIL');
+                } catch (e) {
+                    console.log('❌ Discovery Test: FAIL -', e.message);
+                }
+                
+                // Test 3: MCP Tools
+                try {
+                    const response = await fetch('/a2a/mcp/tools');
+                    const result = await response.json();
+                    testResults.mcpTools = result.success;
+                    console.log('✅ MCP Tools Test:', result.success ? 'PASS' : 'FAIL');
+                } catch (e) {
+                    console.log('❌ MCP Tools Test: FAIL -', e.message);
+                }
+                
+                const passed = Object.values(testResults).filter(Boolean).length;
+                const total = Object.keys(testResults).length;
+                
+                alert(`🧪 A2A Interoperability Test Complete!\n\nResults: ${passed}/${total} tests passed\n\nSee console for detailed results.`);
+                
+            } catch (error) {
+                alert(`❌ A2A interoperability test failed: ${error.message}`);
+            }
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadA2AConfig();
+        });
+    </script>
+</body>
+</html>

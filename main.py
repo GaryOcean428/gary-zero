@@ -269,6 +269,16 @@ async def websocket_endpoint(websocket: WebSocket):
         logger.error(f"WebSocket error: {e}")
         manager.disconnect(websocket)
 
+@app.websocket("/a2a/stream")
+async def a2a_stream_endpoint(websocket: WebSocket, agent_id: str, session_id: str, session_token: str = None):
+    """
+    A2A WebSocket endpoint for real-time agent-to-agent streaming communication.
+    
+    Enables persistent bidirectional communication between A2A-compliant agents.
+    """
+    from framework.api.a2a_stream import handle_websocket_connection
+    await handle_websocket_connection(websocket, agent_id, session_id, session_token)
+
 async def process_agent_message(message: MessageRequest) -> MessageResponse:
     """
     Process incoming agent messages.
