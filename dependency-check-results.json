@@ -9,22 +9,22 @@
     "unused": {
       "unused_dependencies": [],
       "unused_dev_dependencies": [
-        "@biomejs/biome",
         "@vitest/coverage-v8",
+        "@testing-library/jest-dom",
+        "axe-core",
+        "@eslint/js",
+        "@biomejs/biome",
         "@vitest/ui",
         "eslint",
-        "typescript",
-        "@testing-library/jest-dom",
-        "@eslint/js",
-        "axe-core"
+        "typescript"
       ]
     },
     "missing": [
       "${absoluteUrl}",
-      "node:fs",
       "node:child_process",
-      "node:process",
       "@vscode",
+      "node:process",
+      "node:fs",
       "@eslint"
     ]
   },
@@ -181,8 +181,8 @@
     }
   },
   "recommendations": [
-    "\ud83d\udee0\ufe0f Remove 8 unused dev dependencies: @biomejs/biome, @vitest/coverage-v8, @vitest/ui...",
-    "\u26a0\ufe0f Add 6 missing dependencies: ${absoluteUrl}, node:fs, node:child_process...",
+    "\ud83d\udee0\ufe0f Remove 8 unused dev dependencies: @vitest/coverage-v8, @testing-library/jest-dom, axe-core...",
+    "\u26a0\ufe0f Add 6 missing dependencies: ${absoluteUrl}, node:child_process, @vscode...",
     "\ud83d\udd12 Fix 3 security vulnerabilities with 'npm audit fix'",
     "\ud83d\udcc5 Update 3 outdated packages"
   ]
