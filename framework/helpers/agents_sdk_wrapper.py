@@ -33,7 +33,7 @@ class SDKAgentConfig:
     """Configuration for SDK-wrapped agents."""
     name: str
     model_provider: str = "openai"
-    model_name: str = "gpt-4"
+    model_name: str = "o3"  # Updated to modern o3 model
     instructions: str = ""
     enable_tracing: bool = True
     enable_guardrails: bool = True
@@ -71,7 +71,7 @@ class GaryZeroSDKAgent:
             # Fallback to default
             provider = OpenAIProvider()
             model = OpenAIChatCompletionsModel(
-                name="gpt-4",
+                name="o3",  # Updated to modern o3 model
                 provider=provider
             )
         
