@@ -1,8 +1,9 @@
-# Development dependencies
-pytest>=7.0.0
-pytest-asyncio>=0.20.0
-pytest-mock>=3.10.0
-pytest-cov>=4.0.0
-nest_asyncio>=1.5.6
-mypy>=0.910
-ruff>=0.3.0
+# Development dependencies with version pinning for CI stability
+pytest>=7.0.0,<9.0.0
+pytest-asyncio>=0.20.0,<1.0.0
+pytest-mock>=3.10.0,<4.0.0
+pytest-cov>=4.0.0,<6.0.0
+nest_asyncio>=1.5.6,<2.0.0
+mypy>=0.910,<2.0.0
+ruff>=0.8.0,<1.0.0  # Pin ruff version to prevent breaking CLI changes
+fastapi>=0.100.0,<1.0.0  # Required for tests

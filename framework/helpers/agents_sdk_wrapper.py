@@ -8,7 +8,7 @@ agent primitives while maintaining backward compatibility.
 import asyncio
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Union, Callable
+from typing import Any, Dict, List, Optional, Union, Callable, TYPE_CHECKING
 from dataclasses import dataclass, field
 
 # OpenAI Agents SDK imports
@@ -22,6 +22,10 @@ from agents import Trace, get_current_trace, set_trace_processors
 from framework.helpers.task_manager import TaskManager, Task, TaskStatus, TaskCategory
 from framework.helpers import log as Log
 from framework.helpers.print_style import PrintStyle
+
+# Forward reference imports
+if TYPE_CHECKING:
+    from agent import Agent
 
 
 @dataclass

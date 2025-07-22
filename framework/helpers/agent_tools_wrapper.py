@@ -7,17 +7,21 @@ backward compatibility.
 
 import asyncio
 import inspect
-from typing import Any, Dict, List, Optional, Union, Callable, Type
+from typing import Any, Dict, List, Optional, Union, Callable, Type, TYPE_CHECKING
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 
 # OpenAI Agents SDK imports
 from agents import Tool as SDKTool
 
-# Gary-Zero imports
+# Gary-Zero imports  
 from framework.helpers.tool import Tool as GaryTool
 from framework.helpers.extract_tools import load_classes_from_folder
 from framework.helpers.print_style import PrintStyle
+
+# Forward reference imports
+if TYPE_CHECKING:
+    from agent import Agent
 
 
 @dataclass

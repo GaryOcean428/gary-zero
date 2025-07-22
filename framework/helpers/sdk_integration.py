@@ -5,9 +5,13 @@ components and ensure they work together seamlessly.
 """
 
 import asyncio
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, TYPE_CHECKING
 
 from framework.helpers.print_style import PrintStyle
+
+# Forward reference imports
+if TYPE_CHECKING:
+    from agent import Agent, AgentConfig, AgentContext
 
 
 def initialize_sdk_integration(config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
