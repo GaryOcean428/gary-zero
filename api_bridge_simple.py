@@ -116,6 +116,67 @@ def add_enhanced_endpoints(app: FastAPI) -> None:
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error getting recommendation: {str(e)}")
 
+    # A2A Protocol Endpoints
+    @app.get("/.well-known/agent.json", tags=["A2A Protocol"])
+    async def agent_card():
+        """A2A agent card endpoint - exposes agent metadata and capabilities."""
+        from framework.api.a2a_agent_card import A2aAgentCard
+        handler = A2aAgentCard()
+        result = await handler.process({}, None)
+        if result.get("success"):
+            return result["agent_card"]
+        else:
+            raise HTTPException(status_code=500, detail=result.get("error"))
+    
+    @app.post("/a2a/discover", tags=["A2A Protocol"])
+    async def a2a_discover(request_data: Dict[str, Any]):
+        """A2A discovery endpoint - handles agent capability discovery."""
+        from framework.api.a2a_discover import A2aDiscover
+        handler = A2aDiscover()
+        result = await handler.process(request_data, None)
+        return result
+    
+    @app.post("/a2a/negotiate", tags=["A2A Protocol"])
+    async def a2a_negotiate(request_data: Dict[str, Any]):
+        """A2A negotiation endpoint - handles protocol negotiation."""
+        from framework.api.a2a_negotiate import A2aNegotiate
+        handler = A2aNegotiate()
+        result = await handler.process(request_data, None)
+        return result
+    
+    @app.post("/a2a/message", tags=["A2A Protocol"])
+    async def a2a_message(request_data: Dict[str, Any]):
+        """A2A message endpoint - handles agent-to-agent communication."""
+        from framework.api.a2a_message import A2aMessage
+        handler = A2aMessage()
+        result = await handler.process(request_data, None)
+        return result
+    
+    @app.post("/a2a/notify", tags=["A2A Protocol"])
+    async def a2a_notify(request_data: Dict[str, Any]):
+        """A2A notification endpoint - handles push notifications."""
+        from framework.api.a2a_notify import A2aNotify
+        handler = A2aNotify()
+        result = await handler.process(request_data, None)
+        return result
+    
+    @app.get("/a2a/mcp/tools", tags=["A2A MCP Integration"])
+    async def a2a_mcp_tools(filter: Optional[str] = None):
+        """A2A MCP tools endpoint - lists available MCP tools."""
+        from framework.api.a2a_mcp_tools import A2aMcpTools
+        handler = A2aMcpTools()
+        input_data = {"filter": filter} if filter else {}
+        result = await handler.process(input_data, None)
+        return result
+    
+    @app.post("/a2a/mcp/execute", tags=["A2A MCP Integration"])
+    async def a2a_mcp_execute(request_data: Dict[str, Any]):
+        """A2A MCP execute endpoint - executes MCP tools for other agents."""
+        from framework.api.a2a_mcp_tools import A2aMcpExecute
+        handler = A2aMcpExecute()
+        result = await handler.process(request_data, None)
+        return result
+
 # Placeholder for future enhanced functionality
 def enhanced_message_endpoint():
     """Placeholder for enhanced message endpoint."""

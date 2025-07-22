@@ -108,6 +108,18 @@ class Settings(TypedDict):
     rfc_password: str
     rfc_auto_docker: bool
 
+    # Anthropic Computer Use settings
+    computer_use_enabled: bool
+    computer_use_require_approval: bool
+    computer_use_screenshot_interval: float
+    computer_use_max_actions_per_session: int
+
+    # Claude Code settings
+    claude_code_enabled: bool
+    claude_code_max_file_size: int
+    claude_code_enable_git_ops: bool
+    claude_code_enable_terminal: bool
+
 
 # Default settings values that can be used across modules
 DEFAULT_SETTINGS: Settings = {
@@ -181,6 +193,16 @@ DEFAULT_SETTINGS: Settings = {
     "rfc_auto_docker": True,
     "rfc_port_http": 8000,
     "rfc_port_ssh": 22,
+    # Anthropic Computer Use settings
+    "computer_use_enabled": False,
+    "computer_use_require_approval": True,
+    "computer_use_screenshot_interval": 1.0,
+    "computer_use_max_actions_per_session": 50,
+    # Claude Code settings
+    "claude_code_enabled": False,
+    "claude_code_max_file_size": 1048576,  # 1MB
+    "claude_code_enable_git_ops": True,
+    "claude_code_enable_terminal": True,
     # API Keys (initially empty dict)
     "api_keys": {},
 }

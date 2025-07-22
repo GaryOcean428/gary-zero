@@ -148,6 +148,9 @@ async def lifespan(app: FastAPI):
 # Add API bridge integration
 from api_bridge_simple import create_api_bridge, add_enhanced_endpoints
 
+# Import Gemini Live API router
+from api.gemini_live_api import router as gemini_live_router
+
 # Create FastAPI application with lifecycle management
 app = FastAPI(
     title="Gary-Zero AI Agent Framework",
@@ -157,6 +160,9 @@ app = FastAPI(
     docs_url="/docs" if os.getenv("RAILWAY_ENVIRONMENT") != "production" else None,
     redoc_url="/redoc" if os.getenv("RAILWAY_ENVIRONMENT") != "production" else None
 )
+
+# Include API routers
+app.include_router(gemini_live_router)
 
 # Add middleware for Railway optimization
 app.add_middleware(GZipMiddleware, minimum_size=1000)
@@ -293,6 +299,16 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
         manager.disconnect(websocket)
+
+@app.websocket("/a2a/stream")
+async def a2a_stream_endpoint(websocket: WebSocket, agent_id: str, session_id: str, session_token: str = None):
+    """
+    A2A WebSocket endpoint for real-time agent-to-agent streaming communication.
+    
+    Enables persistent bidirectional communication between A2A-compliant agents.
+    """
+    from framework.api.a2a_stream import handle_websocket_connection
+    await handle_websocket_connection(websocket, agent_id, session_id, session_token)
 
 async def process_agent_message(message: MessageRequest) -> MessageResponse:
     """

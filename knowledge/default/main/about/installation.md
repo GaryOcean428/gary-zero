@@ -441,9 +441,9 @@ You should see your folder has changed on the next terminal line.
 <img src="res/setup/image-16.png" alt="agent zero cd" height="100"/>
 <br><br>
 
-3. Create Conda environment using command **"conda create"**. After **"-n"** is your environment name, you can choose your own, i will use **"a0"** - short for Gary-Zero. After **"python"** is the Python version that Conda will install for you into this environment, right now, 3.12 works fine. **-y** skips confirmations.
+3. Create Conda environment using command **"conda create"**. After **"-n"** is your environment name, you can choose your own, i will use **"a0"** - short for Gary-Zero. After **"python"** is the Python version that Conda will install for you into this environment, right now, 3.13 works fine. **-y** skips confirmations.
 ~~~
-conda create -n a0 python=3.12 -y
+conda create -n a0 python=3.13 -y
 ~~~
 
 4. Once done, activate the new environment for this terminal window by another command:
