@@ -29,7 +29,7 @@ def check_railway_config():
         content = f.read()
     
     checks = [
-        ("NIXPACKS builder", 'builder = "NIXPACKS"' in content),
+        ("Railpack builder", 'builder = "railpack"' in content),
         ("Build command", "./scripts/build.sh" in content),
         ("Start command", "./scripts/start.sh" in content),
         ("Health check path", 'healthcheckPath = "/health"' in content),
