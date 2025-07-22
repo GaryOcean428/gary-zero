@@ -1,5 +1,5 @@
 [build]
-builder = "DOCKERFILE"
+builder = "railpack"
 timeout = 1800  # 30 minutes
 retries = 3
 
@@ -28,8 +28,8 @@ branch = "main"
 WEB_UI_HOST = "0.0.0.0"
 PYTHONUNBUFFERED = "1"
 RAILWAY_ENVIRONMENT = "production"
-RAILPACK_PRUNE_DEPS = "false"
-NIXPACKS_PYTHON_VERSION = "3.13"
+RAILPACK_PYTHON_VERSION = "3.13"
+RAILPACK_PACKAGE_MANAGER = "uv"
 
 # FastAPI Configuration
 API_DOCS_ENABLED = "false"  # Disable docs in production
