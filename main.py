@@ -127,13 +127,31 @@ async def initialize_agent_systems():
         logger.warning(f"Could not initialize SDK integration: {e}")
         logger.info("Continuing with traditional Gary-Zero functionality")
     
+    # Initialize AI Action Visualization System
+    try:
+        from framework.helpers.ai_visualization_init import initialize_ai_visualization
+        await initialize_ai_visualization()
+        logger.info("🎯 AI Action Visualization System initialized successfully")
+    except Exception as e:
+        logger.warning(f"Could not initialize AI visualization system: {e}")
+        logger.info("Continuing without AI action visualization")
+    
     # TODO: Initialize other agent systems here
     # This will be connected to the existing agent initialization logic
 
 async def cleanup_agent_systems():
     """Cleanup agent systems on shutdown."""
     logger.info('🛑 Gary-Zero cleanup starting')
-    # TODO: Add cleanup logic here
+    
+    # Cleanup AI Action Visualization System
+    try:
+        from framework.helpers.ai_visualization_init import shutdown_ai_visualization
+        await shutdown_ai_visualization()
+        logger.info("🎯 AI Action Visualization System shutdown complete")
+    except Exception as e:
+        logger.warning(f"Error during AI visualization cleanup: {e}")
+    
+    # TODO: Add other cleanup logic here
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
