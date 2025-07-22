@@ -82,25 +82,44 @@ def should_use_ssh_execution() -> bool:
 
 def should_use_kali_service() -> bool:
     """
-    Determine if Kali service execution should be used.
+    Determine if Kali service should be used for shell execution.
     
     Returns:
         bool: True if Kali service should be used, False otherwise
     """
-    # Check if execution mode is explicitly set to kali
+    # Check if explicitly enabled
     execution_mode = os.getenv('CODE_EXECUTION_MODE', '').lower()
     if execution_mode == 'kali':
         return True
     
-    # Check if Kali service is available (auto-detection)
-    if os.getenv('KALI_SHELL_URL') and not os.getenv('DISABLE_KALI_EXECUTION', '').lower() in ('true', '1', 'yes'):
-        try:
-            from framework.helpers.kali_service import is_kali_service_available
-            return is_kali_service_available()
-        except ImportError:
-            return False
+    # Check if Kali service is configured and available
+    kali_url = os.getenv('KALI_SHELL_URL')
+    if not kali_url:
+        return False
     
-    return False
+    # Check if explicitly disabled
+    if os.getenv('DISABLE_KALI_EXECUTION', '').lower() in ('true', '1', 'yes'):
+        return False
+    
+    # Quick availability check (with caching to avoid repeated requests)
+    try:
+        from framework.helpers.kali_service import is_kali_service_available
+        return is_kali_service_available()
+    except ImportError:
+        return False
+    except Exception:
+        return False
+
+
+def is_kali_service_configured() -> bool:
+    """
+    Check if Kali service is properly configured.
+    
+    Returns:
+        bool: True if all required environment variables are set
+    """
+    required_vars = ['KALI_SHELL_URL', 'KALI_USERNAME', 'KALI_PASSWORD']
+    return all(os.getenv(var) for var in required_vars)
 
 
 def get_execution_config() -> Dict[str, Any]:

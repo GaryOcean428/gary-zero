@@ -4,6 +4,8 @@
 
 {{ include "./agent.system.main.environment.md" }}
 
+{{ include "./shell_integration_guide.md" }}
+
 {{ include "./railway_operations_guide.md" }}
 
 {{ include "./tools_reference_railway.md" }}
