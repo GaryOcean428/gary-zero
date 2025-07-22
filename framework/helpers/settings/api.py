@@ -141,6 +141,8 @@ def convert_out(settings: Settings) -> SettingsOutput:
         SectionBuilder.build_auth_section(settings),
         SectionBuilder.build_mcp_client_section(settings),
         SectionBuilder.build_mcp_server_section(settings),
+        SectionBuilder.build_computer_use_section(settings),
+        SectionBuilder.build_claude_code_section(settings),
         SectionBuilder.build_dev_section(settings),
     ]
 
