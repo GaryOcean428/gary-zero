@@ -220,7 +220,7 @@ class AgentContext:
 
 @dataclass
 class ModelConfig:
-    provider: models.ModelProvider
+    provider: str  # Changed from models.ModelProvider to str to avoid import issues
     name: str
     ctx_length: int = 0
     limit_requests: int = 0
