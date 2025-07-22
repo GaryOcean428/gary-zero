@@ -1023,11 +1023,35 @@ class Agent:
         from framework.helpers.tool import Tool
         from framework.tools.unknown import Unknown
 
+        # First try to load from plugins
+        try:
+            plugin_tool_class = self._get_plugin_tool(name)
+            if plugin_tool_class:
+                return plugin_tool_class(
+                    agent=self, name=name, method=method, args=args, message=message, **kwargs
+                )
+        except Exception as e:
+            print(f"Failed to load plugin tool {name}: {e}")
+
+        # Fallback to static tools
         classes = extract_tools.load_classes_from_folder("framework/tools", name + ".py", Tool)
         tool_class = classes[0] if classes else Unknown
         return tool_class(
             agent=self, name=name, method=method, args=args, message=message, **kwargs
         )
+
+    def _get_plugin_tool(self, name: str):
+        """Get a tool from the plugin system."""
+        # Initialize plugin manager if not already done
+        if not hasattr(self, '_plugin_manager'):
+            try:
+                from framework.plugins.manager import PluginManager
+                self._plugin_manager = PluginManager()
+            except Exception as e:
+                print(f"Failed to initialize plugin manager: {e}")
+                return None
+        
+        return self._plugin_manager.get_tool(name)
 
     async def call_extensions(self, folder: str, **kwargs) -> Any:
         from framework.helpers.extension import Extension

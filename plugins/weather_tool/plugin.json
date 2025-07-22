@@ -1,0 +1,9 @@
+{
+  "name": "weather_tool",
+  "version": "1.0.0",
+  "description": "Get weather information and forecasts",
+  "author": "gary-zero-official",
+  "capabilities": ["weather", "forecast", "location"],
+  "dependencies": ["json", "datetime"],
+  "entry_point": "plugin.py"
+}

@@ -137,6 +137,37 @@ async def initialize_agent_systems():
         logger.warning(f"Could not initialize AI visualization system: {e}")
         logger.info("Continuing without AI action visualization")
     
+    # Initialize Unified Logging, Monitoring & Benchmarking Framework
+    try:
+        from framework.logging.unified_logger import get_unified_logger
+        from framework.performance.monitor import get_performance_monitor
+        
+        # Initialize unified logger
+        unified_logger = get_unified_logger()
+        logger.info("📝 Unified logging system initialized successfully")
+        
+        # Initialize performance monitor  
+        performance_monitor = get_performance_monitor()
+        await performance_monitor.start()
+        logger.info("📊 Performance monitoring system started successfully")
+        
+        # Log system startup
+        from framework.logging.unified_logger import LogEvent, LogLevel, EventType
+        await unified_logger.log_event(LogEvent(
+            event_type=EventType.SYSTEM_EVENT,
+            level=LogLevel.INFO,
+            message="Gary-Zero FastAPI application started successfully",
+            metadata={
+                "environment": os.getenv("RAILWAY_ENVIRONMENT", "local"),
+                "version": "0.9.0",
+                "startup_time": time.time() - _startup_time
+            }
+        ))
+        
+    except Exception as e:
+        logger.warning(f"Could not initialize unified monitoring framework: {e}")
+        logger.info("Continuing without unified monitoring")
+    
     # TODO: Initialize other agent systems here
     # This will be connected to the existing agent initialization logic
 
@@ -151,6 +182,31 @@ async def cleanup_agent_systems():
         logger.info("🎯 AI Action Visualization System shutdown complete")
     except Exception as e:
         logger.warning(f"Error during AI visualization cleanup: {e}")
+    
+    # Cleanup Unified Monitoring Framework
+    try:
+        from framework.performance.monitor import get_performance_monitor
+        from framework.logging.unified_logger import get_unified_logger, LogEvent, LogLevel, EventType
+        
+        # Log system shutdown
+        unified_logger = get_unified_logger()
+        await unified_logger.log_event(LogEvent(
+            event_type=EventType.SYSTEM_EVENT,
+            level=LogLevel.INFO,
+            message="Gary-Zero FastAPI application shutting down",
+            metadata={
+                "uptime_seconds": time.time() - _startup_time,
+                "total_events_logged": unified_logger.get_statistics().get("total_events", 0)
+            }
+        ))
+        
+        # Stop performance monitor
+        performance_monitor = get_performance_monitor()
+        await performance_monitor.stop()
+        logger.info("📊 Performance monitoring system stopped successfully")
+        
+    except Exception as e:
+        logger.warning(f"Error during unified monitoring cleanup: {e}")
     
     # TODO: Add other cleanup logic here
 
@@ -182,6 +238,15 @@ app = FastAPI(
 
 # Include API routers
 app.include_router(gemini_live_router)
+
+# Add unified monitoring API
+try:
+    from framework.api.monitoring import router as monitoring_router
+    app.include_router(monitoring_router)
+    logger.info("Unified monitoring API initialized successfully")
+except Exception as e:
+    logger.warning(f"Could not initialize monitoring API: {e}")
+    logger.info("Continuing without unified monitoring API")
 
 # Add middleware for Railway optimization
 app.add_middleware(GZipMiddleware, minimum_size=1000)
