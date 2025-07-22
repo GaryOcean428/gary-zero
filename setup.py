@@ -10,7 +10,7 @@ from setuptools import find_packages, setup
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text(encoding="utf-8")
 
-# Find all packages in the zero directory
+# Find all packages in the current directory
 packages = find_packages(where=".")
 
 setup(
@@ -18,8 +18,13 @@ setup(
     version="0.1.0",
     packages=packages,
     package_dir={"": "."},
-    # Include all Python files in the package
-    package_data={"zero": ["*.py", "*/*.py", "*/*/*.py", "*/*/*/*.py"]},
+    # Include all Python files in packages including instruments
+    package_data={
+        "": ["*.py", "*/*.py", "*/*/*.py", "*/*/*/*.py"],
+        "instruments": ["*.py", "*/*.py", "*/*/*.py"],
+        "api": ["*.py"],
+        "framework": ["*.py", "*/*.py"],
+    },
     python_requires=">=3.13",
     install_requires=[
         # Core dependencies
