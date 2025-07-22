@@ -38,6 +38,14 @@ CORS_ORIGINS = "*"
 # SearXNG Railway service URL (will be set by Railway)
 SEARXNG_URL = "http://${{searchxng.RAILWAY_PRIVATE_DOMAIN}}:${{searchxng.PORT}}"
 
+# Kali Shell Service Configuration (Railway inter-service communication)
+KALI_SHELL_URL = "http://${{kali-linux-docker.RAILWAY_PRIVATE_DOMAIN}}:${{kali-linux-docker.PORT}}"
+KALI_SHELL_HOST = "${{kali-linux-docker.RAILWAY_PRIVATE_DOMAIN}}"
+KALI_SHELL_PORT = "${{kali-linux-docker.PORT}}"
+KALI_USERNAME = "${{kali-linux-docker.USERNAME}}"
+KALI_PASSWORD = "${{kali-linux-docker.PASSWORD}}"
+KALI_PUBLIC_URL = "https://${{kali-linux-docker.RAILWAY_PUBLIC_DOMAIN}}"
+
 # E2B Configuration (secure cloud sandbox execution)
 E2B_API_KEY = "${{E2B_API_KEY}}"
 

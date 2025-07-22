@@ -1,0 +1,54 @@
+🛡️  GARY-ZERO KALI SHELL INTEGRATION VALIDATION REPORT
+============================================================
+
+
+📋 ENVIRONMENT VARIABLES
+------------------------------
+  ❌ KALI_SHELL_URL: None
+  ❌ KALI_SHELL_HOST: None
+  ❌ KALI_SHELL_PORT: None
+  ❌ KALI_USERNAME: None
+  ❌ KALI_PASSWORD: None
+
+  Optional Variables:
+  ➖ KALI_PUBLIC_URL: Not set
+  ➖ CODE_EXECUTION_MODE: Not set
+  ➖ SHELL_SERVICE_ENABLED: Not set
+
+🌐 CONNECTIVITY TEST
+------------------------------
+  ❌ Connection failed: Missing required environment variables for connectivity test
+  🔍 Error type: unknown
+
+💻 COMMAND EXECUTION TEST
+------------------------------
+  ❌ No connectivity to test
+
+🔧 FRAMEWORK INTEGRATION
+------------------------------
+  ✅ framework/helpers/kali_service.py (8.0 KB)
+  ✅ framework/helpers/kali_executor.py (8.9 KB)
+  ✅ framework/tools/shell_execute.py (13.1 KB)
+  ✅ prompts/default/shell_integration_guide.md (6.4 KB)
+  ✅ webui/js/shell-iframe.js (16.9 KB)
+  ✅ Shell integration included in agent prompts
+
+⚙️  EXECUTOR INTEGRATION
+------------------------------
+  ❌ Import failed: No module named 'paramiko'
+
+📊 INTEGRATION SUMMARY
+------------------------------
+  ❌ Status: INTEGRATION ISSUES
+  📋 Checks passed: 1/5
+  💬 Major configuration or connectivity problems detected
+
+🔍 RECOMMENDATIONS
+------------------------------
+  • Configure missing environment variables in Railway service
+  • Check Kali service deployment and network configuration
+  • Verify Kali service API endpoints and authentication
+  • Check Python environment and framework dependencies
+
+🛡️  End of Kali Shell Integration Report
+============================================================
