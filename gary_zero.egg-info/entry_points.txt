@@ -1,0 +1,3 @@
+[console_scripts]
+gary-zero = main:app
+gary-zero-cli = run_cli:main

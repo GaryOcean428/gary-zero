@@ -29,7 +29,7 @@ WEB_UI_HOST = "0.0.0.0"
 PYTHONUNBUFFERED = "1"
 RAILWAY_ENVIRONMENT = "production"
 RAILPACK_PRUNE_DEPS = "false"
-NIXPACKS_PYTHON_VERSION = "3.11"
+NIXPACKS_PYTHON_VERSION = "3.13"
 
 # FastAPI Configuration
 API_DOCS_ENABLED = "false"  # Disable docs in production
