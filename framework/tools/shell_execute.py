@@ -2,7 +2,7 @@
 Shell Execute Tool for Gary-Zero Kali Integration.
 
 This tool provides secure execution of commands in the Kali Linux Docker service
-with real-time UI feedback and comprehensive error handling.
+with real-time UI feedback, comprehensive error handling, and approval workflows.
 """
 
 import os
@@ -12,6 +12,7 @@ from typing import Dict, Any, Optional
 from framework.tools.code_execution_tool import CodeExecutionTool
 from framework.helpers.kali_executor import get_kali_executor, is_kali_execution_available
 from framework.helpers.log import Log
+from framework.security import require_approval, RiskLevel, get_global_approval_workflow
 
 
 class ShellExecuteTool(CodeExecutionTool):
@@ -19,7 +20,7 @@ class ShellExecuteTool(CodeExecutionTool):
     Tool for executing commands in the Kali Linux shell environment.
     
     Extends the base CodeExecutionTool to provide specialized shell execution
-    capabilities with UI integration and security tool access.
+    capabilities with UI integration, security tool access, and approval workflows.
     """
     
     def __init__(self, **kwargs):
@@ -81,9 +82,10 @@ Dictionary with execution results:
 - `execution_time`: Time taken in seconds
 """
 
+    @require_approval("shell_command", RiskLevel.HIGH, "Execute shell command in Kali environment")
     async def call(self, agent=None, **kwargs) -> Dict[str, Any]:
         """
-        Execute a command in the Kali shell environment.
+        Execute a command in the Kali shell environment with approval workflow.
         
         Args:
             agent: Agent instance (for UI integration)
@@ -92,6 +94,9 @@ Dictionary with execution results:
         Returns:
             Dict containing execution results and UI information
         """
+        # Extract user_id for approval system
+        user_id = kwargs.get('user_id', getattr(agent, 'user_id', 'system'))
+        
         command = kwargs.get('command', '')
         description = kwargs.get('description', 'Shell command execution')
         timeout = int(kwargs.get('timeout', 30))

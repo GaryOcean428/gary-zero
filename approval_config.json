@@ -1,0 +1,39 @@
+{
+  "global_settings": {
+    "default_timeout": 300,
+    "max_pending_requests": 100,
+    "cache_duration": 3600,
+    "enable_approval_logs": true
+  },
+  "user_roles": {
+    "newuser123": "user"
+  },
+  "action_policies": {},
+  "role_permissions": {
+    "owner": [
+      "file_write",
+      "file_delete",
+      "shell_command",
+      "external_api_call",
+      "computer_control",
+      "code_execution",
+      "payment_transaction",
+      "config_change"
+    ],
+    "admin": [
+      "file_write",
+      "file_delete",
+      "shell_command",
+      "external_api_call",
+      "code_execution",
+      "config_change"
+    ],
+    "user": [
+      "file_write",
+      "external_api_call",
+      "config_change"
+    ],
+    "guest": [],
+    "subordinate_agent": []
+  }
+}

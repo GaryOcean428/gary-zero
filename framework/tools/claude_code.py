@@ -2,7 +2,8 @@
 Claude Code Tool for Advanced Code Editing and Terminal Operations.
 
 This tool integrates Claude Code capabilities for context-aware 
-multi-file editing, Git operations, and terminal commands.
+multi-file editing, Git operations, terminal commands, and includes
+approval workflows for security.
 """
 
 import asyncio
@@ -18,6 +19,7 @@ from pydantic import BaseModel, Field
 from framework.helpers.tool import Response, Tool
 from framework.helpers.print_style import PrintStyle
 from framework.helpers import files
+from framework.security import require_approval, RiskLevel
 
 
 class ClaudeCodeConfig(BaseModel):
@@ -66,9 +68,13 @@ class ClaudeCode(Tool):
         self.config = ClaudeCodeConfig()
         self.workspace_root = os.getcwd()
 
+    @require_approval("code_execution", RiskLevel.HIGH, "Execute code operations with file system access")
     async def execute(self, **kwargs) -> Response:
-        """Execute Claude Code operation."""
+        """Execute Claude Code operation with approval workflow."""
         try:
+            # Extract user_id for approval system
+            user_id = kwargs.get('user_id', 'system')
+            
             # Check if tool is enabled
             if not self.config.enabled:
                 return Response(
@@ -83,7 +89,8 @@ class ClaudeCode(Tool):
             elif operation_type == "git":
                 result = await self.handle_git_operation()
             elif operation_type == "terminal":
-                result = await self.handle_terminal_operation()
+                user_id = kwargs.get('user_id', 'system')
+                result = await self.handle_terminal_operation(user_id)
             elif operation_type == "workspace":
                 result = await self.handle_workspace_operation()
             else:
@@ -114,12 +121,14 @@ class ClaudeCode(Tool):
                 return await self.read_file(full_path)
             elif operation == "write":
                 content = self.args.get("content", "")
-                return await self.write_file(full_path, content)
+                user_id = self.args.get("user_id", "system")
+                return await self.write_file(full_path, content, user_id)
             elif operation == "create":
                 content = self.args.get("content", "")
                 return await self.create_file(full_path, content)
             elif operation == "delete":
-                return await self.delete_file(full_path)
+                user_id = self.args.get("user_id", "system")
+                return await self.delete_file(full_path, user_id)
             elif operation == "list":
                 return await self.list_directory(full_path)
             else:
@@ -159,8 +168,9 @@ class ClaudeCode(Tool):
         except Exception as e:
             return f"Git operation failed: {str(e)}"
 
-    async def handle_terminal_operation(self) -> str:
-        """Handle terminal operations."""
+    @require_approval("shell_command", RiskLevel.HIGH, "Execute terminal command")
+    async def handle_terminal_operation(self, user_id: str = "system") -> str:
+        """Handle terminal operations with approval requirement."""
         try:
             if not self.config.enable_terminal:
                 return "Terminal operations are disabled"
@@ -248,8 +258,9 @@ class ClaudeCode(Tool):
         except Exception as e:
             return f"Failed to read file: {str(e)}"
 
-    async def write_file(self, path: str, content: str) -> str:
-        """Write content to file."""
+    @require_approval("file_write", RiskLevel.MEDIUM, "Write content to file")
+    async def write_file(self, path: str, content: str, user_id: str = "system") -> str:
+        """Write content to file with approval requirement."""
         try:
             if not os.path.exists(path):
                 return f"File not found: {path}"
@@ -299,8 +310,9 @@ class ClaudeCode(Tool):
         except Exception as e:
             return f"Failed to create file: {str(e)}"
 
-    async def delete_file(self, path: str) -> str:
-        """Delete file."""
+    @require_approval("file_delete", RiskLevel.HIGH, "Delete file or directory")
+    async def delete_file(self, path: str, user_id: str = "system") -> str:
+        """Delete file with approval requirement."""
         try:
             if not os.path.exists(path):
                 return f"File not found: {path}"
