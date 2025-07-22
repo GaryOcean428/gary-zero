@@ -220,35 +220,38 @@ class HierarchicalPlanner:
         """Create a plan for research and summarization tasks."""
         import uuid
         
+        # Extract key topic from objective for more specific subtasks
+        topic = self._extract_research_topic(objective)
+        
         subtasks = [
             Subtask(
                 id=str(uuid.uuid4()),
-                name="Extract research topic",
-                description="Identify the specific topic to research from the objective",
+                name=f"Define research scope for {topic}",
+                description=f"Identify specific aspects of {topic} to research based on the objective: {objective}",
                 tool_name="knowledge_tool"
             ),
             Subtask(
                 id=str(uuid.uuid4()),
-                name="Conduct web search",
-                description="Search for relevant information about the topic",
+                name=f"Search for {topic} information",
+                description=f"Search for the latest information and developments about {topic}",
                 tool_name="search_engine"
             ),
             Subtask(
                 id=str(uuid.uuid4()),
-                name="Gather detailed information",
-                description="Collect detailed content from relevant sources",
+                name=f"Gather detailed {topic} content",
+                description=f"Collect detailed content and data about {topic} from relevant sources",
                 tool_name="webpage_content_tool"
             ),
             Subtask(
                 id=str(uuid.uuid4()),
-                name="Synthesize findings",
-                description="Analyze and synthesize the gathered information",
+                name=f"Analyze {topic} findings",
+                description=f"Analyze and synthesize the gathered information about {topic}",
                 tool_name="knowledge_tool"
             ),
             Subtask(
                 id=str(uuid.uuid4()),
-                name="Create summary",
-                description="Generate a comprehensive summary of findings",
+                name=f"Create {topic} summary",
+                description=f"Generate a comprehensive summary of {topic} findings and insights",
                 tool_name="response"
             )
         ]
@@ -265,33 +268,80 @@ class HierarchicalPlanner:
             
         return subtasks
     
+    def _extract_research_topic(self, objective: str) -> str:
+        """Extract the main research topic from an objective.
+        
+        Args:
+            objective: The research objective
+            
+        Returns:
+            str: The main topic to research
+        """
+        objective_lower = objective.lower()
+        
+        # Look for key research topics
+        if "battery" in objective_lower:
+            if "technolog" in objective_lower:
+                return "battery technologies"
+            else:
+                return "batteries"
+        elif "ai" in objective_lower or "artificial intelligence" in objective_lower:
+            if "paper" in objective_lower:
+                return "AI research papers"
+            else:
+                return "artificial intelligence"
+        elif "machine learning" in objective_lower or "ml" in objective_lower:
+            return "machine learning"
+        elif "quantum" in objective_lower:
+            return "quantum computing"
+        elif "renewable energy" in objective_lower:
+            return "renewable energy"
+        elif "climate" in objective_lower:
+            return "climate technology"
+        else:
+            # Extract the main subject (simple heuristic)
+            words = objective_lower.split()
+            # Look for nouns that might be the topic
+            key_words = []
+            for word in words:
+                if len(word) > 3 and word not in ["research", "analyze", "create", "generate", "latest", "recent"]:
+                    key_words.append(word)
+            
+            if key_words:
+                return " ".join(key_words[:2])  # Take first 2 key words
+            else:
+                return "the specified topic"
+    
     def _create_presentation_plan(self, objective: str) -> List[Subtask]:
         """Create a plan for presentation creation tasks."""
         import uuid
         
+        # Extract presentation topic
+        topic = self._extract_presentation_topic(objective)
+        
         subtasks = [
             Subtask(
                 id=str(uuid.uuid4()),
-                name="Define presentation scope",
-                description="Determine the topic, audience, and key points for the presentation",
+                name=f"Define {topic} presentation scope",
+                description=f"Determine the scope, audience, and key points for the {topic} presentation",
                 tool_name="knowledge_tool"
             ),
             Subtask(
                 id=str(uuid.uuid4()),
-                name="Create presentation outline",
-                description="Develop a structured outline with main sections and key points",
+                name=f"Create {topic} outline",
+                description=f"Develop a structured outline for {topic} with main sections and key points",
                 tool_name="code_execution_tool"
             ),
             Subtask(
                 id=str(uuid.uuid4()),
-                name="Generate slide content",
-                description="Create detailed content for each slide",
+                name=f"Generate {topic} slide content",
+                description=f"Create detailed content for each slide about {topic}",
                 tool_name="code_execution_tool"
             ),
             Subtask(
                 id=str(uuid.uuid4()),
-                name="Format presentation",
-                description="Format the content into a proper presentation format",
+                name=f"Format {topic} presentation",
+                description=f"Format the {topic} content into a proper presentation format (PowerPoint/HTML)",
                 tool_name="code_execution_tool"
             )
         ]
@@ -305,6 +355,37 @@ class HierarchicalPlanner:
             subtasks[3].dependencies = [subtasks[2].id]
             
         return subtasks
+    
+    def _extract_presentation_topic(self, objective: str) -> str:
+        """Extract the presentation topic from an objective.
+        
+        Args:
+            objective: The presentation objective
+            
+        Returns:
+            str: The presentation topic
+        """
+        objective_lower = objective.lower()
+        
+        # Look for specific topics
+        if "machine learning" in objective_lower:
+            return "machine learning"
+        elif "ai" in objective_lower:
+            return "AI"
+        elif "battery" in objective_lower:
+            return "battery technology"
+        elif "data" in objective_lower and "visualization" in objective_lower:
+            return "data visualization"
+        elif "dashboard" in objective_lower:
+            return "dashboard"
+        else:
+            # Extract key terms
+            words = objective_lower.replace("slide", "").replace("deck", "").replace("presentation", "").split()
+            key_words = [word for word in words if len(word) > 3 and word not in ["create", "about", "make"]]
+            if key_words:
+                return " ".join(key_words[:2])
+            else:
+                return "presentation"
     
     def _create_battery_research_plan(self, objective: str) -> List[Subtask]:
         """Create a specific plan for battery technology research."""
@@ -356,32 +437,147 @@ class HierarchicalPlanner:
         """Create a generic plan for unknown objectives."""
         import uuid
         
-        subtasks = [
-            Subtask(
-                id=str(uuid.uuid4()),
-                name="Analyze objective",
-                description=f"Break down and understand the objective: {objective}",
-                tool_name="knowledge_tool"
-            ),
-            Subtask(
-                id=str(uuid.uuid4()),
-                name="Execute main task",
-                description="Perform the primary work needed to achieve the objective",
-                tool_name="code_execution_tool"
-            ),
-            Subtask(
-                id=str(uuid.uuid4()),
-                name="Verify completion",
-                description="Verify that the objective has been successfully achieved",
-                tool_name="response"
-            )
-        ]
+        objective_lower = objective.lower()
+        
+        # Determine primary action and appropriate tools
+        if any(word in objective_lower for word in ["search", "find", "research", "investigate"]):
+            # Research/search-oriented task
+            subtasks = [
+                Subtask(
+                    id=str(uuid.uuid4()),
+                    name="Search for information",
+                    description=f"Search for information related to: {objective}",
+                    tool_name="search_engine"
+                ),
+                Subtask(
+                    id=str(uuid.uuid4()),
+                    name="Gather detailed content",
+                    description=f"Collect detailed information from sources about: {objective}",
+                    tool_name="webpage_content_tool"
+                ),
+                Subtask(
+                    id=str(uuid.uuid4()),
+                    name="Summarize findings",
+                    description=f"Summarize the findings about: {objective}",
+                    tool_name="response"
+                )
+            ]
+        elif any(word in objective_lower for word in ["create", "build", "develop", "generate", "make"]):
+            # Creation/development task
+            if any(word in objective_lower for word in ["code", "script", "program", "application", "software"]):
+                # Code-related creation
+                subtasks = [
+                    Subtask(
+                        id=str(uuid.uuid4()),
+                        name="Plan development approach",
+                        description=f"Plan the approach for: {objective}",
+                        tool_name="knowledge_tool"
+                    ),
+                    Subtask(
+                        id=str(uuid.uuid4()),
+                        name="Implement solution",
+                        description=f"Implement the solution for: {objective}",
+                        tool_name="code_execution_tool"
+                    ),
+                    Subtask(
+                        id=str(uuid.uuid4()),
+                        name="Test and verify",
+                        description=f"Test and verify the solution for: {objective}",
+                        tool_name="code_execution_tool"
+                    )
+                ]
+            else:
+                # General creation task
+                subtasks = [
+                    Subtask(
+                        id=str(uuid.uuid4()),
+                        name="Define requirements",
+                        description=f"Define requirements for: {objective}",
+                        tool_name="knowledge_tool"
+                    ),
+                    Subtask(
+                        id=str(uuid.uuid4()),
+                        name="Create content",
+                        description=f"Create the content for: {objective}",
+                        tool_name="code_execution_tool"
+                    ),
+                    Subtask(
+                        id=str(uuid.uuid4()),
+                        name="Review and finalize",
+                        description=f"Review and finalize: {objective}",
+                        tool_name="response"
+                    )
+                ]
+        elif any(word in objective_lower for word in ["analyze", "examine", "evaluate", "assess"]):
+            # Analysis task
+            subtasks = [
+                Subtask(
+                    id=str(uuid.uuid4()),
+                    name="Gather data for analysis",
+                    description=f"Gather data and information for analyzing: {objective}",
+                    tool_name="knowledge_tool"
+                ),
+                Subtask(
+                    id=str(uuid.uuid4()),
+                    name="Perform analysis",
+                    description=f"Perform detailed analysis of: {objective}",
+                    tool_name="code_execution_tool"
+                ),
+                Subtask(
+                    id=str(uuid.uuid4()),
+                    name="Generate analysis report",
+                    description=f"Generate analysis report for: {objective}",
+                    tool_name="response"
+                )
+            ]
+        elif any(word in objective_lower for word in ["summarize", "report", "document"]):
+            # Documentation/reporting task
+            subtasks = [
+                Subtask(
+                    id=str(uuid.uuid4()),
+                    name="Collect information",
+                    description=f"Collect information needed for: {objective}",
+                    tool_name="knowledge_tool"
+                ),
+                Subtask(
+                    id=str(uuid.uuid4()),
+                    name="Organize content",
+                    description=f"Organize and structure content for: {objective}",
+                    tool_name="knowledge_tool"
+                ),
+                Subtask(
+                    id=str(uuid.uuid4()),
+                    name="Generate final output",
+                    description=f"Generate the final output for: {objective}",
+                    tool_name="response"
+                )
+            ]
+        else:
+            # Fallback generic plan
+            subtasks = [
+                Subtask(
+                    id=str(uuid.uuid4()),
+                    name="Analyze objective",
+                    description=f"Break down and understand the objective: {objective}",
+                    tool_name="knowledge_tool"
+                ),
+                Subtask(
+                    id=str(uuid.uuid4()),
+                    name="Execute main task",
+                    description=f"Perform the primary work needed to achieve: {objective}",
+                    tool_name="code_execution_tool"
+                ),
+                Subtask(
+                    id=str(uuid.uuid4()),
+                    name="Verify completion",
+                    description=f"Verify that the objective has been successfully achieved: {objective}",
+                    tool_name="response"
+                )
+            ]
         
         # Set dependencies
-        if len(subtasks) >= 2:
-            subtasks[1].dependencies = [subtasks[0].id]
-        if len(subtasks) >= 3:
-            subtasks[2].dependencies = [subtasks[1].id]
+        for i in range(1, len(subtasks)):
+            subtasks[i].dependencies = [subtasks[i-1].id]
             
         return subtasks
     
