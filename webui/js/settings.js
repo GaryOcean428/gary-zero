@@ -460,7 +460,7 @@ const settingsModalProxy = {
                             for (const field of section.fields) {
                                 // Check if this field corresponds to a model parameter
                                 for (const [paramKey, fieldSuffix] of Object.entries(parameterMapping)) {
-                                    if (field.id === baseId + fieldSuffix && parameters.hasOwnProperty(paramKey)) {
+                                    if (field.id === baseId + fieldSuffix && Object.prototype.hasOwnProperty.call(parameters, paramKey)) {
                                         const oldValue = field.value;
                                         field.value = parameters[paramKey];
                                         console.log(`Updated ${field.id}: ${oldValue} → ${field.value}`);
@@ -768,7 +768,7 @@ document.addEventListener("alpine:init", () => {
                             for (const field of section.fields) {
                                 // Check if this field corresponds to a model parameter
                                 for (const [paramKey, fieldSuffix] of Object.entries(parameterMapping)) {
-                                    if (field.id === baseId + fieldSuffix && parameters.hasOwnProperty(paramKey)) {
+                                    if (field.id === baseId + fieldSuffix && Object.prototype.hasOwnProperty.call(parameters, paramKey)) {
                                         const oldValue = field.value;
                                         field.value = parameters[paramKey];
                                         console.log(`Updated ${field.id}: ${oldValue} → ${field.value}`);
