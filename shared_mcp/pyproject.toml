@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shared-mcp"
+version = "1.0.0"
+description = "Shared MCP (Model Context Protocol) library for Gary ecosystem"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {file = "LICENSE"}
+authors = [
+  {name = "Gary Ocean", email = "gary@garyocean.com"}
+]
+dependencies = [
+  "fastmcp>=2.3.0",
+  "mcp>=1.12.0",
+  "pydantic>=2.10.0",
+  "starlette>=0.47.0",
+  "anyio>=4.9.0",
+  "httpx>=0.28.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.2.0", "black>=24.4.0", "mypy>=1.10.0", "pre-commit>=3.7.0", "ruff>=0.11.13"]
+test = ["pytest-cov>=5.0.0", "pytest-asyncio>=0.23.0", "httpx>=0.28.0", "pytest-mock>=3.12.0"]
+
+[project.urls]
+Homepage = "https://github.com/GaryOcean428/gary-zero"
+Repository = "https://github.com/GaryOcean428/gary-zero"
+Issues = "https://github.com/GaryOcean428/gary-zero/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["shared_mcp*"]
+exclude = ["tests*"]
+
+[tool.black]
+line-length = 100
+target-version = ['py312']
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
