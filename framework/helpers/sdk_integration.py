@@ -130,7 +130,7 @@ def initialize_agent_sdk_integration(agent: "Agent", config: Optional[Dict[str, 
         sdk_config = SDKAgentConfig(
             name=config.get("name", agent.agent_name),
             model_provider=config.get("model_provider", "openai"),
-            model_name=config.get("model_name", "gpt-4"),
+            model_name=config.get("model_name", "o3"),  # Updated to modern o3 model
             instructions=config.get("instructions", ""),
             enable_tracing=config.get("enable_tracing", True),
             enable_guardrails=config.get("enable_guardrails", True)

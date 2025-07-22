@@ -81,7 +81,7 @@ def main():
     print("\n💬 Chat with Gemini:")
     print("   action: chat")
     print("   message: Explain how machine learning works")
-    print("   model: gemini-pro")
+    print("   model: gemini-2.0-flash")  # Updated to modern model
     
     print("\n🎯 Generate code with Gemini:")
     print("   action: code")
