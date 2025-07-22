@@ -212,55 +212,24 @@ def requires_auth(f):
 @requires_auth
 async def serve_index():
     """Serve the main index.html file."""
-    gitinfo = None
-    try:
-        gitinfo = git.get_git_info()
-    except Exception:
-        gitinfo = {
-            "version": "unknown",
-            "commit_time": "unknown",
-        }
-    
-    # Get environment-based feature flags for client-side configuration
-    enable_dev_features = dotenv.get_dotenv_value("ENABLE_DEV_FEATURES", "true").lower() == "true"
-    vscode_integration_enabled = dotenv.get_dotenv_value("VSCODE_INTEGRATION_ENABLED", "true").lower() == "true"
-    chat_auto_resize_enabled = dotenv.get_dotenv_value("CHAT_AUTO_RESIZE_ENABLED", "true").lower() == "true"
-    
-    # Create JavaScript configuration snippet to inject into the page
-    js_config = f"""
-    <script>
-        // Environment-based feature flags
-        window.ENABLE_DEV_FEATURES = {str(enable_dev_features).lower()};
-        window.VSCODE_INTEGRATION_ENABLED = {str(vscode_integration_enabled).lower()};
-        window.CHAT_AUTO_RESIZE_ENABLED = {str(chat_auto_resize_enabled).lower()};
-        console.log('🔧 Feature flags loaded:', {{
-            ENABLE_DEV_FEATURES: {str(enable_dev_features).lower()},
-            VSCODE_INTEGRATION_ENABLED: {str(vscode_integration_enabled).lower()},
-            CHAT_AUTO_RESIZE_ENABLED: {str(chat_auto_resize_enabled).lower()}
-        }});
-    </script>
-    """
-    
-    return files.read_file(
-        "./webui/index.html",
-        version_no=gitinfo["version"],
-        version_time=gitinfo["commit_time"],
-        feature_flags_config=js_config,
-    )
+    from framework.helpers.template_helper import render_index_html
+    return render_index_html()
 
 
 # handle privacy policy page
 @webapp.route("/privacy", methods=["GET"])
 def serve_privacy():
     """Serve the privacy policy page."""
-    return files.read_file("./webui/privacy.html")
+    from framework.helpers.template_helper import render_template
+    return render_template("./webui/privacy.html")
 
 
 # handle terms of service page
 @webapp.route("/terms", methods=["GET"])
 def serve_terms():
     """Serve the terms of service page."""
-    return files.read_file("./webui/terms.html")
+    from framework.helpers.template_helper import render_template
+    return render_template("./webui/terms.html")
 
 
 # health check endpoint

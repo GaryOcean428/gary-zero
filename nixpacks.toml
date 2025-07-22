@@ -5,4 +5,4 @@ python = "3.13"
 buildCommand = "pip install -r requirements.txt"
 
 [start]
-cmd = "python run_ui.py --port $PORT --host 0.0.0.0 --dockerized"
+cmd = "python start_uvicorn.py"
