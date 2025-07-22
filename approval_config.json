@@ -6,9 +6,15 @@
     "enable_approval_logs": true
   },
   "user_roles": {
-    "newuser123": "user"
+    "newuser123": "user",
+    "new_user": "user"
   },
-  "action_policies": {},
+  "action_policies": {
+    "file_delete": {
+      "approval_policy": "always_ask",
+      "timeout_seconds": 600
+    }
+  },
   "role_permissions": {
     "owner": [
       "file_write",
