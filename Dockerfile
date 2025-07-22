@@ -40,6 +40,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
     curl \
     git \
+    portaudio19-dev \
+    libasound-dev \
+    libportaudio2 \
+    libportaudiocpp0 \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -101,6 +106,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zlib1g \
     libjpeg62-turbo \
     libpq5 \
+    libportaudio2 \
+    libportaudiocpp0 \
+    libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
