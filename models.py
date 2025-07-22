@@ -228,13 +228,13 @@ def get_anthropic_chat(
         api_key = get_api_key("anthropic")
     if not base_url:
         base_url = dotenv.get_dotenv_value("ANTHROPIC_BASE_URL") or "https://api.anthropic.com"
-    
+
     # Production hotfix for LangChain Anthropic streaming metadata bug (Issue #26348)
     # Disable stream_usage when LANGCHAIN_ANTHROPIC_STREAM_USAGE is set to false
     stream_usage_disabled = dotenv.get_dotenv_value("LANGCHAIN_ANTHROPIC_STREAM_USAGE", "true").lower() == "false"
     if stream_usage_disabled and "stream_usage" not in kwargs:
         kwargs["stream_usage"] = False
-    
+
     return ChatAnthropic(model=model_name, api_key=api_key, base_url=base_url, **kwargs)
 
 
@@ -257,9 +257,7 @@ def get_openai_chat(
     final_api_key_for_constructor: str | None = None
     if api_key:  # User provided a string for the function's api_key parameter
         # Handle case where api_key might already be a SecretStr
-        if isinstance(api_key, SecretStr):
-            final_api_key_for_constructor = api_key.get_secret_value()
-        elif hasattr(api_key, 'get_secret_value'):
+        if isinstance(api_key, SecretStr) or hasattr(api_key, 'get_secret_value'):
             final_api_key_for_constructor = api_key.get_secret_value()
         else:
             final_api_key_for_constructor = api_key
@@ -268,9 +266,7 @@ def get_openai_chat(
         v1_secret_key = get_api_key("openai")
         if v1_secret_key:
             # Handle case where Railway provides SecretStr objects
-            if isinstance(v1_secret_key, SecretStr):
-                final_api_key_for_constructor = v1_secret_key.get_secret_value()
-            elif hasattr(v1_secret_key, 'get_secret_value'):
+            if isinstance(v1_secret_key, SecretStr) or hasattr(v1_secret_key, 'get_secret_value'):
                 final_api_key_for_constructor = v1_secret_key.get_secret_value()
             else:
                 final_api_key_for_constructor = str(v1_secret_key)
@@ -287,9 +283,7 @@ def get_openai_embedding(model_name: str, api_key: str | None = None, **kwargs) 
     final_api_key_for_constructor: str | None = None
     if api_key:  # User provided a string for the function's api_key parameter
         # Handle case where api_key might already be a SecretStr
-        if isinstance(api_key, SecretStr):
-            final_api_key_for_constructor = api_key.get_secret_value()
-        elif hasattr(api_key, 'get_secret_value'):
+        if isinstance(api_key, SecretStr) or hasattr(api_key, 'get_secret_value'):
             final_api_key_for_constructor = api_key.get_secret_value()
         else:
             final_api_key_for_constructor = api_key
@@ -298,9 +292,7 @@ def get_openai_embedding(model_name: str, api_key: str | None = None, **kwargs) 
         v1_secret_key = get_api_key("openai")
         if v1_secret_key:
             # Handle case where Railway provides SecretStr objects
-            if isinstance(v1_secret_key, SecretStr):
-                final_api_key_for_constructor = v1_secret_key.get_secret_value()
-            elif hasattr(v1_secret_key, 'get_secret_value'):
+            if isinstance(v1_secret_key, SecretStr) or hasattr(v1_secret_key, 'get_secret_value'):
                 final_api_key_for_constructor = v1_secret_key.get_secret_value()
             else:
                 final_api_key_for_constructor = str(v1_secret_key)
@@ -444,17 +436,13 @@ def get_deepseek_chat(
     final_api_key_for_constructor: str | None = None
     if isinstance(api_key, str):  # User provided a string for the function's api_key parameter
         final_api_key_for_constructor = api_key
-    elif isinstance(api_key, SecretStr):  # User provided SecretStr
-        final_api_key_for_constructor = api_key.get_secret_value()
-    elif hasattr(api_key, 'get_secret_value'):  # Handle other SecretStr-like objects
+    elif isinstance(api_key, SecretStr) or hasattr(api_key, 'get_secret_value'):  # User provided SecretStr
         final_api_key_for_constructor = api_key.get_secret_value()
     elif api_key is None:  # api_key was not provided to the function, try to get from env
         v1_secret_key = get_api_key("deepseek")
         if v1_secret_key:
             # Handle case where Railway provides SecretStr objects
-            if isinstance(v1_secret_key, SecretStr):
-                final_api_key_for_constructor = v1_secret_key.get_secret_value()
-            elif hasattr(v1_secret_key, 'get_secret_value'):
+            if isinstance(v1_secret_key, SecretStr) or hasattr(v1_secret_key, 'get_secret_value'):
                 final_api_key_for_constructor = v1_secret_key.get_secret_value()
             else:
                 final_api_key_for_constructor = str(v1_secret_key)

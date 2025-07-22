@@ -5,12 +5,10 @@ for each provider, used to populate dropdown selections in the UI.
 Modern models (released after June 2024) are prioritized first in each provider's list.
 """
 
-from typing import Dict, List
-from datetime import datetime
 
 # Comprehensive model catalog organized by provider
 # Modern models (post-June 2024) are listed first, legacy models follow
-MODEL_CATALOG: Dict[str, List[Dict[str, str]]] = {
+MODEL_CATALOG: dict[str, list[dict[str, str]]] = {
     "ANTHROPIC": [
         # Modern models (post-June 2024)
         {"value": "claude-sonnet-4-20250514", "label": "Claude 4 Sonnet (2025-05-14)", "modern": True, "release_date": "2025-05-14"},
@@ -111,7 +109,7 @@ MODEL_CATALOG: Dict[str, List[Dict[str, str]]] = {
         {"value": "mixtral-8x7b-instruct", "label": "Mixtral 8x7B Instruct", "deprecated": True, "release_date": "2023-12-11"},
     ],
     "OPENAI_AZURE": [
-        # Modern models (post-June 2024) 
+        # Modern models (post-June 2024)
         {"value": "gpt-4o", "label": "GPT-4o (Azure)", "modern": True, "release_date": "2024-05-13"},
         # Legacy models (pre-June 2024) - deprecated
         {"value": "gpt-4-turbo", "label": "GPT-4 Turbo (Azure)", "deprecated": True, "release_date": "2023-11-06"},
@@ -214,7 +212,7 @@ MODEL_CATALOG: Dict[str, List[Dict[str, str]]] = {
 }
 
 
-def get_models_for_provider(provider_name: str) -> List[Dict[str, str]]:
+def get_models_for_provider(provider_name: str) -> list[dict[str, str]]:
     """Get available models for a specific provider.
     
     Args:
@@ -226,7 +224,7 @@ def get_models_for_provider(provider_name: str) -> List[Dict[str, str]]:
     return MODEL_CATALOG.get(provider_name, [])
 
 
-def get_modern_models_for_provider(provider_name: str) -> List[Dict[str, str]]:
+def get_modern_models_for_provider(provider_name: str) -> list[dict[str, str]]:
     """Get modern models (post-June 2024) for a specific provider.
     
     Args:
@@ -239,7 +237,7 @@ def get_modern_models_for_provider(provider_name: str) -> List[Dict[str, str]]:
     return [model for model in provider_models if model.get("modern", False)]
 
 
-def get_deprecated_models_for_provider(provider_name: str) -> List[Dict[str, str]]:
+def get_deprecated_models_for_provider(provider_name: str) -> list[dict[str, str]]:
     """Get deprecated models (pre-June 2024) for a specific provider.
     
     Args:
@@ -252,7 +250,7 @@ def get_deprecated_models_for_provider(provider_name: str) -> List[Dict[str, str
     return [model for model in provider_models if model.get("deprecated", False)]
 
 
-def get_all_models() -> List[Dict[str, str]]:
+def get_all_models() -> list[dict[str, str]]:
     """Get all available models across all providers.
     
     Returns:
@@ -264,7 +262,7 @@ def get_all_models() -> List[Dict[str, str]]:
     return all_models
 
 
-def get_all_modern_models() -> List[Dict[str, str]]:
+def get_all_modern_models() -> list[dict[str, str]]:
     """Get all modern models (post-June 2024) across all providers.
     
     Returns:
@@ -274,7 +272,7 @@ def get_all_modern_models() -> List[Dict[str, str]]:
     return [model for model in all_models if model.get("modern", False)]
 
 
-def get_all_deprecated_models() -> List[Dict[str, str]]:
+def get_all_deprecated_models() -> list[dict[str, str]]:
     """Get all deprecated models (pre-June 2024) across all providers.
     
     Returns:
@@ -284,7 +282,7 @@ def get_all_deprecated_models() -> List[Dict[str, str]]:
     return [model for model in all_models if model.get("deprecated", False)]
 
 
-def get_recommended_model_for_provider(provider_name: str) -> Dict[str, str] | None:
+def get_recommended_model_for_provider(provider_name: str) -> dict[str, str] | None:
     """Get the recommended (first modern) model for a provider.
     
     Args:
@@ -296,7 +294,7 @@ def get_recommended_model_for_provider(provider_name: str) -> Dict[str, str] | N
     modern_models = get_modern_models_for_provider(provider_name)
     if modern_models:
         return modern_models[0]
-    
+
     # Fallback to first available model if no modern models
     all_models = get_models_for_provider(provider_name)
     return all_models[0] if all_models else None

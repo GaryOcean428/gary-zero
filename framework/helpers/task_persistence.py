@@ -5,18 +5,18 @@ enabling persistent task tracking across sessions.
 """
 
 import json
-import sqlite3
 import os
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any
+import sqlite3
 from contextlib import contextmanager
+from datetime import datetime
+from typing import Any
 
-from framework.helpers.task_manager import Task, TaskStatus, TaskCategory, TaskUpdate
+from framework.helpers.task_manager import Task, TaskCategory, TaskStatus, TaskUpdate
 
 
 class TaskDatabase:
     """Database interface for task persistence."""
-    
+
     def __init__(self, db_path: str = "tmp/tasks.db"):
         """Initialize the task database.
         
@@ -24,18 +24,18 @@ class TaskDatabase:
             db_path: Path to the SQLite database file
         """
         self.db_path = db_path
-        
+
         # Ensure directory exists
         os.makedirs(os.path.dirname(db_path), exist_ok=True)
-        
+
         # Initialize database
         self._init_database()
-    
+
     def _init_database(self):
         """Initialize the database tables."""
         with self._get_connection() as conn:
             cursor = conn.cursor()
-            
+
             # Tasks table
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS tasks (
@@ -58,7 +58,7 @@ class TaskDatabase:
                     metadata TEXT  -- JSON object
                 )
             ''')
-            
+
             # Task updates table
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS task_updates (
@@ -72,15 +72,15 @@ class TaskDatabase:
                     FOREIGN KEY (task_id) REFERENCES tasks (id)
                 )
             ''')
-            
+
             # Create indexes for better performance
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks (status)')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_tasks_category ON tasks (category)')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_tasks_context ON tasks (context_id)')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_updates_task ON task_updates (task_id)')
-            
+
             conn.commit()
-    
+
     @contextmanager
     def _get_connection(self):
         """Get a database connection with proper error handling."""
@@ -90,7 +90,7 @@ class TaskDatabase:
             yield conn
         finally:
             conn.close()
-    
+
     def save_task(self, task: Task) -> bool:
         """Save a task to the database.
         
@@ -103,7 +103,7 @@ class TaskDatabase:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                
+
                 cursor.execute('''
                     INSERT OR REPLACE INTO tasks (
                         id, title, description, category, status, priority,
@@ -130,15 +130,15 @@ class TaskDatabase:
                     task.error_message,
                     json.dumps(task.metadata)
                 ))
-                
+
                 conn.commit()
                 return True
-                
+
         except Exception as e:
             print(f"Error saving task {task.id}: {e}")
             return False
-    
-    def load_task(self, task_id: str) -> Optional[Task]:
+
+    def load_task(self, task_id: str) -> Task | None:
         """Load a task from the database.
         
         Args:
@@ -152,17 +152,17 @@ class TaskDatabase:
                 cursor = conn.cursor()
                 cursor.execute('SELECT * FROM tasks WHERE id = ?', (task_id,))
                 row = cursor.fetchone()
-                
+
                 if not row:
                     return None
-                
+
                 return self._row_to_task(row)
-                
+
         except Exception as e:
             print(f"Error loading task {task_id}: {e}")
             return None
-    
-    def load_all_tasks(self) -> List[Task]:
+
+    def load_all_tasks(self) -> list[Task]:
         """Load all tasks from the database.
         
         Returns:
@@ -173,14 +173,14 @@ class TaskDatabase:
                 cursor = conn.cursor()
                 cursor.execute('SELECT * FROM tasks ORDER BY created_at DESC')
                 rows = cursor.fetchall()
-                
+
                 return [self._row_to_task(row) for row in rows]
-                
+
         except Exception as e:
             print(f"Error loading all tasks: {e}")
             return []
-    
-    def load_tasks_by_status(self, status: TaskStatus) -> List[Task]:
+
+    def load_tasks_by_status(self, status: TaskStatus) -> list[Task]:
         """Load tasks with a specific status.
         
         Args:
@@ -197,14 +197,14 @@ class TaskDatabase:
                     (status.value,)
                 )
                 rows = cursor.fetchall()
-                
+
                 return [self._row_to_task(row) for row in rows]
-                
+
         except Exception as e:
             print(f"Error loading tasks by status {status}: {e}")
             return []
-    
-    def load_tasks_by_context(self, context_id: str) -> List[Task]:
+
+    def load_tasks_by_context(self, context_id: str) -> list[Task]:
         """Load tasks for a specific context.
         
         Args:
@@ -221,13 +221,13 @@ class TaskDatabase:
                     (context_id,)
                 )
                 rows = cursor.fetchall()
-                
+
                 return [self._row_to_task(row) for row in rows]
-                
+
         except Exception as e:
             print(f"Error loading tasks by context {context_id}: {e}")
             return []
-    
+
     def save_task_update(self, update: TaskUpdate) -> bool:
         """Save a task update to the database.
         
@@ -240,7 +240,7 @@ class TaskDatabase:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                
+
                 cursor.execute('''
                     INSERT INTO task_updates (
                         task_id, timestamp, status, progress, message, agent_id
@@ -253,15 +253,15 @@ class TaskDatabase:
                     update.message,
                     update.agent_id
                 ))
-                
+
                 conn.commit()
                 return True
-                
+
         except Exception as e:
             print(f"Error saving task update: {e}")
             return False
-    
-    def load_task_updates(self, task_id: str) -> List[TaskUpdate]:
+
+    def load_task_updates(self, task_id: str) -> list[TaskUpdate]:
         """Load all updates for a specific task.
         
         Args:
@@ -278,7 +278,7 @@ class TaskDatabase:
                     (task_id,)
                 )
                 rows = cursor.fetchall()
-                
+
                 updates = []
                 for row in rows:
                     updates.append(TaskUpdate(
@@ -289,13 +289,13 @@ class TaskDatabase:
                         message=row['message'],
                         agent_id=row['agent_id']
                     ))
-                
+
                 return updates
-                
+
         except Exception as e:
             print(f"Error loading task updates for {task_id}: {e}")
             return []
-    
+
     def delete_task(self, task_id: str) -> bool:
         """Delete a task and its updates from the database.
         
@@ -308,21 +308,21 @@ class TaskDatabase:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                
+
                 # Delete task updates first
                 cursor.execute('DELETE FROM task_updates WHERE task_id = ?', (task_id,))
-                
+
                 # Delete the task
                 cursor.execute('DELETE FROM tasks WHERE id = ?', (task_id,))
-                
+
                 conn.commit()
                 return True
-                
+
         except Exception as e:
             print(f"Error deleting task {task_id}: {e}")
             return False
-    
-    def get_statistics(self) -> Dict[str, Any]:
+
+    def get_statistics(self) -> dict[str, Any]:
         """Get database statistics.
         
         Returns:
@@ -331,38 +331,38 @@ class TaskDatabase:
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                
+
                 # Total tasks
                 cursor.execute('SELECT COUNT(*) FROM tasks')
                 total_tasks = cursor.fetchone()[0]
-                
+
                 # Tasks by status
                 status_counts = {}
                 for status in TaskStatus:
                     cursor.execute('SELECT COUNT(*) FROM tasks WHERE status = ?', (status.value,))
                     status_counts[status.value] = cursor.fetchone()[0]
-                
+
                 # Tasks by category
                 category_counts = {}
                 for category in TaskCategory:
                     cursor.execute('SELECT COUNT(*) FROM tasks WHERE category = ?', (category.value,))
                     category_counts[category.value] = cursor.fetchone()[0]
-                
+
                 # Total updates
                 cursor.execute('SELECT COUNT(*) FROM task_updates')
                 total_updates = cursor.fetchone()[0]
-                
+
                 return {
                     "total_tasks": total_tasks,
                     "total_updates": total_updates,
                     "status_distribution": status_counts,
                     "category_distribution": category_counts
                 }
-                
+
         except Exception as e:
             print(f"Error getting database statistics: {e}")
             return {}
-    
+
     def _row_to_task(self, row) -> Task:
         """Convert a database row to a Task object.
         
@@ -394,7 +394,7 @@ class TaskDatabase:
 
 
 # Global database instance
-_database_instance: Optional[TaskDatabase] = None
+_database_instance: TaskDatabase | None = None
 
 
 def get_task_database() -> TaskDatabase:

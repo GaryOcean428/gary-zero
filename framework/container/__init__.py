@@ -6,7 +6,8 @@ service instances, handles lifecycle, and enables testable, modular architecture
 
 import inspect
 import logging
-from typing import Any, Callable, Optional, TypeVar
+from collections.abc import Callable
+from typing import Any, Optional, TypeVar
 
 from framework.interfaces import DependencyError
 
@@ -31,7 +32,7 @@ class Container:
         logger.debug(f"Registered singleton: {name}")
 
     def register_factory(
-        self, name: str, factory: Callable[[], Any], type_hint: Optional[type] = None
+        self, name: str, factory: Callable[[], Any], type_hint: type | None = None
     ) -> None:
         """Register a factory function for creating instances."""
         self._factories[name] = factory
@@ -150,7 +151,7 @@ class Container:
 
 
 # Global container instance
-_container: Optional[Container] = None
+_container: Container | None = None
 
 
 def get_container() -> Container:

@@ -6,13 +6,13 @@ API handlers to work with the new FastAPI application.
 """
 
 import json
-import time
 import logging
-from typing import Dict, Any, Optional, Type
-from fastapi import FastAPI, Request, HTTPException, Depends, File, UploadFile, Form
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 import threading
+import time
+from typing import Any
+
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
+from pydantic import BaseModel
 
 # Set up logger
 logger = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ try:
 except ImportError as e:
     logger.warning(f"Could not import Flask API handler: {e}")
     FlaskApiHandler = None
-from security.validator import validate_code, SecurityLevel, is_code_safe
+from security.validator import SecurityLevel, is_code_safe, validate_code
 
 try:
     from framework.helpers.extract_tools import load_classes_from_folder
@@ -38,55 +38,55 @@ _thread_lock = threading.Lock()
 
 class ApiRequest(BaseModel):
     """Pydantic model for API requests."""
-    text: Optional[str] = None
-    context: Optional[str] = None
-    message_id: Optional[str] = None
-    data: Optional[Dict[str, Any]] = None
+    text: str | None = None
+    context: str | None = None
+    message_id: str | None = None
+    data: dict[str, Any] | None = None
 
 class ApiResponse(BaseModel):
     """Standard API response model."""
     success: bool = True
-    data: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
+    data: dict[str, Any] | None = None
+    error: str | None = None
     timestamp: float = time.time()
 
 class FlaskApiWrapper:
     """Wrapper to adapt Flask API handlers for FastAPI."""
-    
-    def __init__(self, handler_class: Type):
+
+    def __init__(self, handler_class: type):
         self.handler_class = handler_class
         self.handler_name = handler_class.__module__.split('.')[-1] if handler_class else "unknown"
-    
-    async def handle_request(self, request_data: Dict[str, Any], 
-                           fastapi_request: Request) -> Dict[str, Any]:
+
+    async def handle_request(self, request_data: dict[str, Any],
+                           fastapi_request: Request) -> dict[str, Any]:
         """Handle the API request using the Flask handler."""
-        
+
         # Create a mock Flask app for compatibility
         from flask import Flask
         mock_app = Flask(__name__)
-        
+
         # Create handler instance
         handler = self.handler_class(mock_app, _thread_lock)
-        
+
         # Create mock Flask request object
         class MockFlaskRequest:
-            def __init__(self, data: Dict[str, Any], fastapi_req: Request):
+            def __init__(self, data: dict[str, Any], fastapi_req: Request):
                 self.json_data = data
                 self.fastapi_request = fastapi_req
                 self.content_type = "application/json"
-                
+
             def get_json(self):
                 return self.json_data
-            
+
             @property
             def is_json(self):
                 return True
-                
+
             def get_data(self, as_text=True):
                 return json.dumps(self.json_data) if as_text else json.dumps(self.json_data).encode()
-        
+
         mock_request = MockFlaskRequest(request_data, fastapi_request)
-        
+
         try:
             # Process the request using the Flask handler
             result = await handler.process(request_data, mock_request)
@@ -97,33 +97,33 @@ class FlaskApiWrapper:
 
 def create_api_bridge(app: FastAPI) -> None:
     """Create API bridge to integrate Flask handlers with FastAPI."""
-    
+
     if FlaskApiHandler is None:
         logger.warning("Flask API handler not available, skipping API bridge")
         return
-    
+
     # Load existing Flask API handlers
     try:
         handlers = load_classes_from_folder("framework/api", "*.py", FlaskApiHandler)
         logger.info(f"Found {len(handlers)} API handlers to bridge")
-        
+
         # Create FastAPI endpoints for each Flask handler
         for handler_class in handlers:
             handler_name = handler_class.__module__.split('.')[-1]
             wrapper = FlaskApiWrapper(handler_class)
-            
+
             # Create a basic endpoint that returns a placeholder
             def create_placeholder_endpoint(name=handler_name):
-                async def endpoint(request: Request, api_request: Optional[ApiRequest] = None):
+                async def endpoint(request: Request, api_request: ApiRequest | None = None):
                     return ApiResponse(
                         success=False,
                         error=f"Handler {name} not fully integrated yet",
                         timestamp=time.time()
                     )
                 return endpoint
-            
+
             endpoint_func = create_placeholder_endpoint()
-            
+
             # Register the endpoint with FastAPI
             app.post(
                 f"/{handler_name}",
@@ -131,16 +131,16 @@ def create_api_bridge(app: FastAPI) -> None:
                 tags=["Legacy API (Limited)"],
                 summary=f"Legacy {handler_name} endpoint (limited functionality)"
             )(endpoint_func)
-            
+
             logger.info(f"Registered placeholder FastAPI endpoint: /{handler_name}")
-            
+
     except Exception as e:
         logger.warning(f"Could not load Flask API handlers: {e}")
         logger.info("Continuing with enhanced API endpoints only")
 
 def add_enhanced_endpoints(app: FastAPI) -> None:
     """Add enhanced API endpoints specific to FastAPI."""
-    
+
     @app.post("/api/validate-code", tags=["Security"])
     async def validate_code_endpoint(code: str, security_level: SecurityLevel = SecurityLevel.STRICT):
         """Validate code for security issues."""
@@ -155,7 +155,7 @@ def add_enhanced_endpoints(app: FastAPI) -> None:
             }
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
-    
+
     @app.get("/api/models", tags=["AI Models"])
     async def list_models():
         """List all available AI models."""
@@ -176,7 +176,7 @@ def add_enhanced_endpoints(app: FastAPI) -> None:
                 for model in models
             ]
         }
-    
+
     @app.get("/api/models/{model_name}", tags=["AI Models"])
     async def get_model_details(model_name: str):
         """Get details for a specific model."""
@@ -184,7 +184,7 @@ def add_enhanced_endpoints(app: FastAPI) -> None:
         model = get_model(model_name)
         if not model:
             raise HTTPException(status_code=404, detail="Model not found")
-        
+
         return {
             "name": model.model_name,
             "display_name": model.display_name,
@@ -200,15 +200,15 @@ def add_enhanced_endpoints(app: FastAPI) -> None:
             "rate_limit_rpm": model.rate_limit_rpm,
             "rate_limit_tpm": model.rate_limit_tpm
         }
-    
+
     @app.post("/api/models/recommend", tags=["AI Models"])
-    async def recommend_model(use_case: str, max_cost: Optional[float] = None):
+    async def recommend_model(use_case: str, max_cost: float | None = None):
         """Get model recommendation for a specific use case."""
         from models.registry import get_recommended_model
         model = get_recommended_model(use_case, max_cost)
         if not model:
             raise HTTPException(status_code=404, detail="No suitable model found")
-        
+
         return {
             "recommended_model": model.model_name,
             "display_name": model.display_name,
@@ -221,8 +221,8 @@ def add_enhanced_endpoints(app: FastAPI) -> None:
 async def enhanced_message_endpoint(
     text: str = Form(...),
     context: str = Form(""),
-    message_id: Optional[str] = Form(None),
-    attachments: Optional[list[UploadFile]] = File(None)
+    message_id: str | None = Form(None),
+    attachments: list[UploadFile] | None = File(None)
 ):
     """Enhanced message endpoint with file upload support."""
     try:
@@ -231,10 +231,10 @@ async def enhanced_message_endpoint(
         if attachments:
             import os
             import tempfile
-            
+
             # Create temporary directory for uploads
             upload_folder = tempfile.mkdtemp(prefix="gary_zero_uploads_")
-            
+
             for attachment in attachments:
                 if attachment.filename:
                     # Basic filename sanitization
@@ -244,7 +244,7 @@ async def enhanced_message_endpoint(
                         content = await attachment.read()
                         f.write(content)
                     attachment_paths.append(file_path)
-        
+
         # Security validation for code content
         if any(keyword in text.lower() for keyword in ['exec', 'eval', 'import os', 'subprocess']):
             if not is_code_safe(text, SecurityLevel.MODERATE):
@@ -252,7 +252,7 @@ async def enhanced_message_endpoint(
                     status_code=400,
                     detail="Message contains potentially unsafe code"
                 )
-        
+
         # Return basic response for now
         # TODO: Integrate with actual agent processing
         return ApiResponse(
@@ -267,7 +267,7 @@ async def enhanced_message_endpoint(
             },
             timestamp=time.time()
         )
-        
+
     except Exception as e:
         logger.error(f"Error in enhanced message endpoint: {e}")
         return ApiResponse(

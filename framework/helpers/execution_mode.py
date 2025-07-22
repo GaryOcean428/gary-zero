@@ -2,7 +2,7 @@
 
 import os
 import socket
-from typing import Dict, Any
+from typing import Any
 
 
 def detect_execution_environment() -> str:
@@ -15,11 +15,11 @@ def detect_execution_environment() -> str:
     # Check for Railway environment
     if os.getenv('RAILWAY_ENVIRONMENT'):
         return 'railway'
-    
+
     # Check for Docker environment
     if os.path.exists('/.dockerenv') or os.getenv('DOCKER_CONTAINER'):
         return 'docker'
-    
+
     return 'local'
 
 
@@ -55,7 +55,7 @@ def should_use_ssh_execution() -> bool:
     # Check if SSH is explicitly disabled
     if os.getenv('DISABLE_SSH_EXECUTION', '').lower() in ('true', '1', 'yes'):
         return False
-    
+
     # Check if execution mode is explicitly set
     execution_mode = os.getenv('CODE_EXECUTION_MODE', '').lower()
     if execution_mode == 'direct':
@@ -64,18 +64,18 @@ def should_use_ssh_execution() -> bool:
         return True
     elif execution_mode == 'kali':
         return False  # Kali service uses HTTP API, not direct SSH
-    
+
     # Auto-detect based on environment
     env = detect_execution_environment()
-    
+
     # In Railway, prefer direct execution unless SSH is explicitly enabled
     if env == 'railway':
         return False
-    
+
     # In Docker, check if SSH is available
     if env == 'docker':
         return is_ssh_available()
-    
+
     # For local development, check if SSH is available
     return is_ssh_available()
 
@@ -91,16 +91,16 @@ def should_use_kali_service() -> bool:
     execution_mode = os.getenv('CODE_EXECUTION_MODE', '').lower()
     if execution_mode == 'kali':
         return True
-    
+
     # Check if Kali service is configured and available
     kali_url = os.getenv('KALI_SHELL_URL')
     if not kali_url:
         return False
-    
+
     # Check if explicitly disabled
     if os.getenv('DISABLE_KALI_EXECUTION', '').lower() in ('true', '1', 'yes'):
         return False
-    
+
     # Quick availability check (with caching to avoid repeated requests)
     try:
         from framework.helpers.kali_service import is_kali_service_available
@@ -122,7 +122,7 @@ def is_kali_service_configured() -> bool:
     return all(os.getenv(var) for var in required_vars)
 
 
-def get_execution_config() -> Dict[str, Any]:
+def get_execution_config() -> dict[str, Any]:
     """
     Get the appropriate execution configuration based on environment.
     
@@ -163,7 +163,7 @@ def get_execution_info() -> str:
     """
     config = get_execution_config()
     env = detect_execution_environment()
-    
+
     if config['method'] == 'kali':
         try:
             from framework.helpers.kali_service import is_kali_service_available

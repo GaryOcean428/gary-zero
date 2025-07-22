@@ -1,13 +1,12 @@
 """Weather tool plugin for Gary-Zero."""
 
-import json
 from datetime import datetime
 
 try:
     from framework.helpers.tool import Response, Tool
     BaseClass = Tool
 except ImportError:
-    from framework.plugins.base import Response, PluginTool
+    from framework.plugins.base import PluginTool, Response
     BaseClass = PluginTool
 
 
@@ -16,9 +15,9 @@ class WeatherTool(BaseClass):
 
     async def execute(self, **kwargs) -> Response:
         """Execute weather operations."""
-        
+
         action = self.args.get("action", "current").lower()
-        
+
         if action == "current":
             return await self._get_current_weather()
         elif action == "forecast":
@@ -34,7 +33,7 @@ class WeatherTool(BaseClass):
     async def _get_current_weather(self) -> Response:
         """Get current weather conditions."""
         location = self.args.get("location", "New York, NY")
-        
+
         # Mock weather data
         weather = {
             "location": location,
@@ -46,7 +45,7 @@ class WeatherTool(BaseClass):
             "visibility": "10 km",
             "updated": datetime.now().strftime("%H:%M")
         }
-        
+
         response = f"🌤️ Current Weather for {location}:\n"
         response += f"🌡️ Temperature: {weather['temperature']}\n"
         response += f"☁️ Condition: {weather['condition']}\n"
@@ -55,14 +54,14 @@ class WeatherTool(BaseClass):
         response += f"📊 Pressure: {weather['pressure']}\n"
         response += f"👁️ Visibility: {weather['visibility']}\n"
         response += f"🕒 Updated: {weather['updated']}"
-        
+
         return Response(message=response, break_loop=False)
 
     async def _get_forecast(self) -> Response:
         """Get weather forecast."""
         location = self.args.get("location", "New York, NY")
         days = int(self.args.get("days", 3))
-        
+
         # Mock forecast data
         forecast_days = [
             {"day": "Today", "high": "25°C", "low": "18°C", "condition": "Sunny", "icon": "☀️"},
@@ -71,19 +70,19 @@ class WeatherTool(BaseClass):
             {"day": "Day 4", "high": "22°C", "low": "15°C", "condition": "Partly Cloudy", "icon": "⛅"},
             {"day": "Day 5", "high": "24°C", "low": "17°C", "condition": "Sunny", "icon": "☀️"}
         ]
-        
+
         response = f"📅 {days}-Day Forecast for {location}:\n\n"
-        
+
         for i, day in enumerate(forecast_days[:days]):
             response += f"{day['icon']} {day['day']}: {day['condition']}\n"
             response += f"   High: {day['high']}, Low: {day['low']}\n\n"
-        
+
         return Response(message=response.strip(), break_loop=False)
 
     async def _get_alerts(self) -> Response:
         """Get weather alerts."""
         location = self.args.get("location", "New York, NY")
-        
+
         # Mock alerts
         alerts = [
             {
@@ -94,18 +93,18 @@ class WeatherTool(BaseClass):
                 "icon": "💨"
             }
         ]
-        
+
         if not alerts:
             return Response(
                 message=f"🟢 No weather alerts for {location}",
                 break_loop=False
             )
-        
+
         response = f"⚠️ Weather Alerts for {location}:\n\n"
-        
+
         for alert in alerts:
             response += f"{alert['icon']} {alert['type']}: {alert['title']}\n"
             response += f"   {alert['description']}\n"
             response += f"   Severity: {alert['severity']}\n\n"
-        
+
         return Response(message=response.strip(), break_loop=False)

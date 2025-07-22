@@ -11,21 +11,20 @@ import asyncio
 import json
 import time
 import uuid
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timezone
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
 from pathlib import Path
+from typing import Any
 
-from ..security.audit_logger import AuditLogger, AuditEvent, AuditEventType, AuditLevel
-from ..performance.monitor import PerformanceMonitor, get_performance_monitor
-from ..helpers.log import Log, LogItem
+from ..performance.monitor import get_performance_monitor
+from ..security.audit_logger import AuditEvent, AuditEventType, AuditLevel, AuditLogger
 
 
 class LogLevel(Enum):
     """Unified log levels."""
     DEBUG = "debug"
-    INFO = "info" 
+    INFO = "info"
     WARNING = "warning"
     ERROR = "error"
     CRITICAL = "critical"
@@ -36,31 +35,31 @@ class EventType(Enum):
     # User interactions
     USER_INPUT = "user_input"
     USER_ACTION = "user_action"
-    
+
     # System operations
     TOOL_EXECUTION = "tool_execution"
     CODE_EXECUTION = "code_execution"
     GUI_ACTION = "gui_action"
     KNOWLEDGE_RETRIEVAL = "knowledge_retrieval"
     MEMORY_OPERATION = "memory_operation"
-    
+
     # Infrastructure
     PERFORMANCE_METRIC = "performance_metric"
     SYSTEM_EVENT = "system_event"
     CONFIG_CHANGE = "config_change"
-    
+
     # Security and authentication
     AUTHENTICATION = "authentication"
     AUTHORIZATION = "authorization"
     SECURITY_VIOLATION = "security_violation"
     RATE_LIMIT = "rate_limit"
-    
+
     # Planning and scheduling
     AGENT_DECISION = "agent_decision"
     TASK_CREATED = "task_created"
     TASK_COMPLETED = "task_completed"
     TASK_FAILED = "task_failed"
-    
+
     # Errors and diagnostics
     ERROR = "error"
     EXCEPTION = "exception"
@@ -74,42 +73,42 @@ class LogEvent:
     event_type: EventType = EventType.SYSTEM_EVENT
     level: LogLevel = LogLevel.INFO
     message: str = ""
-    
+
     # Context information
-    agent_id: Optional[str] = None
-    session_id: Optional[str] = None
-    user_id: Optional[str] = None
-    
+    agent_id: str | None = None
+    session_id: str | None = None
+    user_id: str | None = None
+
     # Technical details
-    component: Optional[str] = None
-    function_name: Optional[str] = None
-    tool_name: Optional[str] = None
-    
+    component: str | None = None
+    function_name: str | None = None
+    tool_name: str | None = None
+
     # Data payloads (sanitized)
-    input_data: Optional[Dict[str, Any]] = None
-    output_data: Optional[Dict[str, Any]] = None
-    metadata: Optional[Dict[str, Any]] = None
-    
+    input_data: dict[str, Any] | None = None
+    output_data: dict[str, Any] | None = None
+    metadata: dict[str, Any] | None = None
+
     # Performance metrics
-    duration_ms: Optional[float] = None
-    cpu_usage: Optional[float] = None
-    memory_usage: Optional[float] = None
-    
+    duration_ms: float | None = None
+    cpu_usage: float | None = None
+    memory_usage: float | None = None
+
     # Error information
-    error_type: Optional[str] = None
-    error_message: Optional[str] = None
-    stack_trace: Optional[str] = None
-    
-    def to_dict(self) -> Dict[str, Any]:
+    error_type: str | None = None
+    error_message: str | None = None
+    stack_trace: str | None = None
+
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary with proper serialization."""
         data = asdict(self)
         data['event_type'] = self.event_type.value
         data['level'] = self.level.value
         data['timestamp_iso'] = datetime.fromtimestamp(
-            self.timestamp, tz=timezone.utc
+            self.timestamp, tz=UTC
         ).isoformat()
         return data
-    
+
     def to_json(self) -> str:
         """Convert to JSON string."""
         return json.dumps(self.to_dict(), default=str, ensure_ascii=False)
@@ -122,45 +121,45 @@ class UnifiedLogger:
     Integrates with existing audit logger, performance monitor, and log helpers
     while providing a centralized interface and enhanced capabilities.
     """
-    
-    def __init__(self, 
-                 storage_path: Optional[str] = None,
+
+    def __init__(self,
+                 storage_path: str | None = None,
                  max_buffer_size: int = 10000,
                  enable_performance_tracking: bool = True):
         self.storage_path = Path(storage_path) if storage_path else None
         self.max_buffer_size = max_buffer_size
         self.enable_performance_tracking = enable_performance_tracking
-        
+
         # Event buffer for in-memory access
-        self.event_buffer: List[LogEvent] = []
+        self.event_buffer: list[LogEvent] = []
         self.buffer_lock = asyncio.Lock()
-        
+
         # Integration with existing systems
         self.audit_logger = AuditLogger(
             log_file=str(self.storage_path / "audit.log") if self.storage_path else None
         )
-        
+
         if enable_performance_tracking:
             self.performance_monitor = get_performance_monitor()
         else:
             self.performance_monitor = None
-        
+
         # Statistics
         self.events_logged = 0
         self.events_by_type = {}
         self.events_by_level = {}
-    
+
     async def log_event(self, event: LogEvent) -> None:
         """Log a unified event."""
         # Sanitize sensitive data
         event = self._sanitize_event(event)
-        
+
         # Add to buffer
         async with self.buffer_lock:
             self.event_buffer.append(event)
             if len(self.event_buffer) > self.max_buffer_size:
                 self.event_buffer.pop(0)  # Remove oldest event
-        
+
         # Update statistics
         self.events_logged += 1
         self.events_by_type[event.event_type.value] = (
@@ -169,20 +168,20 @@ class UnifiedLogger:
         self.events_by_level[event.level.value] = (
             self.events_by_level.get(event.level.value, 0) + 1
         )
-        
+
         # Forward to existing systems
         await self._forward_to_audit_logger(event)
         self._forward_to_performance_monitor(event)
-    
+
     async def log_tool_execution(self,
                                 tool_name: str,
-                                parameters: Dict[str, Any],
+                                parameters: dict[str, Any],
                                 success: bool,
-                                duration_ms: Optional[float] = None,
-                                user_id: Optional[str] = None,
-                                agent_id: Optional[str] = None,
-                                output_data: Optional[Dict[str, Any]] = None,
-                                error_message: Optional[str] = None) -> str:
+                                duration_ms: float | None = None,
+                                user_id: str | None = None,
+                                agent_id: str | None = None,
+                                output_data: dict[str, Any] | None = None,
+                                error_message: str | None = None) -> str:
         """Log tool execution with standardized format."""
         event = LogEvent(
             event_type=EventType.TOOL_EXECUTION,
@@ -196,23 +195,23 @@ class UnifiedLogger:
             duration_ms=duration_ms,
             error_message=error_message
         )
-        
+
         await self.log_event(event)
         return event.event_id
-    
+
     async def log_code_execution(self,
                                code_snippet: str,
                                language: str,
                                success: bool,
-                               duration_ms: Optional[float] = None,
-                               output: Optional[str] = None,
-                               error_message: Optional[str] = None,
-                               user_id: Optional[str] = None,
-                               agent_id: Optional[str] = None) -> str:
+                               duration_ms: float | None = None,
+                               output: str | None = None,
+                               error_message: str | None = None,
+                               user_id: str | None = None,
+                               agent_id: str | None = None) -> str:
         """Log code execution event."""
         # Truncate code for logging (security)
         code_preview = code_snippet[:200] + "..." if len(code_snippet) > 200 else code_snippet
-        
+
         event = LogEvent(
             event_type=EventType.CODE_EXECUTION,
             level=LogLevel.INFO if success else LogLevel.ERROR,
@@ -228,19 +227,19 @@ class UnifiedLogger:
             duration_ms=duration_ms,
             error_message=error_message
         )
-        
+
         await self.log_event(event)
         return event.event_id
-    
+
     async def log_gui_action(self,
                            action_type: str,
                            element: str,
                            success: bool,
-                           duration_ms: Optional[float] = None,
-                           page_url: Optional[str] = None,
-                           error_message: Optional[str] = None,
-                           user_id: Optional[str] = None,
-                           agent_id: Optional[str] = None) -> str:
+                           duration_ms: float | None = None,
+                           page_url: str | None = None,
+                           error_message: str | None = None,
+                           user_id: str | None = None,
+                           agent_id: str | None = None) -> str:
         """Log GUI/browser action."""
         event = LogEvent(
             event_type=EventType.GUI_ACTION,
@@ -257,17 +256,17 @@ class UnifiedLogger:
             duration_ms=duration_ms,
             error_message=error_message
         )
-        
+
         await self.log_event(event)
         return event.event_id
-    
+
     async def log_knowledge_retrieval(self,
                                     query: str,
                                     results_count: int,
-                                    duration_ms: Optional[float] = None,
-                                    source: Optional[str] = None,
-                                    user_id: Optional[str] = None,
-                                    agent_id: Optional[str] = None) -> str:
+                                    duration_ms: float | None = None,
+                                    source: str | None = None,
+                                    user_id: str | None = None,
+                                    agent_id: str | None = None) -> str:
         """Log knowledge retrieval operation."""
         event = LogEvent(
             event_type=EventType.KNOWLEDGE_RETRIEVAL,
@@ -282,18 +281,18 @@ class UnifiedLogger:
             },
             duration_ms=duration_ms
         )
-        
+
         await self.log_event(event)
         return event.event_id
-    
+
     async def log_memory_operation(self,
                                  operation_type: str,
                                  entity_count: int,
                                  success: bool,
-                                 duration_ms: Optional[float] = None,
-                                 error_message: Optional[str] = None,
-                                 user_id: Optional[str] = None,
-                                 agent_id: Optional[str] = None) -> str:
+                                 duration_ms: float | None = None,
+                                 error_message: str | None = None,
+                                 user_id: str | None = None,
+                                 agent_id: str | None = None) -> str:
         """Log memory/graph operation."""
         event = LogEvent(
             event_type=EventType.MEMORY_OPERATION,
@@ -309,16 +308,16 @@ class UnifiedLogger:
             duration_ms=duration_ms,
             error_message=error_message
         )
-        
+
         await self.log_event(event)
         return event.event_id
-    
+
     async def get_execution_timeline(self,
-                                   agent_id: Optional[str] = None,
-                                   session_id: Optional[str] = None,
-                                   user_id: Optional[str] = None,
-                                   start_time: Optional[float] = None,
-                                   end_time: Optional[float] = None) -> List[LogEvent]:
+                                   agent_id: str | None = None,
+                                   session_id: str | None = None,
+                                   user_id: str | None = None,
+                                   start_time: float | None = None,
+                                   end_time: float | None = None) -> list[LogEvent]:
         """Get a complete execution timeline for reconstruction."""
         execution_types = {
             EventType.TOOL_EXECUTION,
@@ -328,66 +327,66 @@ class UnifiedLogger:
             EventType.MEMORY_OPERATION,
             EventType.AGENT_DECISION
         }
-        
+
         async with self.buffer_lock:
             events = [e for e in self.event_buffer if e.event_type in execution_types]
-        
+
         # Apply filters
         if agent_id:
             events = [e for e in events if e.agent_id == agent_id]
-        
+
         if session_id:
             events = [e for e in events if e.session_id == session_id]
-        
+
         if user_id:
             events = [e for e in events if e.user_id == user_id]
-        
+
         if start_time:
             events = [e for e in events if e.timestamp >= start_time]
-        
+
         if end_time:
             events = [e for e in events if e.timestamp <= end_time]
-        
+
         # Sort chronologically
         events.sort(key=lambda e: e.timestamp)
         return events
-    
+
     async def get_events(self,
-                        event_type: Optional[EventType] = None,
-                        level: Optional[LogLevel] = None,
-                        user_id: Optional[str] = None,
-                        agent_id: Optional[str] = None,
-                        start_time: Optional[float] = None,
-                        end_time: Optional[float] = None,
-                        limit: int = 100) -> List[LogEvent]:
+                        event_type: EventType | None = None,
+                        level: LogLevel | None = None,
+                        user_id: str | None = None,
+                        agent_id: str | None = None,
+                        start_time: float | None = None,
+                        end_time: float | None = None,
+                        limit: int = 100) -> list[LogEvent]:
         """Retrieve events with filtering."""
         async with self.buffer_lock:
             events = list(self.event_buffer)
-        
+
         # Apply filters
         if event_type:
             events = [e for e in events if e.event_type == event_type]
-        
+
         if level:
             events = [e for e in events if e.level == level]
-        
+
         if user_id:
             events = [e for e in events if e.user_id == user_id]
-        
+
         if agent_id:
             events = [e for e in events if e.agent_id == agent_id]
-        
+
         if start_time:
             events = [e for e in events if e.timestamp >= start_time]
-        
+
         if end_time:
             events = [e for e in events if e.timestamp <= end_time]
-        
+
         # Sort by timestamp (newest first) and limit
         events.sort(key=lambda e: e.timestamp, reverse=True)
         return events[:limit]
-    
-    def get_statistics(self) -> Dict[str, Any]:
+
+    def get_statistics(self) -> dict[str, Any]:
         """Get logging statistics."""
         return {
             "total_events": self.events_logged,
@@ -396,7 +395,7 @@ class UnifiedLogger:
             "events_by_level": self.events_by_level.copy(),
             "buffer_utilization": len(self.event_buffer) / self.max_buffer_size
         }
-    
+
     def _sanitize_event(self, event: LogEvent) -> LogEvent:
         """Sanitize event data to remove sensitive information."""
         # Keywords that indicate sensitive data
@@ -404,11 +403,11 @@ class UnifiedLogger:
             'password', 'token', 'key', 'secret', 'auth', 'credential',
             'api_key', 'access_token', 'private_key', 'ssh_key'
         }
-        
-        def sanitize_dict(data: Dict[str, Any]) -> Dict[str, Any]:
+
+        def sanitize_dict(data: dict[str, Any]) -> dict[str, Any]:
             if not data:
                 return data
-            
+
             sanitized = {}
             for key, value in data.items():
                 key_lower = key.lower()
@@ -422,21 +421,21 @@ class UnifiedLogger:
                 else:
                     sanitized[key] = value
             return sanitized
-        
+
         # Create a copy and sanitize
         sanitized_event = LogEvent(**asdict(event))
-        
+
         if sanitized_event.input_data:
             sanitized_event.input_data = sanitize_dict(sanitized_event.input_data)
-        
+
         if sanitized_event.output_data:
             sanitized_event.output_data = sanitize_dict(sanitized_event.output_data)
-        
+
         if sanitized_event.metadata:
             sanitized_event.metadata = sanitize_dict(sanitized_event.metadata)
-        
+
         return sanitized_event
-    
+
     async def _forward_to_audit_logger(self, event: LogEvent) -> None:
         """Forward appropriate events to the existing audit logger."""
         # Convert to audit event for security-related events
@@ -447,19 +446,19 @@ class UnifiedLogger:
             EventType.RATE_LIMIT,
             EventType.CONFIG_CHANGE
         }
-        
+
         if event.event_type in security_events:
             try:
                 await self.audit_logger.log_event(self._to_audit_event(event))
             except Exception as e:
                 # Log conversion error but don't fail
                 print(f"Error forwarding to audit logger: {e}")
-    
+
     def _forward_to_performance_monitor(self, event: LogEvent) -> None:
         """Forward performance metrics to the existing performance monitor."""
         if not self.performance_monitor:
             return
-        
+
         try:
             # Record duration metrics
             if event.duration_ms is not None and event.tool_name:
@@ -472,7 +471,7 @@ class UnifiedLogger:
         except Exception as e:
             # Log error but don't fail
             print(f"Error forwarding to performance monitor: {e}")
-    
+
     def _to_audit_event(self, event: LogEvent) -> AuditEvent:
         """Convert unified event to audit event."""
         # Map event type back to audit event type
@@ -486,7 +485,7 @@ class UnifiedLogger:
             EventType.TOOL_EXECUTION: AuditEventType.TOOL_EXECUTION,
             EventType.ERROR: AuditEventType.ERROR,
         }
-        
+
         # Map level back to audit level
         level_mapping = {
             LogLevel.INFO: AuditLevel.INFO,
@@ -494,7 +493,7 @@ class UnifiedLogger:
             LogLevel.ERROR: AuditLevel.ERROR,
             LogLevel.CRITICAL: AuditLevel.CRITICAL,
         }
-        
+
         return AuditEvent(
             event_type=type_mapping.get(event.event_type, AuditEventType.SYSTEM_EVENT),
             level=level_mapping.get(event.level, AuditLevel.INFO),

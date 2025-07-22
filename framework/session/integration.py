@@ -5,11 +5,14 @@ This module provides session factories and integration helpers to connect
 the new session management system with existing tool implementations.
 """
 
-import uuid
-from typing import Any, Dict
 
-from ..session import SessionType, RemoteSessionManager, SessionConfig
-from ..session.implementations import GeminiSession, AnthropicSession, ClaudeCodeSession, KaliSession
+from ..session import RemoteSessionManager, SessionConfig, SessionType
+from ..session.implementations import (
+    AnthropicSession,
+    ClaudeCodeSession,
+    GeminiSession,
+    KaliSession,
+)
 
 
 def create_session_manager(agent=None) -> RemoteSessionManager:
@@ -24,18 +27,18 @@ def create_session_manager(agent=None) -> RemoteSessionManager:
     """
     config = SessionConfig.from_environment()
     manager = RemoteSessionManager(config, agent)
-    
+
     # Register session factories
     manager.register_session_factory(SessionType.CLI, create_gemini_session)
     manager.register_session_factory(SessionType.HTTP, create_kali_session)
     manager.register_session_factory(SessionType.GUI, create_anthropic_session)
     manager.register_session_factory(SessionType.TERMINAL, create_claude_code_session)
-    
+
     # Register approval handlers if needed
     if agent:
         manager.register_approval_handler(SessionType.GUI, _create_gui_approval_handler(agent))
         manager.register_approval_handler(SessionType.TERMINAL, _create_terminal_approval_handler(agent))
-    
+
     return manager
 
 
@@ -110,7 +113,7 @@ def _create_gui_approval_handler(agent):
         try:
             action = message.payload.get('action', 'unknown')
             action_desc = f"GUI Action: {action}"
-            
+
             if action == 'click':
                 x, y = message.payload.get('x', 0), message.payload.get('y', 0)
                 action_desc += f" at ({x}, {y})"
@@ -120,7 +123,7 @@ def _create_gui_approval_handler(agent):
             elif action == 'key':
                 keys = message.payload.get('keys', '')
                 action_desc += f" keys: '{keys}'"
-            
+
             # Use agent's intervention system if available
             if hasattr(agent, 'handle_intervention'):
                 # This would integrate with the actual approval UI
@@ -129,10 +132,10 @@ def _create_gui_approval_handler(agent):
             else:
                 # Default approval logic
                 return True
-                
+
         except Exception:
             return False
-    
+
     return handle_gui_approval
 
 
@@ -143,9 +146,9 @@ def _create_terminal_approval_handler(agent):
         try:
             command = message.payload.get('command', '')
             operation_type = message.payload.get('operation_type', '')
-            
+
             action_desc = f"Terminal {operation_type}: {command[:100]}"
-            
+
             # Use agent's intervention system if available
             if hasattr(agent, 'handle_intervention'):
                 # This would integrate with the actual approval UI
@@ -154,10 +157,10 @@ def _create_terminal_approval_handler(agent):
             else:
                 # Default approval logic - could implement command filtering here
                 return True
-                
+
         except Exception:
             return False
-    
+
     return handle_terminal_approval
 
 
@@ -176,17 +179,17 @@ def get_global_session_manager(agent=None) -> RemoteSessionManager:
         Global RemoteSessionManager instance
     """
     global _global_session_manager
-    
+
     if _global_session_manager is None:
         _global_session_manager = create_session_manager(agent)
-    
+
     return _global_session_manager
 
 
 async def cleanup_global_session_manager():
     """Clean up the global session manager."""
     global _global_session_manager
-    
+
     if _global_session_manager:
         await _global_session_manager.stop()
         _global_session_manager = None

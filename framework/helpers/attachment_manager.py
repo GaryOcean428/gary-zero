@@ -1,7 +1,6 @@
 import base64
 import io
 import os
-from typing import Optional
 
 from PIL import Image
 from werkzeug.utils import secure_filename
@@ -73,7 +72,7 @@ class AttachmentManager:
             PrintStyle.error(f"Error saving file {filename}: {e}")
             return None, {}  # type: ignore
 
-    def generate_image_preview(self, image_path: str, max_size: int = 800) -> Optional[str]:
+    def generate_image_preview(self, image_path: str, max_size: int = 800) -> str | None:
         try:
             with Image.open(image_path) as img:
                 # Convert image if needed

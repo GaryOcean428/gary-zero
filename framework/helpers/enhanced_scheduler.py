@@ -8,10 +8,10 @@ enabling automatic plan execution, monitoring, and improved concurrency.
 import asyncio
 import logging
 from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Union, Callable
 import time
+from typing import Dict, List, Optional, Any, Union
 
-# Imports for both hierarchical planning and async orchestration
+# Hierarchical planning imports
 from framework.helpers.hierarchical_planner import (
     HierarchicalPlanner,
     HierarchicalPlan,
@@ -19,14 +19,24 @@ from framework.helpers.hierarchical_planner import (
     SubtaskStatus,
     PlanStatus
 )
-from framework.helpers.plan_evaluation import EvaluationLoop, EvaluationCriteria
+from framework.helpers.plan_evaluation import EvaluationLoop
 from framework.helpers.planner_config import PlannerSettings
 from framework.helpers.task_models import PlannedTask, TaskPlan, TaskState
 
+# Async orchestration & scheduling imports (Copilot preferred)
+from framework.helpers.async_orchestrator import (
+    AsyncTaskOrchestrator,
+    get_orchestrator,
+)
+from framework.helpers.orchestration_config import (
+    get_orchestration_config,
+    is_orchestration_enabled,
+    should_use_sync_fallback,
+)
 from framework.helpers.task_management import TaskScheduler as BaseTaskScheduler
-from framework.helpers.task_manager import TaskManager, TaskStatus, TaskCategory, Task as ManagedTask
-from framework.helpers.async_orchestrator import AsyncTaskOrchestrator, get_orchestrator, OrchestrationTask
-from framework.helpers.orchestration_config import get_orchestration_config, is_orchestration_enabled, should_use_sync_fallback
+from framework.helpers.task_manager import Task as ManagedTask
+from framework.helpers.task_manager import TaskCategory, TaskStatus
+
 from framework.performance.monitor import get_performance_monitor
 
 logger = logging.getLogger(__name__)
@@ -251,7 +261,7 @@ class EnhancedTaskScheduler(BaseTaskScheduler):
         self._async_enabled = False
         self._initialization_lock = asyncio.Lock() if asyncio.get_event_loop().is_running() else None
         self._pending_async_tasks: Dict[str, Dict[str, Any]] = {}
-        self._task_mapping: Dict[str, str] = {}
+        self._task_mapping: Dict[str, str] = {}  # scheduler task id -> orchestration task id
         self._performance_monitor = get_performance_monitor()
         self._execution_stats = {
             'sync_executions': 0,
@@ -370,7 +380,7 @@ class EnhancedTaskScheduler(BaseTaskScheduler):
         self._execution_stats['sync_executions'] += 1
         return execution_info
 
-    async def _monitor_async_task(self, scheduler_task, orchestration_task_id: str):
+    async def _monitor_async_task(self, scheduler_task: Any, orchestration_task_id: str):
         try:
             result = await self._orchestrator.wait_for_task(orchestration_task_id)
             self.update_task(
@@ -432,4 +442,93 @@ class EnhancedTaskScheduler(BaseTaskScheduler):
         )
         return managed_task
 
-    def _get_task_dependencies(self, task: Any) ->Here is the **full, properly merged version**—with both the `PlanExecutionMonitor` and the `EnhancedTaskScheduler`—for your "Enhanced Scheduler Integration" file. This is production-ready, fully compatible with both hierarchical planning and async orchestration.
+    def _get_task_dependencies(self, task: Any) -> List[str]:
+        # For now, no explicit dependencies in scheduler tasks
+        return []
+
+    def _get_task_priority(self, task: Any) -> int:
+        # Default priority, could be enhanced with task-specific priority logic
+        return 0
+
+    def _get_task_timeout(self, task: Any) -> Optional[float]:
+        config = get_orchestration_config()
+        return config.default_task_timeout_seconds
+
+    def _get_task_agent(self, task: Any) -> Optional[str]:
+        # Could be extracted from task context or configuration
+        return None
+
+    async def submit_async_task(self,
+                               task: Any,
+                               dependencies: Optional[List[str]] = None,
+                               priority: int = 0,
+                               assigned_agent: Optional[str] = None) -> str:
+        if not self._async_enabled:
+            await self.initialize_async_mode()
+        if not self._orchestrator:
+            raise RuntimeError("Async orchestration not available")
+        managed_task = self._convert_to_managed_task(task)
+        orchestration_task_id = await self._orchestrator.submit_task(
+            managed_task,
+            dependencies=dependencies,
+            priority=priority,
+            assigned_agent=assigned_agent
+        )
+        self._task_mapping[task.uuid] = orchestration_task_id
+        self.add_task(task)
+        asyncio.create_task(self._monitor_async_task(task, orchestration_task_id))
+        logger.info(f"Submitted async task {task.name} with orchestration ID {orchestration_task_id}")
+        return orchestration_task_id
+
+    async def wait_for_async_task(self, task_uuid: str, timeout: Optional[float] = None) -> Any:
+        orchestration_task_id = self._task_mapping.get(task_uuid)
+        if not orchestration_task_id:
+            raise ValueError(f"No async task found for UUID {task_uuid}")
+        if not self._orchestrator:
+            raise RuntimeError("Async orchestration not available")
+        return await self._orchestrator.wait_for_task(orchestration_task_id, timeout)
+
+    async def cancel_async_task(self, task_uuid: str) -> bool:
+        orchestration_task_id = self._task_mapping.get(task_uuid)
+        if not orchestration_task_id or not self._orchestrator:
+            return False
+        success = await self._orchestrator.cancel_task(orchestration_task_id)
+        if success:
+            self.update_task(task_uuid, state=TaskState.FINISHED, last_result="Cancelled")
+            self._task_mapping.pop(task_uuid, None)
+        return success
+
+    async def get_orchestration_metrics(self) -> Dict[str, Any]:
+        base_metrics = {
+            'total_scheduler_tasks': len(self.get_tasks()),
+            'execution_stats': self._execution_stats.copy(),
+            'async_enabled': self._async_enabled,
+            'orchestration_available': self._orchestrator is not None
+        }
+        if self._orchestrator:
+            orchestration_metrics = await self._orchestrator.get_orchestration_metrics()
+            base_metrics['orchestration'] = orchestration_metrics
+        return base_metrics
+
+    def get_execution_stats(self) -> Dict[str, Any]:
+        return self._execution_stats.copy()
+
+# Enhanced singleton pattern
+_enhanced_scheduler: Optional[EnhancedTaskScheduler] = None
+
+def get_enhanced_scheduler() -> EnhancedTaskScheduler:
+    global _enhanced_scheduler
+    if _enhanced_scheduler is None:
+        _enhanced_scheduler = EnhancedTaskScheduler()
+    return _enhanced_scheduler
+
+async def run_enhanced_tick() -> Dict[str, Any]:
+    scheduler = get_enhanced_scheduler()
+    return await scheduler.enhanced_tick()
+
+# Compatibility functions
+async def tick_with_orchestration():
+    return await run_enhanced_tick()
+
+def get_scheduler() -> EnhancedTaskScheduler:
+    return get_enhanced_scheduler()

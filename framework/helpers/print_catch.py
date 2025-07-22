@@ -1,8 +1,8 @@
 import asyncio
 import io
 import sys
-from collections.abc import Awaitable
-from typing import Any, Callable
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 
 def capture_prints_async(

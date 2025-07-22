@@ -11,7 +11,7 @@ SAMPLE_ACTIVITIES = [
         "data": {"action": "navigate", "referrer": "search"}
     },
     {
-        "type": "coding", 
+        "type": "coding",
         "description": "Opened file for editing: activity_monitor.py",
         "url": "framework/api/activity_monitor.py",
         "data": {"action": "open", "editor": "vscode"}
@@ -24,7 +24,7 @@ SAMPLE_ACTIVITIES = [
     },
     {
         "type": "coding",
-        "description": "Created new JavaScript file: activity-monitor.js", 
+        "description": "Created new JavaScript file: activity-monitor.js",
         "url": "webui/js/activity-monitor.js",
         "data": {"action": "create", "fileSize": 10748}
     },
@@ -43,7 +43,7 @@ SAMPLE_ACTIVITIES = [
     {
         "type": "coding",
         "description": "Modified CSS file to add activity monitor styles",
-        "url": "webui/index.css", 
+        "url": "webui/index.css",
         "data": {"action": "modify", "linesAdded": 150}
     }
 ]
@@ -52,19 +52,19 @@ def get_sample_activities():
     """Return a copy of sample activities with timestamps"""
     import datetime
     import random
-    
+
     activities = []
-    base_time = datetime.datetime.now(datetime.timezone.utc)
-    
+    base_time = datetime.datetime.now(datetime.UTC)
+
     for i, activity in enumerate(SAMPLE_ACTIVITIES):
         # Create activities with timestamps going back in time
         timestamp = base_time - datetime.timedelta(minutes=random.randint(1, 60))
-        
+
         activity_with_timestamp = {
             "id": f"sample_activity_{i}",
             "timestamp": timestamp.isoformat(),
             **activity
         }
         activities.append(activity_with_timestamp)
-    
+
     return activities
