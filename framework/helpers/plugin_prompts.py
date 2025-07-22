@@ -9,20 +9,20 @@ def get_available_tools_description():
         manager = PluginManager()
         plugins = manager.list_plugins(enabled_only=True)
         capabilities = manager.get_available_capabilities()
-        
+
         if not plugins:
             return "Static tools available in framework/tools directory."
-        
+
         description = f"Available tools include {len(plugins)} dynamic plugins providing capabilities: {', '.join(capabilities)}.\n\n"
         description += "Available plugins:\n"
-        
+
         for plugin in plugins:
             description += f"- {plugin['name']}: {plugin['description']}\n"
-        
+
         description += "\nStatic tools in framework/tools are also available."
-        
+
         return description
-        
+
     except Exception as e:
         return f"Static tools available. Plugin system: {e}"
 

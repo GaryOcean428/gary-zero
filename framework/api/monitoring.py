@@ -5,12 +5,12 @@ Provides REST endpoints to access logs, metrics, and benchmarking data.
 """
 
 import time
-from typing import Dict, List, Optional, Any
-from fastapi import APIRouter, HTTPException, Query, Depends
-from pydantic import BaseModel, Field
+from typing import Any
 
-from ..logging.unified_logger import get_unified_logger, LogEvent, LogLevel, EventType
-from ..logging.storage import SqliteStorage
+from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel
+
+from ..logging.unified_logger import EventType, LogEvent, LogLevel, get_unified_logger
 from ..performance.monitor import get_performance_monitor
 
 
@@ -22,57 +22,57 @@ class LogEventResponse(BaseModel):
     event_type: str
     level: str
     message: str
-    agent_id: Optional[str] = None
-    session_id: Optional[str] = None
-    user_id: Optional[str] = None
-    component: Optional[str] = None
-    tool_name: Optional[str] = None
-    duration_ms: Optional[float] = None
-    error_message: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    agent_id: str | None = None
+    session_id: str | None = None
+    user_id: str | None = None
+    component: str | None = None
+    tool_name: str | None = None
+    duration_ms: float | None = None
+    error_message: str | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class LogStatisticsResponse(BaseModel):
     """Response model for log statistics."""
     total_events: int
     events_in_buffer: int
-    events_by_type: Dict[str, int]
-    events_by_level: Dict[str, int]
+    events_by_type: dict[str, int]
+    events_by_level: dict[str, int]
     buffer_utilization: float
 
 
 class PerformanceMetricsResponse(BaseModel):
     """Response model for performance metrics."""
     timestamp: float
-    resource_usage: Dict[str, Any]
-    operation_metrics: Dict[str, Any]
-    alerts: List[Dict[str, Any]]
+    resource_usage: dict[str, Any]
+    operation_metrics: dict[str, Any]
+    alerts: list[dict[str, Any]]
 
 
 class TimelineResponse(BaseModel):
     """Response model for execution timeline."""
-    events: List[LogEventResponse]
+    events: list[LogEventResponse]
     total_count: int
-    time_range: Dict[str, float]
+    time_range: dict[str, float]
 
 
 # Create router
 router = APIRouter(prefix="/api/v1/monitoring", tags=["monitoring"])
 
 
-@router.get("/logs", response_model=List[LogEventResponse])
+@router.get("/logs", response_model=list[LogEventResponse])
 async def get_logs(
-    event_type: Optional[str] = Query(None, description="Filter by event type"),
-    level: Optional[str] = Query(None, description="Filter by log level"),
-    user_id: Optional[str] = Query(None, description="Filter by user ID"),
-    agent_id: Optional[str] = Query(None, description="Filter by agent ID"),
-    start_time: Optional[float] = Query(None, description="Start timestamp"),
-    end_time: Optional[float] = Query(None, description="End timestamp"),
+    event_type: str | None = Query(None, description="Filter by event type"),
+    level: str | None = Query(None, description="Filter by log level"),
+    user_id: str | None = Query(None, description="Filter by user ID"),
+    agent_id: str | None = Query(None, description="Filter by agent ID"),
+    start_time: float | None = Query(None, description="Start timestamp"),
+    end_time: float | None = Query(None, description="End timestamp"),
     limit: int = Query(100, description="Maximum number of events", le=1000)
 ):
     """Retrieve log events with optional filtering."""
     logger = get_unified_logger()
-    
+
     # Convert string parameters to enums if provided
     event_type_enum = None
     if event_type:
@@ -80,14 +80,14 @@ async def get_logs(
             event_type_enum = EventType(event_type)
         except ValueError:
             raise HTTPException(status_code=400, detail=f"Invalid event_type: {event_type}")
-    
+
     level_enum = None
     if level:
         try:
             level_enum = LogLevel(level)
         except ValueError:
             raise HTTPException(status_code=400, detail=f"Invalid level: {level}")
-    
+
     events = await logger.get_events(
         event_type=event_type_enum,
         level=level_enum,
@@ -97,7 +97,7 @@ async def get_logs(
         end_time=end_time,
         limit=limit
     )
-    
+
     return [
         LogEventResponse(
             event_id=event.event_id,
@@ -124,34 +124,34 @@ async def get_log_statistics():
     """Get logging statistics."""
     logger = get_unified_logger()
     stats = logger.get_statistics()
-    
+
     return LogStatisticsResponse(**stats)
 
 
 @router.get("/logs/timeline", response_model=TimelineResponse)
 async def get_execution_timeline(
-    agent_id: Optional[str] = Query(None, description="Filter by agent ID"),
-    session_id: Optional[str] = Query(None, description="Filter by session ID"),
-    start_time: Optional[float] = Query(None, description="Start timestamp"),
-    end_time: Optional[float] = Query(None, description="End timestamp")
+    agent_id: str | None = Query(None, description="Filter by agent ID"),
+    session_id: str | None = Query(None, description="Filter by session ID"),
+    start_time: float | None = Query(None, description="Start timestamp"),
+    end_time: float | None = Query(None, description="End timestamp")
 ):
     """Get execution timeline for analysis."""
     logger = get_unified_logger()
-    
+
     events = await logger.get_execution_timeline(
         agent_id=agent_id,
         session_id=session_id,
         start_time=start_time,
         end_time=end_time
     )
-    
+
     # Calculate time range
     if events:
         min_time = min(event.timestamp for event in events)
         max_time = max(event.timestamp for event in events)
     else:
         min_time = max_time = time.time()
-    
+
     response_events = [
         LogEventResponse(
             event_id=event.event_id,
@@ -171,7 +171,7 @@ async def get_execution_timeline(
         )
         for event in events
     ]
-    
+
     return TimelineResponse(
         events=response_events,
         total_count=len(events),
@@ -185,9 +185,9 @@ async def get_performance_metrics(
 ):
     """Get performance metrics and resource usage."""
     monitor = get_performance_monitor()
-    
+
     summary = monitor.get_performance_summary(duration_seconds=duration_seconds)
-    
+
     return PerformanceMetricsResponse(
         timestamp=summary['timestamp'],
         resource_usage=summary['resource_usage'],
@@ -200,7 +200,7 @@ async def get_performance_metrics(
 async def export_performance_metrics(format: str = Query("json", description="Export format")):
     """Export performance metrics."""
     monitor = get_performance_monitor()
-    
+
     try:
         exported_data = monitor.export_metrics(format=format)
         return {"format": format, "data": exported_data}
@@ -213,15 +213,15 @@ async def health_check():
     """Health check endpoint for monitoring system."""
     logger = get_unified_logger()
     monitor = get_performance_monitor()
-    
+
     # Basic health checks
     current_time = time.time()
-    
+
     # Check if systems are responsive
     try:
         log_stats = logger.get_statistics()
         perf_summary = monitor.get_performance_summary(duration_seconds=60)
-        
+
         health_status = {
             "status": "healthy",
             "timestamp": current_time,
@@ -237,18 +237,18 @@ async def health_check():
                 }
             }
         }
-        
+
         # Check for issues
         if log_stats["buffer_utilization"] > 0.9:
             health_status["warnings"] = health_status.get("warnings", [])
             health_status["warnings"].append("High log buffer utilization")
-        
+
         if len(perf_summary["alerts"]) > 0:
             health_status["warnings"] = health_status.get("warnings", [])
             health_status["warnings"].append(f"{len(perf_summary['alerts'])} performance alerts active")
-        
+
         return health_status
-        
+
     except Exception as e:
         return {
             "status": "unhealthy",
@@ -261,18 +261,17 @@ async def health_check():
 async def create_test_log_event(
     event_type: str = "system_event",
     message: str = "Test log event",
-    agent_id: Optional[str] = None
+    agent_id: str | None = None
 ):
     """Create a test log event for testing purposes."""
     logger = get_unified_logger()
-    
+
     try:
         event_type_enum = EventType(event_type)
     except ValueError:
         raise HTTPException(status_code=400, detail=f"Invalid event_type: {event_type}")
-    
-    from ..logging.unified_logger import LogEvent
-    
+
+
     event = LogEvent(
         event_type=event_type_enum,
         level=LogLevel.INFO,
@@ -280,9 +279,9 @@ async def create_test_log_event(
         agent_id=agent_id,
         metadata={"test": True, "source": "api"}
     )
-    
+
     await logger.log_event(event)
-    
+
     return {
         "event_id": event.event_id,
         "message": "Test event created successfully",

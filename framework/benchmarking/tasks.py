@@ -6,55 +6,54 @@ across different domains and complexity levels.
 """
 
 import json
-from typing import Dict, List, Any, Optional
 from pathlib import Path
 
-from .harness import TestCase, TaskType
+from .harness import TaskType, TestCase
 
 
 class TaskRegistry:
     """Registry for managing benchmark tasks."""
-    
+
     def __init__(self):
-        self.tasks: Dict[str, TestCase] = {}
-        self.task_groups: Dict[str, List[str]] = {}
-    
-    def register_task(self, task: TestCase, group: Optional[str] = None) -> None:
+        self.tasks: dict[str, TestCase] = {}
+        self.task_groups: dict[str, list[str]] = {}
+
+    def register_task(self, task: TestCase, group: str | None = None) -> None:
         """Register a task in the registry."""
         self.tasks[task.task_id] = task
-        
+
         if group:
             if group not in self.task_groups:
                 self.task_groups[group] = []
             self.task_groups[group].append(task.task_id)
-    
-    def get_task(self, task_id: str) -> Optional[TestCase]:
+
+    def get_task(self, task_id: str) -> TestCase | None:
         """Get a task by ID."""
         return self.tasks.get(task_id)
-    
-    def get_tasks_by_group(self, group: str) -> List[TestCase]:
+
+    def get_tasks_by_group(self, group: str) -> list[TestCase]:
         """Get all tasks in a group."""
         task_ids = self.task_groups.get(group, [])
         return [self.tasks[task_id] for task_id in task_ids if task_id in self.tasks]
-    
-    def get_tasks_by_type(self, task_type: TaskType) -> List[TestCase]:
+
+    def get_tasks_by_type(self, task_type: TaskType) -> list[TestCase]:
         """Get all tasks of a specific type."""
         return [task for task in self.tasks.values() if task.task_type == task_type]
-    
-    def list_tasks(self) -> List[str]:
+
+    def list_tasks(self) -> list[str]:
         """List all task IDs."""
         return list(self.tasks.keys())
-    
-    def list_groups(self) -> List[str]:
+
+    def list_groups(self) -> list[str]:
         """List all task groups."""
         return list(self.task_groups.keys())
 
 
 class StandardTasks:
     """Collection of standard benchmark tasks."""
-    
+
     @staticmethod
-    def create_summarization_tasks() -> List[TestCase]:
+    def create_summarization_tasks() -> list[TestCase]:
         """Create text summarization benchmark tasks."""
         return [
             TestCase(
@@ -86,7 +85,7 @@ Conclusion: Multi-step prompting with verification represents a promising direct
                 },
                 timeout_seconds=120
             ),
-            
+
             TestCase(
                 task_id="summarize_news_article",
                 name="News Article Summarization",
@@ -116,9 +115,9 @@ Consumer advocacy groups generally support these measures, arguing that they res
                 timeout_seconds=90
             )
         ]
-    
+
     @staticmethod
-    def create_code_generation_tasks() -> List[TestCase]:
+    def create_code_generation_tasks() -> list[TestCase]:
         """Create code generation benchmark tasks."""
         return [
             TestCase(
@@ -192,7 +191,7 @@ for test in test_cases:
                 },
                 timeout_seconds=300
             ),
-            
+
             TestCase(
                 task_id="generate_api_client",
                 name="REST API Client",
@@ -222,9 +221,9 @@ for test in test_cases:
                 timeout_seconds=240
             )
         ]
-    
+
     @staticmethod
-    def create_presentation_tasks() -> List[TestCase]:
+    def create_presentation_tasks() -> list[TestCase]:
         """Create presentation generation benchmark tasks."""
         return [
             TestCase(
@@ -273,9 +272,9 @@ for test in test_cases:
                 timeout_seconds=180
             )
         ]
-    
+
     @staticmethod
-    def create_research_tasks() -> List[TestCase]:
+    def create_research_tasks() -> list[TestCase]:
         """Create research analysis benchmark tasks."""
         return [
             TestCase(
@@ -314,38 +313,38 @@ for test in test_cases:
                 timeout_seconds=240
             )
         ]
-    
+
     @staticmethod
     def get_all_standard_tasks() -> TaskRegistry:
         """Get a registry with all standard tasks."""
         registry = TaskRegistry()
-        
+
         # Register summarization tasks
         for task in StandardTasks.create_summarization_tasks():
             registry.register_task(task, "summarization")
-        
+
         # Register code generation tasks
         for task in StandardTasks.create_code_generation_tasks():
             registry.register_task(task, "code_generation")
-        
+
         # Register presentation tasks
         for task in StandardTasks.create_presentation_tasks():
             registry.register_task(task, "presentation")
-        
+
         # Register research tasks
         for task in StandardTasks.create_research_tasks():
             registry.register_task(task, "research")
-        
+
         return registry
-    
+
     @staticmethod
     def load_tasks_from_file(file_path: str) -> TaskRegistry:
         """Load tasks from a JSON file."""
         registry = TaskRegistry()
-        
+
         with open(file_path) as f:
             data = json.load(f)
-        
+
         for task_data in data.get("tasks", []):
             task = TestCase(
                 task_id=task_data["task_id"],
@@ -361,17 +360,17 @@ for test in test_cases:
                 scoring_criteria=task_data.get("scoring_criteria", {}),
                 metadata=task_data.get("metadata", {})
             )
-            
+
             group = task_data.get("group")
             registry.register_task(task, group)
-        
+
         return registry
-    
+
     @staticmethod
     def save_tasks_to_file(registry: TaskRegistry, file_path: str) -> None:
         """Save tasks to a JSON file."""
         data = {"tasks": []}
-        
+
         for task_id, task in registry.tasks.items():
             # Find the group for this task
             group = None
@@ -379,7 +378,7 @@ for test in test_cases:
                 if task_id in task_ids:
                     group = group_name
                     break
-            
+
             task_data = {
                 "task_id": task.task_id,
                 "name": task.name,
@@ -395,9 +394,9 @@ for test in test_cases:
                 "metadata": task.metadata,
                 "group": group
             }
-            
+
             data["tasks"].append(task_data)
-        
+
         Path(file_path).parent.mkdir(parents=True, exist_ok=True)
         with open(file_path, 'w') as f:
             json.dump(data, f, indent=2, default=str)

@@ -8,14 +8,14 @@ This module provides comprehensive benchmarking capabilities including:
 - Integration with unified logging
 """
 
-from .harness import BenchmarkHarness, BenchmarkResult, TestCase
-from .tasks import StandardTasks, TaskRegistry
 from .analysis import BenchmarkAnalysis, RegressionDetector
+from .harness import BenchmarkHarness, BenchmarkResult, TestCase
 from .reporting import BenchmarkReporter
+from .tasks import StandardTasks, TaskRegistry
 
 __all__ = [
     'BenchmarkHarness',
-    'BenchmarkResult', 
+    'BenchmarkResult',
     'TestCase',
     'StandardTasks',
     'TaskRegistry',

@@ -10,18 +10,17 @@ This module re-exports the necessary components to maintain backward compatibili
 
 # Import from compatibility layer
 from .mcp_server_compat import (
-    shared_mcp_server,
-    mcp_server,
     DynamicMcpProxy,
-    mcp_middleware,
-    ToolResponse,
     ToolError,
+    ToolResponse,
+    mcp_middleware,
+    mcp_server,
 )
 
 # Re-export for backward compatibility
 __all__ = [
     "mcp_server",
-    "DynamicMcpProxy", 
+    "DynamicMcpProxy",
     "mcp_middleware",
     "ToolResponse",
     "ToolError",

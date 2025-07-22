@@ -5,13 +5,13 @@ This module provides a consolidated approach to logging, monitoring and benchmar
 that integrates with existing systems while providing enhanced capabilities.
 """
 
-from .unified_logger import UnifiedLogger, LogEvent, LogLevel, EventType
-from .storage import LogStorage, SqliteStorage
 from .hooks import LoggingHooks
+from .storage import LogStorage, SqliteStorage
+from .unified_logger import EventType, LogEvent, LogLevel, UnifiedLogger
 
 __all__ = [
     'UnifiedLogger',
-    'LogEvent', 
+    'LogEvent',
     'LogLevel',
     'EventType',
     'LogStorage',

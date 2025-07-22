@@ -2,6 +2,7 @@
 
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent))
 
 import asyncio
@@ -9,15 +10,15 @@ import asyncio
 
 class MockAgent:
     """Mock agent for testing."""
-    
+
     def __init__(self):
         pass
-    
+
     def get_tool(self, name: str, method: str | None, args: dict, message: str, **kwargs):
         """Test the plugin-integrated get_tool method."""
+        from framework.helpers import extract_tools
         from framework.helpers.tool import Tool
         from framework.tools.unknown import Unknown
-        from framework.helpers import extract_tools
 
         # First try to load from plugins
         try:
@@ -46,16 +47,16 @@ class MockAgent:
             except Exception as e:
                 print(f"Failed to initialize plugin manager: {e}")
                 return None
-        
+
         return self._plugin_manager.get_tool(name)
 
 
 async def test_agent_plugin_integration():
     """Test that agent can load and use plugins."""
     print("Testing agent plugin integration...")
-    
+
     agent = MockAgent()
-    
+
     # Test loading a plugin tool
     tool = agent.get_tool(
         name="simple_test",
@@ -63,9 +64,9 @@ async def test_agent_plugin_integration():
         args={"action": "info"},
         message="test message"
     )
-    
+
     print(f"✓ Agent loaded tool: {tool.__class__.__name__}")
-    
+
     # Test executing the plugin tool
     try:
         response = await tool.execute()
@@ -78,7 +79,7 @@ async def test_agent_plugin_integration():
         print(f"❌ Plugin tool execution failed: {e}")
         import traceback
         traceback.print_exc()
-    
+
     # Test loading a non-existent plugin (should fallback to Unknown)
     unknown_tool = agent.get_tool(
         name="nonexistent_plugin",
@@ -86,9 +87,9 @@ async def test_agent_plugin_integration():
         args={},
         message="test"
     )
-    
+
     print(f"✓ Unknown plugin fallback: {unknown_tool.__class__.__name__}")
-    
+
     # Test loading a static tool (should work normally)
     try:
         static_tool = agent.get_tool(

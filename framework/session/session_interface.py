@@ -7,9 +7,9 @@ Defines the abstract interface and common types used by all session types.
 import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import Any, Dict, List, Optional, Union
 from datetime import datetime
+from enum import Enum
+from typing import Any
 
 
 class SessionType(Enum):
@@ -43,9 +43,9 @@ class SessionMetadata:
     last_used: datetime = field(default_factory=datetime.now)
     connection_count: int = 0
     error_count: int = 0
-    last_error: Optional[str] = None
-    tags: List[str] = field(default_factory=list)
-    properties: Dict[str, Any] = field(default_factory=dict)
+    last_error: str | None = None
+    tags: list[str] = field(default_factory=list)
+    properties: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -54,9 +54,9 @@ class SessionMessage:
     message_id: str
     session_id: str
     message_type: str
-    payload: Dict[str, Any]
+    payload: dict[str, Any]
     timestamp: datetime = field(default_factory=datetime.now)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -64,16 +64,16 @@ class SessionResponse:
     """Standard response format from session operations."""
     success: bool
     message: str
-    data: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
-    session_id: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    data: dict[str, Any] | None = None
+    error: str | None = None
+    session_id: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class SessionInterface(ABC):
     """Abstract interface for all session types."""
 
-    def __init__(self, session_id: str, session_type: SessionType, config: Dict[str, Any]):
+    def __init__(self, session_id: str, session_type: SessionType, config: dict[str, Any]):
         """
         Initialize session interface.
         
@@ -143,7 +143,7 @@ class SessionInterface(ABC):
         """
         return self.metadata.state in [SessionState.CONNECTED, SessionState.ACTIVE, SessionState.IDLE]
 
-    async def update_state(self, new_state: SessionState, error: Optional[str] = None):
+    async def update_state(self, new_state: SessionState, error: str | None = None):
         """
         Update session state and metadata.
         
@@ -154,7 +154,7 @@ class SessionInterface(ABC):
         async with self._connection_lock:
             self.metadata.state = new_state
             self.metadata.last_used = datetime.now()
-            
+
             if error:
                 self.metadata.error_count += 1
                 self.metadata.last_error = error
@@ -177,7 +177,7 @@ class SessionPool(ABC):
     """Abstract interface for session pooling."""
 
     @abstractmethod
-    async def get_session(self, session_type: SessionType, config: Dict[str, Any]) -> SessionInterface:
+    async def get_session(self, session_type: SessionType, config: dict[str, Any]) -> SessionInterface:
         """
         Get a session from the pool or create a new one.
         

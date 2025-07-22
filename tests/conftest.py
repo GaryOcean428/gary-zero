@@ -2,13 +2,16 @@
 Test configuration and fixtures for Gary-Zero test suite.
 """
 
-import pytest
 import asyncio
-from httpx import AsyncClient
+
+import pytest
 from fastapi.testclient import TestClient
+from httpx import AsyncClient
+
 from main import app
 from models.registry import get_registry
 from security.validator import SecureCodeValidator
+
 
 @pytest.fixture(scope="session")
 def event_loop():
@@ -26,7 +29,7 @@ def test_client():
 @pytest.fixture
 async def async_client():
     """Create an async test client for the FastAPI app."""
-    from httpx import ASGITransport, AsyncClient
+    from httpx import ASGITransport
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         yield client

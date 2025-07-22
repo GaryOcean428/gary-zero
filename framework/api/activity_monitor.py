@@ -1,34 +1,33 @@
 """Activity monitor API for live browser and coding activity tracking."""
 
-import json
-import os
 import time
-from typing import Dict, List, Optional, Any
+from datetime import UTC, datetime
 from threading import Lock
-from datetime import datetime, timezone
+from typing import Any
 
-from flask import Request, Response
+from flask import Request
+
 from framework.helpers.api import ApiHandler, Input, Output
 from framework.helpers.print_style import PrintStyle
 
 
 class ActivityMonitor(ApiHandler):
     """API handler for monitoring live browser and coding activities."""
-    
-    _activities: List[Dict[str, Any]] = []
-    _current_iframe_src: Optional[str] = None
+
+    _activities: list[dict[str, Any]] = []
+    _current_iframe_src: str | None = None
     _activity_lock = Lock()
     _max_activities = 100  # Keep last 100 activities
-    
+
     @classmethod
     def requires_auth(cls) -> bool:
         """Require authentication for activity monitoring."""
         return True
-    
+
     async def process(self, input: Input, request: Request) -> Output:
         """Process activity monitoring requests."""
         action = input.get("action", "get_status")
-        
+
         if action == "get_status":
             return self._get_status()
         elif action == "get_activities":
@@ -48,8 +47,8 @@ class ActivityMonitor(ApiHandler):
                 "success": False,
                 "error": f"Unknown action: {action}. Valid actions: get_status, get_activities, add_activity, set_iframe_src, get_iframe_src, clear_activities, populate_sample_data"
             }
-    
-    def _get_status(self) -> Dict[str, Any]:
+
+    def _get_status(self) -> dict[str, Any]:
         """Get current activity monitoring status."""
         with self._activity_lock:
             return {
@@ -57,71 +56,71 @@ class ActivityMonitor(ApiHandler):
                 "status": "active",
                 "total_activities": len(self._activities),
                 "current_iframe_src": self._current_iframe_src,
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": datetime.now(UTC).isoformat()
             }
-    
-    def _get_activities(self, input: Input) -> Dict[str, Any]:
+
+    def _get_activities(self, input: Input) -> dict[str, Any]:
         """Get activity history with optional filtering."""
         limit = input.get("limit", 50)
         activity_type = input.get("type")  # Optional filter by type
         since = input.get("since")  # Optional timestamp filter
-        
+
         with self._activity_lock:
             activities = self._activities.copy()
-        
+
         # Filter by type if specified
         if activity_type:
             activities = [a for a in activities if a.get("type") == activity_type]
-        
+
         # Filter by timestamp if specified
         if since:
             try:
                 since_dt = datetime.fromisoformat(since.replace('Z', '+00:00'))
-                activities = [a for a in activities if 
+                activities = [a for a in activities if
                             datetime.fromisoformat(a.get("timestamp", "").replace('Z', '+00:00')) >= since_dt]
             except (ValueError, AttributeError):
                 pass  # Ignore invalid timestamp
-        
+
         # Limit results
         activities = activities[-limit:] if limit > 0 else activities
-        
+
         return {
             "success": True,
             "activities": activities,
             "total": len(activities),
             "filtered": len(activities) < len(self._activities)
         }
-    
-    def _add_activity(self, input: Input) -> Dict[str, Any]:
+
+    def _add_activity(self, input: Input) -> dict[str, Any]:
         """Add a new activity to the monitor."""
         activity_type = input.get("type", "unknown")
         description = input.get("description", "")
         url = input.get("url")
         data = input.get("data", {})
-        
+
         activity = {
             "id": f"activity_{int(time.time() * 1000)}",
             "type": activity_type,
             "description": description,
             "url": url,
             "data": data,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(UTC).isoformat()
         }
-        
+
         with self._activity_lock:
             self._activities.append(activity)
             # Keep only the most recent activities
             if len(self._activities) > self._max_activities:
                 self._activities = self._activities[-self._max_activities:]
-        
+
         PrintStyle().debug(f"Activity added: {activity_type} - {description}")
-        
+
         return {
             "success": True,
             "activity": activity
         }
-    
-    def _set_iframe_src(self, input: Input) -> Dict[str, Any]:
+
+    def _set_iframe_src(self, input: Input) -> dict[str, Any]:
         """Set the current iframe source URL."""
         src = input.get("src")
         if not src:
@@ -129,41 +128,41 @@ class ActivityMonitor(ApiHandler):
                 "success": False,
                 "error": "Missing 'src' parameter"
             }
-        
+
         with self._activity_lock:
             self._current_iframe_src = src
-        
+
         # Add activity for iframe source change
         self._add_activity({
             "type": "iframe_change",
             "description": f"Iframe source changed to: {src}",
             "url": src
         })
-        
+
         return {
             "success": True,
             "iframe_src": src
         }
-    
-    def _get_iframe_src(self) -> Dict[str, Any]:
+
+    def _get_iframe_src(self) -> dict[str, Any]:
         """Get the current iframe source URL."""
         with self._activity_lock:
             return {
                 "success": True,
                 "iframe_src": self._current_iframe_src
             }
-    
-    def _clear_activities(self) -> Dict[str, Any]:
+
+    def _clear_activities(self) -> dict[str, Any]:
         """Clear all stored activities."""
         with self._activity_lock:
             self._activities.clear()
-        
+
         return {
             "success": True,
             "message": "All activities cleared"
         }
-    
-    def _populate_sample_data(self) -> Dict[str, Any]:
+
+    def _populate_sample_data(self) -> dict[str, Any]:
         """Populate with sample activities for testing."""
         sample_activities = [
             {
@@ -173,7 +172,7 @@ class ActivityMonitor(ApiHandler):
                 "data": {"action": "navigate", "referrer": "search"}
             },
             {
-                "type": "coding", 
+                "type": "coding",
                 "description": "Opened file for editing: activity_monitor.py",
                 "url": "framework/api/activity_monitor.py",
                 "data": {"action": "open", "editor": "vscode"}
@@ -186,7 +185,7 @@ class ActivityMonitor(ApiHandler):
             },
             {
                 "type": "coding",
-                "description": "Created new JavaScript file: activity-monitor.js", 
+                "description": "Created new JavaScript file: activity-monitor.js",
                 "url": "webui/js/activity-monitor.js",
                 "data": {"action": "create", "fileSize": 10748}
             },
@@ -197,24 +196,24 @@ class ActivityMonitor(ApiHandler):
                 "data": {"previousSrc": "about:blank"}
             }
         ]
-        
+
         with self._activity_lock:
             for activity_data in sample_activities:
                 activity = {
                     "id": f"sample_{int(time.time() * 1000)}_{len(self._activities)}",
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                     **activity_data
                 }
                 self._activities.append(activity)
-        
+
         return {
             "success": True,
             "message": f"Added {len(sample_activities)} sample activities",
             "count": len(sample_activities)
         }
-    
+
     @classmethod
-    def log_browser_activity(cls, action: str, url: str, description: str = "", data: Dict[str, Any] = None):
+    def log_browser_activity(cls, action: str, url: str, description: str = "", data: dict[str, Any] = None):
         """Helper method to log browser activities from other parts of the application."""
         activity = {
             "type": "browser",
@@ -222,20 +221,20 @@ class ActivityMonitor(ApiHandler):
             "url": url,
             "data": data or {"action": action}
         }
-        
+
         with cls._activity_lock:
             cls._activities.append({
                 "id": f"activity_{int(time.time() * 1000)}",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 **activity
             })
-            
+
             # Keep only the most recent activities
             if len(cls._activities) > cls._max_activities:
                 cls._activities = cls._activities[-cls._max_activities:]
-    
+
     @classmethod
-    def log_coding_activity(cls, action: str, file_path: str, description: str = "", data: Dict[str, Any] = None):
+    def log_coding_activity(cls, action: str, file_path: str, description: str = "", data: dict[str, Any] = None):
         """Helper method to log coding activities from other parts of the application."""
         activity = {
             "type": "coding",
@@ -243,14 +242,14 @@ class ActivityMonitor(ApiHandler):
             "url": file_path,
             "data": data or {"action": action, "file": file_path}
         }
-        
+
         with cls._activity_lock:
             cls._activities.append({
                 "id": f"activity_{int(time.time() * 1000)}",
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 **activity
             })
-            
+
             # Keep only the most recent activities
             if len(cls._activities) > cls._max_activities:
                 cls._activities = cls._activities[-cls._max_activities:]

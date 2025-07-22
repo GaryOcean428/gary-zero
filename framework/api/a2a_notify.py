@@ -4,7 +4,8 @@ A2A API Handler for Push Notifications endpoint
 Handles push notifications between A2A agents.
 """
 
-from typing import Dict, Any
+from typing import Any
+
 from pydantic import ValidationError
 
 from framework.a2a.communication import A2AMessage, MessageType
@@ -12,8 +13,8 @@ from framework.a2a.communication import A2AMessage, MessageType
 
 class A2aNotify:
     """API handler for A2A push notifications endpoint"""
-    
-    async def process(self, input_data: Dict[str, Any], request) -> Dict[str, Any]:
+
+    async def process(self, input_data: dict[str, Any], request) -> dict[str, Any]:
         """
         Handle A2A push notification
         
@@ -28,23 +29,23 @@ class A2aNotify:
             # Validate required fields
             recipient_id = input_data.get("recipient_id")
             notification_type = input_data.get("notification_type")
-            
+
             if not recipient_id:
                 return {
                     "success": False,
                     "error": "recipient_id is required"
                 }
-            
+
             if not notification_type:
                 return {
                     "success": False,
                     "error": "notification_type is required"
                 }
-            
+
             # Create notification message
             import uuid
             from datetime import datetime
-            
+
             notification_message = A2AMessage(
                 id=str(uuid.uuid4()),
                 session_id=input_data.get("session_id", "notification"),
@@ -60,7 +61,7 @@ class A2aNotify:
                 },
                 timestamp=datetime.utcnow().isoformat() + "Z"
             )
-            
+
             # For now, just acknowledge receipt (streaming service would be used in full implementation)
             return {
                 "success": True,
@@ -68,7 +69,7 @@ class A2aNotify:
                 "delivery_method": "queued",
                 "timestamp": notification_message.timestamp
             }
-            
+
         except ValidationError as e:
             return {
                 "success": False,

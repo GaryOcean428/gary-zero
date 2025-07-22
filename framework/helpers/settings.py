@@ -65,8 +65,8 @@ SETTINGS_FILE = files.get_abs_path("tmp/settings.json")
 
 
 def convert_out(settings: Settings) -> SettingsOutput:
-    from framework.helpers.model_catalog import get_models_for_provider, get_all_models
-    
+    from framework.helpers.model_catalog import get_all_models, get_models_for_provider
+
     # Create provider options with fallback
     try:
         from models import ModelProvider
@@ -94,13 +94,13 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "options": provider_options,
         }
     )
-    
+
     # Get models for the current provider, fallback to all models if provider not found
     current_provider = settings["chat_model_provider"]
     provider_models = get_models_for_provider(current_provider)
     if not provider_models:
         provider_models = get_all_models()
-    
+
     chat_model_fields.append(
         {
             "id": "chat_model_name",
@@ -230,7 +230,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
     util_provider_models = get_models_for_provider(current_util_provider)
     if not util_provider_models:
         util_provider_models = get_all_models()
-    
+
     util_model_fields.append(
         {
             "id": "util_model_name",
@@ -322,7 +322,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
     embed_provider_models = get_models_for_provider(current_embed_provider)
     if not embed_provider_models:
         embed_provider_models = get_all_models()
-    
+
     embed_model_fields.append(
         {
             "id": "embed_model_name",
@@ -399,7 +399,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
     browser_provider_models = get_models_for_provider(current_browser_provider)
     if not browser_provider_models:
         browser_provider_models = get_all_models()
-    
+
     browser_model_fields.append(
         {
             "id": "browser_model_name",
@@ -461,13 +461,13 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "options": provider_options,
         }
     )
-    
+
     # Get models for the current coding agent provider
     current_coding_provider = settings.get("coding_agent_provider", "ANTHROPIC")
     coding_provider_models = get_models_for_provider(current_coding_provider)
     if not coding_provider_models:
         coding_provider_models = get_all_models()
-    
+
     coding_agent_fields.append(
         {
             "id": "coding_agent_name",
@@ -539,13 +539,13 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "options": provider_options,
         }
     )
-    
+
     # Get models for the current supervisor agent provider
     current_supervisor_provider = settings.get("supervisor_agent_provider", "ANTHROPIC")
     supervisor_provider_models = get_models_for_provider(current_supervisor_provider)
     if not supervisor_provider_models:
         supervisor_provider_models = get_all_models()
-    
+
     supervisor_agent_fields.append(
         {
             "id": "supervisor_agent_name",
@@ -888,7 +888,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
 
     # Anthropic Computer Use section
     computer_use_fields: list[SettingsField] = []
-    
+
     computer_use_fields.append(
         {
             "id": "computer_use_enabled",
@@ -898,7 +898,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "value": settings.get("computer_use_enabled", False),
         }
     )
-    
+
     computer_use_fields.append(
         {
             "id": "computer_use_require_approval",
@@ -908,7 +908,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "value": settings.get("computer_use_require_approval", True),
         }
     )
-    
+
     computer_use_fields.append(
         {
             "id": "computer_use_screenshot_interval",
@@ -921,7 +921,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "step": 0.1,
         }
     )
-    
+
     computer_use_fields.append(
         {
             "id": "computer_use_max_actions_per_session",
@@ -944,7 +944,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
 
     # Claude Code section
     claude_code_fields: list[SettingsField] = []
-    
+
     claude_code_fields.append(
         {
             "id": "claude_code_enabled",
@@ -954,7 +954,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "value": settings.get("claude_code_enabled", False),
         }
     )
-    
+
     claude_code_fields.append(
         {
             "id": "claude_code_max_file_size",
@@ -966,7 +966,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "max": 10485760,  # 10MB
         }
     )
-    
+
     claude_code_fields.append(
         {
             "id": "claude_code_enable_git_ops",
@@ -976,7 +976,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "value": settings.get("claude_code_enable_git_ops", True),
         }
     )
-    
+
     claude_code_fields.append(
         {
             "id": "claude_code_enable_terminal",
@@ -1319,7 +1319,7 @@ def convert_in(settings: dict) -> Settings:
     # Ensure api_keys exists
     if "api_keys" not in current:
         current["api_keys"] = {}
-    
+
     for section in settings["sections"]:
         if "fields" in section:
             for field in section["fields"]:

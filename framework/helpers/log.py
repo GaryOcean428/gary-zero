@@ -1,7 +1,7 @@
 import uuid
 from collections import OrderedDict  # Import OrderedDict
 from dataclasses import dataclass
-from typing import Literal, Optional
+from typing import Literal
 
 Type = Literal[
     "agent",
@@ -30,9 +30,9 @@ class LogItem:
     heading: str
     content: str
     temp: bool
-    update_progress: Optional[ProgressUpdate] = "persistent"
-    kvps: Optional[OrderedDict] = None  # Use OrderedDict for kvps
-    id: Optional[str] = None  # Add id field
+    update_progress: ProgressUpdate | None = "persistent"
+    kvps: OrderedDict | None = None  # Use OrderedDict for kvps
+    id: str | None = None  # Add id field
     guid: str = ""
 
     def __post_init__(self):
@@ -103,7 +103,7 @@ class Log:
         kvps: dict | None = None,
         temp: bool | None = None,
         update_progress: ProgressUpdate | None = None,
-        id: Optional[str] = None,  # Add id parameter
+        id: str | None = None,  # Add id parameter
         **kwargs,
     ) -> LogItem:
         # Use OrderedDict if kvps is provided

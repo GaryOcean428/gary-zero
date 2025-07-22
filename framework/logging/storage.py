@@ -4,51 +4,50 @@ Persistent storage for unified logging system.
 Provides SQLite-based storage for log events with proper indexing and querying.
 """
 
-import sqlite3
-import json
-import time
 import asyncio
+import json
+import sqlite3
+import time
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import List, Dict, Any, Optional
-from contextlib import asynccontextmanager
+from typing import Any
 
-from .unified_logger import LogEvent, LogLevel, EventType
+from .unified_logger import EventType, LogEvent, LogLevel
 
 
 class LogStorage(ABC):
     """Abstract base class for log storage backends."""
-    
+
     @abstractmethod
     async def store_event(self, event: LogEvent) -> None:
         """Store a single log event."""
         pass
-    
+
     @abstractmethod
-    async def get_events(self, 
-                        event_type: Optional[EventType] = None,
-                        level: Optional[LogLevel] = None,
-                        start_time: Optional[float] = None,
-                        end_time: Optional[float] = None,
-                        limit: int = 100) -> List[LogEvent]:
+    async def get_events(self,
+                        event_type: EventType | None = None,
+                        level: LogLevel | None = None,
+                        start_time: float | None = None,
+                        end_time: float | None = None,
+                        limit: int = 100) -> list[LogEvent]:
         """Retrieve events with filtering."""
         pass
-    
+
     @abstractmethod
-    async def get_statistics(self) -> Dict[str, Any]:
+    async def get_statistics(self) -> dict[str, Any]:
         """Get storage statistics."""
         pass
 
 
 class SqliteStorage(LogStorage):
     """SQLite-based storage for log events."""
-    
+
     def __init__(self, db_path: str):
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._connection_lock = asyncio.Lock()
         self._init_db()
-    
+
     def _init_db(self) -> None:
         """Initialize database schema."""
         with sqlite3.connect(self.db_path) as conn:
@@ -77,7 +76,7 @@ class SqliteStorage(LogStorage):
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             # Create indexes for efficient querying
             conn.execute("CREATE INDEX IF NOT EXISTS idx_timestamp ON log_events(timestamp)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_event_type ON log_events(event_type)")
@@ -85,9 +84,9 @@ class SqliteStorage(LogStorage):
             conn.execute("CREATE INDEX IF NOT EXISTS idx_agent_id ON log_events(agent_id)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_user_id ON log_events(user_id)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_tool_name ON log_events(tool_name)")
-            
+
             conn.commit()
-    
+
     async def store_event(self, event: LogEvent) -> None:
         """Store a single log event."""
         async with self._connection_lock:
@@ -123,52 +122,52 @@ class SqliteStorage(LogStorage):
                     event.stack_trace
                 ))
                 conn.commit()
-    
-    async def get_events(self, 
-                        event_type: Optional[EventType] = None,
-                        level: Optional[LogLevel] = None,
-                        agent_id: Optional[str] = None,
-                        user_id: Optional[str] = None,
-                        start_time: Optional[float] = None,
-                        end_time: Optional[float] = None,
-                        limit: int = 100) -> List[LogEvent]:
+
+    async def get_events(self,
+                        event_type: EventType | None = None,
+                        level: LogLevel | None = None,
+                        agent_id: str | None = None,
+                        user_id: str | None = None,
+                        start_time: float | None = None,
+                        end_time: float | None = None,
+                        limit: int = 100) -> list[LogEvent]:
         """Retrieve events with filtering."""
         query = "SELECT * FROM log_events WHERE 1=1"
         params = []
-        
+
         if event_type:
             query += " AND event_type = ?"
             params.append(event_type.value)
-        
+
         if level:
             query += " AND level = ?"
             params.append(level.value)
-        
+
         if agent_id:
             query += " AND agent_id = ?"
             params.append(agent_id)
-        
+
         if user_id:
             query += " AND user_id = ?"
             params.append(user_id)
-        
+
         if start_time:
             query += " AND timestamp >= ?"
             params.append(start_time)
-        
+
         if end_time:
             query += " AND timestamp <= ?"
             params.append(end_time)
-        
+
         query += " ORDER BY timestamp DESC LIMIT ?"
         params.append(limit)
-        
+
         async with self._connection_lock:
             with sqlite3.connect(self.db_path) as conn:
                 conn.row_factory = sqlite3.Row
                 cursor = conn.execute(query, params)
                 rows = cursor.fetchall()
-        
+
         events = []
         for row in rows:
             event = LogEvent(
@@ -194,16 +193,16 @@ class SqliteStorage(LogStorage):
                 stack_trace=row['stack_trace']
             )
             events.append(event)
-        
+
         return events
-    
-    async def get_statistics(self) -> Dict[str, Any]:
+
+    async def get_statistics(self) -> dict[str, Any]:
         """Get storage statistics."""
         async with self._connection_lock:
             with sqlite3.connect(self.db_path) as conn:
                 # Total events
                 total_count = conn.execute("SELECT COUNT(*) FROM log_events").fetchone()[0]
-                
+
                 # Events by type
                 type_counts = {}
                 for row in conn.execute("""
@@ -212,7 +211,7 @@ class SqliteStorage(LogStorage):
                     GROUP BY event_type
                 """):
                     type_counts[row[0]] = row[1]
-                
+
                 # Events by level
                 level_counts = {}
                 for row in conn.execute("""
@@ -221,17 +220,17 @@ class SqliteStorage(LogStorage):
                     GROUP BY level
                 """):
                     level_counts[row[0]] = row[1]
-                
+
                 # Recent activity (last 24 hours)
                 recent_cutoff = time.time() - (24 * 3600)
                 recent_count = conn.execute(
-                    "SELECT COUNT(*) FROM log_events WHERE timestamp > ?", 
+                    "SELECT COUNT(*) FROM log_events WHERE timestamp > ?",
                     (recent_cutoff,)
                 ).fetchone()[0]
-                
+
                 # Database file size
                 db_size = self.db_path.stat().st_size if self.db_path.exists() else 0
-        
+
         return {
             "total_events": total_count,
             "events_by_type": type_counts,
@@ -239,38 +238,38 @@ class SqliteStorage(LogStorage):
             "recent_events_24h": recent_count,
             "database_size_bytes": db_size
         }
-    
+
     async def cleanup_old_events(self, days_to_keep: int = 30) -> int:
         """Remove events older than specified days."""
         cutoff_time = time.time() - (days_to_keep * 24 * 3600)
-        
+
         async with self._connection_lock:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.execute(
-                    "DELETE FROM log_events WHERE timestamp < ?", 
+                    "DELETE FROM log_events WHERE timestamp < ?",
                     (cutoff_time,)
                 )
                 deleted_count = cursor.rowcount
                 conn.commit()
-        
+
         return deleted_count
-    
-    async def export_events(self, 
+
+    async def export_events(self,
                           output_file: str,
-                          start_time: Optional[float] = None,
-                          end_time: Optional[float] = None) -> int:
+                          start_time: float | None = None,
+                          end_time: float | None = None) -> int:
         """Export events to JSON file."""
         events = await self.get_events(
             start_time=start_time,
             end_time=end_time,
             limit=100000  # Large limit for export
         )
-        
+
         output_path = Path(output_file)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         with open(output_path, 'w') as f:
             for event in events:
                 f.write(event.to_json() + '\n')
-        
+
         return len(events)
