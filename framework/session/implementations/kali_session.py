@@ -26,9 +26,11 @@ class KaliSession(SessionInterface):
         session_id = str(uuid.uuid4())
         super().__init__(session_id, SessionType.HTTP, config)
         
-        self.base_url = config.get('base_url', 'http://kali-linux-docker.railway.internal:8080')
-        self.username = config.get('username', 'GaryOcean')
-        self.password = config.get('password', 'I.Am.Dev.1')
+        # Use environment variables with Railway-compatible defaults
+        import os
+        self.base_url = config.get('base_url', os.getenv('KALI_SHELL_URL', 'http://kali-linux-docker.railway.internal:8080'))
+        self.username = config.get('username', os.getenv('KALI_USERNAME'))
+        self.password = config.get('password', os.getenv('KALI_PASSWORD'))
         
         # HTTP session for persistent connections
         self.http_session = requests.Session()

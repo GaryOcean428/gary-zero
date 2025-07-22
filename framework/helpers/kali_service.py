@@ -35,8 +35,8 @@ class KaliServiceConnector:
         self.base_url = os.getenv('KALI_SHELL_URL', 'http://kali-linux-docker.railway.internal:8080')
         self.host = os.getenv('KALI_SHELL_HOST', 'kali-linux-docker.railway.internal')
         self.port = int(os.getenv('KALI_SHELL_PORT', '8080'))
-        self.username = os.getenv('KALI_USERNAME', 'GaryOcean')
-        self.password = os.getenv('KALI_PASSWORD', 'I.Am.Dev.1')
+        self.username = os.getenv('KALI_USERNAME')
+        self.password = os.getenv('KALI_PASSWORD')
         self.public_url = os.getenv('KALI_PUBLIC_URL', 'https://kali-linux-docker.up.railway.app')
         
         # Session for persistent HTTP connections

@@ -111,8 +111,8 @@ class SessionConfig:
             'base_url': os.getenv('KALI_SHELL_URL', 'http://kali-linux-docker.railway.internal:8080'),
             'host': os.getenv('KALI_SHELL_HOST', 'kali-linux-docker.railway.internal'),
             'port': int(os.getenv('KALI_SHELL_PORT', '8080')),
-            'username': os.getenv('KALI_USERNAME', 'GaryOcean'),
-            'password': os.getenv('KALI_PASSWORD', 'I.Am.Dev.1'),
+            'username': os.getenv('KALI_USERNAME'),
+            'password': os.getenv('KALI_PASSWORD'),
             'public_url': os.getenv('KALI_PUBLIC_URL', 'https://kali-linux-docker.up.railway.app'),
             'ssh_port': int(os.getenv('KALI_SSH_PORT', '22'))
         }
