@@ -108,6 +108,18 @@ class Settings(TypedDict):
     rfc_password: str
     rfc_auto_docker: bool
 
+    # OpenAI Codex CLI settings
+    codex_cli_enabled: bool
+    codex_cli_path: str
+    codex_cli_approval_mode: str
+    codex_cli_auto_install: bool
+
+    # Google Gemini CLI settings  
+    gemini_cli_enabled: bool
+    gemini_cli_path: str
+    gemini_cli_approval_mode: str
+    gemini_cli_auto_install: bool
+
 
 # Default settings values that can be used across modules
 DEFAULT_SETTINGS: Settings = {
@@ -181,6 +193,16 @@ DEFAULT_SETTINGS: Settings = {
     "rfc_auto_docker": True,
     "rfc_port_http": 8000,
     "rfc_port_ssh": 22,
+    # OpenAI Codex CLI settings
+    "codex_cli_enabled": False,
+    "codex_cli_path": "codex",
+    "codex_cli_approval_mode": "suggest",
+    "codex_cli_auto_install": True,
+    # Google Gemini CLI settings
+    "gemini_cli_enabled": False,
+    "gemini_cli_path": "gemini",
+    "gemini_cli_approval_mode": "suggest", 
+    "gemini_cli_auto_install": True,
     # API Keys (initially empty dict)
     "api_keys": {},
 }

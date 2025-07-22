@@ -1063,6 +1063,110 @@ def convert_out(settings: Settings) -> SettingsOutput:
         "tab": "mcp",
     }
 
+    # OpenAI Codex CLI section
+    codex_cli_fields: list[SettingsField] = []
+    codex_cli_fields.append(
+        {
+            "id": "codex_cli_enabled",
+            "title": "Enable OpenAI Codex CLI",
+            "description": "Enable integration with OpenAI Codex CLI for context-aware code editing and terminal commands.",
+            "type": "switch",
+            "value": settings.get("codex_cli_enabled", False),
+        }
+    )
+    codex_cli_fields.append(
+        {
+            "id": "codex_cli_path",
+            "title": "Codex CLI Path",
+            "description": "Path to the OpenAI Codex CLI executable (default: 'codex').",
+            "type": "text",
+            "value": settings.get("codex_cli_path", "codex"),
+        }
+    )
+    codex_cli_fields.append(
+        {
+            "id": "codex_cli_approval_mode",
+            "title": "Approval Mode",
+            "description": "Set approval mode for Codex CLI operations: suggest (ask for approval), auto (automatic), block (block all).",
+            "type": "select",
+            "value": settings.get("codex_cli_approval_mode", "suggest"),
+            "options": [
+                {"value": "suggest", "label": "Suggest (Ask for approval)"},
+                {"value": "auto", "label": "Auto (Automatic execution)"},
+                {"value": "block", "label": "Block (Block all operations)"},
+            ],
+        }
+    )
+    codex_cli_fields.append(
+        {
+            "id": "codex_cli_auto_install",
+            "title": "Auto Install",
+            "description": "Automatically install OpenAI Codex CLI if not found.",
+            "type": "switch",
+            "value": settings.get("codex_cli_auto_install", True),
+        }
+    )
+
+    codex_cli_section: SettingsSection = {
+        "id": "codex_cli",
+        "title": "OpenAI Codex CLI",
+        "description": "Integration with OpenAI Codex CLI for context-aware code editing and terminal commands.",
+        "fields": codex_cli_fields,
+        "tab": "tools",
+    }
+
+    # Google Gemini CLI section
+    gemini_cli_fields: list[SettingsField] = []
+    gemini_cli_fields.append(
+        {
+            "id": "gemini_cli_enabled",
+            "title": "Enable Google Gemini CLI",
+            "description": "Enable integration with Google Gemini CLI for local model interaction and code assistance.",
+            "type": "switch",
+            "value": settings.get("gemini_cli_enabled", False),
+        }
+    )
+    gemini_cli_fields.append(
+        {
+            "id": "gemini_cli_path",
+            "title": "Gemini CLI Path",
+            "description": "Path to the Google Gemini CLI executable (default: 'gemini').",
+            "type": "text",
+            "value": settings.get("gemini_cli_path", "gemini"),
+        }
+    )
+    gemini_cli_fields.append(
+        {
+            "id": "gemini_cli_approval_mode",
+            "title": "Approval Mode",
+            "description": "Set approval mode for Gemini CLI operations: suggest (ask for approval), auto (automatic), block (block all).",
+            "type": "select",
+            "value": settings.get("gemini_cli_approval_mode", "suggest"),
+            "options": [
+                {"value": "suggest", "label": "Suggest (Ask for approval)"},
+                {"value": "auto", "label": "Auto (Automatic execution)"},
+                {"value": "block", "label": "Block (Block all operations)"},
+            ],
+        }
+    )
+    gemini_cli_fields.append(
+        {
+            "id": "gemini_cli_auto_install",
+            "title": "Auto Install",
+            "description": "Automatically install Google Gemini CLI if not found.",
+            "type": "switch",
+            "value": settings.get("gemini_cli_auto_install", True),
+        }
+    )
+
+    gemini_cli_section: SettingsSection = {
+        "id": "gemini_cli",
+        "title": "Google Gemini CLI",
+        "description": "Integration with Google Gemini CLI for local model interaction and code assistance.",
+        "fields": gemini_cli_fields,
+        "tab": "tools",
+    }
+
     # Add the section to the result
     result: SettingsOutput = {
         "sections": [
@@ -1076,6 +1180,8 @@ def convert_out(settings: Settings) -> SettingsOutput:
             task_management_section,
             # memory_section,
             stt_section,
+            codex_cli_section,
+            gemini_cli_section,
             api_keys_section,
             auth_section,
             mcp_client_section,
