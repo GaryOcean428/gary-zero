@@ -3,7 +3,7 @@ default_language_version:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.6.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -11,30 +11,91 @@ repos:
       - id: check-toml
       - id: check-json
       - id: check-added-large-files
+        args: ['--maxkb=1000']
       - id: check-merge-conflict
       - id: debug-statements
+      - id: check-docstring-first
+      - id: requirements-txt-fixer
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.12.4
     hooks:
       - id: ruff
-        args: [--fix]
+        args: [--fix, --exit-non-zero-on-fix]
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.17.0
     hooks:
       - id: mypy
-        additional_dependencies: [types-requests]
-        args: [--ignore-missing-imports, --no-strict-optional]
+        additional_dependencies: [
+          types-requests,
+          types-PyYAML, 
+          types-python-dateutil,
+          types-setuptools
+        ]
+        args: [--ignore-missing-imports, --no-strict-optional, --show-error-codes]
+        exclude: ^(tests/|docs/|examples/|scripts/)
 
+  # Security scanning
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.6
+    hooks:
+      - id: bandit
+        args: ['-x', 'tests/,docs/,examples/']
+        exclude: ^tests/
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: |
+          (?x)^(
+            .*\.lock$|
+            .*\.log$|
+            .*\.json$|
+            .*requirements.*\.txt$|
+            .*/tests/.*|
+            .*/logs/.*|
+            .*/tmp/.*
+          )$
+
+  # Frontend linting
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v9.12.0
+    hooks:
+      - id: eslint
+        files: \.(js|jsx|ts|tsx)$
+        types: [file]
+        additional_dependencies:
+          - eslint@9.12.0
+          - '@eslint/js@9.12.0'
+
+  # Test execution
   - repo: local
     hooks:
-      - id: pytest
-        name: pytest
+      - id: pytest-check
+        name: pytest-check
         entry: pytest
         language: system
         types: [python]
-        args: [--cov=framework, --cov-fail-under=20]
+        args: [
+          '--cov=framework',
+          '--cov=api', 
+          '--cov=security',
+          '--cov-fail-under=75',
+          '--maxfail=5',
+          '-x',
+          'tests/unit/',
+          'tests/integration/'
+        ]
+        pass_filenames: false
+        always_run: true
+
+      - id: security-check
+        name: Security dependency check
+        entry: bash -c 'pip install safety && safety check --json || true'
+        language: system
         pass_filenames: false
         always_run: true

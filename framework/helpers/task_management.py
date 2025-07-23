@@ -5,8 +5,9 @@ import asyncio
 import contextlib
 import json
 import threading
-from datetime import datetime, timezone
-from typing import Any, Callable, ClassVar, Optional, Union
+from collections.abc import Callable
+from datetime import UTC, datetime
+from typing import Any, ClassVar, Optional
 
 # Third-party imports
 from pydantic import BaseModel, Field, PrivateAttr
@@ -92,7 +93,7 @@ class SchedulerTaskList(BaseModel):
                 PrintStyle(font_color="red", padding=True).print(f"Error loading tasks: {str(e)}")
                 self.tasks = []
 
-    def add_task(self, task: Union[ScheduledTask, AdHocTask, PlannedTask]) -> None:
+    def add_task(self, task: ScheduledTask | AdHocTask | PlannedTask) -> None:
         """Add a task to the list."""
         with self._lock:
             # Remove existing task with same UUID if exists
@@ -115,11 +116,11 @@ class SchedulerTaskList(BaseModel):
     def update_task_by_uuid(
         self,
         task_uuid: str,
-        updater_func: Callable[[Union[ScheduledTask, AdHocTask, PlannedTask]], None],
-        verify_func: Callable[[Union[ScheduledTask, AdHocTask, PlannedTask]], bool] = (
+        updater_func: Callable[[ScheduledTask | AdHocTask | PlannedTask], None],
+        verify_func: Callable[[ScheduledTask | AdHocTask | PlannedTask], bool] = (
             lambda task: True
         ),
-    ) -> Union[ScheduledTask, AdHocTask, PlannedTask] | None:
+    ) -> ScheduledTask | AdHocTask | PlannedTask | None:
         """
         Atomically update a task by UUID using the provided updater function.
 
@@ -137,14 +138,14 @@ class SchedulerTaskList(BaseModel):
                     return task
             return None
 
-    def get_tasks(self) -> list[Union[ScheduledTask, AdHocTask, PlannedTask]]:
+    def get_tasks(self) -> list[ScheduledTask | AdHocTask | PlannedTask]:
         """Get all tasks."""
         with self._lock:
             return self.tasks.copy()
 
     def get_tasks_by_context_id(
         self, context_id: str, only_running: bool = False
-    ) -> list[Union[ScheduledTask, AdHocTask, PlannedTask]]:
+    ) -> list[ScheduledTask | AdHocTask | PlannedTask]:
         """Get tasks by context ID."""
         with self._lock:
             result = []
@@ -154,7 +155,7 @@ class SchedulerTaskList(BaseModel):
                         result.append(task)
             return result
 
-    def get_due_tasks(self) -> list[Union[ScheduledTask, AdHocTask, PlannedTask]]:
+    def get_due_tasks(self) -> list[ScheduledTask | AdHocTask | PlannedTask]:
         """Get tasks that are due to run."""
         with self._lock:
             due_tasks = []
@@ -165,7 +166,7 @@ class SchedulerTaskList(BaseModel):
 
     def get_task_by_uuid(
         self, task_uuid: str
-    ) -> Union[ScheduledTask, AdHocTask, PlannedTask] | None:
+    ) -> ScheduledTask | AdHocTask | PlannedTask | None:
         """Get a task by UUID."""
         with self._lock:
             for task in self.tasks:
@@ -173,7 +174,7 @@ class SchedulerTaskList(BaseModel):
                     return task
             return None
 
-    def get_task_by_name(self, name: str) -> Union[ScheduledTask, AdHocTask, PlannedTask] | None:
+    def get_task_by_name(self, name: str) -> ScheduledTask | AdHocTask | PlannedTask | None:
         """Get the first task with the given name."""
         with self._lock:
             for task in self.tasks:
@@ -181,7 +182,7 @@ class SchedulerTaskList(BaseModel):
                     return task
             return None
 
-    def find_task_by_name(self, name: str) -> list[Union[ScheduledTask, AdHocTask, PlannedTask]]:
+    def find_task_by_name(self, name: str) -> list[ScheduledTask | AdHocTask | PlannedTask]:
         """Find all tasks with the given name."""
         with self._lock:
             return [task for task in self.tasks if task.name == name]
@@ -232,17 +233,17 @@ class TaskScheduler:
         """Reload tasks from storage."""
         self._tasks.reload()
 
-    def get_tasks(self) -> list[Union[ScheduledTask, AdHocTask, PlannedTask]]:
+    def get_tasks(self) -> list[ScheduledTask | AdHocTask | PlannedTask]:
         """Get all tasks."""
         return self._tasks.get_tasks()
 
     def get_tasks_by_context_id(
         self, context_id: str, only_running: bool = False
-    ) -> list[Union[ScheduledTask, AdHocTask, PlannedTask]]:
+    ) -> list[ScheduledTask | AdHocTask | PlannedTask]:
         """Get tasks by context ID."""
         return self._tasks.get_tasks_by_context_id(context_id, only_running)
 
-    def add_task(self, task: Union[ScheduledTask, AdHocTask, PlannedTask]) -> None:
+    def add_task(self, task: ScheduledTask | AdHocTask | PlannedTask) -> None:
         """Add a task to the scheduler."""
         self._tasks.add_task(task)
 
@@ -256,15 +257,15 @@ class TaskScheduler:
 
     def get_task_by_uuid(
         self, task_uuid: str
-    ) -> Union[ScheduledTask, AdHocTask, PlannedTask] | None:
+    ) -> ScheduledTask | AdHocTask | PlannedTask | None:
         """Get a task by UUID."""
         return self._tasks.get_task_by_uuid(task_uuid)
 
-    def get_task_by_name(self, name: str) -> Union[ScheduledTask, AdHocTask, PlannedTask] | None:
+    def get_task_by_name(self, name: str) -> ScheduledTask | AdHocTask | PlannedTask | None:
         """Get the first task with the given name."""
         return self._tasks.get_task_by_name(name)
 
-    def find_task_by_name(self, name: str) -> list[Union[ScheduledTask, AdHocTask, PlannedTask]]:
+    def find_task_by_name(self, name: str) -> list[ScheduledTask | AdHocTask | PlannedTask]:
         """Find all tasks with the given name."""
         return self._tasks.find_task_by_name(name)
 
@@ -314,10 +315,10 @@ class TaskScheduler:
         self,
         task_uuid: str,
         verify_func: Callable[
-            [Union[ScheduledTask, AdHocTask, PlannedTask]], bool
+            [ScheduledTask | AdHocTask | PlannedTask], bool
         ] = lambda task: True,
         **update_params,
-    ) -> Union[ScheduledTask, AdHocTask, PlannedTask] | None:
+    ) -> ScheduledTask | AdHocTask | PlannedTask | None:
         """
         Atomically update a task by UUID with the provided parameters.
         This prevents race conditions when multiple processes update tasks concurrently.
@@ -332,11 +333,11 @@ class TaskScheduler:
 
     def update_task(
         self, task_uuid: str, **update_params
-    ) -> Union[ScheduledTask, AdHocTask, PlannedTask] | None:
+    ) -> ScheduledTask | AdHocTask | PlannedTask | None:
         """Update a task by UUID with the provided parameters."""
         return self.update_task_checked(task_uuid, **update_params)
 
-    def __new_context(self, task: Union[ScheduledTask, AdHocTask, PlannedTask]) -> AgentContext:
+    def __new_context(self, task: ScheduledTask | AdHocTask | PlannedTask) -> AgentContext:
         """Create a new agent context for task execution."""
         from initialize import initialize_agent
 
@@ -350,7 +351,7 @@ class TaskScheduler:
 
         return context
 
-    def _get_chat_context(self, task: Union[ScheduledTask, AdHocTask, PlannedTask]) -> AgentContext:
+    def _get_chat_context(self, task: ScheduledTask | AdHocTask | PlannedTask) -> AgentContext:
         """Get or create chat context for the task."""
         try:
             from initialize import initialize_agent
@@ -368,7 +369,7 @@ class TaskScheduler:
             return self.__new_context(task)
 
     def _persist_chat(
-        self, task: Union[ScheduledTask, AdHocTask, PlannedTask], context: AgentContext
+        self, task: ScheduledTask | AdHocTask | PlannedTask, context: AgentContext
     ) -> None:
         """Persist chat context after task execution."""
         try:
@@ -383,14 +384,14 @@ class TaskScheduler:
 
     async def _run_task(
         self,
-        task: Union[ScheduledTask, AdHocTask, PlannedTask],
+        task: ScheduledTask | AdHocTask | PlannedTask,
         task_context: str | None = None,
     ) -> None:
         """Execute a task asynchronously."""
         try:
             # Update task state to running
             self.update_task(
-                task.uuid, state=TaskState.RUNNING, last_run=datetime.now(timezone.utc)
+                task.uuid, state=TaskState.RUNNING, last_run=datetime.now(UTC)
             )
 
             # Call task's on_run hook

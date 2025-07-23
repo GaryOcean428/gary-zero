@@ -4,19 +4,20 @@ A2A API Handler for Negotiation endpoint
 Handles protocol negotiation requests from other A2A-compliant agents.
 """
 
-from typing import Dict, Any
+from typing import Any
+
 from pydantic import ValidationError
 
-from framework.a2a.negotiation import NegotiationService, NegotiationRequest
+from framework.a2a.negotiation import NegotiationRequest, NegotiationService
 
 
 class A2aNegotiate:
     """API handler for A2A negotiation endpoint"""
-    
+
     def __init__(self):
         self.negotiation_service = NegotiationService()
-    
-    async def process(self, input_data: Dict[str, Any], request) -> Dict[str, Any]:
+
+    async def process(self, input_data: dict[str, Any], request) -> dict[str, Any]:
         """
         Handle A2A negotiation request
         
@@ -31,19 +32,19 @@ class A2aNegotiate:
             # Validate required fields
             requester_id = input_data.get("requester_id")
             session_id = input_data.get("session_id")
-            
+
             if not requester_id:
                 return {
                     "success": False,
                     "error": "requester_id is required"
                 }
-            
+
             if not session_id:
                 return {
                     "success": False,
                     "error": "session_id is required"
                 }
-            
+
             # Create negotiation request
             negotiation_request = NegotiationRequest(
                 requester_id=requester_id,
@@ -57,12 +58,12 @@ class A2aNegotiate:
                 authentication_method=input_data.get("authentication_method"),
                 encryption_required=input_data.get("encryption_required", False)
             )
-            
+
             # Process negotiation
             response = self.negotiation_service.negotiate(negotiation_request)
-            
+
             return response.dict()
-            
+
         except ValidationError as e:
             return {
                 "success": False,

@@ -9,13 +9,12 @@ import json
 import logging
 import re
 import secrets
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from agent import AgentContext
 
 # Use zero package imports
 from framework.helpers import persist_chat
-from framework.helpers.tool import Response
 from framework.helpers.task_scheduler import (
     AdHocTask,
     PlannedTask,
@@ -27,7 +26,7 @@ from framework.helpers.task_scheduler import (
     serialize_datetime,
     serialize_task,
 )
-from framework.helpers.tool import Tool
+from framework.helpers.tool import Response, Tool
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -265,9 +264,9 @@ class SchedulerTool(Tool):
                 # Parse and ensure timezone-aware datetime in UTC
                 dt = datetime.fromisoformat(item)
                 if dt.tzinfo is None:
-                    dt = dt.replace(tzinfo=timezone.utc)
+                    dt = dt.replace(tzinfo=UTC)
                 else:
-                    dt = dt.astimezone(timezone.utc)
+                    dt = dt.astimezone(UTC)
                 todo.append(dt)
             except (ValueError, TypeError):
                 return Response(

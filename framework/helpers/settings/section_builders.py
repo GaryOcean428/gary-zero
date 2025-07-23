@@ -478,7 +478,7 @@ class SectionBuilder:
     def build_computer_use_section(settings: Settings) -> SettingsSection:
         """Builds the Computer Use settings section."""
         computer_use_fields: list[SettingsField] = []
-        
+
         computer_use_fields.append(
             {
                 "id": "computer_use_enabled",
@@ -488,7 +488,7 @@ class SectionBuilder:
                 "value": settings.get("computer_use_enabled", False),
             }
         )
-        
+
         computer_use_fields.append(
             {
                 "id": "computer_use_require_approval",
@@ -498,7 +498,7 @@ class SectionBuilder:
                 "value": settings.get("computer_use_require_approval", True),
             }
         )
-        
+
         computer_use_fields.append(
             {
                 "id": "computer_use_screenshot_interval",
@@ -511,7 +511,7 @@ class SectionBuilder:
                 "step": 0.1,
             }
         )
-        
+
         computer_use_fields.append(
             {
                 "id": "computer_use_max_actions_per_session",
@@ -536,7 +536,7 @@ class SectionBuilder:
     def build_claude_code_section(settings: Settings) -> SettingsSection:
         """Builds the Claude Code settings section."""
         claude_code_fields: list[SettingsField] = []
-        
+
         claude_code_fields.append(
             {
                 "id": "claude_code_enabled",
@@ -546,7 +546,7 @@ class SectionBuilder:
                 "value": settings.get("claude_code_enabled", False),
             }
         )
-        
+
         claude_code_fields.append(
             {
                 "id": "claude_code_max_file_size",
@@ -558,7 +558,7 @@ class SectionBuilder:
                 "max": 10485760,  # 10MB
             }
         )
-        
+
         claude_code_fields.append(
             {
                 "id": "claude_code_enable_git_ops",
@@ -568,7 +568,7 @@ class SectionBuilder:
                 "value": settings.get("claude_code_enable_git_ops", True),
             }
         )
-        
+
         claude_code_fields.append(
             {
                 "id": "claude_code_enable_terminal",

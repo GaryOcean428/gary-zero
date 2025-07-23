@@ -1,9 +1,7 @@
 import asyncio
 import json
-import shlex
 import subprocess
 from dataclasses import dataclass
-from typing import Optional
 
 from framework.helpers.print_style import PrintStyle
 from framework.helpers.tool import Response, Tool
@@ -14,7 +12,7 @@ class CodexCLIState:
     """State for OpenAI Codex CLI operations."""
     initialized: bool = False
     cli_available: bool = False
-    last_approval: Optional[str] = None
+    last_approval: str | None = None
 
 
 class OpenAICodexCLI(Tool):
@@ -74,14 +72,14 @@ class OpenAICodexCLI(Tool):
                 text=True,
                 timeout=10
             )
-            
+
             if result.returncode == 0:
                 self.state.cli_available = True
                 PrintStyle(font_color="#85C1E9").print(f"✅ OpenAI Codex CLI found: {result.stdout.strip()}")
             else:
                 self.state.cli_available = False
                 PrintStyle.warning("⚠️ OpenAI Codex CLI not found or not working")
-                
+
         except (subprocess.TimeoutExpired, FileNotFoundError) as e:
             self.state.cli_available = False
             PrintStyle.warning(f"⚠️ OpenAI Codex CLI initialization failed: {e}")
@@ -93,7 +91,7 @@ class OpenAICodexCLI(Tool):
         """Handle code editing with Codex CLI."""
         file_path = self.args.get("file_path", "")
         instruction = self.args.get("instruction", "")
-        
+
         if not file_path or not instruction:
             return Response(
                 message="❌ Both 'file_path' and 'instruction' are required for edit action.",
@@ -122,7 +120,7 @@ class OpenAICodexCLI(Tool):
             ]
 
             result = await self._run_secure_command(cmd)
-            
+
             if result["success"]:
                 return Response(
                     message=f"✅ File edited successfully:\n{result['output']}",
@@ -144,7 +142,7 @@ class OpenAICodexCLI(Tool):
         """Handle file creation with Codex CLI."""
         file_path = self.args.get("file_path", "")
         description = self.args.get("description", "")
-        
+
         if not file_path or not description:
             return Response(
                 message="❌ Both 'file_path' and 'description' are required for create action.",
@@ -173,7 +171,7 @@ class OpenAICodexCLI(Tool):
             ]
 
             result = await self._run_secure_command(cmd)
-            
+
             if result["success"]:
                 return Response(
                     message=f"✅ File created successfully:\n{result['output']}",
@@ -195,7 +193,7 @@ class OpenAICodexCLI(Tool):
         """Handle shell command execution with Codex CLI."""
         command = self.args.get("command", "")
         context = self.args.get("context", "")
-        
+
         if not command:
             return Response(
                 message="❌ 'command' is required for shell action.",
@@ -207,7 +205,7 @@ class OpenAICodexCLI(Tool):
             approval_mode = self.agent.config.codex_cli_approval_mode
             if approval_mode == "suggest":
                 approval = await self._request_approval(
-                    f"Execute shell command: {command}" + 
+                    f"Execute shell command: {command}" +
                     (f" (Context: {context})" if context else "")
                 )
                 if not approval:
@@ -226,7 +224,7 @@ class OpenAICodexCLI(Tool):
                 cmd.extend(["--context", context])
 
             result = await self._run_secure_command(cmd)
-            
+
             if result["success"]:
                 return Response(
                     message=f"✅ Shell command executed successfully:\n{result['output']}",
@@ -290,16 +288,16 @@ class OpenAICodexCLI(Tool):
 
         try:
             PrintStyle(font_color="#85C1E9").print("📦 Installing OpenAI Codex CLI...")
-            
+
             # Install via npm
             cmd = ["npm", "install", "-g", "@openai/codex-cli"]
             result = await self._run_secure_command(cmd, timeout=300)  # 5 minute timeout
-            
+
             if result["success"]:
                 # Re-initialize after installation
                 self.state.initialized = False
                 await self._initialize_cli()
-                
+
                 return Response(
                     message=f"✅ OpenAI Codex CLI installed successfully:\n{result['output']}",
                     break_loop=False
@@ -329,10 +327,10 @@ class OpenAICodexCLI(Tool):
 
             try:
                 stdout, stderr = await asyncio.wait_for(
-                    process.communicate(), 
+                    process.communicate(),
                     timeout=timeout
                 )
-                
+
                 return {
                     "success": process.returncode == 0,
                     "output": stdout.decode() if stdout else "",
@@ -340,7 +338,7 @@ class OpenAICodexCLI(Tool):
                     "returncode": process.returncode
                 }
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 process.kill()
                 await process.wait()
                 return {
@@ -364,11 +362,11 @@ class OpenAICodexCLI(Tool):
             f"🔐 Codex CLI Approval Required: {action_description}"
         )
         PrintStyle(font_color="#85C1E9").print("Approve this action? (y/n): ")
-        
+
         # In a real implementation, this would integrate with the UI
         # For now, we'll simulate approval based on approval mode
         approval_mode = self.agent.config.codex_cli_approval_mode
-        
+
         if approval_mode == "auto":
             PrintStyle(font_color="#85C1E9").print("✅ Auto-approved")
             return True

@@ -6,8 +6,6 @@ Basic tests to validate the shared library functionality.
 """
 
 import pytest
-import asyncio
-from unittest.mock import AsyncMock, Mock
 
 # Test imports
 try:

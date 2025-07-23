@@ -7,28 +7,28 @@ integrating all components into the Gary-Zero architecture.
 
 import asyncio
 import os
-from typing import Dict, Any, Optional
+from typing import Any
 
 from framework.helpers.ai_action_interceptor import (
-    get_ai_action_manager, start_ai_action_interception
+    get_ai_action_manager,
 )
 from framework.helpers.ai_action_streaming import (
-    get_streaming_service, start_action_streaming, broadcast_action
+    get_streaming_service,
 )
 from framework.helpers.log import Log
 
 
 class AIActionVisualizationSystem:
     """Main system controller for AI action visualization."""
-    
+
     def __init__(self):
         self.initialized = False
         self.action_manager = None
         self.streaming_service = None
         self.streaming_task = None
         self.config = self._load_config()
-        
-    def _load_config(self) -> Dict[str, Any]:
+
+    def _load_config(self) -> dict[str, Any]:
         """Load configuration from environment variables."""
         return {
             "auto_start_interception": os.getenv("AI_VISUALIZATION_AUTO_START", "true").lower() == "true",
@@ -39,45 +39,45 @@ class AIActionVisualizationSystem:
             "websocket_enabled": os.getenv("AI_WEBSOCKET_ENABLED", "true").lower() == "true",
             "debug_mode": os.getenv("AI_VISUALIZATION_DEBUG", "false").lower() == "true"
         }
-    
+
     async def initialize(self):
         """Initialize the AI action visualization system."""
         if self.initialized:
             return
-        
+
         Log.log().info("🎯 Initializing AI Action Visualization System")
-        
+
         try:
             # Initialize action manager
             self.action_manager = get_ai_action_manager()
-            
+
             # Initialize streaming service
             self.streaming_service = get_streaming_service()
             self.streaming_service.host = self.config["streaming_host"]
             self.streaming_service.port = self.config["streaming_port"]
             self.streaming_service.max_history_size = self.config["max_action_history"]
-            
+
             # Auto-start interception if enabled
             if self.config["auto_start_interception"]:
                 await self._start_interception()
-            
+
             # Auto-start streaming if enabled
             if self.config["auto_start_streaming"] and self.config["websocket_enabled"]:
                 await self._start_streaming()
-            
+
             # Set up action broadcasting
             self._setup_action_broadcasting()
-            
+
             self.initialized = True
             Log.log().info("✅ AI Action Visualization System initialized")
-            
+
             # Log system status
             await self._log_system_status()
-            
+
         except Exception as e:
             Log.log().error(f"🚨 Failed to initialize AI Action Visualization System: {e}")
             raise
-    
+
     async def _start_interception(self):
         """Start AI action interception."""
         try:
@@ -86,7 +86,7 @@ class AIActionVisualizationSystem:
                 Log.log().info("🎯 AI Action Interception started")
         except Exception as e:
             Log.log().error(f"Failed to start interception: {e}")
-    
+
     async def _start_streaming(self):
         """Start AI action streaming service."""
         try:
@@ -103,13 +103,13 @@ class AIActionVisualizationSystem:
                 )
         except Exception as e:
             Log.log().error(f"Failed to start streaming: {e}")
-    
+
     def _setup_action_broadcasting(self):
         """Set up action broadcasting from interceptor to streaming."""
         if self.action_manager and self.streaming_service:
             # Add handler to broadcast intercepted actions
             self.action_manager.add_action_handler(self._broadcast_action_handler)
-    
+
     async def _broadcast_action_handler(self, action):
         """Handler to broadcast actions to streaming service."""
         try:
@@ -118,7 +118,7 @@ class AIActionVisualizationSystem:
         except Exception as e:
             if self.config["debug_mode"]:
                 Log.log().debug(f"Action broadcast failed: {e}")
-    
+
     async def _log_system_status(self):
         """Log current system status."""
         status = {
@@ -127,22 +127,22 @@ class AIActionVisualizationSystem:
             "intercepted_providers": len(self.action_manager.interceptors) if self.action_manager else 0,
             "streaming_url": f"ws://{self.config['streaming_host']}:{self.config['streaming_port']}" if self.config["websocket_enabled"] else "disabled"
         }
-        
+
         Log.log().info(f"📊 AI Visualization Status: {status}")
-    
+
     async def shutdown(self):
         """Shutdown the AI action visualization system."""
         Log.log().info("🛑 Shutting down AI Action Visualization System")
-        
+
         try:
             # Stop interception
             if self.action_manager and self.action_manager.active:
                 self.action_manager.stop_interception()
-            
+
             # Stop streaming
             if self.streaming_service and self.streaming_service.running:
                 await self.streaming_service.stop_server()
-            
+
             # Cancel streaming task
             if self.streaming_task and not self.streaming_task.done():
                 self.streaming_task.cancel()
@@ -150,14 +150,14 @@ class AIActionVisualizationSystem:
                     await self.streaming_task
                 except asyncio.CancelledError:
                     pass
-            
+
             self.initialized = False
             Log.log().info("✅ AI Action Visualization System shutdown complete")
-            
+
         except Exception as e:
             Log.log().error(f"Error during shutdown: {e}")
-    
-    def get_status(self) -> Dict[str, Any]:
+
+    def get_status(self) -> dict[str, Any]:
         """Get current system status."""
         return {
             "initialized": self.initialized,
@@ -207,7 +207,7 @@ def register_ui_integration():
     ui_scripts = [
         "/js/ai-action-visualization.js"
     ]
-    
+
     return {
         "scripts": ui_scripts,
         "websocket_url": f"ws://localhost:{get_ai_visualization_system().config['streaming_port']}",
@@ -241,12 +241,12 @@ async def on_gary_zero_shutdown():
 def get_visualization_tools():
     """Get all AI action visualization tools for registration."""
     from framework.tools.ai_action_visualization import (
-        AI_ACTION_VISUALIZATION_TOOL,
-        AI_ACTION_UPDATE_TOOL,
+        AI_ACTION_INTERCEPTION_TOOL,
         AI_ACTION_STREAMING_TOOL,
-        AI_ACTION_INTERCEPTION_TOOL
+        AI_ACTION_UPDATE_TOOL,
+        AI_ACTION_VISUALIZATION_TOOL,
     )
-    
+
     return [
         AI_ACTION_VISUALIZATION_TOOL,
         AI_ACTION_UPDATE_TOOL,

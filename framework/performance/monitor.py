@@ -9,16 +9,17 @@ Provides comprehensive performance monitoring including:
 """
 
 import asyncio
-import psutil
-import time
-import threading
-from collections import defaultdict, deque
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Callable, Deque, Union
-import logging
-from contextlib import contextmanager
-from functools import wraps
 import json
+import logging
+import threading
+import time
+from collections import defaultdict, deque
+from contextlib import contextmanager
+from dataclasses import dataclass, field
+from functools import wraps
+from typing import Any
+
+import psutil
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +30,7 @@ class PerformanceMetric:
     name: str
     value: float
     timestamp: float
-    tags: Dict[str, str] = field(default_factory=dict)
+    tags: dict[str, str] = field(default_factory=dict)
     unit: str = ""
 
 
@@ -46,23 +47,23 @@ class ResourceSnapshot:
     network_sent_mb: float
     network_recv_mb: float
     process_count: int
-    load_average: Optional[List[float]] = None
+    load_average: list[float] | None = None
 
 
 class MetricsCollector:
     """Collects and aggregates performance metrics."""
-    
+
     def __init__(self, max_history: int = 1000):
         self.max_history = max_history
-        self._metrics: Dict[str, Deque[PerformanceMetric]] = defaultdict(
+        self._metrics: dict[str, deque[PerformanceMetric]] = defaultdict(
             lambda: deque(maxlen=max_history)
         )
         self._lock = threading.RLock()
-    
-    def record(self, 
-               name: str, 
-               value: float, 
-               tags: Optional[Dict[str, str]] = None,
+
+    def record(self,
+               name: str,
+               value: float,
+               tags: dict[str, str] | None = None,
                unit: str = "") -> None:
         """Record a performance metric."""
         metric = PerformanceMetric(
@@ -72,79 +73,79 @@ class MetricsCollector:
             tags=tags or {},
             unit=unit
         )
-        
+
         with self._lock:
             self._metrics[name].append(metric)
-    
-    def get_latest(self, name: str) -> Optional[PerformanceMetric]:
+
+    def get_latest(self, name: str) -> PerformanceMetric | None:
         """Get the latest metric value."""
         with self._lock:
             if name in self._metrics and self._metrics[name]:
                 return self._metrics[name][-1]
         return None
-    
-    def get_history(self, 
-                   name: str, 
-                   limit: Optional[int] = None) -> List[PerformanceMetric]:
+
+    def get_history(self,
+                   name: str,
+                   limit: int | None = None) -> list[PerformanceMetric]:
         """Get metric history."""
         with self._lock:
             if name not in self._metrics:
                 return []
-            
+
             metrics = list(self._metrics[name])
             if limit:
                 return metrics[-limit:]
             return metrics
-    
-    def get_average(self, 
-                   name: str, 
-                   duration_seconds: Optional[float] = None) -> Optional[float]:
+
+    def get_average(self,
+                   name: str,
+                   duration_seconds: float | None = None) -> float | None:
         """Get average metric value over a time period."""
         with self._lock:
             if name not in self._metrics or not self._metrics[name]:
                 return None
-            
+
             current_time = time.time()
             values = []
-            
+
             for metric in reversed(self._metrics[name]):
                 if duration_seconds and (current_time - metric.timestamp) > duration_seconds:
                     break
                 values.append(metric.value)
-            
+
             return sum(values) / len(values) if values else None
-    
-    def get_percentile(self, 
-                      name: str, 
+
+    def get_percentile(self,
+                      name: str,
                       percentile: float,
-                      duration_seconds: Optional[float] = None) -> Optional[float]:
+                      duration_seconds: float | None = None) -> float | None:
         """Get percentile metric value over a time period."""
         with self._lock:
             if name not in self._metrics or not self._metrics[name]:
                 return None
-            
+
             current_time = time.time()
             values = []
-            
+
             for metric in reversed(self._metrics[name]):
                 if duration_seconds and (current_time - metric.timestamp) > duration_seconds:
                     break
                 values.append(metric.value)
-            
+
             if not values:
                 return None
-            
+
             values.sort()
             index = int((percentile / 100.0) * len(values))
             index = min(index, len(values) - 1)
             return values[index]
-    
-    def get_all_metrics(self) -> Dict[str, List[PerformanceMetric]]:
+
+    def get_all_metrics(self) -> dict[str, list[PerformanceMetric]]:
         """Get all metrics."""
         with self._lock:
             return {name: list(metrics) for name, metrics in self._metrics.items()}
-    
-    def clear(self, name: Optional[str] = None) -> None:
+
+    def clear(self, name: str | None = None) -> None:
         """Clear metrics history."""
         with self._lock:
             if name:
@@ -156,28 +157,28 @@ class MetricsCollector:
 
 class ResourceTracker:
     """Tracks system resource usage."""
-    
-    def __init__(self, 
+
+    def __init__(self,
                  collection_interval: float = 5.0,
                  max_history: int = 720):  # 1 hour at 5-second intervals
         self.collection_interval = collection_interval
         self.max_history = max_history
-        self._snapshots: Deque[ResourceSnapshot] = deque(maxlen=max_history)
+        self._snapshots: deque[ResourceSnapshot] = deque(maxlen=max_history)
         self._running = False
-        self._task: Optional[asyncio.Task] = None
+        self._task: asyncio.Task | None = None
         self._lock = threading.RLock()
-        
+
         # Initialize baseline values
         self._initial_disk_io = psutil.disk_io_counters()
         self._initial_network = psutil.net_io_counters()
-    
+
     def _get_resource_snapshot(self) -> ResourceSnapshot:
         """Get current resource usage snapshot."""
         try:
             # CPU and memory
             cpu_percent = psutil.cpu_percent(interval=0.1)
             memory = psutil.virtual_memory()
-            
+
             # Disk I/O
             disk_io = psutil.disk_io_counters()
             disk_read_mb = (
@@ -188,7 +189,7 @@ class ResourceTracker:
                 (disk_io.write_bytes - self._initial_disk_io.write_bytes) / 1024 / 1024
                 if self._initial_disk_io else 0
             )
-            
+
             # Network I/O
             network = psutil.net_io_counters()
             network_sent_mb = (
@@ -199,10 +200,10 @@ class ResourceTracker:
                 (network.bytes_recv - self._initial_network.bytes_recv) / 1024 / 1024
                 if self._initial_network else 0
             )
-            
+
             # Process information
             process_count = len(psutil.pids())
-            
+
             # Load average (Unix only)
             load_average = None
             try:
@@ -210,7 +211,7 @@ class ResourceTracker:
             except AttributeError:
                 # Not available on Windows
                 pass
-            
+
             return ResourceSnapshot(
                 timestamp=time.time(),
                 cpu_percent=cpu_percent,
@@ -239,7 +240,7 @@ class ResourceTracker:
                 network_recv_mb=0.0,
                 process_count=0
             )
-    
+
     async def _collection_loop(self) -> None:
         """Background loop for collecting resource snapshots."""
         while self._running:
@@ -247,26 +248,26 @@ class ResourceTracker:
                 snapshot = self._get_resource_snapshot()
                 with self._lock:
                     self._snapshots.append(snapshot)
-                
+
                 await asyncio.sleep(self.collection_interval)
             except Exception as e:
                 logger.error(f"Error in resource collection loop: {e}")
                 await asyncio.sleep(self.collection_interval)
-    
+
     async def start(self) -> None:
         """Start resource tracking."""
         if self._running:
             return
-        
+
         self._running = True
         self._task = asyncio.create_task(self._collection_loop())
         logger.info("Resource tracking started")
-    
+
     async def stop(self) -> None:
         """Stop resource tracking."""
         if not self._running:
             return
-        
+
         self._running = False
         if self._task:
             self._task.cancel()
@@ -274,41 +275,41 @@ class ResourceTracker:
                 await self._task
             except asyncio.CancelledError:
                 pass
-        
+
         logger.info("Resource tracking stopped")
-    
-    def get_latest_snapshot(self) -> Optional[ResourceSnapshot]:
+
+    def get_latest_snapshot(self) -> ResourceSnapshot | None:
         """Get the latest resource snapshot."""
         with self._lock:
             return self._snapshots[-1] if self._snapshots else None
-    
-    def get_snapshots(self, 
-                     limit: Optional[int] = None,
-                     since: Optional[float] = None) -> List[ResourceSnapshot]:
+
+    def get_snapshots(self,
+                     limit: int | None = None,
+                     since: float | None = None) -> list[ResourceSnapshot]:
         """Get resource snapshots."""
         with self._lock:
             snapshots = list(self._snapshots)
-            
+
             # Filter by time if specified
             if since:
                 snapshots = [s for s in snapshots if s.timestamp >= since]
-            
+
             # Limit results
             if limit:
                 snapshots = snapshots[-limit:]
-            
+
             return snapshots
-    
-    def get_average_usage(self, 
-                         duration_seconds: Optional[float] = None) -> Dict[str, float]:
+
+    def get_average_usage(self,
+                         duration_seconds: float | None = None) -> dict[str, float]:
         """Get average resource usage over a time period."""
         snapshots = self.get_snapshots(
             since=time.time() - duration_seconds if duration_seconds else None
         )
-        
+
         if not snapshots:
             return {}
-        
+
         return {
             'cpu_percent': sum(s.cpu_percent for s in snapshots) / len(snapshots),
             'memory_percent': sum(s.memory_percent for s in snapshots) / len(snapshots),
@@ -322,30 +323,30 @@ class ResourceTracker:
 
 class PerformanceMonitor:
     """Comprehensive performance monitoring system."""
-    
-    def __init__(self, 
-                 metrics_collector: Optional[MetricsCollector] = None,
-                 resource_tracker: Optional[ResourceTracker] = None):
+
+    def __init__(self,
+                 metrics_collector: MetricsCollector | None = None,
+                 resource_tracker: ResourceTracker | None = None):
         self.metrics = metrics_collector or MetricsCollector()
         self.resources = resource_tracker or ResourceTracker()
-        self._operation_timers: Dict[str, float] = {}
+        self._operation_timers: dict[str, float] = {}
         self._lock = threading.RLock()
-    
+
     async def start(self) -> None:
         """Start performance monitoring."""
         await self.resources.start()
         logger.info("Performance monitoring started")
-    
+
     async def stop(self) -> None:
         """Stop performance monitoring."""
         await self.resources.stop()
         logger.info("Performance monitoring stopped")
-    
+
     @contextmanager
-    def timer(self, operation_name: str, tags: Optional[Dict[str, str]] = None):
+    def timer(self, operation_name: str, tags: dict[str, str] | None = None):
         """Context manager for timing operations."""
         start_time = time.time()
-        
+
         try:
             yield
         finally:
@@ -356,8 +357,8 @@ class PerformanceMonitor:
                 tags=tags,
                 unit="seconds"
             )
-    
-    def timed(self, operation_name: str, tags: Optional[Dict[str, str]] = None):
+
+    def timed(self, operation_name: str, tags: dict[str, str] | None = None):
         """Decorator for timing function execution."""
         def decorator(func):
             @wraps(func)
@@ -366,8 +367,8 @@ class PerformanceMonitor:
                     return func(*args, **kwargs)
             return wrapper
         return decorator
-    
-    def async_timed(self, operation_name: str, tags: Optional[Dict[str, str]] = None):
+
+    def async_timed(self, operation_name: str, tags: dict[str, str] | None = None):
         """Decorator for timing async function execution."""
         def decorator(func):
             @wraps(func)
@@ -376,35 +377,35 @@ class PerformanceMonitor:
                     return await func(*args, **kwargs)
             return wrapper
         return decorator
-    
-    def record_counter(self, 
-                      name: str, 
+
+    def record_counter(self,
+                      name: str,
                       value: float = 1.0,
-                      tags: Optional[Dict[str, str]] = None) -> None:
+                      tags: dict[str, str] | None = None) -> None:
         """Record a counter metric."""
         self.metrics.record(f"counter_{name}", value, tags=tags, unit="count")
-    
-    def record_gauge(self, 
-                    name: str, 
+
+    def record_gauge(self,
+                    name: str,
                     value: float,
-                    tags: Optional[Dict[str, str]] = None) -> None:
+                    tags: dict[str, str] | None = None) -> None:
         """Record a gauge metric."""
         self.metrics.record(f"gauge_{name}", value, tags=tags)
-    
-    def record_histogram(self, 
-                        name: str, 
+
+    def record_histogram(self,
+                        name: str,
                         value: float,
-                        tags: Optional[Dict[str, str]] = None) -> None:
+                        tags: dict[str, str] | None = None) -> None:
         """Record a histogram metric."""
         self.metrics.record(f"histogram_{name}", value, tags=tags)
-    
-    def get_performance_summary(self, 
-                               duration_seconds: float = 300) -> Dict[str, Any]:
+
+    def get_performance_summary(self,
+                               duration_seconds: float = 300) -> dict[str, Any]:
         """Get comprehensive performance summary."""
         # Resource usage
         resource_avg = self.resources.get_average_usage(duration_seconds)
         latest_snapshot = self.resources.get_latest_snapshot()
-        
+
         # Key metrics
         summary = {
             'timestamp': time.time(),
@@ -420,16 +421,16 @@ class PerformanceMonitor:
             'operation_metrics': {},
             'alerts': []
         }
-        
+
         # Operation timing metrics
         for metric_name, metrics_deque in self.metrics._metrics.items():
             if metric_name.startswith('operation_duration_'):
                 operation_name = metric_name.replace('operation_duration_', '')
                 recent_metrics = [
-                    m for m in metrics_deque 
+                    m for m in metrics_deque
                     if time.time() - m.timestamp <= duration_seconds
                 ]
-                
+
                 if recent_metrics:
                     values = [m.value for m in recent_metrics]
                     summary['operation_metrics'][operation_name] = {
@@ -440,7 +441,7 @@ class PerformanceMonitor:
                         'p95_duration': self.metrics.get_percentile(metric_name, 95, duration_seconds),
                         'p99_duration': self.metrics.get_percentile(metric_name, 99, duration_seconds),
                     }
-        
+
         # Generate alerts
         if latest_snapshot:
             if latest_snapshot.cpu_percent > 80:
@@ -449,22 +450,22 @@ class PerformanceMonitor:
                     'level': 'warning',
                     'message': f'High CPU usage: {latest_snapshot.cpu_percent:.1f}%'
                 })
-            
+
             if latest_snapshot.memory_percent > 80:
                 summary['alerts'].append({
                     'type': 'high_memory',
                     'level': 'warning',
                     'message': f'High memory usage: {latest_snapshot.memory_percent:.1f}%'
                 })
-        
+
         return summary
-    
+
     def export_metrics(self, format: str = "json") -> str:
         """Export metrics in the specified format."""
         if format == "json":
             all_metrics = self.metrics.get_all_metrics()
             serializable_metrics = {}
-            
+
             for name, metrics_list in all_metrics.items():
                 serializable_metrics[name] = [
                     {
@@ -475,7 +476,7 @@ class PerformanceMonitor:
                     }
                     for m in metrics_list
                 ]
-            
+
             return json.dumps(serializable_metrics, indent=2)
         else:
             raise ValueError(f"Unsupported export format: {format}")
@@ -492,11 +493,11 @@ def get_performance_monitor() -> PerformanceMonitor:
     return _default_monitor
 
 
-def timer(operation_name: str, tags: Optional[Dict[str, str]] = None):
+def timer(operation_name: str, tags: dict[str, str] | None = None):
     """Decorator for timing operations using the default monitor."""
     return get_performance_monitor().timed(operation_name, tags)
 
 
-def async_timer(operation_name: str, tags: Optional[Dict[str, str]] = None):
+def async_timer(operation_name: str, tags: dict[str, str] | None = None):
     """Decorator for timing async operations using the default monitor."""
     return get_performance_monitor().async_timed(operation_name, tags)

@@ -5,19 +5,18 @@ This module provides an asynchronous FastAPI application with WebSocket support,
 security features, and Railway cloud optimization.
 """
 
+import logging
 import os
 import time
-import logging
 from contextlib import asynccontextmanager
-from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Any
 
 import psutil
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Depends, status
+from fastapi import Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -47,48 +46,48 @@ class HealthResponse(BaseModel):
     timestamp: float = Field(default_factory=time.time)
     version: str = "0.9.0"
     environment: str = Field(default_factory=lambda: os.getenv("RAILWAY_ENVIRONMENT", "local"))
-    memory_usage: Optional[str] = None
-    cpu_usage: Optional[str] = None
-    uptime_seconds: Optional[float] = None
+    memory_usage: str | None = None
+    cpu_usage: str | None = None
+    uptime_seconds: float | None = None
 
 class MessageRequest(BaseModel):
     """WebSocket message request model."""
     message: str = Field(..., min_length=1, max_length=10000)
-    agent_id: Optional[str] = None
-    context: Optional[Dict[str, Any]] = None
+    agent_id: str | None = None
+    context: dict[str, Any] | None = None
 
 class MessageResponse(BaseModel):
     """WebSocket message response model."""
     status: str
     response: str
-    agent_id: Optional[str] = None
+    agent_id: str | None = None
     timestamp: float = Field(default_factory=time.time)
 
 class ConnectionManager:
     """Manages WebSocket connections for real-time agent communication."""
-    
+
     def __init__(self):
         self.active_connections: list[WebSocket] = []
-    
+
     async def connect(self, websocket: WebSocket):
         """Accept and store a new WebSocket connection."""
         await websocket.accept()
         self.active_connections.append(websocket)
         logger.info(f"WebSocket connected. Total connections: {len(self.active_connections)}")
-    
+
     def disconnect(self, websocket: WebSocket):
         """Remove a WebSocket connection."""
         if websocket in self.active_connections:
             self.active_connections.remove(websocket)
         logger.info(f"WebSocket disconnected. Total connections: {len(self.active_connections)}")
-    
+
     async def send_personal_message(self, message: str, websocket: WebSocket):
         """Send a message to a specific WebSocket connection."""
         try:
             await websocket.send_text(message)
         except Exception as e:
             logger.error(f"Error sending message: {e}")
-    
+
     async def broadcast(self, message: str):
         """Broadcast a message to all connected WebSocket clients."""
         for connection in self.active_connections:
@@ -103,31 +102,31 @@ manager = ConnectionManager()
 async def initialize_agent_systems():
     """Initialize agent systems on startup."""
     logger.info(f'🚀 Gary-Zero starting on Railway: {os.getenv("RAILWAY_ENVIRONMENT", "local")}')
-    
+
     # Initialize OpenAI Agents SDK integration
     try:
-        from framework.helpers.sdk_integration import initialize_sdk_integration, get_sdk_status
-        
+        from framework.helpers.sdk_integration import get_sdk_status, initialize_sdk_integration
+
         # Initialize SDK components
         init_results = initialize_sdk_integration({
             "enable_tracing": True,
             "strict_mode": False  # Start with permissive guardrails
         })
-        
+
         # Log initialization results
         if init_results.get("errors"):
             logger.warning(f"SDK initialization had errors: {init_results['errors']}")
         else:
             logger.info("OpenAI Agents SDK integration initialized successfully")
-        
+
         # Get and log status
         status = get_sdk_status()
         logger.info(f"SDK integration status: {status['overall_status']}")
-        
+
     except Exception as e:
         logger.warning(f"Could not initialize SDK integration: {e}")
         logger.info("Continuing with traditional Gary-Zero functionality")
-    
+
     # Initialize AI Action Visualization System
     try:
         from framework.helpers.ai_visualization_init import initialize_ai_visualization
@@ -136,14 +135,45 @@ async def initialize_agent_systems():
     except Exception as e:
         logger.warning(f"Could not initialize AI visualization system: {e}")
         logger.info("Continuing without AI action visualization")
-    
+
+    # Initialize Unified Logging, Monitoring & Benchmarking Framework
+    try:
+        from framework.logging.unified_logger import get_unified_logger
+        from framework.performance.monitor import get_performance_monitor
+
+        # Initialize unified logger
+        unified_logger = get_unified_logger()
+        logger.info("📝 Unified logging system initialized successfully")
+
+        # Initialize performance monitor
+        performance_monitor = get_performance_monitor()
+        await performance_monitor.start()
+        logger.info("📊 Performance monitoring system started successfully")
+
+        # Log system startup
+        from framework.logging.unified_logger import EventType, LogEvent, LogLevel
+        await unified_logger.log_event(LogEvent(
+            event_type=EventType.SYSTEM_EVENT,
+            level=LogLevel.INFO,
+            message="Gary-Zero FastAPI application started successfully",
+            metadata={
+                "environment": os.getenv("RAILWAY_ENVIRONMENT", "local"),
+                "version": "0.9.0",
+                "startup_time": time.time() - _startup_time
+            }
+        ))
+
+    except Exception as e:
+        logger.warning(f"Could not initialize unified monitoring framework: {e}")
+        logger.info("Continuing without unified monitoring")
+
     # TODO: Initialize other agent systems here
     # This will be connected to the existing agent initialization logic
 
 async def cleanup_agent_systems():
     """Cleanup agent systems on shutdown."""
     logger.info('🛑 Gary-Zero cleanup starting')
-    
+
     # Cleanup AI Action Visualization System
     try:
         from framework.helpers.ai_visualization_init import shutdown_ai_visualization
@@ -151,7 +181,37 @@ async def cleanup_agent_systems():
         logger.info("🎯 AI Action Visualization System shutdown complete")
     except Exception as e:
         logger.warning(f"Error during AI visualization cleanup: {e}")
-    
+
+    # Cleanup Unified Monitoring Framework
+    try:
+        from framework.logging.unified_logger import (
+            EventType,
+            LogEvent,
+            LogLevel,
+            get_unified_logger,
+        )
+        from framework.performance.monitor import get_performance_monitor
+
+        # Log system shutdown
+        unified_logger = get_unified_logger()
+        await unified_logger.log_event(LogEvent(
+            event_type=EventType.SYSTEM_EVENT,
+            level=LogLevel.INFO,
+            message="Gary-Zero FastAPI application shutting down",
+            metadata={
+                "uptime_seconds": time.time() - _startup_time,
+                "total_events_logged": unified_logger.get_statistics().get("total_events", 0)
+            }
+        ))
+
+        # Stop performance monitor
+        performance_monitor = get_performance_monitor()
+        await performance_monitor.stop()
+        logger.info("📊 Performance monitoring system stopped successfully")
+
+    except Exception as e:
+        logger.warning(f"Error during unified monitoring cleanup: {e}")
+
     # TODO: Add other cleanup logic here
 
 @asynccontextmanager
@@ -165,10 +225,9 @@ async def lifespan(app: FastAPI):
     logger.info('🛑 Gary-Zero shutdown complete')
 
 # Add API bridge integration
-from api_bridge_simple import create_api_bridge, add_enhanced_endpoints
-
 # Import Gemini Live API router
 from api.gemini_live_api import router as gemini_live_router
+from api_bridge_simple import add_enhanced_endpoints, create_api_bridge
 
 # Create FastAPI application with lifecycle management
 app = FastAPI(
@@ -182,6 +241,15 @@ app = FastAPI(
 
 # Include API routers
 app.include_router(gemini_live_router)
+
+# Add unified monitoring API
+try:
+    from framework.api.monitoring import router as monitoring_router
+    app.include_router(monitoring_router)
+    logger.info("Unified monitoring API initialized successfully")
+except Exception as e:
+    logger.warning(f"Could not initialize monitoring API: {e}")
+    logger.info("Continuing without unified monitoring API")
 
 # Add middleware for Railway optimization
 app.add_middleware(GZipMiddleware, minimum_size=1000)
@@ -242,7 +310,7 @@ async def health_check():
         memory_percent = psutil.virtual_memory().percent
         cpu_percent = psutil.cpu_percent()
         uptime = time.time() - _startup_time
-        
+
         return HealthResponse(
             memory_usage=f"{memory_percent:.1f}%",
             cpu_usage=f"{cpu_percent:.1f}%",
@@ -276,7 +344,7 @@ async def metrics():
         gitinfo = git.get_git_info()
     except Exception:
         gitinfo = {"version": "unknown", "commit_time": "unknown"}
-    
+
     return {
         "active_websocket_connections": len(manager.active_connections),
         "uptime_seconds": time.time() - _startup_time,
@@ -299,17 +367,17 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             # Receive message from client
             data = await websocket.receive_text()
-            
+
             try:
                 # Parse message using Pydantic model
                 message_data = MessageRequest.model_validate_json(data)
-                
+
                 # TODO: Process agent message - connect to existing agent logic
                 response = await process_agent_message(message_data)
-                
+
                 # Send response back to client
                 await websocket.send_json(response.model_dump())
-                
+
             except Exception as e:
                 logger.error(f"Error processing WebSocket message: {e}")
                 error_response = MessageResponse(
@@ -317,7 +385,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     response=f"Error processing message: {str(e)}"
                 )
                 await websocket.send_json(error_response.model_dump())
-                
+
     except WebSocketDisconnect:
         manager.disconnect(websocket)
     except Exception as e:
@@ -342,7 +410,7 @@ async def process_agent_message(message: MessageRequest) -> MessageResponse:
     """
     # Placeholder for agent message processing
     # This will be connected to the existing agent system
-    
+
     return MessageResponse(
         status="success",
         response=f"Received message: {message.message}",
@@ -368,10 +436,26 @@ async def global_exception_handler(request, exc):
         content={"detail": "Internal server error"}
     )
 
-# Serve index.html at root without blocking other routes
+# Root endpoint returns JSON for API clients
 @app.get("/")
+async def root():
+    """
+    Root endpoint providing API information and service links.
+    
+    Returns JSON with service metadata and available endpoints.
+    """
+    return {
+        "message": "Gary-Zero AI Agent Framework",
+        "version": "0.9.0",
+        "docs": "/docs",
+        "health": "/health",
+        "websocket": "/ws"
+    }
+
+# Serve web UI at /ui route instead
+@app.get("/ui")
 async def serve_ui():
-    """Serve the web UI index.html at root."""
+    """Serve the web UI index.html."""
     from fastapi.responses import FileResponse
     return FileResponse("webui/index.html", media_type="text/html")
 
@@ -390,12 +474,12 @@ async def serve_index_js():
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     port = int(os.getenv("PORT", 8000))
     host = os.getenv("WEB_UI_HOST", "0.0.0.0")
-    
+
     logger.info(f"Starting Gary-Zero FastAPI server on {host}:{port}")
-    
+
     uvicorn.run(
         "main:app",
         host=host,

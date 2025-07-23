@@ -1,0 +1,28 @@
+{
+  "task_id": "summarize_research_paper",
+  "run_id": "summarize_research_paper_creative_1753196847",
+  "timestamp": 1753196847.322394,
+  "timestamp_iso": "2025-07-22T15:07:27.322394+00:00",
+  "status": "completed",
+  "duration_seconds": 0.2,
+  "score": 0.9,
+  "scores": {
+    "accuracy": 0.9500000000000001,
+    "completeness": 0.9,
+    "conciseness": 0.85
+  },
+  "output_data": {
+    "summary": "Generated summary text...",
+    "word_count": 120
+  },
+  "error_message": null,
+  "logs": [],
+  "resource_usage": {},
+  "configuration": {
+    "model": "gpt-4",
+    "temperature": 0.8,
+    "executor_name": "gary_zero",
+    "config_name": "creative"
+  },
+  "artifacts": []
+}

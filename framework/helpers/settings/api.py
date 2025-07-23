@@ -15,11 +15,8 @@ from framework.helpers import files
 from framework.helpers.settings.types import (
     DEFAULT_SETTINGS,
     Settings,
-    SettingsField,
     SettingsOutput,
-    SettingsSection,
 )
-from framework.helpers.model_catalog import get_models_for_provider, get_all_models
 
 # Constants
 SETTINGS_FILE = files.get_abs_path("tmp/settings.json")
@@ -128,7 +125,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
         Settings formatted for the UI
     """
     from framework.helpers.settings.section_builders import SectionBuilder
-    
+
     # Build all sections using the section builders
     sections = [
         SectionBuilder.build_agent_config_section(settings),
@@ -163,11 +160,11 @@ def convert_in(settings_data: dict[str, Any]) -> Settings:
         Settings object ready for use by the application
     """
     current = get_settings()
-    
+
     # Ensure api_keys exists
     if "api_keys" not in current:
         current["api_keys"] = {}
-    
+
     # Process sections if they exist in the input data
     if "sections" in settings_data:
         for section in settings_data["sections"]:
@@ -175,7 +172,7 @@ def convert_in(settings_data: dict[str, Any]) -> Settings:
                 for field in section["fields"]:
                     field_id = field.get("id")
                     field_value = field.get("value")
-                    
+
                     # Skip password placeholders - keep existing values
                     if field_value != PASSWORD_PLACEHOLDER and field_id:
                         if field_id.endswith("_kwargs"):
@@ -188,7 +185,7 @@ def convert_in(settings_data: dict[str, Any]) -> Settings:
                         else:
                             # Regular field - store directly
                             current[field_id] = field_value
-    
+
     return cast(Settings, current)
 
 
