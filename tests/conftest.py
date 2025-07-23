@@ -2,6 +2,7 @@
 Test configuration and fixtures for Gary-Zero test suite.
 """
 import asyncio
+import pytest
 import sys
 import os
 from httpx import AsyncClient

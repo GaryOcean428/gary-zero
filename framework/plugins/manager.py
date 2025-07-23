@@ -1,5 +1,6 @@
 """Plugin manager that coordinates all plugin system components."""
 
+import os
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
