@@ -80,7 +80,8 @@ class ConfigLoader:
             value = default or ""
         
         # Validate that value doesn't contain template placeholders
-        if "{{" in value and "}}" in value:
+        import re
+        if re.search(r"\{\{.*?\}\}", value):
             logger.error(f"Template placeholder found in {key}: {value}")
             if required:
                 raise ValueError(f"Template placeholder not resolved in {key}: {value}")
