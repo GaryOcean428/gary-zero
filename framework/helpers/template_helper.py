@@ -62,7 +62,7 @@ class TemplateHelper:
         """
         # Check for unresolved template placeholders
         import re
-        placeholders = re.findall(r'{{(\w+)}}', content)
+        placeholders = re.findall(r'{{\s*[^}]+\s*}}', content)
         
         if placeholders:
             logger.error(f"Unresolved placeholders in {template_path}: {placeholders}")
