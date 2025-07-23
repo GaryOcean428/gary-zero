@@ -3,6 +3,23 @@
 **/.env
 **/__pycache__/
 **/.conda/
+.vscode/
+.cache/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+*.egg
+*.log
+*.swp
+*.bak
+*.tmp
+*.pid
+*.orig
+*.pyc
+.windsurf/
+
+
+
 
 # Plugin system
 plugins.db
@@ -23,6 +40,11 @@ docker/run/gary-zero/
 # Ignore all contents of the virtual environment directory
 .venv/
 venv/
+
+# .env files
+.env
+.env.*
+
 
 # Testing artifacts
 .pytest_cache/
@@ -101,4 +123,8 @@ node_modules
 # Test coverage reports
 coverage/
 *.lcov
+<<<<<<< Updated upstream
 *.json
+=======
+.vscode/extensions.json
+>>>>>>> Stashed changes
