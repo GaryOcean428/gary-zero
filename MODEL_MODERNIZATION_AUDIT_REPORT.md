@@ -119,7 +119,7 @@ Identified and updated hardcoded legacy model references:
 ```yaml
 Chat Model: claude-sonnet-4-20250514 (Claude 4 Sonnet)
 Utility Model: gpt-4.1-mini (GPT-4.1 Mini)
-Embedding Model: gpt-4.1-embeddings (GPT-4.1 Embeddings)
+Embedding Model: text-embedding-3-large (Text Embedding 3 Large)
 Browser Model: claude-sonnet-4-20250514 (Claude 4 Sonnet with Vision)
 Voice Model: gpt-4o-realtime-preview (OpenAI Realtime API)
 Code Model: claude-code (Claude Code for Development)

@@ -61,8 +61,37 @@ def test_model_catalog():
         print("5. Testing code models...")
         code_anthropic = get_code_models_for_provider("ANTHROPIC")
         code_deepseek = get_code_models_for_provider("DEEPSEEK")
+        code_qwen = get_code_models_for_provider("QWEN")
+        code_google = get_code_models_for_provider("GOOGLE")
         print(f"   Anthropic code models: {len(code_anthropic)}")
         print(f"   DeepSeek code models: {len(code_deepseek)}")
+        print(f"   Qwen code models: {len(code_qwen)}")
+        print(f"   Google code models: {len(code_google)}")
+        
+        # Test new model additions
+        print("6. Testing new model additions...")
+        google_models = get_models_for_provider("GOOGLE")
+        qwen_models = get_models_for_provider("QWEN")
+        
+        # Check for Google CLI models
+        google_cli_models = [m for m in google_models if 'cli' in m['value'].lower()]
+        print(f"   Google CLI models found: {len(google_cli_models)}")
+        
+        # Check for Qwen 3 Coder
+        qwen_3_coder = any(m['value'] == 'qwen-3-coder' for m in qwen_models)
+        print(f"   Qwen 3 Coder present: {qwen_3_coder}")
+        
+        # Verify embedding model fix
+        print("7. Testing embedding model fix...")
+        openai_models = get_models_for_provider("OPENAI")
+        embedding_valid = any(m['value'] == 'text-embedding-3-large' for m in openai_models)
+        embedding_invalid_removed = not any(m['value'] == 'gpt-4.1-embeddings' for m in openai_models)
+        print(f"   Valid embedding model present: {embedding_valid}")
+        print(f"   Invalid embedding model removed: {embedding_invalid_removed}")
+        
+        if not embedding_valid or not embedding_invalid_removed:
+            print("❌ Embedding model validation failed!")
+            return False
         
         print("✅ Model catalog tests passed!")
         return True
@@ -77,7 +106,7 @@ def test_settings_integration():
     print("\n=== TESTING SETTINGS INTEGRATION ===")
     
     try:
-        from framework.helpers.settings.api import get_settings_for_ui
+        from framework.helpers.settings.api import convert_out
         from framework.helpers.settings.types import DEFAULT_SETTINGS
         
         print("1. Testing default settings...")
@@ -87,7 +116,7 @@ def test_settings_integration():
         print(f"   Code model: {defaults['code_model_provider']} - {defaults['code_model_name']}")
         
         print("2. Testing UI settings generation...")
-        ui_settings = get_settings_for_ui(defaults)
+        ui_settings = convert_out(defaults)
         sections = ui_settings.get("sections", [])
         print(f"   Total sections: {len(sections)}")
         

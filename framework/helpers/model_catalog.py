@@ -43,7 +43,7 @@ MODEL_CATALOG: dict[str, list[dict[str, str]]] = {
         {"value": "gpt-4.1-mini", "label": "GPT-4.1 Mini", "modern": True, "release_date": "2024-12-01"},
         {"value": "gpt-4.1-nano", "label": "GPT-4.1 Nano", "modern": True, "release_date": "2024-12-01"},
         {"value": "gpt-4.1-vision", "label": "GPT-4.1 Vision", "modern": True, "release_date": "2024-12-01"},
-        {"value": "gpt-4.1-embeddings", "label": "GPT-4.1 Embeddings", "modern": True, "release_date": "2024-12-01"},
+
         {"value": "gpt-4o-mini", "label": "GPT-4o Mini", "modern": True, "release_date": "2024-07-18"},
         {"value": "computer-use-preview", "label": "Computer Use Preview", "modern": True, "release_date": "2024-10-01"},
         # Mixed models (gpt-4o was May 2024, but variants are newer)
@@ -53,6 +53,9 @@ MODEL_CATALOG: dict[str, list[dict[str, str]]] = {
         {"value": "gpt-4o-mini-audio", "label": "GPT-4o Mini Audio", "modern": True, "release_date": "2024-10-01", "voice": True},
         {"value": "gpt-4o-search-preview", "label": "GPT-4o Search Preview", "modern": True, "release_date": "2024-10-01"},
         {"value": "gpt-4o-mini-search-preview", "label": "GPT-4o Mini Search Preview", "modern": True, "release_date": "2024-10-01"},
+        # Embedding models - modern and widely used
+        {"value": "text-embedding-3-large", "label": "Text Embedding 3 Large", "modern": True, "release_date": "2024-01-25"},
+        {"value": "text-embedding-3-small", "label": "Text Embedding 3 Small", "modern": True, "release_date": "2024-01-25"},
         # Legacy models (pre-June 2024) - deprecated
         {"value": "gpt-4-turbo", "label": "GPT-4 Turbo", "deprecated": True, "release_date": "2023-11-06"},
         {"value": "gpt-4-turbo-preview", "label": "GPT-4 Turbo Preview", "deprecated": True, "release_date": "2023-11-06"},
@@ -61,8 +64,6 @@ MODEL_CATALOG: dict[str, list[dict[str, str]]] = {
         {"value": "gpt-3.5-turbo", "label": "GPT-3.5 Turbo", "deprecated": True, "release_date": "2022-11-30"},
         {"value": "gpt-3.5-turbo-16k", "label": "GPT-3.5 Turbo 16K", "deprecated": True, "release_date": "2023-06-13"},
         {"value": "gpt-3.5-turbo-1106", "label": "GPT-3.5 Turbo (1106)", "deprecated": True, "release_date": "2023-11-06"},
-        {"value": "text-embedding-3-large", "label": "Text Embedding 3 Large", "deprecated": True, "release_date": "2024-01-25"},
-        {"value": "text-embedding-3-small", "label": "Text Embedding 3 Small", "deprecated": True, "release_date": "2024-01-25"},
         {"value": "text-embedding-ada-002", "label": "Text Embedding Ada 002", "deprecated": True, "release_date": "2022-12-15"},
     ],
     "GOOGLE": [
@@ -77,6 +78,8 @@ MODEL_CATALOG: dict[str, list[dict[str, str]]] = {
         {"value": "gemini-2.0-flash-thinking-exp", "label": "Gemini 2.0 Flash Thinking Exp", "modern": True, "release_date": "2024-12-11"},
         {"value": "gemini-2.0-pro-experimental", "label": "Gemini 2.0 Pro Experimental", "modern": True, "release_date": "2024-12-11"},
         {"value": "gemini-2.0-flash-lite", "label": "Gemini 2.0 Flash Lite", "modern": True, "release_date": "2024-12-11"},
+        {"value": "gemini-cli-chat", "label": "Gemini CLI Chat", "modern": True, "release_date": "2024-12-11"},
+        {"value": "gemini-cli-code", "label": "Gemini CLI Code", "modern": True, "release_date": "2024-12-11", "code": True},
         # Legacy models (pre-June 2024) - deprecated
         {"value": "gemini-1.5-pro", "label": "Gemini 1.5 Pro", "deprecated": True, "release_date": "2024-02-15"},
         {"value": "gemini-1.5-flash", "label": "Gemini 1.5 Flash", "deprecated": True, "release_date": "2024-05-14"},
@@ -204,6 +207,13 @@ MODEL_CATALOG: dict[str, list[dict[str, str]]] = {
         {"value": "llama-3.2-11b-vision-instruct", "label": "Llama 3.2 11B Vision", "modern": True, "release_date": "2024-09-25"},
         {"value": "llama-3.2-90b-vision-instruct", "label": "Llama 3.2 90B Vision", "modern": True, "release_date": "2024-09-25"},
         {"value": "llama-3.1-405b-instruct", "label": "Llama 3.1 405B Instruct", "modern": True, "release_date": "2024-07-23"},
+    ],
+    "QWEN": [
+        # Modern models (post-June 2024)
+        {"value": "qwen-3-coder", "label": "Qwen 3 Coder", "modern": True, "release_date": "2024-11-15", "code": True},
+        {"value": "qwen-2.5-coder-32b-instruct", "label": "Qwen 2.5 Coder 32B Instruct", "modern": True, "release_date": "2024-09-19", "code": True},
+        {"value": "qwen-2.5-coder-14b-instruct", "label": "Qwen 2.5 Coder 14B Instruct", "modern": True, "release_date": "2024-09-19", "code": True},
+        {"value": "qwen-2.5-coder-7b-instruct", "label": "Qwen 2.5 Coder 7B Instruct", "modern": True, "release_date": "2024-09-19", "code": True},
     ],
     "OTHER": [
         {"value": "custom-model-1", "label": "Custom Model 1"},
