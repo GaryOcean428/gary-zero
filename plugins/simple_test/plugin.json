@@ -1,0 +1,9 @@
+{
+  "name": "simple_test",
+  "version": "1.0.0",
+  "description": "Simple test plugin with minimal dependencies",
+  "author": "gary-zero-official",
+  "capabilities": ["testing", "demo"],
+  "dependencies": ["json"],
+  "entry_point": "plugin.py"
+}

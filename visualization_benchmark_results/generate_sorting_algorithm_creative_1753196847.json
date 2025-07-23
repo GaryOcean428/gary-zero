@@ -1,0 +1,29 @@
+{
+  "task_id": "generate_sorting_algorithm",
+  "run_id": "generate_sorting_algorithm_creative_1753196847",
+  "timestamp": 1753196847.6244643,
+  "timestamp_iso": "2025-07-22T15:07:27.624464+00:00",
+  "status": "completed",
+  "duration_seconds": 0.3,
+  "score": 0.75,
+  "scores": {
+    "correctness": 0.8,
+    "code_quality": 0.75,
+    "documentation": 0.65
+  },
+  "output_data": {
+    "code": "def quicksort(arr): ...",
+    "lines_of_code": 25,
+    "tests_included": true
+  },
+  "error_message": null,
+  "logs": [],
+  "resource_usage": {},
+  "configuration": {
+    "model": "gpt-4",
+    "temperature": 0.8,
+    "executor_name": "gary_zero",
+    "config_name": "creative"
+  },
+  "artifacts": []
+}

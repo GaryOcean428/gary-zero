@@ -12,7 +12,6 @@ import contextlib
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
 
 # Local application imports
 from framework.helpers.print_style import PrintStyle
@@ -34,7 +33,7 @@ class BackgroundTask:
     name: str
     task: asyncio.Task
     status: TaskStatus = TaskStatus.PENDING
-    error: Optional[Exception] = None
+    error: Exception | None = None
 
 
 class BackgroundTaskManager:
@@ -119,7 +118,7 @@ class BackgroundTaskManager:
                 return True
             return False
 
-    async def wait_for_task(self, task_name: str, timeout: Optional[float] = None):
+    async def wait_for_task(self, task_name: str, timeout: float | None = None):
         """Wait for a specific task to complete.
 
         Args:
@@ -136,7 +135,7 @@ class BackgroundTaskManager:
         task = self._tasks[task_name]
         await asyncio.wait_for(task.task, timeout=timeout)
 
-    def get_task_status(self, task_name: str) -> Optional[TaskStatus]:
+    def get_task_status(self, task_name: str) -> TaskStatus | None:
         """Get the status of a task."""
         if task_name in self._tasks:
             return self._tasks[task_name].status

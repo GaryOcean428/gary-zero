@@ -6,9 +6,9 @@ from __future__ import annotations
 import argparse
 import asyncio
 import os
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, TypeVar, overload
+from typing import Any, TypeVar, overload
 
 # Local application imports
 from . import rfc

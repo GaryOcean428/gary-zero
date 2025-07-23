@@ -1,0 +1,9 @@
+{
+  "name": "note_taker",
+  "version": "1.0.0",
+  "description": "Create, manage and search personal notes",
+  "author": "gary-zero-official",
+  "capabilities": ["notes", "productivity", "search"],
+  "dependencies": ["json", "datetime"],
+  "entry_point": "plugin.py"
+}

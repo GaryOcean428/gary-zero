@@ -12,6 +12,6 @@ from .negotiation import NegotiationService
 __all__ = [
     'AgentCard',
     'get_agent_card',
-    'DiscoveryService', 
+    'DiscoveryService',
     'NegotiationService'
 ]

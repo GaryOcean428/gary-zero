@@ -1,9 +1,32 @@
 # Development dependencies with version pinning for CI stability
+
+# Core testing framework
 pytest>=7.0.0,<9.0.0
 pytest-asyncio>=0.20.0,<1.0.0
 pytest-mock>=3.10.0,<4.0.0
 pytest-cov>=4.0.0,<6.0.0
+pytest-xdist>=3.0.0,<4.0.0  # Parallel test execution
+pytest-benchmark>=4.0.0,<5.0.0  # Performance benchmarking
+pytest-timeout>=2.1.0,<3.0.0  # Test timeout management
+
+# HTTP testing
+httpx>=0.24.0,<1.0.0
 nest_asyncio>=1.5.6,<2.0.0
+
+# Code quality and static analysis
 mypy>=0.910,<2.0.0
 ruff>=0.8.0,<1.0.0  # Pin ruff version to prevent breaking CLI changes
-fastapi>=0.100.0,<1.0.0  # Required for tests
+bandit>=1.7.5,<2.0.0  # Security vulnerability scanning
+safety>=2.3.0,<3.0.0  # Dependency security check
+detect-secrets>=1.4.0,<2.0.0  # Secret detection
+
+# Application dependencies for testing
+fastapi>=0.100.0,<1.0.0
+uvicorn>=0.20.0,<1.0.0
+psutil>=5.9.0,<8.0.0
+pydantic>=2.0.0,<3.0.0
+python-dotenv>=1.0.0,<2.0.0
+websockets>=11.0.0,<16.0.0
+
+# Git operations (needed by main.py)
+GitPython>=3.1.40,<4.0.0

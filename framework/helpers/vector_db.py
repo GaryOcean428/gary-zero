@@ -74,7 +74,7 @@ class VectorDB:
         ids = [str(uuid.uuid4()) for _ in range(len(docs))]
 
         if ids:
-            for doc, id in zip(docs, ids):
+            for doc, id in zip(docs, ids, strict=False):
                 doc.metadata["id"] = id  # add ids to documents metadata
 
             # rate limiter

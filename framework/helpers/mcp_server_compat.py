@@ -6,13 +6,8 @@ This module provides backward compatibility for gary-zero while using the shared
 """
 
 import os
-import threading
-from typing import Annotated, Literal, Union
 from urllib.parse import urlparse
 
-from shared_mcp.server import SharedMCPServer, DynamicMcpProxy
-from shared_mcp.types import ToolResponse, ToolError
-from pydantic import Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.requests import Request
 
@@ -21,6 +16,8 @@ from framework.helpers import settings
 from framework.helpers.persist_chat import remove_chat
 from framework.helpers.print_style import PrintStyle
 from initialize import initialize_agent
+from shared_mcp.server import DynamicMcpProxy, SharedMCPServer
+from shared_mcp.types import ToolError, ToolResponse
 
 _PRINTER = PrintStyle(italic=True, font_color="green", padding=False)
 
@@ -39,8 +36,8 @@ shared_mcp_server = SharedMCPServer(
 mcp_server = shared_mcp_server.get_fastmcp_instance()
 
 
-async def _send_message_handler(message: str, attachments: list[str] | None = None, 
-                               chat_id: str | None = None, persistent_chat: bool | None = None) -> Union[ToolResponse, ToolError]:
+async def _send_message_handler(message: str, attachments: list[str] | None = None,
+                               chat_id: str | None = None, persistent_chat: bool | None = None) -> ToolResponse | ToolError:
     """Message handler implementation for the shared server"""
     context: AgentContext | None = None
     if chat_id:
@@ -67,7 +64,7 @@ async def _send_message_handler(message: str, attachments: list[str] | None = No
         return ToolError(error=str(e), chat_id=context.id if persistent_chat else "")
 
 
-async def _finish_chat_handler(chat_id: str) -> Union[ToolResponse, ToolError]:
+async def _finish_chat_handler(chat_id: str) -> ToolResponse | ToolError:
     """Finish chat handler implementation for the shared server"""
     if not chat_id:
         return ToolError(error="Chat ID is required", chat_id="")
@@ -141,7 +138,7 @@ shared_mcp_server.register_finish_chat_handler(_finish_chat_handler)
 
 class DynamicMcpProxy(DynamicMcpProxy):
     """Backward compatible dynamic proxy"""
-    
+
     def __init__(self):
         cfg = settings.get_settings()
         super().__init__(token_provider=lambda: cfg["mcp_server_token"])

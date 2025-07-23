@@ -2,7 +2,7 @@
 
 import os
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -41,7 +41,7 @@ class TestSchedulerTool:
         task_name = "test_task"
         system_prompt = "Test system prompt"
         prompt = "Test prompt"
-        future_time = datetime.now(timezone.utc) + timedelta(hours=1)
+        future_time = datetime.now(UTC) + timedelta(hours=1)
         plan = [future_time.isoformat()]
         attachments = ["file1.txt"]
 
@@ -78,7 +78,7 @@ class TestSchedulerTool:
     async def test_create_planned_task_dedicated_context(self, scheduler_tool, mock_task_scheduler):
         """Test creating a planned task with dedicated context."""
         # Setup test data
-        future_time = datetime.now(timezone.utc) + timedelta(hours=1)
+        future_time = datetime.now(UTC) + timedelta(hours=1)
         plan = [future_time.isoformat()]
 
         # Mock the task scheduler
@@ -118,14 +118,14 @@ class TestSchedulerTool:
         mock_task1.name = "task1"
         mock_task1.task_id = "id1"
         mock_task1.state = "PENDING"
-        mock_task1.next_run = datetime.now(timezone.utc)
+        mock_task1.next_run = datetime.now(UTC)
         mock_task1.context_id = "test_context_id"
 
         mock_task2 = MagicMock()
         mock_task2.name = "task2"
         mock_task2.task_id = "id2"
         mock_task2.state = "SCHEDULED"
-        mock_task2.next_run = datetime.now(timezone.utc) + timedelta(hours=1)
+        mock_task2.next_run = datetime.now(UTC) + timedelta(hours=1)
         mock_task2.context_id = "other_context_id"
 
         mock_task_scheduler.get_tasks.return_value = [mock_task1, mock_task2]

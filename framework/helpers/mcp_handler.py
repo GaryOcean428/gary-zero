@@ -10,16 +10,16 @@ This module re-exports the necessary components to maintain backward compatibili
 
 # Import from compatibility layer
 from .mcp_handler_compat import (
-    initialize_mcp,
-    MCPTool,
     MCPConfig,
+    MCPTool,
+    initialize_mcp,
     normalize_name,
 )
 
 # Re-export for backward compatibility
 __all__ = [
     "initialize_mcp",
-    "MCPTool", 
+    "MCPTool",
     "MCPConfig",
     "normalize_name",
 ]
