@@ -235,7 +235,7 @@ def main():
     for test in tests:
         if test():
             passed += 1
-        print()  # Add spacing between tests
+        print_test_separator()  # Add spacing between tests
     
     print(f"📊 Test Results: {passed}/{total} tests passed")
     
