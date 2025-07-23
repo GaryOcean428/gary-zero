@@ -30,7 +30,7 @@ dependencies = [
   "gunicorn>=23.0.0",
   "fastmcp>=2.3.0",
   "mcp>=1.12.0",
-  "shared-mcp @ file:///${PWD}/shared_mcp"
+  "shared-mcp @ file:///./shared_mcp"
 ]
 
 [project.optional-dependencies]
