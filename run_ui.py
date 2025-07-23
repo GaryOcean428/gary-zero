@@ -120,27 +120,50 @@ def handle_405(e):
     """Handle 405 Method Not Allowed errors with detailed diagnostics."""
     from flask import jsonify
     
-    # Log the 405 for debugging
+    # Log the 405 for debugging with enhanced information
     PrintStyle().error(f"405 Error: {request.method} {request.path} method not allowed")
+    PrintStyle().error(f"Request headers: {dict(request.headers)}")
+    PrintStyle().error(f"Request args: {dict(request.args)}")
+    if request.method == 'POST':
+        PrintStyle().error(f"Form data: {dict(request.form)}")
+        if request.is_json:
+            try:
+                PrintStyle().error(f"JSON data: {request.get_json()}")
+            except Exception as json_err:
+                PrintStyle().error(f"JSON parse error: {json_err}")
     
     # Get allowed methods for this endpoint
     allowed_methods = []
     if request.url_rule:
         allowed_methods = list(request.url_rule.methods - {'HEAD', 'OPTIONS'})
+    else:
+        # Try to find matching routes
+        for rule in webapp.url_map.iter_rules():
+            if rule.rule == request.path or (hasattr(rule, 'match') and rule.match(request.path)):
+                allowed_methods.extend(list(rule.methods - {'HEAD', 'OPTIONS'}))
+        allowed_methods = list(set(allowed_methods))
     
     # Check if it's an API request
     is_api_request = request.is_json or request.path.startswith('/api') or 'application/json' in request.headers.get('Accept', '')
     
+    error_response = {
+        "error": "Method Not Allowed",
+        "method": request.method,
+        "path": request.path,
+        "allowed_methods": allowed_methods,
+        "message": f"The {request.method} method is not allowed for this endpoint",
+        "timestamp": time.time(),
+        "suggestion": "Check the allowed methods or use a different endpoint",
+        "debug_info": {
+            "user_agent": request.headers.get('User-Agent', 'unknown'),
+            "remote_addr": request.remote_addr,
+            "referrer": request.headers.get('Referer', 'none'),
+            "content_type": request.headers.get('Content-Type', 'none')
+        }
+    }
+    
     if is_api_request:
-        return jsonify({
-            "error": "Method Not Allowed",
-            "method": request.method,
-            "path": request.path,
-            "allowed_methods": allowed_methods,
-            "message": f"The {request.method} method is not allowed for this endpoint",
-            "timestamp": time.time(),
-            "suggestion": "Check the allowed methods or use a different endpoint"
-        }), 405
+        return jsonify(error_response), 405
     else:
         return Response(f"""
         <h1>405 Method Not Allowed</h1>
@@ -148,6 +171,11 @@ def handle_405(e):
         <p><strong>Path:</strong> {request.path}</p>
         <p><strong>Allowed Methods:</strong> {', '.join(allowed_methods)}</p>
         <p><strong>Timestamp:</strong> {time.time()}</p>
+        <p><strong>Suggestion:</strong> {error_response['suggestion']}</p>
+        <details>
+            <summary>Debug Information</summary>
+            <pre>{error_response['debug_info']}</pre>
+        </details>
         """, 405, mimetype="text/html")
 
 
@@ -274,10 +302,18 @@ def requires_auth(f):
     return decorated
 
 
-@webapp.route("/", methods=["GET", "POST"])
+@webapp.route("/", methods=["GET", "POST", "OPTIONS"])
 @requires_auth
 async def serve_index():
     """Serve the main index.html file and handle form submissions."""
+    # Handle OPTIONS request for CORS
+    if request.method == "OPTIONS":
+        response = Response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+        return response
+    
     if request.method == "POST":
         # Handle form submissions or API requests to root
         PrintStyle().debug(f"POST request to root: {request.form}")
@@ -304,63 +340,52 @@ async def serve_index():
     # GET request - serve the main page
     from framework.helpers.template_helper import render_index_html
     return render_index_html()
-    gitinfo = None
-    try:
-        gitinfo = git.get_git_info()
-    except Exception:
-        gitinfo = {
-            "version": "unknown",
-            "commit_time": "unknown",
-        }
-
-    # Get environment-based feature flags for client-side configuration
-    enable_dev_features = dotenv.get_dotenv_value("ENABLE_DEV_FEATURES", "true").lower() == "true"
-    vscode_integration_enabled = dotenv.get_dotenv_value("VSCODE_INTEGRATION_ENABLED", "true").lower() == "true"
-    chat_auto_resize_enabled = dotenv.get_dotenv_value("CHAT_AUTO_RESIZE_ENABLED", "true").lower() == "true"
-
-    # Create JavaScript configuration snippet to inject into the page
-    js_config = f"""
-    <script>
-        // Environment-based feature flags
-        window.ENABLE_DEV_FEATURES = {str(enable_dev_features).lower()};
-        window.VSCODE_INTEGRATION_ENABLED = {str(vscode_integration_enabled).lower()};
-        window.CHAT_AUTO_RESIZE_ENABLED = {str(chat_auto_resize_enabled).lower()};
-        console.log('🔧 Feature flags loaded:', {{
-            ENABLE_DEV_FEATURES: {str(enable_dev_features).lower()},
-            VSCODE_INTEGRATION_ENABLED: {str(vscode_integration_enabled).lower()},
-            CHAT_AUTO_RESIZE_ENABLED: {str(chat_auto_resize_enabled).lower()}
-        }});
-    </script>
-    """
-
-    return files.read_file(
-        "./webui/index.html",
-        version_no=gitinfo["version"],
-        version_time=gitinfo["commit_time"],
-        feature_flags_config=js_config,
-    )
 
 
 # handle privacy policy page
-@webapp.route("/privacy", methods=["GET"])
+@webapp.route("/privacy", methods=["GET", "OPTIONS"])
 def serve_privacy():
     """Serve the privacy policy page."""
+    # Handle OPTIONS request for CORS
+    if request.method == "OPTIONS":
+        response = Response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "GET,OPTIONS")
+        return response
+    
     from framework.helpers.template_helper import render_template
     return render_template("./webui/privacy.html")
 
 
 # handle terms of service page
-@webapp.route("/terms", methods=["GET"])
+@webapp.route("/terms", methods=["GET", "OPTIONS"])
 def serve_terms():
     """Serve the terms of service page."""
+    # Handle OPTIONS request for CORS
+    if request.method == "OPTIONS":
+        response = Response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "GET,OPTIONS")
+        return response
+    
     from framework.helpers.template_helper import render_template
     return render_template("./webui/terms.html")
 
 
 # health check endpoint
-@webapp.route("/health", methods=["GET"])
+@webapp.route("/health", methods=["GET", "OPTIONS"])
 def health_check():
     """Health check endpoint for monitoring."""
+    # Handle OPTIONS request for CORS
+    if request.method == "OPTIONS":
+        response = Response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "GET,OPTIONS")
+        return response
+    
     import psutil
     try:
         # Get basic system metrics
@@ -402,17 +427,33 @@ def health_check():
 
 
 # readiness check endpoint for Railway
-@webapp.route("/ready", methods=["GET"])
+@webapp.route("/ready", methods=["GET", "OPTIONS"])
 def readiness_check():
     """Readiness check endpoint for Railway deployment verification."""
+    # Handle OPTIONS request for CORS
+    if request.method == "OPTIONS":
+        response = Response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "GET,OPTIONS")
+        return response
+    
     return {"status": "ready", "service": "gary-zero", "timestamp": time.time()}
 
 
 # API endpoints for compatibility
-@webapp.route("/api", methods=["GET", "POST"])
+@webapp.route("/api", methods=["GET", "POST", "OPTIONS"])
 @requires_auth
 async def api_endpoint():
     """API endpoint that handles both GET and POST requests."""
+    # Handle OPTIONS request for CORS
+    if request.method == "OPTIONS":
+        response = Response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+        return response
+    
     if request.method == "POST":
         PrintStyle().debug(f"API POST request: {request.form or request.get_json()}")
         
@@ -444,10 +485,18 @@ async def api_endpoint():
 
 
 # Debug endpoint for route inspection
-@webapp.route("/debug/routes", methods=["GET"])
+@webapp.route("/debug/routes", methods=["GET", "OPTIONS"])
 @requires_auth
 async def debug_routes():
     """Debug endpoint to list all registered Flask routes."""
+    # Handle OPTIONS request for CORS
+    if request.method == "OPTIONS":
+        response = Response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "GET,OPTIONS")
+        return response
+    
     routes = []
     for rule in webapp.url_map.iter_rules():
         routes.append({
@@ -464,9 +513,17 @@ async def debug_routes():
 
 
 # handle favicon requests
-@webapp.route("/favicon.ico", methods=["GET"])
+@webapp.route("/favicon.ico", methods=["GET", "OPTIONS"])
 def serve_favicon():
     """Serve the favicon file."""
+    # Handle OPTIONS request for CORS
+    if request.method == "OPTIONS":
+        response = Response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "GET,OPTIONS")
+        return response
+    
     try:
         # Try to serve the SVG favicon as ICO (browsers will handle it)
         favicon_path = get_abs_path("./webui/public/favicon.svg")

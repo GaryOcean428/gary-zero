@@ -1,0 +1,10 @@
+# Alternative Procfile configurations
+
+# Option 1: Use Flask with Gunicorn (for Flask-based deployment)
+web: gunicorn --bind 0.0.0.0:$PORT wsgi:application
+
+# Option 2: Use Flask directly (development mode)
+# web: python run_ui.py
+
+# Option 3: Current FastAPI with uvicorn (keep if working)
+# web: python start_uvicorn.py
