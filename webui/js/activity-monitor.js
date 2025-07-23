@@ -1,6 +1,9 @@
+/* global HTMLIFrameElement */
 /**
  * Activity Monitor Integration
  * Provides live activity tracking and integration with the main UI
+ *
+ * @global HTMLIFrameElement
  */
 
 class ActivityMonitorManager {

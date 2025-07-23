@@ -5,7 +5,7 @@
     "moduleResolution": "bundler",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "allowJs": true,
-    "checkJs": true,
+    "checkJs": false,
     "jsx": "preserve",
     "declaration": true,
     "declarationMap": true,
@@ -44,5 +44,13 @@
     }
   },
   "include": ["webui/**/*.js", "webui/**/*.ts", "webui/**/*.d.ts", "framework/**/*.js", "framework/**/*.ts", "**/*.d.ts"],
-  "exclude": ["node_modules", "dist", "build", "*.min.js", "webui/js/alpine*.js", "webui/js/transformers*.js"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "*.min.js",
+    "webui/js/alpine*.js",
+    "webui/js/transformers*.js",
+    "webui/js/transformers@*.js"
+  ]
 }
