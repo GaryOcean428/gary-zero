@@ -630,7 +630,13 @@
                 <div id="status-message" class="status-message">Ready</div>
                 <div class="status-indicators">
                     <div id="connection-status" class="connection-status connected" title="Connection status">●</div>
-                    <div id="model-indicator" class="model-indicator" title="Current model">GPT</div>
+                    <div id="model-indicator" class="model-indicator" 
+                         :title="'Current model: ' + (currentModel.display_name || 'Loading...')"
+                         x-text="currentModel.model_label || 'Loading...'"
+                         x-data="{ currentModel: { model_label: 'Loading...', display_name: 'Loading...' } }"
+                         x-init="fetchCurrentModel()">
+                        Loading...
+                    </div>
                 </div>
             </div>
         </div>

@@ -173,11 +173,11 @@ async def cmd_benchmark(args):
     # Register executor
     harness.register_executor("gary_zero", GaryZeroTestExecutor())
 
-    # Register configurations
+    # Register configurations with modern models
     configs = {
-        "default": {"model": "gpt-4", "temperature": 0.7},
-        "optimized": {"model": "gpt-4", "temperature": 0.3},
-        "creative": {"model": "gpt-4", "temperature": 0.8}
+        "default": {"model": "gpt-4o", "temperature": 0.7},
+        "optimized": {"model": "o1", "temperature": 0.3},
+        "creative": {"model": "gpt-4o", "temperature": 0.8}
     }
 
     for config_name, config in configs.items():
