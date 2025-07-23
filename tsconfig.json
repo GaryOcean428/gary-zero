@@ -51,6 +51,6 @@
     "*.min.js",
     "webui/js/alpine*.js",
     "webui/js/transformers*.js",
-    "webui/js/transformers@*.js"
+    "webui/js/transformers*@*.js"
   ]
 }

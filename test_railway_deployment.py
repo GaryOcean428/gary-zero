@@ -12,6 +12,11 @@ from pathlib import Path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
+
+def print_test_separator() -> None:
+    """Output a visual separator between tests."""
+    print("=" * 40)
+
 def test_config_loader():
     """Test the configuration loader."""
     print("🧪 Testing configuration loader...")

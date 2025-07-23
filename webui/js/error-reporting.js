@@ -79,7 +79,18 @@ class ErrorReporter {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
 
-            return await response.json();
+            // Handle 204 No Content responses gracefully
+            if (response.status === 204) {
+                return { success: true, message: 'Error report received' };
+            }
+
+            // Handle empty responses gracefully
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return await response.json();
+            } else {
+                return { success: true, message: 'Error report processed' };
+            }
         } catch (error) {
             // Store in localStorage as fallback
             this.storeLocally(errorReport);

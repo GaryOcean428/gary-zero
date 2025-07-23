@@ -6,6 +6,8 @@
  * @global HTMLIFrameElement
  */
 
+/* global HTMLIFrameElement */
+
 class ActivityMonitorManager {
     constructor() {
         this.isInitialized = false;

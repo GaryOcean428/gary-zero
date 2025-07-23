@@ -11,8 +11,49 @@ env:
   PYTHON_VERSION: "3.13"
 
 jobs:
+  git-workflow-check:
+    name: Git Workflow Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Check for uncommitted changes
+      run: |
+        echo "🔍 Validating Git workflow for deployment..."
+        
+        # Verify no uncommitted changes
+        if ! git diff-index --quiet HEAD --; then
+          echo "❌ ERROR: Deployment blocked - uncommitted changes detected!"
+          echo ""
+          echo "📋 Modified files:"
+          git diff-index --name-only HEAD --
+          echo ""
+          echo "🔧 Please commit and push all changes before deployment"
+          exit 1
+        fi
+        
+        # Check if this is a protected branch deployment
+        if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          echo "🚀 Deploying from main branch - additional validation..."
+          
+          # Ensure we have recent commits
+          LAST_COMMIT_AGE=$(git log -1 --format="%ct")
+          CURRENT_TIME=$(date +%s)
+          AGE_HOURS=$(( (CURRENT_TIME - LAST_COMMIT_AGE) / 3600 ))
+          
+          if [ $AGE_HOURS -gt 168 ]; then  # 1 week
+            echo "⚠️  WARNING: Last commit is $AGE_HOURS hours old"
+          fi
+        fi
+        
+        echo "✅ Git workflow validation passed"
+
   test:
     runs-on: ubuntu-latest
+    needs: git-workflow-check
     strategy:
       fail-fast: false
       matrix:
@@ -99,7 +140,7 @@ jobs:
 
   docker-test:
     runs-on: ubuntu-latest
-    needs: test
+    needs: [git-workflow-check, test]
     
     steps:
     - uses: actions/checkout@v4
@@ -131,7 +172,7 @@ jobs:
 
   railway-validation:
     runs-on: ubuntu-latest
-    needs: test
+    needs: [git-workflow-check, test]
     if: github.ref == 'refs/heads/main'
     
     steps:
@@ -165,7 +206,7 @@ jobs:
 
   security-scan:
     runs-on: ubuntu-latest
-    needs: test
+    needs: [git-workflow-check, test]
     
     steps:
     - uses: actions/checkout@v4
@@ -180,7 +221,7 @@ jobs:
 
   deployment-summary:
     runs-on: ubuntu-latest
-    needs: [test, docker-test, railway-validation]
+    needs: [git-workflow-check, test, docker-test, railway-validation]
     if: always()
     
     steps:
