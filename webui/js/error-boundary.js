@@ -308,7 +308,7 @@ class ErrorBoundary {
         // }
         
         // For now, just log to console in development
-        if (process.env.NODE_ENV === 'development') {
+        if (this.isDevelopmentMode()) {
             console.group('🚨 Error Boundary Report');
             console.error('Type:', errorEntry.type);
             console.error('Message:', errorEntry.message);
@@ -316,6 +316,20 @@ class ErrorBoundary {
             console.error('Stack:', errorEntry.stack);
             console.groupEnd();
         }
+    }
+
+    /**
+     * Check if running in development mode (browser-safe)
+     */
+    isDevelopmentMode() {
+        // Multiple ways to detect development mode without Node.js globals
+        return window.location.hostname === 'localhost' || 
+               window.location.hostname === '127.0.0.1' ||
+               window.location.hostname.includes('dev') ||
+               window.location.port === '5173' || // Vite dev server default
+               window.location.port === '3000' || // Common dev port
+               window.location.port === '8080' || // Another common dev port
+               !window.location.protocol.startsWith('https'); // Assume dev if not HTTPS
     }
 
     /**
@@ -352,11 +366,32 @@ class ErrorBoundary {
 
 // Initialize global error boundary only if not in test environment
 let globalErrorBoundary;
-if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
+if (typeof window !== 'undefined' && !window.location.href.includes('test')) {
     try {
         globalErrorBoundary = new ErrorBoundary();
     } catch (error) {
         console.warn('Failed to initialize global error boundary:', error);
+    }
+}
+
+// Provide early fallback for functions that Alpine.js might call before modules load
+if (typeof window !== 'undefined') {
+    // Early fetchCurrentModel fallback
+    if (!window.fetchCurrentModel) {
+        window.fetchCurrentModel = function() {
+            console.log('🔄 fetchCurrentModel called early, deferring until index.js loads...');
+            // Defer execution until the real function is available
+            const checkForRealFunction = () => {
+                // Look for the real function from index.js module
+                if (window.fetchCurrentModel && window.fetchCurrentModel.toString().includes('sendJsonData')) {
+                    console.log('✅ Real fetchCurrentModel found, calling it now');
+                    window.fetchCurrentModel();
+                } else {
+                    setTimeout(checkForRealFunction, 100);
+                }
+            };
+            setTimeout(checkForRealFunction, 100);
+        };
     }
 }
 

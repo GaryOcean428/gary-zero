@@ -484,6 +484,61 @@ async def api_endpoint():
         }
 
 
+# Error reporting endpoint for frontend error boundary
+@webapp.route("/api/error_report", methods=["POST", "OPTIONS"])
+@requires_auth
+async def error_report():
+    """Handle error reports from the frontend error boundary."""
+    # Handle OPTIONS request for CORS
+    if request.method == "OPTIONS":
+        response = Response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "POST,OPTIONS")
+        return response
+    
+    try:
+        # Get error data from request
+        if request.is_json:
+            error_data = request.get_json()
+        else:
+            error_data = dict(request.form)
+        
+        # Log error data for debugging and monitoring
+        PrintStyle().error(f"Frontend Error Report: {error_data}")
+        
+        # Extract key information for structured logging
+        error_type = error_data.get('type', 'unknown')
+        error_message = error_data.get('message', 'No message')
+        error_url = error_data.get('url', 'unknown')
+        timestamp = error_data.get('timestamp', time.time())
+        
+        # Enhanced logging with context
+        PrintStyle().error(f"Error Type: {error_type}")
+        PrintStyle().error(f"Error Message: {error_message}")
+        PrintStyle().error(f"Error URL: {error_url}")
+        PrintStyle().error(f"Timestamp: {timestamp}")
+        
+        # Store or forward to external logging service if needed
+        # This could be extended to send to services like Sentry, LogRocket, etc.
+        
+        return {
+            "status": "success", 
+            "message": "Error report received and logged",
+            "timestamp": time.time(),
+            "error_id": f"err_{int(time.time())}"
+        }
+        
+    except Exception as e:
+        PrintStyle().error(f"Failed to process error report: {str(e)}")
+        return {
+            "status": "error", 
+            "message": "Failed to process error report",
+            "error": str(e),
+            "timestamp": time.time()
+        }, 500
+
+
 # Debug endpoint for route inspection
 @webapp.route("/debug/routes", methods=["GET", "OPTIONS"])
 @requires_auth
