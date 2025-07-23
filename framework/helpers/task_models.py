@@ -17,7 +17,7 @@ except ImportError:
     pass
 
 try:
-    import pytz
+    import pytz  # type: ignore[import]
 except ImportError:
     # pytz is optional - used for timezone handling
     pytz = None

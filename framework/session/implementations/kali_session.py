@@ -9,7 +9,7 @@ import uuid
 from typing import Any
 from urllib.parse import urljoin
 
-import requests
+import requests  # type: ignore[import]
 
 from ..session_interface import (
     SessionInterface,

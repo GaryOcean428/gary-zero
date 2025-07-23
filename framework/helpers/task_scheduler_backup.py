@@ -22,8 +22,8 @@ from urllib.parse import urlparse
 
 # Third-party imports
 import nest_asyncio
-import pytz
-from crontab import CronTab
+import pytz  # type: ignore[import]
+from crontab import CronTab  # type: ignore[import]
 from pydantic import BaseModel, Field, PrivateAttr
 
 # Local imports

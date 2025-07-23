@@ -3,13 +3,9 @@
 import json
 from datetime import datetime
 
-# Try to import the full Tool class, fallback to our simple base
-try:
-    from framework.helpers.tool import Response, Tool
-    BaseClass = Tool
-except ImportError:
-    from framework.plugins.base import PluginTool, Response
-    BaseClass = PluginTool
+# Try to import the full Tool class
+from framework.helpers.tool import Response, Tool
+BaseClass = Tool
 
 
 class SimpleTest(BaseClass):

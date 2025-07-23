@@ -1,4 +1,4 @@
-import requests
+import requests  # type: ignore[import]
 
 from framework.helpers import dotenv, runtime
 from framework.helpers.api import ApiHandler, Input, Output, Request
