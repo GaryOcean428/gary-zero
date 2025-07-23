@@ -90,11 +90,65 @@ webapp.after_request(add_security_headers)
 # Custom error handlers
 @webapp.errorhandler(404)
 def handle_404(e):
-    """Handle 404 errors with custom page."""
-    try:
-        return files.read_file("./webui/404.html"), 404
-    except Exception:
-        return Response("Page not found", 404, mimetype="text/plain")
+    """Handle 404 errors with enhanced diagnostics."""
+    from flask import jsonify
+    
+    # Log the 404 for debugging
+    PrintStyle().error(f"404 Error: {request.method} {request.path} not found")
+    
+    # Check if it's an API request (JSON or starts with /api)
+    is_api_request = request.is_json or request.path.startswith('/api') or 'application/json' in request.headers.get('Accept', '')
+    
+    if is_api_request:
+        return jsonify({
+            "error": "Not Found",
+            "method": request.method,
+            "path": request.path,
+            "message": "The requested endpoint does not exist",
+            "timestamp": time.time(),
+            "available_endpoints": ["/", "/health", "/ready", "/privacy", "/terms", "/favicon.ico"]
+        }), 404
+    else:
+        try:
+            return files.read_file("./webui/404.html"), 404
+        except Exception:
+            return Response("Page not found", 404, mimetype="text/plain")
+
+
+@webapp.errorhandler(405)
+def handle_405(e):
+    """Handle 405 Method Not Allowed errors with detailed diagnostics."""
+    from flask import jsonify
+    
+    # Log the 405 for debugging
+    PrintStyle().error(f"405 Error: {request.method} {request.path} method not allowed")
+    
+    # Get allowed methods for this endpoint
+    allowed_methods = []
+    if request.url_rule:
+        allowed_methods = list(request.url_rule.methods - {'HEAD', 'OPTIONS'})
+    
+    # Check if it's an API request
+    is_api_request = request.is_json or request.path.startswith('/api') or 'application/json' in request.headers.get('Accept', '')
+    
+    if is_api_request:
+        return jsonify({
+            "error": "Method Not Allowed",
+            "method": request.method,
+            "path": request.path,
+            "allowed_methods": allowed_methods,
+            "message": f"The {request.method} method is not allowed for this endpoint",
+            "timestamp": time.time(),
+            "suggestion": "Check the allowed methods or use a different endpoint"
+        }), 405
+    else:
+        return Response(f"""
+        <h1>405 Method Not Allowed</h1>
+        <p><strong>Method:</strong> {request.method}</p>
+        <p><strong>Path:</strong> {request.path}</p>
+        <p><strong>Allowed Methods:</strong> {', '.join(allowed_methods)}</p>
+        <p><strong>Timestamp:</strong> {time.time()}</p>
+        """, 405, mimetype="text/html")
 
 
 @webapp.errorhandler(500)
@@ -116,6 +170,18 @@ def handle_exception(e):
         return files.read_file("./webui/500.html"), 500
     except Exception:
         return Response("Internal server error", 500, mimetype="text/plain")
+
+
+# Add CORS preflight handling
+@webapp.before_request
+def handle_preflight():
+    """Handle CORS preflight OPTIONS requests."""
+    if request.method == "OPTIONS":
+        response = Response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS")
+        return response
 
 
 def is_loopback_address(address):
@@ -208,10 +274,34 @@ def requires_auth(f):
     return decorated
 
 
-@webapp.route("/", methods=["GET"])
+@webapp.route("/", methods=["GET", "POST"])
 @requires_auth
 async def serve_index():
-    """Serve the main index.html file."""
+    """Serve the main index.html file and handle form submissions."""
+    if request.method == "POST":
+        # Handle form submissions or API requests to root
+        PrintStyle().debug(f"POST request to root: {request.form}")
+        
+        # Check if it's JSON data
+        if request.is_json:
+            data = request.get_json()
+            return {
+                "status": "success",
+                "message": "JSON data received",
+                "data": data,
+                "timestamp": time.time()
+            }
+        else:
+            # Handle form data
+            form_data = dict(request.form)
+            return {
+                "status": "success", 
+                "message": "Form submission received",
+                "data": form_data,
+                "timestamp": time.time()
+            }
+    
+    # GET request - serve the main page
     from framework.helpers.template_helper import render_index_html
     return render_index_html()
     gitinfo = None
@@ -316,6 +406,61 @@ def health_check():
 def readiness_check():
     """Readiness check endpoint for Railway deployment verification."""
     return {"status": "ready", "service": "gary-zero", "timestamp": time.time()}
+
+
+# API endpoints for compatibility
+@webapp.route("/api", methods=["GET", "POST"])
+@requires_auth
+async def api_endpoint():
+    """API endpoint that handles both GET and POST requests."""
+    if request.method == "POST":
+        PrintStyle().debug(f"API POST request: {request.form or request.get_json()}")
+        
+        if request.is_json:
+            data = request.get_json()
+            message = data.get("message", "")
+            return {
+                "status": "success",
+                "response": f"Received message: {message}",
+                "timestamp": time.time()
+            }
+        else:
+            # Handle form data
+            return {
+                "status": "success",
+                "response": "API form submission received",
+                "data": dict(request.form),
+                "timestamp": time.time()
+            }
+    else:
+        # GET request
+        return {
+            "message": "Gary-Zero Flask API",
+            "version": "1.0.0",
+            "status": "running",
+            "timestamp": time.time(),
+            "methods": ["GET", "POST"]
+        }
+
+
+# Debug endpoint for route inspection
+@webapp.route("/debug/routes", methods=["GET"])
+@requires_auth
+async def debug_routes():
+    """Debug endpoint to list all registered Flask routes."""
+    routes = []
+    for rule in webapp.url_map.iter_rules():
+        routes.append({
+            "endpoint": rule.endpoint,
+            "methods": list(rule.methods - {'HEAD', 'OPTIONS'}),
+            "rule": rule.rule
+        })
+    
+    return {
+        "total_routes": len(routes),
+        "routes": routes,
+        "timestamp": time.time()
+    }
 
 
 # handle favicon requests
