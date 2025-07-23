@@ -173,9 +173,9 @@ DEFAULT_SETTINGS: Settings = {
     "util_model_rl_requests": 0,
     "util_model_rl_input": 0,
     "util_model_rl_output": 0,
-    # Embedding model settings - using OpenAI text-embedding-3-large
+    # Embedding model settings - using OpenAI text-embedding-3-large (modern)
     "embed_model_provider": "OPENAI",
-    "embed_model_name": "text-embedding-3-large",
+    "embed_model_name": "gpt-4.1-embeddings",
     "embed_model_kwargs": {},
     "embed_model_ctx_length": 8192,
     "embed_model_rl_requests": 0,

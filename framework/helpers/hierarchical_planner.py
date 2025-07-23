@@ -137,7 +137,7 @@ class PlanningConfig(BaseModel):
     
     auto_planning_enabled: bool = Field(default=True, description="Enable automatic planning")
     max_recursion_depth: int = Field(default=3, description="Maximum recursion depth for plan decomposition")
-    model_name: str = Field(default="gpt-4", description="LLM model to use for planning")
+    model_name: str = Field(default="o3", description="LLM model to use for planning")
     max_subtasks: int = Field(default=10, description="Maximum number of subtasks per plan")
     verification_enabled: bool = Field(default=True, description="Enable subtask result verification")
     retry_failed_subtasks: bool = Field(default=True, description="Retry failed subtasks with alternative approaches")

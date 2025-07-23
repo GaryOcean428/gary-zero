@@ -379,6 +379,31 @@ def get_code_models_for_provider(provider_name: str) -> list[dict[str, str]]:
     return code_models
 
 
+def get_all_voice_models() -> list[dict[str, str]]:
+    """Get all voice-capable models across all providers.
+    
+    Returns:
+        List of all voice model dictionaries
+    """
+    all_models = get_all_models()
+    return [model for model in all_models if model.get("voice", False)]
+
+
+def get_all_code_models() -> list[dict[str, str]]:
+    """Get all code-oriented models across all providers.
+    
+    Returns:
+        List of all code model dictionaries
+    """
+    all_models = get_all_models()
+    code_models = []
+    for model in all_models:
+        # Check if it's explicitly marked as a code model or has "code" in the name
+        if model.get("code", False) or "code" in model["value"].lower():
+            code_models.append(model)
+    return code_models
+
+
 def get_model_release_date(provider_name: str, model_name: str) -> str | None:
     """Get the release date of a model.
     
