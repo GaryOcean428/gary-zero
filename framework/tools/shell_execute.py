@@ -6,6 +6,7 @@ with real-time UI feedback, comprehensive error handling, and approval workflows
 """
 
 import os
+import time
 from typing import Any
 
 from framework.helpers.kali_executor import get_kali_executor, is_kali_execution_available

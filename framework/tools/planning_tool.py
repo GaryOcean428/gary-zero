@@ -10,7 +10,7 @@ from typing import Any, Dict, Optional
 
 from framework.helpers.enhanced_scheduler import EnhancedHierarchicalScheduler
 from framework.helpers.planner_config import PlannerSettings
-from framework.helpers.hierarchical_planner import PlanStatus
+from framework.helpers.hierarchical_planner import PlanStatus, PlanningConfig
 
 # Defer heavy imports to avoid circular dependencies
 try:
