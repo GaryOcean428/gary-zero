@@ -123,7 +123,7 @@ The settings system supports these model configurations:
 DEFAULT_SETTINGS = {
     "chat_model_name": "claude-sonnet-4-20250514",      # Claude 4 Sonnet
     "util_model_name": "gpt-4.1-mini",                  # GPT-4.1 Mini
-    "embed_model_name": "gpt-4.1-embeddings",           # GPT-4.1 Embeddings
+    "embed_model_name": "text-embedding-3-large",     # Text Embedding 3 Large
     "browser_model_name": "claude-sonnet-4-20250514",   # Claude 4 Sonnet
     "voice_model_name": "gpt-4o-realtime-preview",      # OpenAI Realtime
     "code_model_name": "claude-code",                    # Claude Code
