@@ -212,6 +212,8 @@ def requires_auth(f):
 @requires_auth
 async def serve_index():
     """Serve the main index.html file."""
+    from framework.helpers.template_helper import render_index_html
+    return render_index_html()
     gitinfo = None
     try:
         gitinfo = git.get_git_info()
@@ -253,14 +255,16 @@ async def serve_index():
 @webapp.route("/privacy", methods=["GET"])
 def serve_privacy():
     """Serve the privacy policy page."""
-    return files.read_file("./webui/privacy.html")
+    from framework.helpers.template_helper import render_template
+    return render_template("./webui/privacy.html")
 
 
 # handle terms of service page
 @webapp.route("/terms", methods=["GET"])
 def serve_terms():
     """Serve the terms of service page."""
-    return files.read_file("./webui/terms.html")
+    from framework.helpers.template_helper import render_template
+    return render_template("./webui/terms.html")
 
 
 # health check endpoint

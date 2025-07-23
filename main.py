@@ -455,9 +455,12 @@ async def root():
 # Serve web UI at /ui route instead
 @app.get("/ui")
 async def serve_ui():
-    """Serve the web UI index.html."""
-    from fastapi.responses import FileResponse
-    return FileResponse("webui/index.html", media_type="text/html")
+    """Serve the web UI index.html at root."""
+    from fastapi.responses import HTMLResponse
+    from framework.helpers.template_helper import render_index_html
+    rendered_html = render_index_html()
+    return HTMLResponse(content=rendered_html, media_type="text/html")
+
 
 # Serve critical webui root files
 @app.get("/index.css")
