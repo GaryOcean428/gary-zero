@@ -87,7 +87,7 @@ class TemplateHelper:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Gary-Zero - Template Error</title>
+    <title>{self.get_application_name()} - Template Error</title>
     <style>
         body {{ font-family: Arial, sans-serif; margin: 40px; }}
         .error {{ background: #f8d7da; color: #721c24; padding: 20px; border-radius: 5px; }}
