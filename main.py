@@ -12,7 +12,7 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 import psutil
-from fastapi import Depends, FastAPI, HTTPException, WebSocket, WebSocketDisconnect, status
+from fastapi import Depends, FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse, FileResponse, HTMLResponse
@@ -361,13 +361,51 @@ async def api_get():
     }
 
 @app.post("/api")
-async def api_post(request: MessageRequest):
+async def api_post(request: Request):
     """API root endpoint for POST requests."""
-    logger.info(f"API POST request: {request.message[:100]}...")
+    logger.info("API POST request received")
     
-    # Process the message (placeholder for actual agent processing)
-    response = await process_agent_message(request)
-    return response
+    # Handle different content types
+    content_type = request.headers.get("content-type", "")
+    
+    try:
+        if "application/json" in content_type:
+            # JSON request
+            json_data = await request.json()
+            logger.info(f"API POST JSON: {str(json_data)[:100]}...")
+            
+            # Try to parse as MessageRequest for compatibility
+            try:
+                message_request = MessageRequest(**json_data)
+                response = await process_agent_message(message_request)
+                return response
+            except Exception:
+                # Handle as generic JSON
+                return {
+                    "status": "success",
+                    "response": "API JSON data received",
+                    "data": json_data,
+                    "timestamp": time.time()
+                }
+        else:
+            # Form data or other types
+            form_data = await request.form()
+            form_dict = dict(form_data)
+            logger.info(f"API POST form: {str(form_dict)[:100]}...")
+            
+            return {
+                "status": "success",
+                "response": "API form data received",
+                "data": form_dict,
+                "timestamp": time.time()
+            }
+    except Exception as e:
+        logger.error(f"Error processing API POST: {e}")
+        return {
+            "status": "error",
+            "response": f"Error processing API request: {str(e)}",
+            "timestamp": time.time()
+        }
 
 @app.options("/api")
 async def api_options():
@@ -475,20 +513,68 @@ async def serve_ui():
     return FileResponse("webui/index.html", media_type="text/html")
 
 @app.post("/")
-async def serve_ui_post(request: MessageRequest = None):
+async def serve_ui_post(request: Request):
     """Handle POST requests to root endpoint (common for form submissions)."""
     logger.info("POST request to root endpoint")
     
-    if request:
-        logger.info(f"POST data: {request.message[:100]}...")
-        # Process the form submission
-        response = await process_agent_message(request)
-        return response
-    else:
-        # Handle form data that doesn't match MessageRequest model
+    # Handle different content types
+    content_type = request.headers.get("content-type", "")
+    
+    try:
+        if "application/json" in content_type:
+            # JSON request
+            json_data = await request.json()
+            logger.info(f"POST JSON data: {str(json_data)[:100]}...")
+            return {
+                "status": "success",
+                "message": "JSON data received",
+                "data": json_data,
+                "timestamp": time.time()
+            }
+        elif "application/x-www-form-urlencoded" in content_type:
+            # Form data
+            form_data = await request.form()
+            form_dict = dict(form_data)
+            logger.info(f"POST form data: {str(form_dict)[:100]}...")
+            return {
+                "status": "success",
+                "message": "Form submission received",
+                "data": form_dict,
+                "timestamp": time.time()
+            }
+        elif "multipart/form-data" in content_type:
+            # Multipart form (file uploads)
+            form_data = await request.form()
+            form_dict = {}
+            for key, value in form_data.items():
+                if hasattr(value, 'filename'):
+                    # File upload
+                    form_dict[key] = f"FILE: {value.filename}"
+                else:
+                    form_dict[key] = str(value)
+            logger.info(f"POST multipart data: {str(form_dict)[:100]}...")
+            return {
+                "status": "success",
+                "message": "Multipart form submission received",
+                "data": form_dict,
+                "timestamp": time.time()
+            }
+        else:
+            # Raw body or unknown content type
+            body = await request.body()
+            logger.info(f"POST raw body (content-type: {content_type}): {str(body)[:100]}...")
+            return {
+                "status": "success",
+                "message": "Raw POST data received",
+                "content_type": content_type,
+                "data_length": len(body),
+                "timestamp": time.time()
+            }
+    except Exception as e:
+        logger.error(f"Error processing POST request: {e}")
         return {
-            "status": "success",
-            "message": "Form submission received",
+            "status": "error",
+            "message": f"Error processing request: {str(e)}",
             "timestamp": time.time()
         }
 
@@ -518,6 +604,44 @@ async def serve_index_css():
 @app.get("/index.js")
 async def serve_index_js():
     return FileResponse("webui/index.js", media_type="application/javascript")
+
+# Catch-all route for unmatched paths to prevent 404/405 issues
+@app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"])
+async def catch_all(request: Request, path: str):
+    """Catch-all route to handle unregistered paths with appropriate responses."""
+    method = request.method
+    full_path = f"/{path}"
+    
+    logger.warning(f"Unmatched route accessed: {method} {full_path}")
+    
+    # Handle OPTIONS requests for CORS
+    if method == "OPTIONS":
+        return JSONResponse(
+            status_code=200,
+            content={"message": "CORS preflight successful"},
+            headers={
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type, Authorization"
+            }
+        )
+    
+    # For other methods, return 404 with helpful information
+    return JSONResponse(
+        status_code=404,
+        content={
+            "error": "Route not found",
+            "method": method,
+            "path": full_path,
+            "message": f"The endpoint {full_path} does not exist",
+            "timestamp": time.time(),
+            "suggestion": "Check available routes at /debug/routes",
+            "available_endpoints": [
+                "/", "/health", "/ready", "/metrics", "/api", "/ui",
+                "/docs", "/redoc", "/ws", "/index.css", "/index.js"
+            ]
+        }
+    )
 
 # --- Uvicorn Entrypoint ---
 if __name__ == "__main__":
