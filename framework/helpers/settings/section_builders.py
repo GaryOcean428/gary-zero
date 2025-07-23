@@ -586,3 +586,87 @@ class SectionBuilder:
             "fields": claude_code_fields,
             "tab": "tools",
         }
+
+    @staticmethod
+    def build_voice_model_section(settings: Settings) -> SettingsSection:
+        """Builds the voice model settings section."""
+        voice_model_fields = FieldBuilder.create_model_fields(
+            "voice",
+            settings,
+            models.ModelProvider,
+            model_params_description=(
+                "Any other parameters supported by the voice model. "
+                "Format is KEY=VALUE on individual lines, just like .env file."
+            )
+        )
+        
+        # Add voice-specific fields
+        voice_architecture_field = {
+            "id": "voice_architecture",
+            "title": "Voice Architecture",
+            "description": "Select the voice processing architecture",
+            "type": "select",
+            "value": settings.get("voice_architecture", "speech_to_speech"),
+            "options": [
+                {"value": "speech_to_speech", "label": "Speech-to-Speech (realtime)"},
+                {"value": "chained", "label": "Chained (transcribe → LLM → TTS)"},
+            ],
+        }
+        
+        transport_field = {
+            "id": "voice_transport",
+            "title": "Transport Protocol",
+            "description": "Transport protocol for realtime voice connections",
+            "type": "select",
+            "value": settings.get("voice_transport", "websocket"),
+            "options": [
+                {"value": "websocket", "label": "WebSocket"},
+                {"value": "webrtc", "label": "WebRTC"},
+            ],
+        }
+        
+        # Insert voice-specific fields after the model selection
+        voice_model_fields.insert(2, voice_architecture_field)
+        voice_model_fields.insert(3, transport_field)
+        
+        return {
+            "id": "voice_model",
+            "title": "Voice Model",
+            "description": (
+                "Settings for voice interaction including speech-to-speech (S2S) models "
+                "like OpenAI Realtime and Google Gemini Live, or chained transcription models."
+            ),
+            "fields": voice_model_fields,
+            "tab": "agent",
+        }
+
+    @staticmethod
+    def build_code_model_section(settings: Settings) -> SettingsSection:
+        """Builds the code model settings section."""
+        code_model_fields = FieldBuilder.create_model_fields(
+            "code",
+            settings,
+            models.ModelProvider,
+            model_params_description=(
+                "Any other parameters supported by the code model. "
+                "Format is KEY=VALUE on individual lines, just like .env file."
+            )
+        )
+        
+        # Override description for code model provider
+        for field in code_model_fields:
+            if field["id"] == "code_model_provider":
+                field["description"] = "Select provider for code model used for development tasks"
+            elif field["id"] == "code_model_name":
+                field["description"] = "Select code-oriented model for programming, debugging, and development tasks"
+        
+        return {
+            "id": "code_model",
+            "title": "Code Model",
+            "description": (
+                "Settings for code-specific model used for programming tasks, "
+                "code completion, debugging, and development assistance."
+            ),
+            "fields": code_model_fields,
+            "tab": "agent",
+        }

@@ -258,6 +258,57 @@ async function sendJsonData(url, data) {
 }
 window.sendJsonData = sendJsonData;
 
+// --- Model Management Functions ---
+
+async function fetchCurrentModel() {
+    try {
+        const response = await sendJsonData("/get_current_model", {});
+        if (response && !response.error) {
+            // Update the model indicator
+            const indicator = document.getElementById("model-indicator");
+            if (indicator) {
+                const modelData = {
+                    model_label: response.model_label || response.model_name || "Unknown",
+                    display_name: response.display_name || "Unknown Model",
+                    capabilities: response.capabilities || []
+                };
+                
+                // Update Alpine.js data if available
+                if (typeof Alpine !== 'undefined') {
+                    const alpineData = Alpine.$data(indicator);
+                    if (alpineData) {
+                        alpineData.currentModel = modelData;
+                    }
+                }
+                
+                // Fallback: direct DOM update
+                indicator.textContent = modelData.model_label;
+                indicator.title = `Current model: ${modelData.display_name}`;
+                
+                // Add capability indicators as CSS classes
+                indicator.className = 'model-indicator';
+                if (modelData.capabilities.includes('voice')) {
+                    indicator.classList.add('model-voice');
+                }
+                if (modelData.capabilities.includes('code')) {
+                    indicator.classList.add('model-code');
+                }
+                if (modelData.capabilities.includes('vision')) {
+                    indicator.classList.add('model-vision');
+                }
+                
+                console.log('✅ Updated model indicator:', modelData);
+            }
+        } else {
+            console.error('❌ Error fetching current model:', response?.error || 'Unknown error');
+        }
+    } catch (error) {
+        console.error('❌ Failed to fetch current model:', error);
+    }
+}
+
+window.fetchCurrentModel = fetchCurrentModel;
+
 // --- State Management ---
 
 function setContext(id) {
@@ -1132,6 +1183,15 @@ function initializeApp() {
         // Final UI verification
         setTimeout(() => {
             verifyUIVisibility();
+            
+            // Fetch current model information for the indicator
+            fetchCurrentModel();
+            
+            // Listen for settings updates to refresh model info
+            document.addEventListener('settings-updated', () => {
+                console.log('🔄 Settings updated, refreshing model indicator');
+                setTimeout(fetchCurrentModel, 500); // Small delay to ensure settings are saved
+            });
         }, 1000);
     }
 

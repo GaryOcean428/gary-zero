@@ -83,6 +83,24 @@ class Settings(TypedDict):
     browser_model_kwargs: dict[str, str]
     browser_model_vision: bool
 
+    # Voice model settings
+    voice_model_provider: str
+    voice_model_name: str
+    voice_model_kwargs: dict[str, str]
+    voice_model_rl_requests: int
+    voice_model_rl_input: int
+    voice_model_rl_output: int
+    voice_architecture: str
+    voice_transport: str
+
+    # Code model settings
+    code_model_provider: str
+    code_model_name: str
+    code_model_kwargs: dict[str, str]
+    code_model_rl_requests: int
+    code_model_rl_input: int
+    code_model_rl_output: int
+
     # MCP Servers settings
     mcp_servers: dict[str, Any]
 
@@ -155,7 +173,7 @@ DEFAULT_SETTINGS: Settings = {
     "util_model_rl_requests": 0,
     "util_model_rl_input": 0,
     "util_model_rl_output": 0,
-    # Embedding model settings - using OpenAI text-embedding-3-large
+    # Embedding model settings - using OpenAI text-embedding-3-large (modern and valid)
     "embed_model_provider": "OPENAI",
     "embed_model_name": "text-embedding-3-large",
     "embed_model_kwargs": {},
@@ -170,6 +188,22 @@ DEFAULT_SETTINGS: Settings = {
     "browser_model_rl_requests": 0,
     "browser_model_rl_input": 0,
     "browser_model_rl_output": 0,
+    # Voice model settings - using OpenAI GPT-4o Realtime for voice
+    "voice_model_provider": "OPENAI",
+    "voice_model_name": "gpt-4o-realtime-preview",
+    "voice_model_kwargs": {},
+    "voice_model_rl_requests": 0,
+    "voice_model_rl_input": 0,
+    "voice_model_rl_output": 0,
+    "voice_architecture": "speech_to_speech",
+    "voice_transport": "websocket",
+    # Code model settings - using Claude Code for development
+    "code_model_provider": "ANTHROPIC",
+    "code_model_name": "claude-code",
+    "code_model_kwargs": {},
+    "code_model_rl_requests": 0,
+    "code_model_rl_input": 0,
+    "code_model_rl_output": 0,
     # Agent configuration settings
     "agent_prompts_subdir": "default",
     "agent_memory_subdir": "default",

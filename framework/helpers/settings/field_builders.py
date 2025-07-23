@@ -1,7 +1,7 @@
 from typing import Any
 
 import models
-from framework.helpers.model_catalog import get_all_models, get_models_for_provider
+from framework.helpers.model_catalog import get_all_models, get_models_for_provider, get_modern_models_for_provider
 from framework.helpers.settings.constants import PASSWORD_PLACEHOLDER
 from framework.helpers.settings.types import Settings, SettingsField
 
@@ -61,10 +61,14 @@ class FieldBuilder:
             }
         )
 
-        # Get models for the current provider
+        # Get models for the current provider, preferring modern models
         current_provider = settings[f"{model_type}_model_provider"]
-        provider_models = get_models_for_provider(current_provider)
+        provider_models = get_modern_models_for_provider(current_provider)
         if not provider_models:
+            # Fallback to all models if no modern models available for this provider
+            provider_models = get_models_for_provider(current_provider)
+        if not provider_models:
+            # Final fallback to all models across all providers
             provider_models = get_all_models()
 
         fields.append(

@@ -65,7 +65,7 @@ class PlannerSettings:
         config_dict = {
             "auto_planning_enabled": cls._get_bool_setting("PLANNER_AUTO_PLANNING", True),
             "max_recursion_depth": cls._get_int_setting("PLANNER_MAX_RECURSION_DEPTH", 3),
-            "model_name": cls._get_str_setting("PLANNER_MODEL", "gpt-4"),
+            "model_name": cls._get_str_setting("PLANNER_MODEL", "o3"),
             "max_subtasks": cls._get_int_setting("PLANNER_MAX_SUBTASKS", 10),
             "verification_enabled": cls._get_bool_setting("PLANNER_VERIFICATION", True),
             "retry_failed_subtasks": cls._get_bool_setting("PLANNER_RETRY_FAILED", True),

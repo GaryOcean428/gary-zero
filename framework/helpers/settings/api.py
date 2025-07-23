@@ -133,6 +133,8 @@ def convert_out(settings: Settings) -> SettingsOutput:
         SectionBuilder.build_util_model_section(settings),
         SectionBuilder.build_embed_model_section(settings),
         SectionBuilder.build_browser_model_section(settings),
+        SectionBuilder.build_voice_model_section(settings),
+        SectionBuilder.build_code_model_section(settings),
         SectionBuilder.build_stt_section(settings),
         SectionBuilder.build_api_keys_section(settings),
         SectionBuilder.build_auth_section(settings),
