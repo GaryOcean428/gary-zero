@@ -225,6 +225,10 @@ def main():
     # Set up test environment
     os.environ.setdefault("PORT", "8000")
     os.environ.setdefault("WEB_UI_HOST", "0.0.0.0")
+
+    def print_test_separator() -> None:
+        """Print a visual separator between tests."""
+        print("-" * 40)
     
     # Run tests
     tests = [
