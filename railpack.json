@@ -1,0 +1,54 @@
+{
+  "platform": {
+    "os": "linux",
+    "arch": "amd64"
+  },
+  "runtime": {
+    "name": "python",
+    "version": "3.13",
+    "package_manager": "uv"
+  },
+  "build": {
+    "steps": [
+      {
+        "name": "install_build_deps", 
+        "run": "apt-get update && apt-get install -y --no-install-recommends gcc g++ build-essential libffi-dev libssl-dev libxml2-dev libxslt1-dev zlib1g-dev libjpeg-dev libpq-dev pkg-config curl git portaudio19-dev libasound-dev libportaudio2 libportaudiocpp0 python3-dev && rm -rf /var/lib/apt/lists/*"
+      },
+      {
+        "name": "install_runtime_deps",
+        "run": "apt-get update && apt-get install -y --no-install-recommends libffi8 libssl3 libxml2 libxslt1.1 zlib1g libjpeg62-turbo libpq5 libportaudio2 libportaudiocpp0 libasound2 && rm -rf /var/lib/apt/lists/*"
+      },
+      {
+        "name": "install_python_deps",
+        "run": "uv pip install -r requirements.txt"
+      }
+    ],
+    "cache": {
+      "enabled": true,
+      "paths": [
+        "/root/.cache/uv",
+        "/root/.cache/pip"
+      ]
+    }
+  },
+  "deploy": {
+    "start_command": "python start_uvicorn.py",
+    "health_check": {
+      "path": "/health",
+      "timeout": 30
+    },
+    "environment": {
+      "PYTHONUNBUFFERED": "1",
+      "PYTHONDONTWRITEBYTECODE": "1", 
+      "PYTHONPATH": "/app",
+      "TOKENIZERS_PARALLELISM": "true",
+      "PYDEVD_DISABLE_FILE_VALIDATION": "1"
+    }
+  },
+  "volumes": [
+    {
+      "name": "gary-zero-data",
+      "mount_path": "/app/data"
+    }
+  ]
+}
