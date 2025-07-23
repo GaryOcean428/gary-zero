@@ -92,7 +92,7 @@ class GoogleGeminiCLI(Tool):
     async def _handle_chat_action(self):
         """Handle chat interaction with Gemini CLI."""
         message = self.args.get("message", "")
-        model = self.args.get("model", "gemini-pro")
+        model = self.args.get("model", "gemini-2.0-flash")
 
         if not message:
             return Response(

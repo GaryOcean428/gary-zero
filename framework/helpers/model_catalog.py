@@ -20,13 +20,6 @@ MODEL_CATALOG: dict[str, list[dict[str, str]]] = {
         {"value": "claude-3-5-sonnet-latest", "label": "Claude 3.5 Sonnet (Latest)", "modern": True, "release_date": "2024-06-21"},
         {"value": "claude-3-5-haiku-latest", "label": "Claude 3.5 Haiku (Latest)", "modern": True, "release_date": "2024-11-01"},
         {"value": "claude-3-5-haiku-20241022", "label": "Claude 3.5 Haiku (2024-10-22)", "modern": True, "release_date": "2024-10-22"},
-        # Legacy models (pre-June 2024) - deprecated
-        {"value": "claude-3-opus-20240229", "label": "Claude 3 Opus", "deprecated": True, "release_date": "2024-03-04"},
-        {"value": "claude-3-sonnet-20240229", "label": "Claude 3 Sonnet", "deprecated": True, "release_date": "2024-03-04"},
-        {"value": "claude-3-haiku-20240307", "label": "Claude 3 Haiku", "deprecated": True, "release_date": "2024-03-04"},
-        {"value": "claude-2.1", "label": "Claude 2.1", "deprecated": True, "release_date": "2023-11-21"},
-        {"value": "claude-2.0", "label": "Claude 2.0", "deprecated": True, "release_date": "2023-07-11"},
-        {"value": "claude-instant-1.2", "label": "Claude Instant 1.2", "deprecated": True, "release_date": "2024-03-01"},
     ],
     "OPENAI": [
         # Modern models (post-June 2024)
@@ -56,15 +49,6 @@ MODEL_CATALOG: dict[str, list[dict[str, str]]] = {
         # Embedding models - modern and widely used
         {"value": "text-embedding-3-large", "label": "Text Embedding 3 Large", "modern": True, "release_date": "2024-01-25"},
         {"value": "text-embedding-3-small", "label": "Text Embedding 3 Small", "modern": True, "release_date": "2024-01-25"},
-        # Legacy models (pre-June 2024) - deprecated
-        {"value": "gpt-4-turbo", "label": "GPT-4 Turbo", "deprecated": True, "release_date": "2023-11-06"},
-        {"value": "gpt-4-turbo-preview", "label": "GPT-4 Turbo Preview", "deprecated": True, "release_date": "2023-11-06"},
-        {"value": "gpt-4", "label": "GPT-4", "deprecated": True, "release_date": "2023-03-14"},
-        {"value": "gpt-4-32k", "label": "GPT-4 32K", "deprecated": True, "release_date": "2023-03-14"},
-        {"value": "gpt-3.5-turbo", "label": "GPT-3.5 Turbo", "deprecated": True, "release_date": "2022-11-30"},
-        {"value": "gpt-3.5-turbo-16k", "label": "GPT-3.5 Turbo 16K", "deprecated": True, "release_date": "2023-06-13"},
-        {"value": "gpt-3.5-turbo-1106", "label": "GPT-3.5 Turbo (1106)", "deprecated": True, "release_date": "2023-11-06"},
-        {"value": "text-embedding-ada-002", "label": "Text Embedding Ada 002", "deprecated": True, "release_date": "2022-12-15"},
     ],
     "GOOGLE": [
         # Modern models (post-June 2024)
@@ -80,13 +64,6 @@ MODEL_CATALOG: dict[str, list[dict[str, str]]] = {
         {"value": "gemini-2.0-flash-lite", "label": "Gemini 2.0 Flash Lite", "modern": True, "release_date": "2024-12-11"},
         {"value": "gemini-cli-chat", "label": "Gemini CLI Chat", "modern": True, "release_date": "2024-12-11"},
         {"value": "gemini-cli-code", "label": "Gemini CLI Code", "modern": True, "release_date": "2024-12-11", "code": True},
-        # Legacy models (pre-June 2024) - deprecated
-        {"value": "gemini-1.5-pro", "label": "Gemini 1.5 Pro", "deprecated": True, "release_date": "2024-02-15"},
-        {"value": "gemini-1.5-flash", "label": "Gemini 1.5 Flash", "deprecated": True, "release_date": "2024-05-14"},
-        {"value": "gemini-pro", "label": "Gemini Pro", "deprecated": True, "release_date": "2023-12-13"},
-        {"value": "gemini-pro-vision", "label": "Gemini Pro Vision", "deprecated": True, "release_date": "2023-12-13"},
-        {"value": "text-bison", "label": "Text Bison", "deprecated": True, "release_date": "2023-05-10"},
-        {"value": "chat-bison", "label": "Chat Bison", "deprecated": True, "release_date": "2023-05-10"},
     ],
     "GROQ": [
         # Modern models (post-June 2024)
@@ -96,9 +73,6 @@ MODEL_CATALOG: dict[str, list[dict[str, str]]] = {
         {"value": "llama-3.1-70b-versatile", "label": "Llama 3.1 70B Versatile", "modern": True, "release_date": "2024-07-23"},
         {"value": "llama-3.1-8b-instant", "label": "Llama 3.1 8B Instant", "modern": True, "release_date": "2024-07-23"},
         {"value": "gemma2-9b-it", "label": "Gemma 2 9B IT", "modern": True, "release_date": "2024-06-27"},
-        # Legacy models (pre-June 2024) - deprecated
-        {"value": "mixtral-8x7b-32768", "label": "Mixtral 8x7B", "deprecated": True, "release_date": "2023-12-11"},
-        {"value": "gemma-7b-it", "label": "Gemma 7B IT", "deprecated": True, "release_date": "2024-02-21"},
     ],
     "MISTRALAI": [
         # Modern models (post-June 2024)
@@ -106,19 +80,10 @@ MODEL_CATALOG: dict[str, list[dict[str, str]]] = {
         {"value": "mistral-medium-latest", "label": "Mistral Medium (Latest)", "modern": True, "release_date": "2024-02-26"},
         {"value": "mistral-small-latest", "label": "Mistral Small (Latest)", "modern": True, "release_date": "2024-02-26"},
         {"value": "mixtral-8x22b-instruct", "label": "Mixtral 8x22B Instruct", "modern": True, "release_date": "2024-04-17"},
-        # Legacy models (pre-June 2024) - deprecated
-        {"value": "mistral-tiny", "label": "Mistral Tiny", "deprecated": True, "release_date": "2023-09-27"},
-        {"value": "mistral-7b-instruct", "label": "Mistral 7B Instruct", "deprecated": True, "release_date": "2023-09-27"},
-        {"value": "mixtral-8x7b-instruct", "label": "Mixtral 8x7B Instruct", "deprecated": True, "release_date": "2023-12-11"},
     ],
     "OPENAI_AZURE": [
         # Modern models (post-June 2024)
         {"value": "gpt-4o", "label": "GPT-4o (Azure)", "modern": True, "release_date": "2024-05-13"},
-        # Legacy models (pre-June 2024) - deprecated
-        {"value": "gpt-4-turbo", "label": "GPT-4 Turbo (Azure)", "deprecated": True, "release_date": "2023-11-06"},
-        {"value": "gpt-4", "label": "GPT-4 (Azure)", "deprecated": True, "release_date": "2023-03-14"},
-        {"value": "gpt-35-turbo", "label": "GPT-3.5 Turbo (Azure)", "deprecated": True, "release_date": "2022-11-30"},
-        {"value": "gpt-35-turbo-16k", "label": "GPT-3.5 Turbo 16K (Azure)", "deprecated": True, "release_date": "2023-06-13"},
     ],
     "DEEPSEEK": [
         # Modern models (post-June 2024)
@@ -152,8 +117,6 @@ MODEL_CATALOG: dict[str, list[dict[str, str]]] = {
         {"value": "grok-3-mini-fast", "label": "Grok 3 Mini Fast", "modern": True, "release_date": "2025-02-17"},
         {"value": "grok-2-1212", "label": "Grok 2 (1212)", "modern": True, "release_date": "2024-08-14"},
         {"value": "grok-2-vision-1212", "label": "Grok 2 Vision (1212)", "modern": True, "release_date": "2024-08-14"},
-        # Legacy models (pre-June 2024) - deprecated
-        {"value": "grok-beta", "label": "Grok Beta", "deprecated": True, "release_date": "2023-11-03"},
     ],
     "PERPLEXITY": [
         # Modern models (post-June 2024)
@@ -164,12 +127,7 @@ MODEL_CATALOG: dict[str, list[dict[str, str]]] = {
         {"value": "llama-3.1-sonar-huge-128k-online", "label": "Llama 3.1 Sonar Huge 128K", "modern": True, "release_date": "2024-07-23"},
     ],
     "HUGGINGFACE": [
-        # Legacy models (pre-June 2024) - deprecated
-        {"value": "microsoft/DialoGPT-medium", "label": "DialoGPT Medium", "deprecated": True, "release_date": "2019-11-05"},
-        {"value": "microsoft/DialoGPT-large", "label": "DialoGPT Large", "deprecated": True, "release_date": "2019-11-05"},
-        {"value": "facebook/blenderbot-400M-distill", "label": "BlenderBot 400M", "deprecated": True, "release_date": "2021-04-29"},
-        {"value": "meta-llama/Llama-2-7b-chat-hf", "label": "Llama 2 7B Chat", "deprecated": True, "release_date": "2023-07-18"},
-        {"value": "meta-llama/Llama-2-13b-chat-hf", "label": "Llama 2 13B Chat", "deprecated": True, "release_date": "2023-07-18"},
+        # No modern models available - provider deprecated
     ],
     "OLLAMA": [
         # Modern models (post-June 2024)
@@ -179,11 +137,6 @@ MODEL_CATALOG: dict[str, list[dict[str, str]]] = {
         {"value": "phi3", "label": "Phi 3", "modern": True, "release_date": "2024-04-23"},
         {"value": "gemma", "label": "Gemma", "modern": True, "release_date": "2024-02-21"},
         {"value": "qwen2", "label": "Qwen 2", "modern": True, "release_date": "2024-06-07"},
-        # Legacy models (pre-June 2024) - deprecated
-        {"value": "llama2", "label": "Llama 2", "deprecated": True, "release_date": "2023-07-18"},
-        {"value": "mistral", "label": "Mistral", "deprecated": True, "release_date": "2023-09-27"},
-        {"value": "mixtral", "label": "Mixtral", "deprecated": True, "release_date": "2023-12-11"},
-        {"value": "codellama", "label": "Code Llama", "deprecated": True, "release_date": "2023-08-24"},
     ],
     "LMSTUDIO": [
         # Modern models (post-June 2024)
@@ -191,14 +144,9 @@ MODEL_CATALOG: dict[str, list[dict[str, str]]] = {
         {"value": "llama-3.2-3b-instruct", "label": "Llama 3.2 3B Instruct", "modern": True, "release_date": "2024-09-25"},
         {"value": "phi-3-mini-4k-instruct", "label": "Phi 3 Mini 4K Instruct", "modern": True, "release_date": "2024-04-23"},
         {"value": "gemma-2-2b-instruct", "label": "Gemma 2 2B Instruct", "modern": True, "release_date": "2024-06-27"},
-        # Legacy models (pre-June 2024) - deprecated
-        {"value": "mistral-7b-instruct", "label": "Mistral 7B Instruct", "deprecated": True, "release_date": "2023-09-27"},
     ],
     "CHUTES": [
-        # Using modern base models
-        {"value": "gpt-4", "label": "GPT-4 (Chutes)", "deprecated": True, "release_date": "2023-03-14"},
-        {"value": "gpt-3.5-turbo", "label": "GPT-3.5 Turbo (Chutes)", "deprecated": True, "release_date": "2022-11-30"},
-        {"value": "claude-3-sonnet", "label": "Claude 3 Sonnet (Chutes)", "deprecated": True, "release_date": "2024-03-04"},
+        # Provider deprecated - no modern models available
     ],
     "META": [
         # Modern models (post-June 2024)
