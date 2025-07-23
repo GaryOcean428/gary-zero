@@ -675,7 +675,7 @@ setuptools==80.9.0
     #   triton
 sgmllib3k==1.0.0
     # via feedparser
-./shared_mcp
+-e ./shared_mcp
     # via -r requirements.in
 shellingham==1.5.4
     # via typer
