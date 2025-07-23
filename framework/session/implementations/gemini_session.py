@@ -32,7 +32,7 @@ class GeminiSession(SessionInterface):
 
         self.cli_path = config.get('cli_path', 'gemini')
         self.api_key = config.get('api_key', '')
-        self.model = config.get('model', 'gemini-pro')
+        self.model = config.get('model', 'gemini-2.0-flash')
         self.auto_install = config.get('auto_install', False)
 
         # State tracking

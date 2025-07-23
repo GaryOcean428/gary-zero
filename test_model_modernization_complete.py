@@ -31,18 +31,16 @@ def test_model_catalog():
         if anthropic_modern:
             print(f"   First model: {anthropic_modern[0].get('label', 'N/A')}")
         
-        # Test deprecated models
+        # Test deprecated models (should be zero now)
         print("2. Testing deprecated model detection...")
         openai_deprecated = get_deprecated_models_for_provider("OPENAI")
-        print(f"   OpenAI deprecated models: {len(openai_deprecated)}")
+        print(f"   OpenAI deprecated models: {len(openai_deprecated)} (should be 0)")
         
-        # Test specific model checks
+        # Test specific model checks (only modern models exist now)
         print("3. Testing specific model classifications...")
         test_cases = [
             ("OPENAI", "o3"),
-            ("OPENAI", "gpt-3.5-turbo"),
             ("ANTHROPIC", "claude-sonnet-4-20250514"),
-            ("ANTHROPIC", "claude-2.0")
         ]
         
         for provider, model in test_cases:

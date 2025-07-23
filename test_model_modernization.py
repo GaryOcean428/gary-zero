@@ -36,7 +36,7 @@ def test_model_catalog_loading():
     print("✓ Model catalog loaded successfully")
 
 def test_modern_vs_deprecated_categorization():
-    """Test that models are properly categorized as modern or deprecated."""
+    """Test that models are properly categorized as modern (no deprecated models remain)."""
     print("\nTesting modern vs deprecated categorization...")
 
     # Test OpenAI models
@@ -44,24 +44,24 @@ def test_modern_vs_deprecated_categorization():
     openai_deprecated = get_deprecated_models_for_provider("OPENAI")
 
     assert len(openai_modern) > 0, "OpenAI should have modern models"
-    assert len(openai_deprecated) > 0, "OpenAI should have deprecated models"
+    assert len(openai_deprecated) == 0, "OpenAI should have no deprecated models (all removed)"
 
     # Check specific models
     assert is_model_modern("OPENAI", "o3"), "o3 should be modern"
-    assert is_model_deprecated("OPENAI", "gpt-3.5-turbo"), "gpt-3.5-turbo should be deprecated"
+    assert not is_model_deprecated("OPENAI", "gpt-3.5-turbo"), "gpt-3.5-turbo should no longer exist"
 
     # Test Anthropic models
     anthropic_modern = get_modern_models_for_provider("ANTHROPIC")
     anthropic_deprecated = get_deprecated_models_for_provider("ANTHROPIC")
 
     assert len(anthropic_modern) > 0, "Anthropic should have modern models"
-    assert len(anthropic_deprecated) > 0, "Anthropic should have deprecated models"
+    assert len(anthropic_deprecated) == 0, "Anthropic should have no deprecated models (all removed)"
 
     # Check specific models
     assert is_model_modern("ANTHROPIC", "claude-sonnet-4-20250514"), "Claude 4 should be modern"
-    assert is_model_deprecated("ANTHROPIC", "claude-2.0"), "Claude 2.0 should be deprecated"
+    assert not is_model_deprecated("ANTHROPIC", "claude-2.0"), "Claude 2.0 should no longer exist"
 
-    print("✓ Models properly categorized as modern/deprecated")
+    print("✓ Models properly categorized as modern only (deprecated models removed)")
 
 def test_recommended_models():
     """Test that recommended models are modern when available."""
@@ -81,15 +81,15 @@ def test_recommended_models():
             print(f"? {provider} recommended model '{model_name}' has no modern/deprecated flag")
 
 def test_release_dates():
-    """Test that release dates are properly set."""
+    """Test that release dates are properly set for modern models."""
     print("\nTesting release dates...")
 
-    # Test some specific models
+    # Test some specific modern models only
     test_cases = [
-        ("OPENAI", "gpt-3.5-turbo", "2022-11-30"),
         ("OPENAI", "o3", "2025-01-31"),
-        ("ANTHROPIC", "claude-2.0", "2023-07-11"),
+        ("OPENAI", "gpt-4o", "2024-05-13"),
         ("ANTHROPIC", "claude-sonnet-4-20250514", "2025-05-14"),
+        ("ANTHROPIC", "claude-3-5-sonnet-20241022", "2024-10-22"),
     ]
 
     for provider, model, expected_date in test_cases:
