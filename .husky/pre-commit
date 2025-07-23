@@ -2,6 +2,23 @@
 
 echo "🔍 Running Phase 3 pre-commit checks..."
 
+# Enhanced Git status validation
+echo "📋 Git status validation..."
+if ! git diff-index --quiet HEAD --; then
+    echo "❌ ERROR: Uncommitted changes detected during pre-commit!"
+    echo "This should not happen - investigating..."
+    git status --porcelain
+    # Don't fail here as this is expected during commit process
+fi
+
+# Check for untracked files that might need attention
+UNTRACKED_FILES=$(git ls-files --others --exclude-standard | head -10)
+if [ -n "$UNTRACKED_FILES" ]; then
+    echo "📋 Untracked files detected:"
+    echo "$UNTRACKED_FILES"
+    echo "💡 Consider adding to .gitignore if these are not needed"
+fi
+
 # Run critical linting (ESLint errors only - warnings are non-blocking)
 echo "📋 ESLint critical check..."
 npm run lint:clean > /tmp/eslint.log 2>&1
@@ -40,6 +57,11 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 echo "✅ Security: No critical vulnerabilities"
+
+# Final Git status reminder
+echo "📋 Final validation reminder..."
+echo "💡 Remember to push your committed changes to the remote repository"
+echo "💡 Use: git push origin $(git branch --show-current)"
 
 echo "🎯 Phase 3 pre-commit checks completed successfully!"
 echo "📊 Quality: ESLint warnings allowed, critical issues blocked"

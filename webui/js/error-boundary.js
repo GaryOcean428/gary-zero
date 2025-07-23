@@ -86,6 +86,16 @@ class ErrorBoundary {
                     throw error;
                 }
                 
+                // Handle 204 No Content responses gracefully
+                if (response.status === 204) {
+                    // Create a synthetic response with empty content
+                    return new Response(null, {
+                        status: 204,
+                        statusText: 'No Content',
+                        headers: response.headers
+                    });
+                }
+                
                 return response;
             } catch (error) {
                 this.logError('Network Error', error, {

@@ -49,7 +49,11 @@ class VSCodeWebIntegration {
                 this.vscodeTestWeb = window.vscodeTestWeb;
             } else {
                 // Only attempt dynamic import in development environment
-                if (typeof process !== 'undefined' || window.location.hostname === 'localhost') {
+                // Check for process availability safely (browser vs Node.js environment)
+                const isNodeEnv = typeof process !== 'undefined' && process.cwd;
+                const isLocalhost = window.location.hostname === 'localhost';
+                
+                if (isNodeEnv || isLocalhost) {
                     try {
                         const vscodeTestWebModule = await import('@vscode/test-web');
                         this.vscodeTestWeb = vscodeTestWebModule;
@@ -82,9 +86,9 @@ class VSCodeWebIntegration {
 
         const defaultOptions = {
             browserType: 'chromium',
-            extensionDevelopmentPath: process.cwd(),
+            extensionDevelopmentPath: typeof process !== 'undefined' && process.cwd ? process.cwd() : '.',
             extensionTestsPath: './webui',
-            folderPath: process.cwd(),
+            folderPath: typeof process !== 'undefined' && process.cwd ? process.cwd() : '.',
             ...options
         };
 
