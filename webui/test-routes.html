@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Route Testing - Gary Zero</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 3px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        form { margin: 10px 0; }
+        input, textarea { margin: 5px 0; padding: 5px; width: 300px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Gary Zero Route Testing</h1>
+    <p>This page tests various routes and methods to verify 405 fixes.</p>
+
+    <div class="test-section">
+        <h2>🔗 Route Tests</h2>
+        <button onclick="testRoute('GET', '/health')">GET /health</button>
+        <button onclick="testRoute('OPTIONS', '/health')">OPTIONS /health</button>
+        <button onclick="testRoute('GET', '/ready')">GET /ready</button>
+        <button onclick="testRoute('OPTIONS', '/ready')">OPTIONS /ready</button>
+        <button onclick="testRoute('GET', '/api')">GET /api</button>
+        <button onclick="testRoute('POST', '/api', {message: 'test'})">POST /api</button>
+        <button onclick="testRoute('OPTIONS', '/api')">OPTIONS /api</button>
+        <button onclick="testRoute('GET', '/debug/routes')">GET /debug/routes</button>
+        <button onclick="testRoute('GET', '/nonexistent')">GET /nonexistent (404 test)</button>
+        <button onclick="testRoute('POST', '/nonexistent')">POST /nonexistent (404 test)</button>
+        <div id="routeResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 Form Submission Tests</h2>
+        
+        <h3>Form to Root Endpoint</h3>
+        <form method="POST" action="/" onsubmit="return submitTestForm(event, this)">
+            <label>Test Message:</label><br>
+            <input type="text" name="message" value="Hello from form" required><br>
+            <input type="hidden" name="test_type" value="root_form">
+            <button type="submit">Submit to / (POST)</button>
+        </form>
+
+        <h3>Form to API Endpoint</h3>
+        <form method="POST" action="/api" onsubmit="return submitTestForm(event, this)">
+            <label>API Message:</label><br>
+            <textarea name="message" required>API test message</textarea><br>
+            <input type="hidden" name="test_type" value="api_form">
+            <button type="submit">Submit to /api (POST)</button>
+        </form>
+        
+        <div id="formResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 CORS Tests</h2>
+        <button onclick="testCORS()">Test CORS Headers</button>
+        <div id="corsResults"></div>
+    </div>
+
+    <script>
+        function addResult(containerId, message, isSuccess = true) {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `result ${isSuccess ? 'success' : 'error'}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function testRoute(method, path, data = null) {
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+
+                if (data && (method === 'POST' || method === 'PUT')) {
+                    options.body = JSON.stringify(data);
+                }
+
+                const response = await fetch(path, options);
+                const responseText = await response.text();
+                
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch {
+                    result = responseText;
+                }
+
+                addResult('routeResults', 
+                    `${method} ${path}: ${response.status} ${response.statusText}<br>
+                     Response: ${JSON.stringify(result, null, 2)}`, 
+                    response.status < 400 || response.status === 404);
+
+            } catch (error) {
+                addResult('routeResults', 
+                    `${method} ${path}: Error - ${error.message}`, 
+                    false);
+            }
+        }
+
+        async function submitTestForm(event, form) {
+            event.preventDefault();
+            
+            try {
+                const formData = new FormData(form);
+                const response = await fetch(form.action, {
+                    method: form.method,
+                    body: formData
+                });
+
+                const responseText = await response.text();
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch {
+                    result = responseText;
+                }
+
+                addResult('formResults', 
+                    `Form ${form.method} ${form.action}: ${response.status} ${response.statusText}<br>
+                     Response: ${JSON.stringify(result, null, 2)}`, 
+                    response.status < 400);
+
+            } catch (error) {
+                addResult('formResults', 
+                    `Form ${form.method} ${form.action}: Error - ${error.message}`, 
+                    false);
+            }
+
+            return false;
+        }
+
+        async function testCORS() {
+            const endpoints = ['/health', '/ready', '/api', '/'];
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(endpoint, {
+                        method: 'OPTIONS',
+                        headers: {
+                            'Origin': 'http://localhost:3000',
+                            'Access-Control-Request-Method': 'POST',
+                            'Access-Control-Request-Headers': 'Content-Type'
+                        }
+                    });
+
+                    const corsHeaders = {
+                        'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+                        'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+                        'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers')
+                    };
+
+                    addResult('corsResults', 
+                        `CORS ${endpoint}: ${response.status}<br>
+                         Headers: ${JSON.stringify(corsHeaders, null, 2)}`, 
+                        response.status < 400);
+
+                } catch (error) {
+                    addResult('corsResults', 
+                        `CORS ${endpoint}: Error - ${error.message}`, 
+                        false);
+                }
+            }
+        }
+
+        // Auto-run basic tests on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                addResult('routeResults', 'Auto-running basic tests...', true);
+                testRoute('GET', '/health');
+                testRoute('GET', '/ready');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

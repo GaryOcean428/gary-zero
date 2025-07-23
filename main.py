@@ -253,6 +253,19 @@ async def health_check():
             cpu_usage="unknown"
         )
 
+@app.options("/health")
+async def health_check_options():
+    """Handle CORS preflight for health endpoint."""
+    return JSONResponse(
+        status_code=200,
+        content={"message": "CORS preflight successful"},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization"
+        }
+    )
+
 @app.get("/ready")
 async def readiness_check():
     return {
@@ -260,6 +273,19 @@ async def readiness_check():
         "service": "gary-zero",
         "timestamp": time.time()
     }
+
+@app.options("/ready") 
+async def readiness_check_options():
+    """Handle CORS preflight for ready endpoint."""
+    return JSONResponse(
+        status_code=200,
+        content={"message": "CORS preflight successful"},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, OPTIONS", 
+            "Access-Control-Allow-Headers": "Content-Type, Authorization"
+        }
+    )
 
 @app.get("/metrics")
 async def metrics():
@@ -276,6 +302,85 @@ async def metrics():
         "commit_time": gitinfo.get("commit_time", "unknown"),
         "environment": os.getenv("RAILWAY_ENVIRONMENT", "local")
     }
+
+@app.options("/metrics")
+async def metrics_options():
+    """Handle CORS preflight for metrics endpoint."""
+    return JSONResponse(
+        status_code=200,
+        content={"message": "CORS preflight successful"},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization"
+        }
+    )
+
+# Add a debug endpoint for production troubleshooting
+@app.get("/debug/routes")
+async def debug_routes():
+    """Debug endpoint to list all registered routes."""
+    routes = []
+    for route in app.routes:
+        if hasattr(route, 'path') and hasattr(route, 'methods'):
+            routes.append({
+                "path": route.path,
+                "methods": list(route.methods - {'HEAD', 'OPTIONS'}) if route.methods else [],
+                "name": getattr(route, 'name', 'unnamed')
+            })
+    
+    return {
+        "total_routes": len(routes),
+        "routes": routes,
+        "timestamp": time.time()
+    }
+
+@app.options("/debug/routes")
+async def debug_routes_options():
+    """Handle CORS preflight for debug routes endpoint."""
+    return JSONResponse(
+        status_code=200,
+        content={"message": "CORS preflight successful"},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization"
+        }
+    )
+
+# Add API endpoint that accepts both GET and POST
+@app.get("/api")
+async def api_get():
+    """API root endpoint for GET requests."""
+    return {
+        "message": "Gary-Zero API",
+        "version": "0.9.0",
+        "status": "running",
+        "timestamp": time.time(),
+        "methods": ["GET", "POST"]
+    }
+
+@app.post("/api")
+async def api_post(request: MessageRequest):
+    """API root endpoint for POST requests."""
+    logger.info(f"API POST request: {request.message[:100]}...")
+    
+    # Process the message (placeholder for actual agent processing)
+    response = await process_agent_message(request)
+    return response
+
+@app.options("/api")
+async def api_options():
+    """Handle CORS preflight for API endpoint."""
+    return JSONResponse(
+        status_code=200,
+        content={"message": "CORS preflight successful"},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization"
+        }
+    )
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -316,7 +421,48 @@ async def process_agent_message(message: MessageRequest) -> MessageResponse:
 # --- Error Handlers ---
 @app.exception_handler(404)
 async def not_found_handler(request, exc):
-    return JSONResponse(status_code=404, content={"detail": "Endpoint not found"})
+    """Enhanced 404 error handler with detailed diagnostics."""
+    logger.error(f"404 Error: {request.method} {request.url.path} not found")
+    
+    return JSONResponse(
+        status_code=404, 
+        content={
+            "error": "Not Found",
+            "method": request.method,
+            "path": str(request.url.path),
+            "message": "The requested endpoint does not exist",
+            "timestamp": time.time(),
+            "available_endpoints": [
+                "/health", "/ready", "/metrics", "/", "/ui", 
+                "/docs", "/redoc", "/ws", "/index.css", "/index.js"
+            ]
+        }
+    )
+
+@app.exception_handler(405)
+async def method_not_allowed_handler(request, exc):
+    """Enhanced 405 error handler with detailed diagnostics."""
+    logger.error(f"405 Error: {request.method} {request.url.path} method not allowed")
+    
+    # Try to get allowed methods for this path
+    allowed_methods = []
+    for route in app.routes:
+        if hasattr(route, 'path_regex') and hasattr(route, 'methods'):
+            if route.path_regex.match(str(request.url.path)):
+                allowed_methods.extend([m for m in route.methods if m not in ['HEAD', 'OPTIONS']])
+    
+    return JSONResponse(
+        status_code=405,
+        content={
+            "error": "Method Not Allowed",
+            "method": request.method,
+            "path": str(request.url.path),
+            "allowed_methods": list(set(allowed_methods)) if allowed_methods else ["GET"],
+            "message": f"The {request.method} method is not allowed for this endpoint",
+            "timestamp": time.time(),
+            "suggestion": "Check the allowed methods or use a different endpoint"
+        }
+    )
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
@@ -327,6 +473,37 @@ async def global_exception_handler(request, exc):
 @app.get("/")
 async def serve_ui():
     return FileResponse("webui/index.html", media_type="text/html")
+
+@app.post("/")
+async def serve_ui_post(request: MessageRequest = None):
+    """Handle POST requests to root endpoint (common for form submissions)."""
+    logger.info("POST request to root endpoint")
+    
+    if request:
+        logger.info(f"POST data: {request.message[:100]}...")
+        # Process the form submission
+        response = await process_agent_message(request)
+        return response
+    else:
+        # Handle form data that doesn't match MessageRequest model
+        return {
+            "status": "success",
+            "message": "Form submission received",
+            "timestamp": time.time()
+        }
+
+@app.options("/")
+async def serve_ui_options():
+    """Handle CORS preflight for root endpoint."""
+    return JSONResponse(
+        status_code=200,
+        content={"message": "CORS preflight successful"},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization"
+        }
+    )
 
 @app.get("/ui")
 async def serve_ui_rendered():
@@ -348,11 +525,21 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
     host = os.getenv("WEB_UI_HOST", "0.0.0.0")
     logger.info(f"Starting Gary-Zero FastAPI server on {host}:{port}")
+    
+    # Use asyncio loop for better compatibility
+    loop = "asyncio"
+    try:
+        import uvloop
+        loop = "uvloop"
+        logger.info("Using uvloop for better performance")
+    except ImportError:
+        logger.info("uvloop not available, using asyncio")
+    
     uvicorn.run(
         "main:app",
         host=host,
         port=port,
         reload=False,
-        loop="uvloop" if os.name != "nt" else "asyncio",
+        loop=loop,
         workers=1
     )
