@@ -5,9 +5,9 @@ Handles WebSocket connections for real-time A2A communication.
 """
 
 from fastapi import WebSocket, WebSocketDisconnect
+from typing import Any
 
 from framework.a2a.streaming import StreamingService
-from framework.helpers.api import ApiHandler, Input, Output, Request
 
 # Global streaming service instance
 _streaming_service = None
@@ -21,14 +21,13 @@ def get_streaming_service() -> StreamingService:
     return _streaming_service
 
 
-class A2aStream(ApiHandler):
+class A2aStream:
     """API handler for A2A streaming WebSocket endpoint"""
 
     def __init__(self):
-        super().__init__()
         self.streaming_service = get_streaming_service()
 
-    async def process(self, input: Input, request: Request) -> Output:
+    async def process(self, input_data: dict[str, Any], request) -> dict[str, Any]:
         """
         This handler doesn't process regular HTTP requests
         WebSocket connections are handled separately
