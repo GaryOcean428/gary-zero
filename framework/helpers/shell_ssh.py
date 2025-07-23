@@ -2,7 +2,7 @@ import asyncio
 import re
 import time
 
-import paramiko
+import paramiko  # type: ignore[import]
 
 from framework.helpers.log import Log
 from framework.helpers.print_style import PrintStyle

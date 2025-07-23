@@ -10,7 +10,7 @@ import os
 from typing import Any
 from urllib.parse import urljoin
 
-import requests
+import requests  # type: ignore[import]
 
 from framework.helpers.log import Log
 from framework.helpers.shell_ssh import SSHInteractiveSession

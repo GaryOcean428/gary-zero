@@ -2,12 +2,8 @@
 
 from datetime import datetime
 
-try:
-    from framework.helpers.tool import Response, Tool
-    BaseClass = Tool
-except ImportError:
-    from framework.plugins.base import PluginTool, Response
-    BaseClass = PluginTool
+from framework.helpers.tool import Response, Tool
+BaseClass = Tool
 
 
 class NoteTaker(BaseClass):
