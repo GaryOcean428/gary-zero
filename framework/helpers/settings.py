@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import json
+import os
 import re
 import subprocess
 from typing import Any, Literal, TypedDict

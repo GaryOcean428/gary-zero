@@ -3,6 +3,8 @@
  * Provides live activity tracking and integration with the main UI
  */
 
+/* global HTMLIFrameElement */
+
 class ActivityMonitorManager {
     constructor() {
         this.isInitialized = false;
