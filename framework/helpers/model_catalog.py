@@ -16,7 +16,7 @@ MODEL_CATALOG: dict[str, list[dict[str, str]]] = {
         {"value": "claude-opus-4-latest", "label": "Claude 4 Opus", "modern": True, "release_date": "2025-05-14"},
         {"value": "claude-3-7-sonnet-20250219", "label": "Claude 3.7 Sonnet (2025-02-19)", "modern": True, "release_date": "2025-02-19"},
         {"value": "claude-3-5-sonnet-20241022", "label": "Claude 3.5 Sonnet (Latest)", "modern": True, "release_date": "2024-10-22"},
-        {"value": "claude-code", "label": "Claude Code", "modern": True, "release_date": "2024-10-22"},
+        {"value": "claude-code", "label": "Claude Code", "modern": True, "release_date": "2024-10-22", "code": True},
         {"value": "claude-3-5-sonnet-latest", "label": "Claude 3.5 Sonnet (Latest)", "modern": True, "release_date": "2024-06-21"},
         {"value": "claude-3-5-haiku-latest", "label": "Claude 3.5 Haiku (Latest)", "modern": True, "release_date": "2024-11-01"},
         {"value": "claude-3-5-haiku-20241022", "label": "Claude 3.5 Haiku (2024-10-22)", "modern": True, "release_date": "2024-10-22"},
@@ -48,9 +48,9 @@ MODEL_CATALOG: dict[str, list[dict[str, str]]] = {
         {"value": "computer-use-preview", "label": "Computer Use Preview", "modern": True, "release_date": "2024-10-01"},
         # Mixed models (gpt-4o was May 2024, but variants are newer)
         {"value": "gpt-4o", "label": "GPT-4o (Latest)", "modern": True, "release_date": "2024-05-13"},
-        {"value": "gpt-4o-realtime-preview", "label": "GPT-4o Realtime Preview", "modern": True, "release_date": "2024-10-01"},
-        {"value": "gpt-4o-audio", "label": "GPT-4o Audio", "modern": True, "release_date": "2024-10-01"},
-        {"value": "gpt-4o-mini-audio", "label": "GPT-4o Mini Audio", "modern": True, "release_date": "2024-10-01"},
+        {"value": "gpt-4o-realtime-preview", "label": "GPT-4o Realtime Preview", "modern": True, "release_date": "2024-10-01", "voice": True},
+        {"value": "gpt-4o-audio", "label": "GPT-4o Audio", "modern": True, "release_date": "2024-10-01", "voice": True},
+        {"value": "gpt-4o-mini-audio", "label": "GPT-4o Mini Audio", "modern": True, "release_date": "2024-10-01", "voice": True},
         {"value": "gpt-4o-search-preview", "label": "GPT-4o Search Preview", "modern": True, "release_date": "2024-10-01"},
         {"value": "gpt-4o-mini-search-preview", "label": "GPT-4o Mini Search Preview", "modern": True, "release_date": "2024-10-01"},
         # Legacy models (pre-June 2024) - deprecated
@@ -69,8 +69,8 @@ MODEL_CATALOG: dict[str, list[dict[str, str]]] = {
         # Modern models (post-June 2024)
         {"value": "gemini-2.5-pro-preview-06-05", "label": "Gemini 2.5 Pro Preview (06-05)", "modern": True, "release_date": "2025-06-05"},
         {"value": "gemini-2.5-flash-preview-05-20", "label": "Gemini 2.5 Flash Preview (05-20)", "modern": True, "release_date": "2025-05-20"},
-        {"value": "gemini-2.5-flash-preview-tts", "label": "Gemini 2.5 Flash Preview TTS", "modern": True, "release_date": "2025-05-20"},
-        {"value": "gemini-2.5-pro-preview-tts", "label": "Gemini 2.5 Pro Preview TTS", "modern": True, "release_date": "2025-06-05"},
+        {"value": "gemini-2.5-flash-preview-tts", "label": "Gemini 2.5 Flash Preview TTS", "modern": True, "release_date": "2025-05-20", "voice": True},
+        {"value": "gemini-2.5-pro-preview-tts", "label": "Gemini 2.5 Pro Preview TTS", "modern": True, "release_date": "2025-06-05", "voice": True},
         {"value": "gemini-2.5-pro-exp-03-25", "label": "Gemini 2.5 Pro Exp (03-25)", "modern": True, "release_date": "2025-03-25"},
         {"value": "gemini-2.0-flash", "label": "Gemini 2.0 Flash", "modern": True, "release_date": "2024-12-11"},
         {"value": "gemini-2.0-flash-preview-image-generation", "label": "Gemini 2.0 Flash Preview Image Generation", "modern": True, "release_date": "2024-12-11"},
@@ -121,7 +121,7 @@ MODEL_CATALOG: dict[str, list[dict[str, str]]] = {
         # Modern models (post-June 2024)
         {"value": "deepseek-v3", "label": "DeepSeek V3", "modern": True, "release_date": "2024-12-26"},
         {"value": "deepseek-chat", "label": "DeepSeek Chat", "modern": True, "release_date": "2024-05-06"},
-        {"value": "deepseek-coder", "label": "DeepSeek Coder", "modern": True, "release_date": "2024-05-06"},
+        {"value": "deepseek-coder", "label": "DeepSeek Coder", "modern": True, "release_date": "2024-05-06", "code": True},
     ],
     "OPENROUTER": [
         # Modern models (using modern base models)
@@ -346,6 +346,37 @@ def is_model_modern(provider_name: str, model_name: str) -> bool:
         if model["value"] == model_name:
             return model.get("modern", False)
     return False
+
+
+def get_voice_models_for_provider(provider_name: str) -> list[dict[str, str]]:
+    """Get voice-capable models for a specific provider.
+    
+    Args:
+        provider_name: The name of the provider (e.g., 'ANTHROPIC', 'OPENAI')
+        
+    Returns:
+        List of voice model dictionaries
+    """
+    provider_models = get_models_for_provider(provider_name)
+    return [model for model in provider_models if model.get("voice", False)]
+
+
+def get_code_models_for_provider(provider_name: str) -> list[dict[str, str]]:
+    """Get code-oriented models for a specific provider.
+    
+    Args:
+        provider_name: The name of the provider (e.g., 'ANTHROPIC', 'OPENAI')
+        
+    Returns:
+        List of code model dictionaries
+    """
+    provider_models = get_models_for_provider(provider_name)
+    code_models = []
+    for model in provider_models:
+        # Check if it's explicitly marked as a code model or has "code" in the name
+        if model.get("code", False) or "code" in model["value"].lower():
+            code_models.append(model)
+    return code_models
 
 
 def get_model_release_date(provider_name: str, model_name: str) -> str | None:
