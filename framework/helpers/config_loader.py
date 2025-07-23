@@ -203,8 +203,8 @@ class ConfigLoader:
                 warnings.append(f"{var} contains unresolved template: {value}")
         
         # Check for Railway-specific placeholders
-        railway_pattern_vars = [var for var in os.environ.keys() 
-                               if "${{" in os.environ[var]]
+        railway_pattern_vars = [var for var, value in os.environ.items()
+                               if "${{" in value]
         if railway_pattern_vars:
             warnings.append(f"Railway placeholders found in: {', '.join(railway_pattern_vars)}")
         
