@@ -3391,6 +3391,75 @@ nav ul li a img {
   font-weight: bold;
 }
 
+/* Model indicator styles with capability indicators */
+.model-indicator {
+  background: var(--color-secondary);
+  color: var(--color-text);
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  min-width: 60px;
+  text-align: center;
+}
+
+.model-indicator:hover {
+  background: var(--color-primary);
+  transform: scale(1.05);
+}
+
+/* Capability indicators - small dots */
+.model-indicator::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.model-indicator.model-voice::after {
+  background: #4caf50; /* Green for voice */
+  opacity: 1;
+}
+
+.model-indicator.model-code::after {
+  background: #2196f3; /* Blue for code */
+  opacity: 1;
+}
+
+.model-indicator.model-vision::after {
+  background: #ff9800; /* Orange for vision */
+  opacity: 1;
+}
+
+/* Multiple capabilities - show as a small gradient */
+.model-indicator.model-voice.model-code::after {
+  background: linear-gradient(45deg, #4caf50 50%, #2196f3 50%);
+  opacity: 1;
+}
+
+.model-indicator.model-voice.model-vision::after {
+  background: linear-gradient(45deg, #4caf50 50%, #ff9800 50%);
+  opacity: 1;
+}
+
+.model-indicator.model-code.model-vision::after {
+  background: linear-gradient(45deg, #2196f3 50%, #ff9800 50%);
+  opacity: 1;
+}
+
+.model-indicator.model-voice.model-code.model-vision::after {
+  background: linear-gradient(120deg, #4caf50 33%, #2196f3 33%, #2196f3 66%, #ff9800 66%);
+  opacity: 1;
+}
+
 .chevron {
   transition: transform 0.2s ease;
   font-size: 12px;
