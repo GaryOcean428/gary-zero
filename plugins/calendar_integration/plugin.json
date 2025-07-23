@@ -1,0 +1,9 @@
+{
+  "name": "calendar_integration",
+  "version": "1.0.0",
+  "description": "Integration with calendar systems for scheduling and event management",
+  "author": "gary-zero-official",
+  "capabilities": ["calendar", "scheduling", "events"],
+  "dependencies": ["datetime", "json"],
+  "entry_point": "plugin.py"
+}

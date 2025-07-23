@@ -4,10 +4,10 @@ This module provides model-specific parameters like context length, vision capab
 and rate limits that are automatically applied when a model is selected.
 """
 
-from typing import Dict, Optional, Any
+from typing import Any
 
 # Model parameters database - organized by provider and model
-MODEL_PARAMETERS: Dict[str, Dict[str, Dict[str, Any]]] = {
+MODEL_PARAMETERS: dict[str, dict[str, dict[str, Any]]] = {
     "ANTHROPIC": {
         "claude-sonnet-4-20250514": {
             "ctx_length": 200000,
@@ -412,7 +412,7 @@ DEFAULT_PARAMETERS = {
 }
 
 
-def get_model_parameters(provider: str, model_name: str) -> Dict[str, Any]:
+def get_model_parameters(provider: str, model_name: str) -> dict[str, Any]:
     """Get parameters for a specific model.
     
     Args:
@@ -424,15 +424,15 @@ def get_model_parameters(provider: str, model_name: str) -> Dict[str, Any]:
     """
     provider_models = MODEL_PARAMETERS.get(provider, {})
     model_params = provider_models.get(model_name, DEFAULT_PARAMETERS.copy())
-    
+
     # Ensure all required keys are present
     result = DEFAULT_PARAMETERS.copy()
     result.update(model_params)
-    
+
     return result
 
 
-def get_all_provider_models() -> Dict[str, Dict[str, Dict[str, Any]]]:
+def get_all_provider_models() -> dict[str, dict[str, dict[str, Any]]]:
     """Get all model parameters for all providers.
     
     Returns:
@@ -454,7 +454,7 @@ def has_model_parameters(provider: str, model_name: str) -> bool:
     return provider in MODEL_PARAMETERS and model_name in MODEL_PARAMETERS[provider]
 
 
-def update_model_parameters(provider: str, model_name: str, parameters: Dict[str, Any]) -> None:
+def update_model_parameters(provider: str, model_name: str, parameters: dict[str, Any]) -> None:
     """Update parameters for a specific model.
     
     Args:
@@ -464,8 +464,8 @@ def update_model_parameters(provider: str, model_name: str, parameters: Dict[str
     """
     if provider not in MODEL_PARAMETERS:
         MODEL_PARAMETERS[provider] = {}
-    
+
     if model_name not in MODEL_PARAMETERS[provider]:
         MODEL_PARAMETERS[provider][model_name] = DEFAULT_PARAMETERS.copy()
-    
+
     MODEL_PARAMETERS[provider][model_name].update(parameters)

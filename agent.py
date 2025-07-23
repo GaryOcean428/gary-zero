@@ -4,11 +4,11 @@
 import asyncio
 import uuid
 from collections import OrderedDict
-from collections.abc import Awaitable, Coroutine
+from collections.abc import Awaitable, Callable, Coroutine
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
 
 # Third-party imports
 import httpx
@@ -61,12 +61,12 @@ class AgentContext:
         self.paused = paused
         self.streaming_agent = streaming_agent
         self.task: DeferredTask | None = None
-        self.created_at = created_at or datetime.now(timezone.utc)
+        self.created_at = created_at or datetime.now(UTC)
         self.type = type
         AgentContext._counter += 1
         self.no = AgentContext._counter
         # set to start of unix epoch
-        self.last_message = last_message or datetime.now(timezone.utc)
+        self.last_message = last_message or datetime.now(UTC)
 
         existing = self._contexts.get(self.id, None)
         if existing:
@@ -534,7 +534,7 @@ class Agent:
         self.data[field] = value
 
     def hist_add_message(self, ai: bool, content: history.MessageContent, tokens: int = 0):
-        self.last_message = datetime.now(timezone.utc)
+        self.last_message = datetime.now(UTC)
         return self.history.add_message(ai=ai, content=content, tokens=tokens)
 
     def hist_add_user_message(self, message: UserMessage, intervention: bool = False):
@@ -543,31 +543,33 @@ class Agent:
         # Integrate with task management system and OpenAI Agents SDK
         if not intervention:
             try:
-                from framework.helpers.task_manager import get_task_manager
-                from framework.helpers.supervisor_agent import get_supervisor_agent
-                from framework.helpers.agents_sdk_wrapper import get_sdk_orchestrator, SDKAgentConfig
-                from framework.helpers.guardrails import get_guardrails_manager
                 from framework.helpers.agent_tracing import get_agent_tracer
-                
+                from framework.helpers.agents_sdk_wrapper import (
+                    get_sdk_orchestrator,
+                )
+                from framework.helpers.guardrails import get_guardrails_manager
+                from framework.helpers.supervisor_agent import get_supervisor_agent
+                from framework.helpers.task_manager import get_task_manager
+
                 # Traditional task management
                 task_manager = get_task_manager()
                 supervisor = get_supervisor_agent()
-                
+
                 # SDK integration components
                 sdk_orchestrator = get_sdk_orchestrator()
                 guardrails = get_guardrails_manager()
                 tracer = get_agent_tracer(self.context.log)
-                
+
                 # Create a new task for this user message
                 task_id = task_manager.create_task(
                     title=f"User Request: {message.message[:50]}...",
                     description=message.message,
                     context={"context_id": self.context.id, "agent_id": self.agent_name}
                 )
-                
+
                 # Start tracing for this interaction
                 trace_id = tracer.start_agent_trace(self.agent_name, task_id)
-                
+
                 # Apply input guardrails (synchronously for now)
                 try:
                     guardrails = get_guardrails_manager()
@@ -584,24 +586,24 @@ class Agent:
                         content=f"Guardrails processing failed: {guard_error}"
                     )
                     validated_message = message.message
-                
+
                 # Start the task
                 task_manager.start_task(task_id, self.agent_name)
-                
+
                 # Store SDK integration data
                 self.set_data("current_task_id", task_id)
                 self.set_data("current_trace_id", trace_id)
                 self.set_data("sdk_enabled", True)
-                
+
                 self.context.log.log(
-                    type="info", 
+                    type="info",
                     content=f"Created task {task_id[:8]} with SDK integration (trace: {trace_id[:8]})"
                 )
-                
+
             except Exception as e:
                 # Don't let SDK integration errors break the core functionality
                 self.context.log.log(
-                    type="warning", 
+                    type="warning",
                     content=f"SDK integration failed, falling back to traditional mode: {e}"
                 )
                 # Fall back to basic task management
@@ -650,58 +652,58 @@ class Agent:
         self.loop_data.last_response = message
         content = self.parse_prompt("fw.ai_response.md", message=message)
         response_msg = self.hist_add_message(True, content=content)
-        
+
         # Integrate with task management system and SDK - mark task as completed when agent responds
         try:
-            from framework.helpers.task_manager import get_task_manager
-            from framework.helpers.guardrails import get_guardrails_manager
             from framework.helpers.agent_tracing import get_agent_tracer
-            
+            from framework.helpers.guardrails import get_guardrails_manager
+            from framework.helpers.task_manager import get_task_manager
+
             task_id = self.get_data("current_task_id")
             trace_id = self.get_data("current_trace_id")
             sdk_enabled = self.get_data("sdk_enabled", False)
-            
+
             if task_id:
                 task_manager = get_task_manager()
-                
+
                 if sdk_enabled:
                     # SDK-enhanced completion
                     try:
                         guardrails = get_guardrails_manager()
                         tracer = get_agent_tracer(self.context.log)
-                        
+
                         # Note: This should be made async in future, for now we skip async guardrails here
                         final_message = message  # Placeholder - full integration requires async refactor
-                        
+
                         # Evaluate interaction safety (synchronously for now)
                         user_msg = self.last_user_message.content.get("message", "") if self.last_user_message else ""
                         # safety_eval = await guardrails.evaluate_interaction(user_msg, final_message)
                         safety_eval = {"is_safe": True, "risk_score": 0.0}  # Placeholder
-                        
+
                         # End tracing
                         if trace_id:
                             tracer.end_agent_trace(
-                                trace_id, 
+                                trace_id,
                                 success=safety_eval.get("is_safe", True),
                                 result=final_message[:200] + "..." if len(final_message) > 200 else final_message
                             )
-                        
+
                         # Update task progress
                         task_manager.update_task_progress(task_id, 1.0, "Agent response completed with SDK guardrails")
                         task_manager.complete_task(task_id, final_message[:200] + "..." if len(final_message) > 200 else final_message)
-                        
+
                         # Log safety evaluation results
                         if not safety_eval.get("is_safe", True):
                             self.context.log.log(
                                 type="warning",
                                 content=f"Safety evaluation flagged interaction (risk score: {safety_eval.get('risk_score', 0):.2f})"
                             )
-                        
+
                         self.context.log.log(
-                            type="success", 
+                            type="success",
                             content=f"Completed task {task_id[:8]} with SDK integration (trace: {trace_id[:8] if trace_id else 'N/A'})"
                         )
-                        
+
                     except Exception as sdk_error:
                         # Fall back to traditional completion
                         self.context.log.log(
@@ -712,19 +714,19 @@ class Agent:
                 else:
                     # Traditional completion
                     task_manager.complete_task(task_id, message[:200] + "..." if len(message) > 200 else message)
-                
+
                 # Clear the current task ID
                 self.set_data("current_task_id", None)
                 self.set_data("current_trace_id", None)
                 self.set_data("sdk_enabled", False)
-                
+
         except Exception as e:
             # Don't let task completion errors break the core functionality
             self.context.log.log(
-                type="warning", 
+                type="warning",
                 content=f"Task completion integration failed: {e}"
             )
-        
+
         return response_msg
 
     def hist_add_warning(self, message: history.MessageContent):
@@ -811,7 +813,7 @@ class Agent:
         # Retry logic for connection failures
         max_retries = 3
         retry_delay = 1  # Start with 1 second
-        
+
         for attempt in range(max_retries):
             try:
                 async for chunk in (prompt | model).astream({}):
@@ -823,10 +825,10 @@ class Agent:
 
                     if callback:
                         await callback(content, response)
-                
+
                 # If we reach here, streaming completed successfully
                 break
-                
+
             except (httpx.RemoteProtocolError, httpx.ConnectError, httpx.ReadError) as e:
                 if attempt < max_retries - 1:  # Don't retry on last attempt
                     self.context.log.log(
@@ -917,14 +919,14 @@ class Agent:
             try:
                 from framework.helpers.agent_tools_wrapper import get_tool_registry
                 from framework.helpers.agent_tracing import get_agent_tracer
-                
+
                 sdk_enabled = self.get_data("sdk_enabled", False)
                 trace_id = self.get_data("current_trace_id")
-                
+
                 if sdk_enabled:
                     registry = get_tool_registry()
                     sdk_tool = registry.get_tool(tool_name)
-                    
+
                     if sdk_tool:
                         # Log tool execution to trace
                         if trace_id:
@@ -934,12 +936,12 @@ class Agent:
                                 tracer.tracing_processor.TraceEventType.TOOL_CALL,
                                 {"tool_name": tool_name, "args": tool_args}
                             )
-                        
+
                         # Execute SDK tool
                         await self.handle_intervention()
                         sdk_result = await sdk_tool.execute(**tool_args)
                         await self.handle_intervention()
-                        
+
                         # Convert SDK result to Gary-Zero format
                         class SDKToolResult:
                             def __init__(self, sdk_result):
@@ -949,15 +951,15 @@ class Agent:
                                 else:
                                     self.message = str(sdk_result.result) if hasattr(sdk_result, 'result') else str(sdk_result)
                                     self.break_loop = False  # SDK tools don't break loop by default
-                        
+
                         response = SDKToolResult(sdk_result)
-                        
+
                         if response.break_loop:
                             return response.message
-                        
+
                         # Continue to traditional tool fallback if SDK tool didn't work
                         tool = None
-                    
+
             except Exception as e:
                 self.context.log.log(
                     type="warning",
@@ -1023,11 +1025,35 @@ class Agent:
         from framework.helpers.tool import Tool
         from framework.tools.unknown import Unknown
 
+        # First try to load from plugins
+        try:
+            plugin_tool_class = self._get_plugin_tool(name)
+            if plugin_tool_class:
+                return plugin_tool_class(
+                    agent=self, name=name, method=method, args=args, message=message, **kwargs
+                )
+        except Exception as e:
+            print(f"Failed to load plugin tool {name}: {e}")
+
+        # Fallback to static tools
         classes = extract_tools.load_classes_from_folder("framework/tools", name + ".py", Tool)
         tool_class = classes[0] if classes else Unknown
         return tool_class(
             agent=self, name=name, method=method, args=args, message=message, **kwargs
         )
+
+    def _get_plugin_tool(self, name: str):
+        """Get a tool from the plugin system."""
+        # Initialize plugin manager if not already done
+        if not hasattr(self, '_plugin_manager'):
+            try:
+                from framework.plugins.manager import PluginManager
+                self._plugin_manager = PluginManager()
+            except Exception as e:
+                print(f"Failed to initialize plugin manager: {e}")
+                return None
+
+        return self._plugin_manager.get_tool(name)
 
     async def call_extensions(self, folder: str, **kwargs) -> Any:
         from framework.helpers.extension import Extension

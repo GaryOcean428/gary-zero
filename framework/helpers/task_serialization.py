@@ -1,8 +1,8 @@
 """Task serialization and deserialization utilities."""
 
 # Standard library imports
-from datetime import datetime, timezone
-from typing import Any, Optional, TypeVar, Union
+from datetime import UTC, datetime
+from typing import Any, TypeVar
 
 # Local imports
 from framework.helpers.localization import Localization
@@ -15,7 +15,7 @@ from framework.helpers.task_models import (
 )
 
 
-def serialize_datetime(dt: Optional[datetime]) -> Optional[str]:
+def serialize_datetime(dt: datetime | None) -> str | None:
     """
     Serialize a datetime object to ISO format string in the user's timezone.
 
@@ -32,7 +32,7 @@ def serialize_datetime(dt: Optional[datetime]) -> Optional[str]:
     return local_dt.isoformat()
 
 
-def parse_datetime(dt_str: Optional[str]) -> Optional[datetime]:
+def parse_datetime(dt_str: str | None) -> datetime | None:
     """
     Parse ISO format datetime string with timezone awareness.
 
@@ -53,7 +53,7 @@ def parse_datetime(dt_str: Optional[str]) -> Optional[datetime]:
             localization = Localization.get()
             dt = localization.from_user_timezone(dt)
 
-        return dt.astimezone(timezone.utc)
+        return dt.astimezone(UTC)
     except (ValueError, TypeError):
         return None
 
@@ -118,11 +118,11 @@ def parse_task_plan(plan_data: dict[str, Any]) -> TaskPlan:
     )
 
 
-T = TypeVar("T", bound=Union[ScheduledTask, AdHocTask, PlannedTask])
+T = TypeVar("T", bound=ScheduledTask | AdHocTask | PlannedTask)
 
 
 def serialize_task(
-    task: Union[ScheduledTask, AdHocTask, PlannedTask],
+    task: ScheduledTask | AdHocTask | PlannedTask,
 ) -> dict[str, Any]:
     """
     Standardized serialization for task objects with proper handling of all complex types.
@@ -154,7 +154,7 @@ def serialize_task(
 
 
 def serialize_tasks(
-    tasks: list[Union[ScheduledTask, AdHocTask, PlannedTask]],
+    tasks: list[ScheduledTask | AdHocTask | PlannedTask],
 ) -> list[dict[str, Any]]:
     """
     Serialize a list of tasks to a list of dictionaries.
@@ -162,7 +162,7 @@ def serialize_tasks(
     return [serialize_task(task) for task in tasks]
 
 
-def deserialize_task(task_data: dict[str, Any], task_class: Optional[type[T]] = None) -> T:
+def deserialize_task(task_data: dict[str, Any], task_class: type[T] | None = None) -> T:
     """
     Deserialize dictionary into appropriate task object with validation.
     If task_class is provided, uses that type. Otherwise determines type from data.

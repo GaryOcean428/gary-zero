@@ -2,19 +2,17 @@
 Enhanced secure code execution tool using isolated environments.
 This tool replaces the existing code execution with secure sandboxed execution.
 """
-import asyncio
 from dataclasses import dataclass
-from typing import Dict, Any, Optional
 
-from framework.helpers.tool import Response, Tool
-from framework.helpers.print_style import PrintStyle
 from framework.executors.secure_manager import SecureCodeExecutionManager
+from framework.helpers.print_style import PrintStyle
+from framework.helpers.tool import Response, Tool
 
 
 @dataclass
 class SecureState:
     manager: SecureCodeExecutionManager
-    user_sessions: Dict[str, str]  # Maps user_id to session_id
+    user_sessions: dict[str, str]  # Maps user_id to session_id
 
 
 class SecureCodeExecution(Tool):
@@ -75,7 +73,7 @@ class SecureCodeExecution(Tool):
         if not self.state or reset:
             manager = SecureCodeExecutionManager()
             user_sessions = {} if not self.state else self.state.user_sessions.copy()
-            
+
             if reset:
                 # Clean up existing sessions
                 if self.state and self.state.manager:
@@ -83,7 +81,7 @@ class SecureCodeExecution(Tool):
                 user_sessions = {}
 
             self.state = SecureState(manager=manager, user_sessions=user_sessions)
-        
+
         self.agent.set_data("_secure_cet_state", self.state)
 
     def _get_or_create_session(self, user_id: str) -> str:
@@ -98,51 +96,51 @@ class SecureCodeExecution(Tool):
         """Execute Python code in secure environment."""
         try:
             session_id = self._get_or_create_session(user_id)
-            
+
             PrintStyle(background_color="blue", font_color="white", bold=True).print(
                 f"{self.agent.agent_name} secure Python execution"
             )
-            
+
             # Show executor info for transparency
             executor_info = self.state.manager.get_executor_info()
             PrintStyle(font_color="#85C1E9").print(
                 f"Execution environment: {executor_info['description']}"
             )
-            
+
             result = self.state.manager.execute_code(session_id, code, "python")
-            
+
             if result["success"]:
                 output = result["stdout"]
                 execution_time = result.get("execution_time", 0)
-                
+
                 if output:
                     PrintStyle(font_color="#85C1E9").print(output)
-                
+
                 response_parts = []
                 if output:
                     response_parts.append(f"Output:\n{output}")
-                
+
                 response_parts.append(f"✅ Execution completed in {execution_time:.2f}s using {result.get('executor_type', 'unknown')} executor")
-                
+
                 # Add any rich results if available (E2B)
                 if "results" in result and result["results"]:
                     response_parts.append(f"Rich outputs: {len(result['results'])} items generated")
-                
+
                 return "\n\n".join(response_parts)
             else:
                 error_msg = result.get("error", "Unknown error")
                 stderr = result.get("stderr", "")
-                
+
                 error_output = f"❌ Execution failed: {error_msg}"
                 if stderr:
                     error_output += f"\nStderr: {stderr}"
-                
+
                 if "security_warning" in result:
                     error_output += f"\n⚠️  Security Warning: {result['security_warning']}"
-                
+
                 PrintStyle.error(error_output)
                 return error_output
-                
+
         except Exception as e:
             error_msg = f"❌ Secure execution error: {str(e)}"
             PrintStyle.error(error_msg)
@@ -152,32 +150,32 @@ class SecureCodeExecution(Tool):
         """Execute Node.js code in secure environment."""
         try:
             session_id = self._get_or_create_session(user_id)
-            
+
             PrintStyle(background_color="green", font_color="white", bold=True).print(
                 f"{self.agent.agent_name} secure Node.js execution"
             )
-            
+
             # For Node.js, we'll use shell execution with node command
             node_command = f"node -e '{code}'"
             result = self.state.manager.execute_code(session_id, node_command, "bash")
-            
+
             if result["success"]:
                 output = result["stdout"]
                 execution_time = result.get("execution_time", 0)
-                
+
                 if output:
                     PrintStyle(font_color="#85C1E9").print(output)
-                
+
                 response = f"✅ Node.js execution completed in {execution_time:.2f}s"
                 if output:
                     response = f"Output:\n{output}\n\n{response}"
-                
+
                 return response
             else:
                 error_msg = f"❌ Node.js execution failed: {result.get('error', 'Unknown error')}"
                 PrintStyle.error(error_msg)
                 return error_msg
-                
+
         except Exception as e:
             error_msg = f"❌ Secure Node.js execution error: {str(e)}"
             PrintStyle.error(error_msg)
@@ -187,34 +185,34 @@ class SecureCodeExecution(Tool):
         """Execute terminal command in secure environment."""
         try:
             session_id = self._get_or_create_session(user_id)
-            
+
             PrintStyle(background_color="black", font_color="white", bold=True).print(
                 f"{self.agent.agent_name} secure terminal execution"
             )
-            
+
             result = self.state.manager.execute_code(session_id, command, "bash")
-            
+
             if result["success"]:
                 output = result["stdout"]
                 execution_time = result.get("execution_time", 0)
-                
+
                 if output:
                     PrintStyle(font_color="#85C1E9").print(output)
-                
+
                 response = f"✅ Command completed in {execution_time:.2f}s"
                 if output:
                     response = f"Output:\n{output}\n\n{response}"
-                
+
                 return response
             else:
                 error_msg = f"❌ Command failed: {result.get('error', 'Unknown error')}"
                 stderr = result.get("stderr", "")
                 if stderr:
                     error_msg += f"\nStderr: {stderr}"
-                
+
                 PrintStyle.error(error_msg)
                 return error_msg
-                
+
         except Exception as e:
             error_msg = f"❌ Secure terminal execution error: {str(e)}"
             PrintStyle.error(error_msg)
@@ -224,13 +222,13 @@ class SecureCodeExecution(Tool):
         """Install a package in the secure environment."""
         try:
             session_id = self._get_or_create_session(user_id)
-            
+
             PrintStyle(background_color="yellow", font_color="black", bold=True).print(
                 f"{self.agent.agent_name} secure package installation"
             )
-            
+
             result = self.state.manager.install_package(session_id, package)
-            
+
             if result["success"]:
                 execution_time = result.get("execution_time", 0)
                 response = f"✅ Package '{package}' installed successfully in {execution_time:.2f}s"
@@ -240,7 +238,7 @@ class SecureCodeExecution(Tool):
                 error_msg = f"❌ Package installation failed: {result.get('error', 'Unknown error')}"
                 PrintStyle.error(error_msg)
                 return error_msg
-                
+
         except Exception as e:
             error_msg = f"❌ Package installation error: {str(e)}"
             PrintStyle.error(error_msg)
@@ -250,23 +248,23 @@ class SecureCodeExecution(Tool):
         """Get information about the current execution environment."""
         try:
             info = self.state.manager.get_executor_info()
-            
+
             response_parts = [
                 "🔒 Secure Code Execution Environment Information:",
                 f"Executor Type: {info['type']}",
                 f"Security Level: {'High' if info['secure'] == 'True' else 'Low (Host execution)'}",
                 f"Description: {info['description']}"
             ]
-            
+
             if info['secure'] == 'True':
                 response_parts.append("✅ Code execution is isolated and secure")
             else:
                 response_parts.append("⚠️  Warning: Code execution may not be isolated")
-            
+
             response = "\n".join(response_parts)
             PrintStyle(font_color="#85C1E9").print(response)
             return response
-            
+
         except Exception as e:
             error_msg = f"❌ Error getting executor info: {str(e)}"
             PrintStyle.error(error_msg)
@@ -279,14 +277,14 @@ class SecureCodeExecution(Tool):
                 session_id = self.state.user_sessions[user_id]
                 self.state.manager.close_session(session_id)
                 del self.state.user_sessions[user_id]
-                
+
                 response = f"✅ Session reset for user {user_id}"
             else:
                 response = f"ℹ️  No existing session found for user {user_id}"
-            
+
             PrintStyle(font_color="#FFA500", bold=True).print(response)
             return response
-            
+
         except Exception as e:
             error_msg = f"❌ Error resetting session: {str(e)}"
             PrintStyle.error(error_msg)

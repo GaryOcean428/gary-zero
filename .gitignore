@@ -4,6 +4,10 @@
 **/__pycache__/
 **/.conda/
 
+# Plugin system
+plugins.db
+plugins.db-*
+
 # Ignore docker/run/gary-zero directory
 docker/run/gary-zero/
 
@@ -19,6 +23,38 @@ docker/run/gary-zero/
 # Ignore all contents of the virtual environment directory
 .venv/
 venv/
+
+# Testing artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+.tox/
+*.cover
+.nyc_output
+coverage/
+benchmark-results.json
+test-results.xml
+junit.xml
+
+# Performance and profiling files
+*.prof
+*.pstats
+.profile_stats
+
+# Security scanning results
+bandit-report.json
+safety-report.json
+.secrets.baseline.tmp
+
+# Temporary test files and data
+test_*.tmp
+*_test_data/
+tmp_test_*/
+
+# Mock and fixture data
+test_fixtures/
+mock_data/
 
 # Handle bundle directory
 bundle/*/

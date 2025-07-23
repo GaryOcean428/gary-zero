@@ -6,9 +6,11 @@ export default defineConfig({
         globals: true,
         environment: "jsdom",
         setupFiles: ["./tests/setup.js"],
+        testTimeout: 30000,
+        hookTimeout: 10000,
         coverage: {
             provider: "v8",
-            reporter: ["text", "json", "html"],
+            reporter: ["text", "json", "html", "lcov"],
             reportsDirectory: "./coverage",
             threshold: {
                 global: {
@@ -31,21 +33,63 @@ export default defineConfig({
                 "webui/lib/",
                 "scripts/",
                 "**/*.min.js",
+                "**/*.d.ts",
+                "**/types.ts",
+                "docs/",
+                "tmp/",
+                "logs/",
+                "memory/",
+                "prompts/",
+                "knowledge/",
+                "instruments/"
             ],
+            include: [
+                "webui/**/*.js",
+                "lib/**/*.js",
+                "framework/**/*.js"
+            ]
         },
         include: [
             "tests/**/*.{test,spec}.{js,ts}",
             "webui/**/*.{test,spec}.{js,ts}",
             "framework/**/*.{test,spec}.{js,ts}",
         ],
-        exclude: ["node_modules/", "dist/", "build/", "**/*.min.js"],
-        // Railway-compatible settings
+        exclude: [
+            "node_modules/", 
+            "dist/", 
+            "build/", 
+            "**/*.min.js",
+            "tmp/",
+            "logs/",
+            "memory/",
+            "prompts/",
+            "knowledge/",
+            "instruments/"
+        ],
+        // Performance monitoring
+        benchmark: {
+            include: ["tests/**/*.{bench,benchmark}.{js,ts}"],
+            exclude: ["node_modules/"],
+            reporter: ["default", "json"],
+            outputFile: {
+                json: "./benchmark-results.json"
+            }
+        },
+        // Railway-compatible settings for CI
         pool: "forks",
         poolOptions: {
             forks: {
-                singleFork: true,
+                singleFork: process.env.CI === "true",
+                minForks: process.env.CI === "true" ? 1 : 2,
+                maxForks: process.env.CI === "true" ? 2 : 4,
             },
         },
+        // Mock external dependencies in CI
+        server: {
+            deps: {
+                external: ["fs", "path", "os", "crypto"]
+            }
+        }
     },
     resolve: {
         alias: {
@@ -53,6 +97,12 @@ export default defineConfig({
             "@components": resolve(process.cwd(), "./webui/js"),
             "@lib": resolve(process.cwd(), "./lib"),
             "@framework": resolve(process.cwd(), "./framework"),
+            "@tests": resolve(process.cwd(), "./tests"),
         },
     },
+    // Define globals for testing environment
+    define: {
+        "process.env.NODE_ENV": '"test"',
+        "process.env.VITEST": "true"
+    }
 });

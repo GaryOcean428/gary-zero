@@ -1,4 +1,5 @@
-from typing import Callable, TypedDict
+from collections.abc import Callable
+from typing import TypedDict
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.language_models.llms import BaseLLM

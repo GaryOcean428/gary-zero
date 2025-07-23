@@ -214,6 +214,41 @@ async def serve_index():
     """Serve the main index.html file."""
     from framework.helpers.template_helper import render_index_html
     return render_index_html()
+    gitinfo = None
+    try:
+        gitinfo = git.get_git_info()
+    except Exception:
+        gitinfo = {
+            "version": "unknown",
+            "commit_time": "unknown",
+        }
+
+    # Get environment-based feature flags for client-side configuration
+    enable_dev_features = dotenv.get_dotenv_value("ENABLE_DEV_FEATURES", "true").lower() == "true"
+    vscode_integration_enabled = dotenv.get_dotenv_value("VSCODE_INTEGRATION_ENABLED", "true").lower() == "true"
+    chat_auto_resize_enabled = dotenv.get_dotenv_value("CHAT_AUTO_RESIZE_ENABLED", "true").lower() == "true"
+
+    # Create JavaScript configuration snippet to inject into the page
+    js_config = f"""
+    <script>
+        // Environment-based feature flags
+        window.ENABLE_DEV_FEATURES = {str(enable_dev_features).lower()};
+        window.VSCODE_INTEGRATION_ENABLED = {str(vscode_integration_enabled).lower()};
+        window.CHAT_AUTO_RESIZE_ENABLED = {str(chat_auto_resize_enabled).lower()};
+        console.log('🔧 Feature flags loaded:', {{
+            ENABLE_DEV_FEATURES: {str(enable_dev_features).lower()},
+            VSCODE_INTEGRATION_ENABLED: {str(vscode_integration_enabled).lower()},
+            CHAT_AUTO_RESIZE_ENABLED: {str(chat_auto_resize_enabled).lower()}
+        }});
+    </script>
+    """
+
+    return files.read_file(
+        "./webui/index.html",
+        version_no=gitinfo["version"],
+        version_time=gitinfo["commit_time"],
+        feature_flags_config=js_config,
+    )
 
 
 # handle privacy policy page
@@ -242,15 +277,15 @@ def health_check():
         memory_percent = psutil.virtual_memory().percent
         startup_time = getattr(webapp, '_startup_time', None)
         uptime = time.time() - startup_time if startup_time else 0
-        
+
         # Check environment configuration
         langchain_stream_disabled = dotenv.get_dotenv_value("LANGCHAIN_ANTHROPIC_STREAM_USAGE", "true").lower() == "false"
         enable_dev_features = dotenv.get_dotenv_value("ENABLE_DEV_FEATURES", "true").lower() == "true"
         node_env = dotenv.get_dotenv_value("NODE_ENV", "development")
-        
+
         return {
-            "status": "healthy", 
-            "timestamp": time.time(), 
+            "status": "healthy",
+            "timestamp": time.time(),
             "version": "1.0.0",
             "memory_percent": memory_percent,
             "uptime_seconds": uptime,
@@ -265,8 +300,8 @@ def health_check():
     except Exception as e:
         # Fallback to basic health check if psutil fails
         return {
-            "status": "healthy", 
-            "timestamp": time.time(), 
+            "status": "healthy",
+            "timestamp": time.time(),
             "version": "1.0.0",
             "error": str(e),
             "environment": {

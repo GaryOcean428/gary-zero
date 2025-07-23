@@ -1,5 +1,4 @@
 import time
-from typing import Optional
 
 import docker
 from framework.helpers.errors import format_error
@@ -12,8 +11,8 @@ class DockerContainerManager:
         self,
         image: str,
         name: str,
-        ports: Optional[dict[str, int]] = None,
-        volumes: Optional[dict[str, dict[str, str]]] = None,
+        ports: dict[str, int] | None = None,
+        volumes: dict[str, dict[str, str]] | None = None,
         logger: Log | None = None,
     ):
         self.logger = logger

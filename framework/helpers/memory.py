@@ -355,7 +355,7 @@ class Memory:
         timestamp = self.get_timestamp()
 
         if ids:
-            for doc, id in zip(docs, ids):
+            for doc, id in zip(docs, ids, strict=False):
                 doc.metadata["id"] = id  # add ids to documents metadata
                 doc.metadata["timestamp"] = timestamp  # add timestamp
                 if not doc.metadata.get("area", ""):

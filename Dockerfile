@@ -50,8 +50,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Set working directory
 WORKDIR /app
 
-# Copy dependency files first to leverage Docker cache
+# Copy dependency files and local packages first to leverage Docker cache
 COPY requirements.txt ./
+COPY shared_mcp/ ./shared_mcp/
 
 # Install Python dependencies with Railway-compatible cache optimization
 RUN --mount=type=cache,id=s/eef92461-60f6-4937-a828-fd5cfd6440d7-pip,target=/root/.cache/pip \

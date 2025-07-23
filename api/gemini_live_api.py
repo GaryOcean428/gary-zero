@@ -5,12 +5,12 @@ This module provides FastAPI endpoints for managing Gemini Live API
 streaming sessions and configuration.
 """
 
-import os
-import json
-from typing import Dict, Any, Optional
-from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
 import logging
+import os
+from typing import Any
+
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 
 from instruments.custom.gemini_live.gemini_live_tool import GeminiLiveTool
 
@@ -20,26 +20,26 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/gemini-live", tags=["gemini-live"])
 
 # Global tool instance
-gemini_live_tool: Optional[GeminiLiveTool] = None
+gemini_live_tool: GeminiLiveTool | None = None
 
 
 class GeminiLiveRequest(BaseModel):
     """Request model for Gemini Live API operations."""
     action: str
-    api_key: Optional[str] = None
-    model: Optional[str] = None
-    voice: Optional[str] = None
-    response_modalities: Optional[list] = None
-    audio_config: Optional[Dict[str, Any]] = None
-    audio_data: Optional[str] = None
+    api_key: str | None = None
+    model: str | None = None
+    voice: str | None = None
+    response_modalities: list | None = None
+    audio_config: dict[str, Any] | None = None
+    audio_data: str | None = None
 
 
 class GeminiLiveResponse(BaseModel):
     """Response model for Gemini Live API operations."""
     success: bool
-    message: Optional[str] = None
-    error: Optional[str] = None
-    details: Optional[Dict[str, Any]] = None
+    message: str | None = None
+    error: str | None = None
+    details: dict[str, Any] | None = None
 
 
 def get_gemini_live_tool() -> GeminiLiveTool:
@@ -55,17 +55,17 @@ async def test_connection(request: GeminiLiveRequest):
     """Test connection to Gemini Live API."""
     try:
         tool = get_gemini_live_tool()
-        
+
         # Prepare arguments for the tool
         tool.args = {
             "action": "status",
             "api_key": request.api_key or os.getenv("GEMINI_API_KEY"),
             "model": request.model or "models/gemini-2.5-flash-preview-native-audio-dialog"
         }
-        
+
         # Execute the tool
         response = await tool.execute()
-        
+
         return GeminiLiveResponse(
             success=True,
             message="Connection test successful",
@@ -75,7 +75,7 @@ async def test_connection(request: GeminiLiveRequest):
                 "tool_response": response.message
             }
         )
-        
+
     except Exception as e:
         logger.error(f"Connection test failed: {e}")
         return GeminiLiveResponse(
@@ -90,7 +90,7 @@ async def manage_streaming(request: GeminiLiveRequest):
     """Start or stop streaming session."""
     try:
         tool = get_gemini_live_tool()
-        
+
         # Prepare arguments for the tool
         tool.args = {
             "action": request.action,
@@ -99,14 +99,14 @@ async def manage_streaming(request: GeminiLiveRequest):
             "voice": request.voice or os.getenv("GEMINI_LIVE_VOICE", "Zephyr"),
             "response_modalities": request.response_modalities or ["AUDIO"]
         }
-        
+
         # Add audio configuration if provided
         if request.audio_config:
             tool.args.update(request.audio_config)
-        
+
         # Execute the tool
         response = await tool.execute()
-        
+
         return GeminiLiveResponse(
             success=True,
             message=response.message,
@@ -115,7 +115,7 @@ async def manage_streaming(request: GeminiLiveRequest):
                 "streaming_active": tool.is_streaming if hasattr(tool, 'is_streaming') else False
             }
         )
-        
+
     except Exception as e:
         logger.error(f"Streaming management failed: {e}")
         return GeminiLiveResponse(
@@ -131,23 +131,23 @@ async def send_audio(request: GeminiLiveRequest):
     try:
         if not request.audio_data:
             raise ValueError("No audio data provided")
-        
+
         tool = get_gemini_live_tool()
-        
+
         # Prepare arguments for the tool
         tool.args = {
             "action": "send_audio",
             "audio_data": request.audio_data
         }
-        
+
         # Execute the tool
         response = await tool.execute()
-        
+
         return GeminiLiveResponse(
             success=True,
             message=response.message
         )
-        
+
     except Exception as e:
         logger.error(f"Audio sending failed: {e}")
         return GeminiLiveResponse(
@@ -162,25 +162,25 @@ async def configure_streaming(request: GeminiLiveRequest):
     """Configure streaming parameters."""
     try:
         tool = get_gemini_live_tool()
-        
+
         # Prepare arguments for the tool
         tool.args = {"action": "configure"}
-        
+
         if request.voice:
             tool.args["voice"] = request.voice
         if request.response_modalities:
             tool.args["response_modalities"] = request.response_modalities
         if request.model:
             tool.args["model"] = request.model
-        
+
         # Execute the tool
         response = await tool.execute()
-        
+
         return GeminiLiveResponse(
             success=True,
             message=response.message
         )
-        
+
     except Exception as e:
         logger.error(f"Configuration failed: {e}")
         return GeminiLiveResponse(
@@ -195,13 +195,13 @@ async def get_status():
     """Get current streaming status."""
     try:
         tool = get_gemini_live_tool()
-        
+
         # Prepare arguments for the tool
         tool.args = {"action": "status"}
-        
+
         # Execute the tool
         response = await tool.execute()
-        
+
         return GeminiLiveResponse(
             success=True,
             message="Status retrieved successfully",
@@ -210,7 +210,7 @@ async def get_status():
                 "streaming_active": tool.is_streaming if hasattr(tool, 'is_streaming') else False
             }
         )
-        
+
     except Exception as e:
         logger.error(f"Status retrieval failed: {e}")
         return GeminiLiveResponse(
@@ -232,7 +232,7 @@ async def get_configuration():
                     "default": True
                 },
                 {
-                    "value": "models/gemini-2.5-pro-preview-native-audio-dialog", 
+                    "value": "models/gemini-2.5-pro-preview-native-audio-dialog",
                     "label": "Gemini 2.5 Pro (Audio Dialog)",
                     "default": False
                 },
@@ -259,9 +259,9 @@ async def get_configuration():
                 "default_modalities": os.getenv("GEMINI_LIVE_RESPONSE_MODALITIES", "AUDIO").split(",")
             }
         }
-        
+
         return config
-        
+
     except Exception as e:
         logger.error(f"Configuration retrieval failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))

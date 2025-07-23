@@ -1,7 +1,8 @@
 """Tests for Anthropic Computer Use tool."""
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
 
 from framework.tools.anthropic_computer_use import AnthropicComputerUse, ComputerUseConfig
 
@@ -27,7 +28,7 @@ class TestAnthropicComputerUse:
             args={"action": "screenshot"},
             message="Take a screenshot"
         )
-        
+
         assert tool.name == "computer_use"
         assert tool.method == "screenshot"
         assert isinstance(tool.config, ComputerUseConfig)
@@ -44,11 +45,11 @@ class TestAnthropicComputerUse:
             args={"action": "screenshot"},
             message="Take a screenshot"
         )
-        
+
         # Tool should be disabled by default or show GUI unavailable
         response = await tool.execute()
         # Should either be disabled or show GUI unavailable
-        assert ("disabled" in response.message.lower() or 
+        assert ("disabled" in response.message.lower() or
                 "gui environment" in response.message.lower())
         assert response.break_loop is False
 
@@ -58,14 +59,14 @@ class TestAnthropicComputerUse:
         tool = AnthropicComputerUse(
             agent=self.mock_agent,
             name="computer_use",
-            method="screenshot", 
+            method="screenshot",
             args={"action": "screenshot"},
             message="Take a screenshot"
         )
-        
+
         response = await tool.execute()
         # Should either be disabled or show GUI unavailable
-        assert ("Computer Use tool is disabled" in response.message or 
+        assert ("Computer Use tool is disabled" in response.message or
                 "GUI environment" in response.message)
 
     @pytest.mark.skipif(True, reason="Requires GUI environment")
@@ -79,7 +80,7 @@ class TestAnthropicComputerUse:
         mock_image.save = Mock()
         mock_image.size = (1920, 1080)
         mock_imagegrab.grab.return_value = mock_image
-        
+
         tool = AnthropicComputerUse(
             agent=self.mock_agent,
             name="computer_use",
@@ -87,12 +88,12 @@ class TestAnthropicComputerUse:
             args={"action": "screenshot"},
             message="Take a screenshot"
         )
-        
+
         # Enable the tool
         tool.config.enabled = True
-        
+
         response = await tool.execute()
-        
+
         # Should successfully take screenshot
         assert "Screenshot saved" in response.message
         assert "1920x1080" in response.message
@@ -100,13 +101,13 @@ class TestAnthropicComputerUse:
         mock_image.save.assert_called_once()
 
     @pytest.mark.skipif(True, reason="Requires GUI environment")
-    @pytest.mark.asyncio 
+    @pytest.mark.asyncio
     @patch('framework.tools.anthropic_computer_use.pyautogui')
     async def test_click_action_enabled(self, mock_pyautogui):
         """Test click action when tool is enabled."""
         mock_pyautogui.size.return_value = (1920, 1080)
         mock_pyautogui.click = Mock()
-        
+
         tool = AnthropicComputerUse(
             agent=self.mock_agent,
             name="computer_use",
@@ -114,13 +115,13 @@ class TestAnthropicComputerUse:
             args={"action": "click", "x": 100, "y": 200, "button": "left"},
             message="Click at coordinates"
         )
-        
+
         # Enable the tool but disable approval for testing
         tool.config.enabled = True
         tool.config.require_approval = False
-        
+
         response = await tool.execute()
-        
+
         # Should successfully click
         assert "Clicked at (100, 200)" in response.message
         mock_pyautogui.click.assert_called_once_with(100, 200, button="left")
@@ -131,21 +132,21 @@ class TestAnthropicComputerUse:
     async def test_type_action_enabled(self, mock_pyautogui):
         """Test type action when tool is enabled."""
         mock_pyautogui.typewrite = Mock()
-        
+
         tool = AnthropicComputerUse(
             agent=self.mock_agent,
-            name="computer_use", 
+            name="computer_use",
             method="type",
             args={"action": "type", "text": "Hello World"},
             message="Type text"
         )
-        
+
         # Enable the tool but disable approval for testing
         tool.config.enabled = True
         tool.config.require_approval = False
-        
+
         response = await tool.execute()
-        
+
         # Should successfully type
         assert "Typed text: 'Hello World'" in response.message
         mock_pyautogui.typewrite.assert_called_once_with("Hello World")
@@ -160,14 +161,14 @@ class TestAnthropicComputerUse:
             args={"action": "click", "x": -100, "y": 200},
             message="Click at invalid coordinates"
         )
-        
+
         # Enable the tool
         tool.config.enabled = True
-        
+
         response = await tool.execute()
-        
+
         # Should either handle invalid coordinates or show GUI unavailable
-        assert ("Invalid coordinates" in response.message or 
+        assert ("Invalid coordinates" in response.message or
                 "GUI environment" in response.message)
 
     @pytest.mark.asyncio
@@ -180,16 +181,16 @@ class TestAnthropicComputerUse:
             args={"action": "screenshot"},
             message="Take a screenshot"
         )
-        
+
         # Enable the tool and set low action limit
         tool.config.enabled = True
         tool.config.max_actions_per_session = 1
         tool.action_count = 1  # Already at limit
-        
+
         response = await tool.execute()
-        
+
         # Should either be blocked by action limit or show GUI unavailable
-        assert ("Maximum actions per session" in response.message or 
+        assert ("Maximum actions per session" in response.message or
                 "GUI environment" in response.message)
 
     def test_config_validation(self):
@@ -200,7 +201,7 @@ class TestAnthropicComputerUse:
             screenshot_interval=0.5,
             max_actions_per_session=100
         )
-        
+
         assert config.enabled is True
         assert config.require_approval is False
         assert config.screenshot_interval == 0.5
@@ -216,12 +217,12 @@ class TestAnthropicComputerUse:
             args={"action": "unknown_action"},
             message="Unknown action"
         )
-        
+
         # Enable the tool
         tool.config.enabled = True
-        
+
         response = await tool.execute()
-        
+
         # Should either handle unknown action gracefully or show GUI unavailable
-        assert ("Unknown action type" in response.message or 
+        assert ("Unknown action type" in response.message or
                 "GUI environment" in response.message)
