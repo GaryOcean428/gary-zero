@@ -176,6 +176,7 @@ async def lifespan(app: FastAPI):
 
 # --- App Initialization ---
 from api.gemini_live_api import router as gemini_live_router
+from api.error_report import router as error_report_router
 from api_bridge_simple import add_enhanced_endpoints, create_api_bridge
 
 app = FastAPI(
@@ -189,6 +190,7 @@ app = FastAPI(
 
 # Routers
 app.include_router(gemini_live_router)
+app.include_router(error_report_router)
 try:
     from framework.api.monitoring import router as monitoring_router
     app.include_router(monitoring_router)
