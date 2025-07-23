@@ -4,6 +4,43 @@ buildCommand = "./scripts/build.sh"
 timeout = 1800  # 30 minutes
 retries = 3
 
+# Railpack configuration for Python 3.13 with UV
+[build.railpack]
+language = "python"
+runtime = "python:3.13"
+packageManager = "uv"
+healthcheck = { path = "/health", timeout = 300 }
+
+# System dependencies for PortAudio (Gemini Live) and build tools
+systemDependencies = [
+  "portaudio19-dev",
+  "libasound-dev", 
+  "libportaudio2",
+  "libportaudiocpp0",
+  "gcc",
+  "g++",
+  "build-essential",
+  "pkg-config",
+  "libffi-dev",
+  "libssl-dev",
+  "libxml2-dev",
+  "libxslt-dev",
+  "zlib1g-dev",
+  "libjpeg-dev",
+  "libpq-dev"
+]
+
+# Cache configuration for UV and pip
+[build.railpack.cache]
+uv = "/root/.cache/uv"
+pip = "/root/.cache/pip"
+
+# Build optimizations
+[build.railpack.buildOptimizations]
+pruneDependencies = false
+enableBuildKit = true
+layerCaching = true
+
 [deploy]
 startCommand = "./scripts/start.sh"
 healthcheckPath = "/health"

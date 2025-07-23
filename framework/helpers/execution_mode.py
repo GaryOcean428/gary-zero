@@ -135,8 +135,8 @@ def get_execution_config() -> dict[str, Any]:
             'url': os.getenv('KALI_SHELL_URL', 'http://kali-linux-docker.railway.internal:8080'),
             'host': os.getenv('KALI_SHELL_HOST', 'kali-linux-docker.railway.internal'),
             'port': int(os.getenv('KALI_SHELL_PORT', '8080')),
-            'username': os.getenv('KALI_USERNAME', 'GaryOcean'),
-            'password': os.getenv('KALI_PASSWORD', 'I.Am.Dev.1'),
+            'username': os.getenv('KALI_USERNAME'),
+            'password': os.getenv('KALI_PASSWORD'),
         }
     elif should_use_ssh_execution():
         return {

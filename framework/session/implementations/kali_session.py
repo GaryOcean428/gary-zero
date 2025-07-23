@@ -4,6 +4,7 @@ Kali Service Session Implementation.
 Provides session management for Kali Linux Docker service interactions.
 """
 
+import os
 import uuid
 from typing import Any
 from urllib.parse import urljoin
@@ -32,9 +33,10 @@ class KaliSession(SessionInterface):
         session_id = str(uuid.uuid4())
         super().__init__(session_id, SessionType.HTTP, config)
 
-        self.base_url = config.get('base_url', 'http://kali-linux-docker.railway.internal:8080')
-        self.username = config.get('username', 'GaryOcean')
-        self.password = config.get('password', 'I.Am.Dev.1')
+        # Prefer config values, then env vars, then Railway-compatible defaults
+        self.base_url = config.get('base_url') or os.getenv('KALI_SHELL_URL', 'http://kali-linux-docker.railway.internal:8080')
+        self.username = config.get('username') or os.getenv('KALI_USERNAME', 'GaryOcean')
+        self.password = config.get('password') or os.getenv('KALI_PASSWORD', 'I.Am.Dev.1')
 
         # HTTP session for persistent connections
         self.http_session = requests.Session()
@@ -48,35 +50,21 @@ class KaliSession(SessionInterface):
         self._connected = False
 
     async def connect(self) -> SessionResponse:
-        """
-        Establish connection to Kali service.
-        
-        Returns:
-            SessionResponse indicating connection success or failure
-        """
+        """Establish connection to Kali service."""
         try:
             await self.update_state(SessionState.INITIALIZING)
 
-            # Test connection with health check
-            response = self.http_session.get(
-                urljoin(self.base_url, '/health'),
-                timeout=10
-            )
-
+            # Health check
+            response = self.http_session.get(urljoin(self.base_url, '/health'), timeout=10)
             if response.status_code == 200:
                 self._connected = True
                 await self.update_state(SessionState.CONNECTED)
-
-                # Get service info
+                # Try to fetch service info
                 try:
-                    info_response = self.http_session.get(
-                        urljoin(self.base_url, '/info'),
-                        timeout=5
-                    )
+                    info_response = self.http_session.get(urljoin(self.base_url, '/info'), timeout=5)
                     service_info = info_response.json() if info_response.status_code == 200 else {}
                 except Exception:
                     service_info = {}
-
                 return SessionResponse(
                     success=True,
                     message="Connected to Kali service",
@@ -91,7 +79,6 @@ class KaliSession(SessionInterface):
                     error=response.text,
                     session_id=self.session_id
                 )
-
         except Exception as e:
             await self.update_state(SessionState.ERROR, str(e))
             return SessionResponse(
@@ -102,17 +89,11 @@ class KaliSession(SessionInterface):
             )
 
     async def disconnect(self) -> SessionResponse:
-        """
-        Disconnect from Kali service.
-        
-        Returns:
-            SessionResponse indicating disconnection status
-        """
+        """Disconnect from Kali service."""
         try:
             self.http_session.close()
             self._connected = False
             await self.update_state(SessionState.DISCONNECTED)
-
             return SessionResponse(
                 success=True,
                 message="Disconnected from Kali service",
@@ -127,15 +108,7 @@ class KaliSession(SessionInterface):
             )
 
     async def execute(self, message: SessionMessage) -> SessionResponse:
-        """
-        Execute a command in the Kali environment.
-        
-        Args:
-            message: Message containing the command to execute
-            
-        Returns:
-            SessionResponse with command results
-        """
+        """Execute a command in the Kali environment."""
         try:
             if not self._connected:
                 return SessionResponse(
@@ -177,12 +150,7 @@ class KaliSession(SessionInterface):
             await self.update_state(SessionState.IDLE)
 
     async def health_check(self) -> SessionResponse:
-        """
-        Check if the Kali service session is healthy.
-        
-        Returns:
-            SessionResponse indicating session health
-        """
+        """Check if the Kali service session is healthy."""
         try:
             if not self._connected:
                 return SessionResponse(
@@ -191,11 +159,7 @@ class KaliSession(SessionInterface):
                     session_id=self.session_id
                 )
 
-            response = self.http_session.get(
-                urljoin(self.base_url, '/health'),
-                timeout=5
-            )
-
+            response = self.http_session.get(urljoin(self.base_url, '/health'), timeout=5)
             if response.status_code == 200:
                 return SessionResponse(
                     success=True,
@@ -209,7 +173,6 @@ class KaliSession(SessionInterface):
                     error=response.text,
                     session_id=self.session_id
                 )
-
         except Exception as e:
             return SessionResponse(
                 success=False,
@@ -222,7 +185,6 @@ class KaliSession(SessionInterface):
         """Execute a command in the Kali environment."""
         command = payload.get('command', '')
         timeout = payload.get('timeout', 30)
-
         if not command:
             return SessionResponse(
                 success=False,
@@ -230,20 +192,17 @@ class KaliSession(SessionInterface):
                 error="Missing command parameter",
                 session_id=self.session_id
             )
-
         try:
             request_payload = {
                 'command': command,
                 'timeout': timeout,
                 'environment': 'kali'
             }
-
             response = self.http_session.post(
                 urljoin(self.base_url, '/execute'),
                 json=request_payload,
                 timeout=timeout + 10
             )
-
             if response.status_code == 200:
                 result = response.json()
                 return SessionResponse(
@@ -259,7 +218,6 @@ class KaliSession(SessionInterface):
                     error=response.text,
                     session_id=self.session_id
                 )
-
         except Exception as e:
             return SessionResponse(
                 success=False,
@@ -272,7 +230,6 @@ class KaliSession(SessionInterface):
         """Run a security scan using Kali tools."""
         target = payload.get('target', '')
         scan_type = payload.get('scan_type', 'basic')
-
         if not target:
             return SessionResponse(
                 success=False,
@@ -280,7 +237,6 @@ class KaliSession(SessionInterface):
                 error="Missing target parameter",
                 session_id=self.session_id
             )
-
         # Define scan commands
         scan_commands = {
             'basic': f'nmap -sV -sC {target}',
@@ -289,9 +245,7 @@ class KaliSession(SessionInterface):
             'ping': f'nmap -sn {target}',
             'port': f'nmap -p- {target}'
         }
-
         command = scan_commands.get(scan_type, scan_commands['basic'])
-
         return await self._execute_command({
             'command': command,
             'timeout': 300  # 5 minute timeout for scans
@@ -300,7 +254,6 @@ class KaliSession(SessionInterface):
     async def _get_tools(self) -> SessionResponse:
         """Get list of available Kali tools."""
         command = "ls /usr/bin/ | grep -E '(nmap|nikto|sqlmap|metasploit|burp|wireshark)' | head -20"
-
         return await self._execute_command({
             'command': command,
             'timeout': 10
@@ -309,7 +262,6 @@ class KaliSession(SessionInterface):
     async def _run_audit(self, payload: dict[str, Any]) -> SessionResponse:
         """Run a comprehensive security audit."""
         target = payload.get('target', '')
-
         if not target:
             return SessionResponse(
                 success=False,
@@ -317,33 +269,25 @@ class KaliSession(SessionInterface):
                 error="Missing target parameter",
                 session_id=self.session_id
             )
-
-        # Run multiple scan types and combine results
         results = {}
-
         # Basic port scan
         port_scan = await self._run_scan({'target': target, 'scan_type': 'basic'})
         results['port_scan'] = port_scan.data if port_scan.success else {'error': port_scan.error}
-
-        # Check if web services are available for additional scans
+        # Additional scans if web ports found
         if port_scan.success and port_scan.data:
             stdout = port_scan.data.get('stdout', '')
             if any(port in stdout for port in ['80/tcp', '443/tcp', '8080/tcp']):
-                # Web vulnerability scan
                 nikto_result = await self._execute_command({
                     'command': f'nikto -h {target}',
                     'timeout': 180
                 })
                 results['web_scan'] = nikto_result.data if nikto_result.success else {'error': nikto_result.error}
-
-            # SSL certificate check if HTTPS is available
             if '443/tcp' in stdout:
                 ssl_result = await self._execute_command({
                     'command': f'echo | openssl s_client -connect {target}:443 2>/dev/null | openssl x509 -noout -text',
                     'timeout': 30
                 })
                 results['ssl_check'] = ssl_result.data if ssl_result.success else {'error': ssl_result.error}
-
         return SessionResponse(
             success=True,
             message="Security audit completed",

@@ -1,235 +1,135 @@
 """
-Unit tests for A2A (Agent-to-Agent) communication handlers.
+Unit tests for the A2A communication module.
 """
-
 import pytest
-import asyncio
-from unittest.mock import Mock, patch
+import uuid
+from datetime import datetime
+from unittest.mock import Mock, AsyncMock, patch
+from framework.a2a.communication import (
+    MessageType,
+    MessagePriority,
+    A2AMessage,
+    CommunicationRequest,
+    CommunicationResponse,
+    CommunicationService
+)
 
+class TestMessageEnums:
+    def test_message_type_enum(self):
+        assert MessageType.REQUEST == "request"
+        assert MessageType.RESPONSE == "response"
+        assert MessageType.NOTIFICATION == "notification"
+        assert MessageType.TASK == "task"
+        assert MessageType.RESULT == "result"
+        assert MessageType.ERROR == "error"
 
-@pytest.mark.asyncio
-class TestA2ACommunication:
-    """Test cases for A2A communication functionality."""
-    
-    async def test_context_propagation(self):
-        """Test that context is properly propagated in A2A communication."""
-        # Mock the A2A communication handler
-        from unittest.mock import AsyncMock
-        
-        # Create a mock context
-        mock_context = {
-            "agent_id": "test-agent-001",
-            "session_id": "test-session",
-            "task_id": "test-task-123",
-            "metadata": {"priority": "high"}
-        }
-        
-        # Mock A2A handler
-        handler = AsyncMock()
-        handler.process_message.return_value = {
-            "status": "success",
-            "response": "Message processed",
-            "context": mock_context
-        }
-        
-        # Test context propagation
-        result = await handler.process_message(
-            message="Test message",
-            context=mock_context
+    def test_message_priority_enum(self):
+        assert MessagePriority.LOW == "low"
+        assert MessagePriority.NORMAL == "normal"
+        assert MessagePriority.HIGH == "high"
+        assert MessagePriority.URGENT == "urgent"
+
+class TestA2AMessage:
+    def test_message_creation(self):
+        message = A2AMessage(
+            id="msg-123",
+            session_id="session-456",
+            sender_id="agent-1",
+            recipient_id="agent-2",
+            type=MessageType.REQUEST,
+            priority=MessagePriority.HIGH,
+            content={"action": "process_task", "data": {"task_id": "task-789"}},
+            timestamp=datetime.now().isoformat(),
+            correlation_id="corr-101",
+            reply_to="msg-000",
+            required_capabilities=["task_processing", "data_analysis"],
+            context={"user_id": "user-123", "environment": "production"}
         )
-        
-        assert result["status"] == "success"
-        assert result["context"] is not None
-        assert result["context"]["agent_id"] == "test-agent-001"
-        assert result["context"]["session_id"] == "test-session"
-    
-    async def test_message_id_matching(self):
-        """Test that message IDs are properly matched in A2A communication."""
-        from unittest.mock import AsyncMock
-        import uuid
-        
-        # Generate test message ID
-        message_id = str(uuid.uuid4())
-        
-        # Mock A2A handler
-        handler = AsyncMock()
-        handler.send_message.return_value = {
-            "message_id": message_id,
-            "status": "sent",
-            "response_expected": True
-        }
-        
-        handler.receive_response.return_value = {
-            "message_id": message_id,
-            "status": "success",
-            "response": "Response to test message"
-        }
-        
-        # Test send message
-        send_result = await handler.send_message(
-            message="Test message",
-            message_id=message_id
+        assert message.id == "msg-123"
+        assert message.session_id == "session-456"
+        assert message.sender_id == "agent-1"
+        assert message.recipient_id == "agent-2"
+        assert message.type == MessageType.REQUEST
+        assert message.priority == MessagePriority.HIGH
+        assert message.content == {"action": "process_task", "data": {"task_id": "task-789"}}
+        assert message.correlation_id == "corr-101"
+        assert message.reply_to == "msg-000"
+        assert message.required_capabilities == ["task_processing", "data_analysis"]
+        assert message.context == {"user_id": "user-123", "environment": "production"}
+
+    def test_message_defaults(self):
+        message = A2AMessage(
+            id="msg-123",
+            session_id="session-456",
+            sender_id="agent-1",
+            recipient_id="agent-2",
+            type=MessageType.NOTIFICATION,
+            content={"status": "ready"},
+            timestamp=datetime.now().isoformat()
         )
+        assert message.priority == MessagePriority.NORMAL
+        assert message.correlation_id is None
+        assert message.reply_to is None
+        assert message.required_capabilities == []
+        assert message.context == {}
+
+class TestCommunicationServiceIntegration:
+    @pytest.mark.asyncio
+    async def test_full_message_processing_workflow(self):
+        service = CommunicationService()
+        service.negotiation_service = Mock()
+        service.negotiation_service.validate_session_token.return_value = True
+        service.negotiation_service.get_session_info.return_value = {
+            "session_id": "integration-session",
+            "supported_capabilities": ["integration_test"]
+        }
         
-        # Test receive response
-        response_result = await handler.receive_response(message_id)
-        
-        # Verify message ID matching
-        assert send_result["message_id"] == message_id
-        assert response_result["message_id"] == message_id
-        assert send_result["message_id"] == response_result["message_id"]
-    
-    async def test_error_exception_handling(self):
-        """Test that expected exceptions are raised for error conditions."""
-        from unittest.mock import AsyncMock
-        
-        # Mock A2A handler that raises exceptions
-        handler = AsyncMock()
-        
-        # Test case 1: Invalid context should raise ValueError
-        handler.process_message.side_effect = ValueError("Invalid context provided")
-        
-        with pytest.raises(ValueError, match="Invalid context provided"):
-            await handler.process_message(
-                message="Test message",
-                context=None  # Invalid context
+        async def mock_request_handler(message, session_info):
+            return A2AMessage(
+                id=f"response-{message.id}",
+                session_id=message.session_id,
+                sender_id=message.recipient_id,
+                recipient_id=message.sender_id,
+                type=MessageType.RESPONSE,
+                content={"result": "processed", "original_action": message.content.get("action")},
+                timestamp=datetime.now().isoformat(),
+                correlation_id=message.correlation_id
             )
         
-        # Test case 2: Connection timeout should raise TimeoutError
-        handler.send_message.side_effect = asyncio.TimeoutError("Connection timeout")
+        service._handle_request = mock_request_handler
         
-        with pytest.raises(asyncio.TimeoutError, match="Connection timeout"):
-            await handler.send_message(
-                message="Test message",
-                timeout=1.0
-            )
-        
-        # Test case 3: Invalid message format should raise ValueError
-        handler.validate_message.side_effect = ValueError("Invalid message format")
-        
-        with pytest.raises(ValueError, match="Invalid message format"):
-            await handler.validate_message("")  # Empty message
-    
-    async def test_a2a_stream_integration(self):
-        """Test A2A streaming communication integration."""
-        from unittest.mock import AsyncMock, MagicMock
-        
-        # Mock WebSocket connection
-        mock_websocket = AsyncMock()
-        mock_websocket.accept = AsyncMock()
-        mock_websocket.send_json = AsyncMock()
-        mock_websocket.receive_json = AsyncMock()
-        
-        # Test A2A streaming integration without complex imports
-        # This test validates the concept and expected behavior
-        async def mock_a2a_handler(websocket, agent_id, session_id, session_token=None):
-            """Mock A2A WebSocket handler that simulates the real implementation."""
-            await websocket.accept()
-            
-            # Simulate A2A stream processing
-            await websocket.send_json({
-                "type": "stream_initialized",
-                "agent_id": agent_id,
-                "session_id": session_id,
-                "status": "ready"
-            })
-            
-            return {"status": "connected", "agent_id": agent_id}
-        
-        # Test the mock handler
-        result = await mock_a2a_handler(
-            websocket=mock_websocket,
-            agent_id="test-agent",
-            session_id="test-session",
-            session_token="test-token"
+        message = A2AMessage(
+            id="integration-msg-001",
+            session_id="integration-session",
+            sender_id="integration-sender",
+            recipient_id="integration-recipient",
+            type=MessageType.REQUEST,
+            content={"action": "integration_test", "data": {"test": True}},
+            timestamp=datetime.now().isoformat(),
+            correlation_id="integration-corr-001",
+            required_capabilities=["integration_test"]
         )
         
-        # Verify WebSocket operations
-        mock_websocket.accept.assert_called_once()
-        mock_websocket.send_json.assert_called_once()
+        request = CommunicationRequest(
+            message=message,
+            session_token="integration-token-123"
+        )
         
-        # Verify the result
-        assert result["status"] == "connected"
-        assert result["agent_id"] == "test-agent"
+        response = await service.process_message(request)
         
-        # Verify the JSON message sent
-        call_args = mock_websocket.send_json.call_args[0][0]
-        assert call_args["type"] == "stream_initialized"
-        assert call_args["agent_id"] == "test-agent"
-        assert call_args["session_id"] == "test-session"
+        assert response.success is True
+        assert response.message_id == "integration-msg-001"
+        assert response.response_message is not None
+        response_msg = response.response_message
+        assert response_msg.type == MessageType.RESPONSE
+        assert response_msg.correlation_id == "integration-corr-001"
+        assert response_msg.content["result"] == "processed"
+        assert response_msg.content["original_action"] == "integration_test"
+        assert "integration-msg-001" in service.processed_messages
 
-
-class TestA2AMessageValidation:
-    """Test A2A message validation functionality."""
-    
-    def test_valid_message_structure(self):
-        """Test validation of valid A2A message structures."""
-        from unittest.mock import Mock
-        
-        validator = Mock()
-        validator.validate_message.return_value = True
-        
-        valid_message = {
-            "type": "request",
-            "agent_id": "agent-001",
-            "message_id": "msg-123",
-            "content": "Hello, agent!",
-            "timestamp": 1234567890,
-            "context": {"task": "greeting"}
-        }
-        
-        result = validator.validate_message(valid_message)
-        assert result is True
-    
-    def test_invalid_message_structure(self):
-        """Test validation of invalid A2A message structures."""
-        from unittest.mock import Mock
-        
-        validator = Mock()
-        validator.validate_message.return_value = False
-        
-        # Test various invalid message structures
-        invalid_messages = [
-            {},  # Empty message
-            {"type": "request"},  # Missing required fields
-            {"agent_id": "agent-001", "content": ""},  # Empty content
-            {"type": "invalid_type", "content": "test"}  # Invalid type
-        ]
-        
-        for invalid_msg in invalid_messages:
-            result = validator.validate_message(invalid_msg)
-            assert result is False
-
-
-@pytest.mark.asyncio
 class TestA2AProtocolCompliance:
-    """Test A2A protocol compliance and standards."""
-    
-    async def test_protocol_handshake(self):
-        """Test A2A protocol handshake procedure."""
-        from unittest.mock import AsyncMock
-        
-        protocol_handler = AsyncMock()
-        protocol_handler.initiate_handshake.return_value = {
-            "status": "success",
-            "protocol_version": "1.0",
-            "capabilities": ["streaming", "file_transfer", "context_sharing"]
-        }
-        
-        result = await protocol_handler.initiate_handshake(
-            agent_id="agent-001",
-            target_agent="agent-002"
-        )
-        
-        assert result["status"] == "success"
-        assert "protocol_version" in result
-        assert "capabilities" in result
-        assert isinstance(result["capabilities"], list)
-    
+    @pytest.mark.asyncio
     async def test_capability_negotiation(self):
-        """Test A2A capability negotiation between agents."""
-        from unittest.mock import AsyncMock
-        
         negotiator = AsyncMock()
         negotiator.negotiate_capabilities.return_value = {
             "agreed_capabilities": ["streaming", "context_sharing"],
