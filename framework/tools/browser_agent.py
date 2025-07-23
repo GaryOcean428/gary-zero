@@ -1,7 +1,6 @@
 import asyncio
 import time
 import uuid
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -24,9 +23,9 @@ class State:
 
     def __init__(self, agent: Agent):
         self.agent = agent
-        self.browser_session: Optional[browser_use.BrowserSession] = None
-        self.task: Optional[defer.DeferredTask] = None
-        self.use_agent: Optional[browser_use.Agent] = None
+        self.browser_session: browser_use.BrowserSession | None = None
+        self.task: defer.DeferredTask | None = None
+        self.use_agent: browser_use.Agent | None = None
         self.iter_no = 0
 
     def __del__(self):
@@ -212,7 +211,7 @@ class BrowserAgent(Tool):
                 try:
                     update = await asyncio.wait_for(self.get_update(), timeout=10)
                     fail_counter = 0  # reset on success
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     fail_counter += 1
                     PrintStyle().warning(f"browser_agent.get_update timed out ({fail_counter}/3)")
                     if fail_counter >= 3:

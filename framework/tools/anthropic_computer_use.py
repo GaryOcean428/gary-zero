@@ -5,23 +5,19 @@ This tool integrates Anthropic's computer-use capabilities to enable
 agent automation of desktop tasks through keyboard, mouse, and window control.
 """
 
-import asyncio
-import base64
-import io
 import os
 import time
-from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
-from framework.helpers.tool import Response, Tool
 from framework.helpers.print_style import PrintStyle
-from framework.security import require_approval, RiskLevel
+from framework.helpers.tool import Response, Tool
+from framework.security import RiskLevel, require_approval
 
 # Import GUI dependencies conditionally
 try:
-    from PIL import Image, ImageGrab
     import pyautogui
+    from PIL import Image, ImageGrab
     GUI_AVAILABLE = True
 except (ImportError, Exception) as e:
     GUI_AVAILABLE = False
@@ -102,7 +98,7 @@ class AnthropicComputerUse(Tool):
         try:
             # Extract user_id for approval system
             user_id = kwargs.get('user_id', 'system')
-            
+
             # Check if GUI is available
             if not GUI_AVAILABLE:
                 return Response(
@@ -125,7 +121,7 @@ class AnthropicComputerUse(Tool):
                 )
 
             action_type = self.args.get("action", "screenshot")
-            
+
             # Handle different action types
             if action_type == "screenshot":
                 result = await self.take_screenshot()
@@ -155,22 +151,22 @@ class AnthropicComputerUse(Tool):
         try:
             # Take screenshot
             screenshot = ImageGrab.grab()
-            
+
             # Save to tmp directory
             timestamp = int(time.time())
             filename = f"screenshot_{timestamp}.png"
             filepath = os.path.join("tmp", filename)
-            
+
             # Ensure tmp directory exists
             os.makedirs("tmp", exist_ok=True)
-            
+
             screenshot.save(filepath)
-            
+
             # Get screen dimensions
             width, height = screenshot.size
-            
+
             return f"Screenshot saved as {filepath}. Screen dimensions: {width}x{height}"
-            
+
         except Exception as e:
             return f"Failed to take screenshot: {str(e)}"
 
@@ -277,7 +273,7 @@ class AnthropicComputerUse(Tool):
 
             # Move to position and scroll
             pyautogui.moveTo(x, y)
-            
+
             if direction in ["up", "down"]:
                 scroll_amount = clicks if direction == "up" else -clicks
                 pyautogui.scroll(scroll_amount, x, y)
@@ -293,21 +289,21 @@ class AnthropicComputerUse(Tool):
         """Request user approval for an action."""
         # This would typically integrate with the agent's intervention system
         # For now, we'll implement a simple approval mechanism
-        
+
         PrintStyle(font_color="yellow", bold=True).print(
             f"⚠️  Computer Use Action Requires Approval: {action_description}"
         )
-        
+
         # In a real implementation, this would pause execution and wait for user input
         # For now, we'll assume approval is granted
         # TODO: Integrate with agent intervention system
-        
+
         return True
 
     async def before_execution(self, **kwargs):
         """Pre-execution setup."""
         await super().before_execution(**kwargs)
-        
+
         # Display safety warning
         PrintStyle(font_color="yellow", bold=True).print(
             "⚠️  Computer Use tool can control your desktop. Use with caution!"

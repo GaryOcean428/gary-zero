@@ -3,9 +3,9 @@
 # Standard library imports
 import threading
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Annotated, Literal, Optional, Union
+from typing import Annotated, Literal
 
 # Third-party imports
 try:
@@ -122,21 +122,21 @@ class TaskPlan(BaseModel):
         if next_launch is None:
             return False
 
-        return datetime.now(timezone.utc) >= next_launch
+        return datetime.now(UTC) >= next_launch
 
 
 class BaseTask(BaseModel):
     """Base class for all task types."""
 
     uuid: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    context_id: Optional[str] = Field(default=None)
+    context_id: str | None = Field(default=None)
     state: TaskState = Field(default=TaskState.IDLE)
     name: str = Field()
     system_prompt: str
     prompt: str
     attachments: list[str] = Field(default_factory=list)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     last_run: datetime | None = None
     last_result: str | None = None
 
@@ -177,7 +177,7 @@ class BaseTask(BaseModel):
             if context_id is not None:
                 self.context_id = context_id
 
-            self.updated_at = datetime.now(timezone.utc)
+            self.updated_at = datetime.now(UTC)
 
     def check_schedule(self, frequency_seconds: float = 60.0) -> bool:
         """Check if task should run based on schedule. Override in subclasses."""
@@ -193,7 +193,7 @@ class BaseTask(BaseModel):
         if next_run is None:
             return None
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return int((next_run - now).total_seconds() / 60)
 
     async def on_run(self):
@@ -354,7 +354,7 @@ class ScheduledTask(BaseTask):
 
             # Get next run time and convert to UTC
             next_run_local = cron.next(now=now, default_utc=False, return_datetime=True)
-            return next_run_local.astimezone(timezone.utc)
+            return next_run_local.astimezone(UTC)
 
         except Exception:
             return None
@@ -443,4 +443,4 @@ class PlannedTask(BaseTask):
 
 
 # Type alias for all task types
-Task = Annotated[Union[ScheduledTask, AdHocTask, PlannedTask], Field(discriminator="type")]
+Task = Annotated[ScheduledTask | AdHocTask | PlannedTask, Field(discriminator="type")]

@@ -2,7 +2,6 @@ import select
 import subprocess
 import sys
 import time
-from typing import Optional
 
 
 class LocalInteractiveSession:
@@ -47,7 +46,7 @@ class LocalInteractiveSession:
 
     async def read_output(
         self, timeout: float = 0, reset_full_output: bool = False
-    ) -> tuple[str, Optional[str]]:
+    ) -> tuple[str, str | None]:
         if not self.process:
             raise Exception("Shell not connected")
 

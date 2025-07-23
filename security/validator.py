@@ -7,9 +7,9 @@ implementing a whitelist approach for allowed imports and blocking unsafe functi
 
 import ast
 import logging
-from typing import Set, List, Dict, Any, Optional
-from pydantic import BaseModel, Field
 from enum import Enum
+
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
@@ -23,15 +23,15 @@ class ValidationResult(BaseModel):
     """Result of code validation."""
     is_valid: bool
     security_level: SecurityLevel
-    errors: List[str] = Field(default_factory=list)
-    warnings: List[str] = Field(default_factory=list)
-    blocked_items: List[str] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+    blocked_items: list[str] = Field(default_factory=list)
 
 class CodeValidationRequest(BaseModel):
     """Request model for code validation."""
     code: str = Field(..., min_length=1, max_length=50000)
     security_level: SecurityLevel = SecurityLevel.STRICT
-    allowed_modules: Optional[List[str]] = None
+    allowed_modules: list[str] | None = None
 
 class SecurityError(Exception):
     """Custom exception for security validation errors."""
@@ -44,17 +44,17 @@ class SecureCodeValidator:
     This validator parses submitted code using Python's AST to detect and block
     dangerous calls, unauthorized imports, and potentially unsafe operations.
     """
-    
+
     def __init__(self, security_level: SecurityLevel = SecurityLevel.STRICT):
         self.security_level = security_level
-        
+
         # Dangerous functions that should be blocked
         self.blocked_functions = {
             'eval', 'exec', 'compile', '__import__', 'globals', 'locals',
             'vars', 'dir', 'hasattr', 'getattr', 'setattr', 'delattr',
             'input', 'raw_input', 'reload', 'exit', 'quit'
         }
-        
+
         # Dangerous modules that should be blocked
         self.blocked_modules = {
             'os', 'sys', 'subprocess', 'multiprocessing', 'threading',
@@ -63,7 +63,7 @@ class SecureCodeValidator:
             'smtplib', 'imaplib', 'poplib', 'pickle', 'shelve', 'marshal',
             'tempfile', 'shutil', 'glob', 'fnmatch', 'sqlite3', 'dbm'
         }
-        
+
         # Allowed modules based on security level
         self.allowed_modules = {
             SecurityLevel.STRICT: {
@@ -92,14 +92,14 @@ class SecureCodeValidator:
                 'lxml', 'pillow', 'opencv-python'
             }
         }
-        
+
         # Dangerous attributes that should be blocked
         self.blocked_attributes = {
             '__globals__', '__locals__', '__dict__', '__class__', '__bases__',
             '__subclasses__', '__mro__', '__code__', '__func__', '__self__',
             '__module__', '__qualname__', '__annotations__', '__doc__'
         }
-    
+
     def validate_code(self, request: CodeValidationRequest) -> ValidationResult:
         """
         Validate Python code for security issues.
@@ -114,17 +114,17 @@ class SecureCodeValidator:
             is_valid=True,
             security_level=request.security_level
         )
-        
+
         try:
             # Parse the code using AST
             tree = ast.parse(request.code)
-            
+
             # Perform security checks
             self._check_imports(tree, result, request)
             self._check_function_calls(tree, result)
             self._check_attribute_access(tree, result)
             self._check_dangerous_operations(tree, result)
-            
+
         except SyntaxError as e:
             result.is_valid = False
             result.errors.append(f"Syntax error: {str(e)}")
@@ -132,17 +132,17 @@ class SecureCodeValidator:
             result.is_valid = False
             result.errors.append(f"Validation error: {str(e)}")
             logger.error(f"Code validation failed: {e}")
-        
+
         # Final validation check
         if result.errors or result.blocked_items:
             result.is_valid = False
-        
+
         return result
-    
+
     def _check_imports(self, tree: ast.AST, result: ValidationResult, request: CodeValidationRequest):
         """Check for unauthorized imports."""
         allowed = request.allowed_modules or self.allowed_modules[request.security_level]
-        
+
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
@@ -151,7 +151,7 @@ class SecureCodeValidator:
                         result.blocked_items.append(f"Blocked import: {alias.name}")
                     elif module_name not in allowed:
                         result.blocked_items.append(f"Unauthorized import: {alias.name}")
-            
+
             elif isinstance(node, ast.ImportFrom):
                 if node.module:
                     module_name = node.module.split('.')[0]  # Get top-level module
@@ -159,7 +159,7 @@ class SecureCodeValidator:
                         result.blocked_items.append(f"Blocked import from: {node.module}")
                     elif module_name not in allowed:
                         result.blocked_items.append(f"Unauthorized import from: {node.module}")
-    
+
     def _check_function_calls(self, tree: ast.AST, result: ValidationResult):
         """Check for dangerous function calls."""
         for node in ast.walk(tree):
@@ -167,24 +167,24 @@ class SecureCodeValidator:
                 # Check direct function calls
                 if isinstance(node.func, ast.Name) and node.func.id in self.blocked_functions:
                     result.blocked_items.append(f"Blocked function: {node.func.id}")
-                
+
                 # Check method calls on dangerous modules
                 elif isinstance(node.func, ast.Attribute):
                     if isinstance(node.func.value, ast.Name):
                         # Check for os.system, subprocess.call, etc.
-                        if (node.func.value.id in self.blocked_modules and 
+                        if (node.func.value.id in self.blocked_modules and
                             hasattr(node.func, 'attr')):
                             result.blocked_items.append(
                                 f"Blocked method: {node.func.value.id}.{node.func.attr}"
                             )
-    
+
     def _check_attribute_access(self, tree: ast.AST, result: ValidationResult):
         """Check for access to dangerous attributes."""
         for node in ast.walk(tree):
             if isinstance(node, ast.Attribute):
                 if node.attr in self.blocked_attributes:
                     result.blocked_items.append(f"Blocked attribute access: {node.attr}")
-    
+
     def _check_dangerous_operations(self, tree: ast.AST, result: ValidationResult):
         """Check for other dangerous operations."""
         for node in ast.walk(tree):
@@ -192,17 +192,17 @@ class SecureCodeValidator:
             if isinstance(node, ast.Constant) and isinstance(node.value, str):
                 if any(dangerous in node.value.lower() for dangerous in ['exec(', 'eval(', '__import__']):
                     result.warnings.append("Potentially dangerous string content detected")
-            
+
             # Check for file operations
             if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
                 if node.func.id in ['open', 'file']:
                     result.warnings.append("File operation detected")
-            
+
             # Check for network operations (in allowed modules)
-            if (isinstance(node, ast.Call) and 
+            if (isinstance(node, ast.Call) and
                 isinstance(node.func, ast.Attribute) and
                 isinstance(node.func.value, ast.Name)):
-                if (node.func.value.id == 'requests' and 
+                if (node.func.value.id == 'requests' and
                     node.func.attr in ['get', 'post', 'put', 'delete']):
                     result.warnings.append("Network operation detected")
 

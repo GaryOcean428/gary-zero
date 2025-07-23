@@ -5,18 +5,21 @@ Central orchestrator for remote session management that coordinates
 code execution and GUI interactions across different environments.
 """
 
-import asyncio
 import logging
 import uuid
-from typing import Any, Dict, List, Optional, Callable
+from collections.abc import Callable
 from datetime import datetime, timedelta
+from typing import Any
 
-from .session_interface import (
-    SessionInterface, SessionType, SessionState, SessionMessage, 
-    SessionResponse, SessionMetadata
-)
-from .session_config import SessionConfig
 from .connection_pool import ConnectionPool
+from .session_config import SessionConfig
+from .session_interface import (
+    SessionInterface,
+    SessionMessage,
+    SessionMetadata,
+    SessionResponse,
+    SessionType,
+)
 
 
 class RemoteSessionManager:
@@ -26,8 +29,8 @@ class RemoteSessionManager:
     Provides session orchestration, connection pooling, approval flows,
     and secure storage of outputs for agent memory integration.
     """
-    
-    def __init__(self, config: Optional[SessionConfig] = None, agent=None):
+
+    def __init__(self, config: SessionConfig | None = None, agent=None):
         """
         Initialize remote session manager.
         
@@ -38,41 +41,41 @@ class RemoteSessionManager:
         self.config = config or SessionConfig.from_environment()
         self.agent = agent
         self.logger = logging.getLogger(__name__)
-        
+
         # Connection pool for session management
         self.connection_pool = ConnectionPool(self.config)
-        
+
         # Session factories for different types
-        self._session_factories: Dict[SessionType, Callable] = {}
-        
+        self._session_factories: dict[SessionType, Callable] = {}
+
         # Output storage for memory integration
-        self._output_storage: Dict[str, Dict[str, Any]] = {}
-        
+        self._output_storage: dict[str, dict[str, Any]] = {}
+
         # Approval handlers
-        self._approval_handlers: Dict[SessionType, Callable] = {}
-        
+        self._approval_handlers: dict[SessionType, Callable] = {}
+
         # Running state
         self._running = False
-        
+
     async def start(self):
         """Start the session manager and connection pool."""
         if self._running:
             return
-            
+
         await self.connection_pool.start()
         self._running = True
         self.logger.info("Remote session manager started")
-    
+
     async def stop(self):
         """Stop the session manager and cleanup all resources."""
         if not self._running:
             return
-            
+
         await self.connection_pool.stop()
         self._running = False
         self._output_storage.clear()
         self.logger.info("Remote session manager stopped")
-    
+
     def register_session_factory(self, session_type: SessionType, factory: Callable):
         """
         Register a factory function for creating sessions of a specific type.
@@ -83,7 +86,7 @@ class RemoteSessionManager:
         """
         self._session_factories[session_type] = factory
         self.logger.debug(f"Registered session factory for {session_type.value}")
-    
+
     def register_approval_handler(self, session_type: SessionType, handler: Callable):
         """
         Register an approval handler for a specific session type.
@@ -94,7 +97,7 @@ class RemoteSessionManager:
         """
         self._approval_handlers[session_type] = handler
         self.logger.debug(f"Registered approval handler for {session_type.value}")
-    
+
     async def create_session(self, session_type: SessionType, **kwargs) -> SessionInterface:
         """
         Create a new session of the specified type.
@@ -112,21 +115,21 @@ class RemoteSessionManager:
         """
         if not self._running:
             await self.start()
-        
+
         if session_type not in self._session_factories:
             raise ValueError(f"No factory registered for session type: {session_type.value}")
-        
+
         factory = self._session_factories[session_type]
         session = await self.connection_pool.get_session(session_type, factory, **kwargs)
-        
+
         self.logger.info(f"Created session {session.session_id} of type {session_type.value}")
         return session
-    
+
     async def execute_with_session(
-        self, 
-        session_type: SessionType, 
+        self,
+        session_type: SessionType,
         message: SessionMessage,
-        session_id: Optional[str] = None,
+        session_id: str | None = None,
         **session_kwargs
     ) -> SessionResponse:
         """
@@ -150,7 +153,7 @@ class RemoteSessionManager:
                     raise ValueError(f"Session {session_id} not found")
             else:
                 session = await self.create_session(session_type, **session_kwargs)
-            
+
             # Check if approval is required
             if self.config.requires_approval(session_type):
                 approval_granted = await self._request_approval(session, message)
@@ -160,16 +163,16 @@ class RemoteSessionManager:
                         message="Operation cancelled - approval not granted",
                         session_id=session.session_id
                     )
-            
+
             # Execute the message
             response = await session.execute(message)
-            
+
             # Store output in memory if enabled
             if self.config.store_outputs_in_memory and response.success:
                 await self._store_output(session, message, response)
-            
+
             return response
-            
+
         except Exception as e:
             self.logger.error(f"Error executing message in session: {e}")
             return SessionResponse(
@@ -182,8 +185,8 @@ class RemoteSessionManager:
             # Return session to pool (if it exists and wasn't specifically requested)
             if session and not session_id:
                 await self.connection_pool.return_session(session)
-    
-    async def get_session_metadata(self, session_id: str) -> Optional[SessionMetadata]:
+
+    async def get_session_metadata(self, session_id: str) -> SessionMetadata | None:
         """
         Get metadata for a specific session.
         
@@ -197,8 +200,8 @@ class RemoteSessionManager:
         if session:
             return await session.get_metadata()
         return None
-    
-    async def list_active_sessions(self) -> List[SessionMetadata]:
+
+    async def list_active_sessions(self) -> list[SessionMetadata]:
         """
         Get metadata for all active sessions.
         
@@ -207,13 +210,13 @@ class RemoteSessionManager:
         """
         active_sessions = await self.connection_pool.get_active_sessions()
         metadata_list = []
-        
+
         for session in active_sessions:
             metadata = await session.get_metadata()
             metadata_list.append(metadata)
-        
+
         return metadata_list
-    
+
     async def close_session(self, session_id: str) -> bool:
         """
         Close a specific session.
@@ -230,8 +233,8 @@ class RemoteSessionManager:
         except Exception as e:
             self.logger.error(f"Error closing session {session_id}: {e}")
             return False
-    
-    async def get_manager_stats(self) -> Dict[str, Any]:
+
+    async def get_manager_stats(self) -> dict[str, Any]:
         """
         Get comprehensive statistics about the session manager.
         
@@ -239,7 +242,7 @@ class RemoteSessionManager:
             Dictionary with manager statistics
         """
         pool_stats = await self.connection_pool.get_pool_stats()
-        
+
         stats = {
             'running': self._running,
             'config': {
@@ -253,10 +256,10 @@ class RemoteSessionManager:
             'stored_outputs_count': len(self._output_storage),
             'pool_stats': pool_stats
         }
-        
+
         return stats
-    
-    async def cleanup_resources(self, max_idle_time: Optional[int] = None):
+
+    async def cleanup_resources(self, max_idle_time: int | None = None):
         """
         Cleanup idle resources and old outputs.
         
@@ -265,17 +268,17 @@ class RemoteSessionManager:
         """
         # Cleanup idle sessions
         await self.connection_pool.cleanup_idle_sessions(max_idle_time)
-        
+
         # Cleanup old stored outputs
         await self._cleanup_old_outputs()
-        
+
         self.logger.debug("Resource cleanup completed")
-    
+
     def create_message(
-        self, 
-        message_type: str, 
-        payload: Dict[str, Any], 
-        session_id: Optional[str] = None
+        self,
+        message_type: str,
+        payload: dict[str, Any],
+        session_id: str | None = None
     ) -> SessionMessage:
         """
         Create a standardized session message.
@@ -294,15 +297,15 @@ class RemoteSessionManager:
             message_type=message_type,
             payload=payload
         )
-    
-    async def _get_session_by_id(self, session_id: str) -> Optional[SessionInterface]:
+
+    async def _get_session_by_id(self, session_id: str) -> SessionInterface | None:
         """Get session by ID from active sessions."""
         active_sessions = await self.connection_pool.get_active_sessions()
         for session in active_sessions:
             if session.session_id == session_id:
                 return session
         return None
-    
+
     async def _request_approval(self, session: SessionInterface, message: SessionMessage) -> bool:
         """
         Request approval for a session operation.
@@ -318,7 +321,7 @@ class RemoteSessionManager:
         if session.session_type in self._approval_handlers:
             handler = self._approval_handlers[session.session_type]
             return await handler(session, message)
-        
+
         # Use agent intervention system if available
         if self.agent and hasattr(self.agent, 'handle_intervention'):
             try:
@@ -328,20 +331,20 @@ class RemoteSessionManager:
                     f"requests approval for: {message.message_type}\n"
                     f"Payload: {message.payload}"
                 )
-                
+
                 # This would integrate with agent's approval system
                 # For now, we'll simulate approval
                 self.logger.warning(f"Approval required: {approval_request}")
                 return True  # Simplified for now
-                
+
             except Exception as e:
                 self.logger.error(f"Error requesting approval: {e}")
                 return False
-        
+
         # Default to requiring manual approval
         self.logger.warning(f"No approval handler configured for {session.session_type.value}")
         return False
-    
+
     async def _store_output(self, session: SessionInterface, message: SessionMessage, response: SessionResponse):
         """
         Store session output in memory for agent access.
@@ -353,13 +356,13 @@ class RemoteSessionManager:
         """
         if not response.data:
             return
-        
+
         # Check output size limits
         output_size = len(str(response.data))
         if output_size > self.config.max_output_size:
             self.logger.warning(f"Output size {output_size} exceeds limit {self.config.max_output_size}")
             return
-        
+
         # Store with timestamp for cleanup
         storage_key = f"{session.session_id}_{message.message_id}"
         self._output_storage[storage_key] = {
@@ -370,7 +373,7 @@ class RemoteSessionManager:
             'response_data': response.data,
             'metadata': response.metadata
         }
-        
+
         # Integrate with agent memory if available
         if self.agent and hasattr(self.agent, 'set_data'):
             try:
@@ -378,22 +381,22 @@ class RemoteSessionManager:
                 self.agent.set_data(memory_key, self._output_storage[storage_key])
             except Exception as e:
                 self.logger.error(f"Error storing output in agent memory: {e}")
-    
+
     async def _cleanup_old_outputs(self):
         """Cleanup old stored outputs based on retention time."""
         if not self._output_storage:
             return
-        
+
         cutoff_time = datetime.now() - timedelta(seconds=self.config.output_retention_time)
         keys_to_remove = []
-        
+
         for key, output_data in self._output_storage.items():
             if output_data['timestamp'] < cutoff_time:
                 keys_to_remove.append(key)
-        
+
         for key in keys_to_remove:
             del self._output_storage[key]
-            
+
             # Also remove from agent memory if available
             if self.agent and hasattr(self.agent, 'delete_data'):
                 try:
@@ -401,10 +404,10 @@ class RemoteSessionManager:
                     self.agent.delete_data(memory_key)
                 except Exception:
                     pass  # Ignore errors for cleanup
-        
+
         if keys_to_remove:
             self.logger.debug(f"Cleaned up {len(keys_to_remove)} old output records")
-    
+
     def __str__(self) -> str:
         """String representation of the session manager."""
         return f"RemoteSessionManager(running={self._running}, factories={len(self._session_factories)})"

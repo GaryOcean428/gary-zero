@@ -9,9 +9,9 @@ import inspect
 import queue
 import threading
 import urllib.parse
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, TypeVar, cast, overload
+from typing import Any, TypeVar, cast, overload
 
 # Local application imports
 from . import dotenv, rfc, settings
@@ -38,7 +38,7 @@ def _parse_port_arg(value: str) -> int | None:
             except ValueError:
                 pass
         return None
-    
+
     # Handle normal integer case
     try:
         return int(value)

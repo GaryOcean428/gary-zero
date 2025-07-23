@@ -1,8 +1,8 @@
 """AI Model Registry for Gary-Zero."""
 
 # Import necessary classes from the main models.py file
-import sys
 import os
+import sys
 
 # Add the parent directory to sys.path to import from models.py
 parent_dir = os.path.dirname(os.path.dirname(__file__))
@@ -16,10 +16,10 @@ try:
     ModelType = models_module.ModelType
     get_api_key = models_module.get_api_key
     get_model = models_module.get_model
-except (ImportError, AttributeError) as e:
+except (ImportError, AttributeError):
     # Fallback definitions if main models.py is not available
     from enum import Enum
-    
+
     class ModelProvider(Enum):
         ANTHROPIC = "Anthropic"
         OPENAI = "OpenAI"
@@ -27,13 +27,13 @@ except (ImportError, AttributeError) as e:
         GROQ = "Groq"
         MISTRALAI = "Mistral AI"
         OTHER = "Other"
-    
+
     class ModelType(Enum):
         CHAT = "Chat"
         EMBEDDING = "Embedding"
-    
+
     def get_api_key(service):
         return None
-    
+
     def get_model(model_type, provider, name, **kwargs):
         return None

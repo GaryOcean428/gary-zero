@@ -5,22 +5,23 @@ This module provides the core enhanced API endpoints without dependencies
 on the existing Flask infrastructure to avoid conflicts.
 """
 
-import time
 import logging
-from typing import Dict, Any, Optional
+import time
+from typing import Any
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-from security.validator import validate_code, SecurityLevel
-from models.registry import get_registry, get_model, get_recommended_model
+from models.registry import get_model, get_recommended_model, get_registry
+from security.validator import SecurityLevel, validate_code
 
 logger = logging.getLogger(__name__)
 
 class ApiResponse(BaseModel):
     """Standard API response model."""
     success: bool = True
-    data: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
+    data: dict[str, Any] | None = None
+    error: str | None = None
     timestamp: float = time.time()
 
 def create_api_bridge(app: FastAPI) -> None:
@@ -29,7 +30,7 @@ def create_api_bridge(app: FastAPI) -> None:
 
 def add_enhanced_endpoints(app: FastAPI) -> None:
     """Add enhanced API endpoints specific to FastAPI."""
-    
+
     @app.post("/api/validate-code", tags=["Security"])
     async def validate_code_endpoint(code: str, security_level: SecurityLevel = SecurityLevel.STRICT):
         """Validate code for security issues."""
@@ -44,7 +45,7 @@ def add_enhanced_endpoints(app: FastAPI) -> None:
             }
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
-    
+
     @app.get("/api/models", tags=["AI Models"])
     async def list_models():
         """List all available AI models."""
@@ -67,7 +68,7 @@ def add_enhanced_endpoints(app: FastAPI) -> None:
             }
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error fetching models: {str(e)}")
-    
+
     @app.get("/api/models/{model_name}", tags=["AI Models"])
     async def get_model_details(model_name: str):
         """Get details for a specific model."""
@@ -75,7 +76,7 @@ def add_enhanced_endpoints(app: FastAPI) -> None:
             model = get_model(model_name)
             if not model:
                 raise HTTPException(status_code=404, detail="Model not found")
-            
+
             return {
                 "name": model.model_name,
                 "display_name": model.display_name,
@@ -95,15 +96,15 @@ def add_enhanced_endpoints(app: FastAPI) -> None:
             raise
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error fetching model details: {str(e)}")
-    
+
     @app.post("/api/models/recommend", tags=["AI Models"])
-    async def recommend_model(use_case: str, max_cost: Optional[float] = None):
+    async def recommend_model(use_case: str, max_cost: float | None = None):
         """Get model recommendation for a specific use case."""
         try:
             model = get_recommended_model(use_case, max_cost)
             if not model:
                 raise HTTPException(status_code=404, detail="No suitable model found")
-            
+
             return {
                 "recommended_model": model.model_name,
                 "display_name": model.display_name,
@@ -127,50 +128,50 @@ def add_enhanced_endpoints(app: FastAPI) -> None:
             return result["agent_card"]
         else:
             raise HTTPException(status_code=500, detail=result.get("error"))
-    
+
     @app.post("/a2a/discover", tags=["A2A Protocol"])
-    async def a2a_discover(request_data: Dict[str, Any]):
+    async def a2a_discover(request_data: dict[str, Any]):
         """A2A discovery endpoint - handles agent capability discovery."""
         from framework.api.a2a_discover import A2aDiscover
         handler = A2aDiscover()
         result = await handler.process(request_data, None)
         return result
-    
+
     @app.post("/a2a/negotiate", tags=["A2A Protocol"])
-    async def a2a_negotiate(request_data: Dict[str, Any]):
+    async def a2a_negotiate(request_data: dict[str, Any]):
         """A2A negotiation endpoint - handles protocol negotiation."""
         from framework.api.a2a_negotiate import A2aNegotiate
         handler = A2aNegotiate()
         result = await handler.process(request_data, None)
         return result
-    
+
     @app.post("/a2a/message", tags=["A2A Protocol"])
-    async def a2a_message(request_data: Dict[str, Any]):
+    async def a2a_message(request_data: dict[str, Any]):
         """A2A message endpoint - handles agent-to-agent communication."""
         from framework.api.a2a_message import A2aMessage
         handler = A2aMessage()
         result = await handler.process(request_data, None)
         return result
-    
+
     @app.post("/a2a/notify", tags=["A2A Protocol"])
-    async def a2a_notify(request_data: Dict[str, Any]):
+    async def a2a_notify(request_data: dict[str, Any]):
         """A2A notification endpoint - handles push notifications."""
         from framework.api.a2a_notify import A2aNotify
         handler = A2aNotify()
         result = await handler.process(request_data, None)
         return result
-    
+
     @app.get("/a2a/mcp/tools", tags=["A2A MCP Integration"])
-    async def a2a_mcp_tools(filter: Optional[str] = None):
+    async def a2a_mcp_tools(filter: str | None = None):
         """A2A MCP tools endpoint - lists available MCP tools."""
         from framework.api.a2a_mcp_tools import A2aMcpTools
         handler = A2aMcpTools()
         input_data = {"filter": filter} if filter else {}
         result = await handler.process(input_data, None)
         return result
-    
+
     @app.post("/a2a/mcp/execute", tags=["A2A MCP Integration"])
-    async def a2a_mcp_execute(request_data: Dict[str, Any]):
+    async def a2a_mcp_execute(request_data: dict[str, Any]):
         """A2A MCP execute endpoint - executes MCP tools for other agents."""
         from framework.api.a2a_mcp_tools import A2aMcpExecute
         handler = A2aMcpExecute()

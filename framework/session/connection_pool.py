@@ -7,13 +7,12 @@ latency and resource consumption while ensuring isolation.
 
 import asyncio
 import logging
-import time
 from collections import defaultdict, deque
-from typing import Any, Dict, List, Optional, Set
 from datetime import datetime, timedelta
+from typing import Any
 
-from .session_interface import SessionInterface, SessionType, SessionState, SessionResponse
 from .session_config import SessionConfig
+from .session_interface import SessionInterface, SessionState, SessionType
 
 
 class ConnectionPool:
@@ -23,7 +22,7 @@ class ConnectionPool:
     Handles connection pooling, reuse, and cleanup for different session types
     while ensuring proper isolation between concurrent sessions.
     """
-    
+
     def __init__(self, config: SessionConfig):
         """
         Initialize connection pool.
@@ -33,43 +32,43 @@ class ConnectionPool:
         """
         self.config = config
         self.logger = logging.getLogger(__name__)
-        
+
         # Pool storage: session_type -> deque of available sessions
-        self._pools: Dict[SessionType, deque] = defaultdict(deque)
-        
+        self._pools: dict[SessionType, deque] = defaultdict(deque)
+
         # Active sessions: session_id -> session
-        self._active_sessions: Dict[str, SessionInterface] = {}
-        
+        self._active_sessions: dict[str, SessionInterface] = {}
+
         # Session usage tracking
-        self._session_usage: Dict[str, datetime] = {}
-        self._session_locks: Dict[str, asyncio.Lock] = {}
-        
+        self._session_usage: dict[str, datetime] = {}
+        self._session_locks: dict[str, asyncio.Lock] = {}
+
         # Pool management
         self._pool_lock = asyncio.Lock()
-        self._cleanup_task: Optional[asyncio.Task] = None
+        self._cleanup_task: asyncio.Task | None = None
         self._running = False
-        
+
     async def start(self):
         """Start the connection pool and background cleanup task."""
         if self._running:
             return
-            
+
         self._running = True
-        
+
         if self.config.enable_connection_pooling:
             # Start background cleanup task
             self._cleanup_task = asyncio.create_task(self._cleanup_worker())
             self.logger.info("Connection pool started with background cleanup")
         else:
             self.logger.info("Connection pool started without pooling (disabled)")
-    
+
     async def stop(self):
         """Stop the connection pool and cleanup all sessions."""
         if not self._running:
             return
-            
+
         self._running = False
-        
+
         # Cancel cleanup task
         if self._cleanup_task:
             self._cleanup_task.cancel()
@@ -77,11 +76,11 @@ class ConnectionPool:
                 await self._cleanup_task
             except asyncio.CancelledError:
                 pass
-        
+
         # Close all sessions
         await self._close_all_sessions()
         self.logger.info("Connection pool stopped")
-    
+
     async def get_session(self, session_type: SessionType, session_factory, **kwargs) -> SessionInterface:
         """
         Get a session from the pool or create a new one.
@@ -96,12 +95,12 @@ class ConnectionPool:
         """
         if not self._running:
             await self.start()
-        
+
         async with self._pool_lock:
             # Try to get from pool first if pooling is enabled
             if self.config.enable_connection_pooling and self._pools[session_type]:
                 session = self._pools[session_type].popleft()
-                
+
                 # Check if session is still healthy
                 health_response = await session.health_check()
                 if health_response.success:
@@ -109,30 +108,30 @@ class ConnectionPool:
                     self._active_sessions[session.session_id] = session
                     self._session_usage[session.session_id] = datetime.now()
                     await session.update_state(SessionState.ACTIVE)
-                    
+
                     self.logger.debug(f"Reused session {session.session_id} from pool")
                     return session
                 else:
                     # Session is unhealthy, disconnect and create new one
                     await session.disconnect()
                     self.logger.debug(f"Discarded unhealthy session {session.session_id}")
-            
+
             # Create new session
             session = await session_factory(**kwargs)
-            
+
             # Connect the session
             connect_response = await session.connect()
             if not connect_response.success:
                 raise ConnectionError(f"Failed to connect session: {connect_response.error}")
-            
+
             # Track as active session
             self._active_sessions[session.session_id] = session
             self._session_usage[session.session_id] = datetime.now()
             self._session_locks[session.session_id] = asyncio.Lock()
-            
+
             self.logger.debug(f"Created new session {session.session_id}")
             return session
-    
+
     async def return_session(self, session: SessionInterface, force_close: bool = False):
         """
         Return a session to the pool for reuse or close it.
@@ -143,13 +142,13 @@ class ConnectionPool:
         """
         if not session or session.session_id not in self._active_sessions:
             return
-        
+
         async with self._pool_lock:
             # Remove from active sessions
             self._active_sessions.pop(session.session_id, None)
             self._session_usage.pop(session.session_id, None)
             self._session_locks.pop(session.session_id, None)
-            
+
             # Check if we should pool or close the session
             should_pool = (
                 self.config.enable_connection_pooling and
@@ -157,7 +156,7 @@ class ConnectionPool:
                 await session.is_connected() and
                 len(self._pools[session.session_type]) < self.config.pool_size_per_type
             )
-            
+
             if should_pool:
                 # Return to pool
                 await session.update_state(SessionState.IDLE)
@@ -167,8 +166,8 @@ class ConnectionPool:
                 # Close the session
                 await session.disconnect()
                 self.logger.debug(f"Closed session {session.session_id}")
-    
-    async def get_active_sessions(self) -> List[SessionInterface]:
+
+    async def get_active_sessions(self) -> list[SessionInterface]:
         """
         Get list of all active sessions.
         
@@ -176,8 +175,8 @@ class ConnectionPool:
             List of active sessions
         """
         return list(self._active_sessions.values())
-    
-    async def get_pool_stats(self) -> Dict[str, Any]:
+
+    async def get_pool_stats(self) -> dict[str, Any]:
         """
         Get connection pool statistics.
         
@@ -188,7 +187,7 @@ class ConnectionPool:
             stats = {
                 'total_active_sessions': len(self._active_sessions),
                 'pooled_sessions_by_type': {
-                    session_type.value: len(sessions) 
+                    session_type.value: len(sessions)
                     for session_type, sessions in self._pools.items()
                 },
                 'total_pooled_sessions': sum(len(sessions) for sessions in self._pools.values()),
@@ -196,15 +195,15 @@ class ConnectionPool:
                 'oldest_session_age': None,
                 'pool_enabled': self.config.enable_connection_pooling
             }
-            
+
             # Calculate oldest session age
             if self._session_usage:
                 oldest_time = min(self._session_usage.values())
                 stats['oldest_session_age'] = (datetime.now() - oldest_time).total_seconds()
-            
+
             return stats
-    
-    async def cleanup_idle_sessions(self, max_idle_time: Optional[int] = None):
+
+    async def cleanup_idle_sessions(self, max_idle_time: int | None = None):
         """
         Clean up idle sessions that exceed the maximum idle time.
         
@@ -213,25 +212,25 @@ class ConnectionPool:
         """
         if max_idle_time is None:
             max_idle_time = self.config.max_idle_time
-        
+
         cutoff_time = datetime.now() - timedelta(seconds=max_idle_time)
-        
+
         async with self._pool_lock:
             # Clean up pooled sessions
             for session_type in list(self._pools.keys()):
                 pool = self._pools[session_type]
                 sessions_to_remove = []
-                
+
                 for session in pool:
                     if session.metadata.last_used < cutoff_time:
                         sessions_to_remove.append(session)
-                
+
                 # Remove and close idle sessions
                 for session in sessions_to_remove:
                     pool.remove(session)
                     await session.disconnect()
                     self.logger.debug(f"Cleaned up idle session {session.session_id}")
-            
+
             # Clean up active sessions that are idle
             sessions_to_close = []
             for session_id, last_used in self._session_usage.items():
@@ -239,12 +238,12 @@ class ConnectionPool:
                     session = self._active_sessions.get(session_id)
                     if session:
                         sessions_to_close.append(session)
-            
+
             # Close idle active sessions
             for session in sessions_to_close:
                 await self.return_session(session, force_close=True)
                 self.logger.debug(f"Cleaned up idle active session {session.session_id}")
-    
+
     async def close_session(self, session_id: str):
         """
         Force close a specific session.
@@ -255,26 +254,26 @@ class ConnectionPool:
         session = self._active_sessions.get(session_id)
         if session:
             await self.return_session(session, force_close=True)
-    
+
     async def _close_all_sessions(self):
         """Close all active and pooled sessions."""
         # Close active sessions
         active_sessions = list(self._active_sessions.values())
         for session in active_sessions:
             await self.return_session(session, force_close=True)
-        
+
         # Close pooled sessions
         for session_type in list(self._pools.keys()):
             pool = self._pools[session_type]
             while pool:
                 session = pool.popleft()
                 await session.disconnect()
-        
+
         self._active_sessions.clear()
         self._session_usage.clear()
         self._session_locks.clear()
         self._pools.clear()
-    
+
     async def _cleanup_worker(self):
         """Background worker for periodic cleanup of idle sessions."""
         while self._running:
@@ -286,7 +285,7 @@ class ConnectionPool:
                 break
             except Exception as e:
                 self.logger.error(f"Error in cleanup worker: {e}")
-    
+
     def __str__(self) -> str:
         """String representation of the connection pool."""
         active_count = len(self._active_sessions)

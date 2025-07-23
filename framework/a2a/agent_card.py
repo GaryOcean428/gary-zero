@@ -7,7 +7,8 @@ The agent card provides standardized metadata about Gary-Zero's capabilities.
 
 import uuid
 from datetime import datetime
-from typing import Dict, List, Any, Optional
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 from framework.helpers import settings
@@ -19,7 +20,7 @@ class AgentEndpoint(BaseModel):
     path: str = Field(description="Endpoint URL path")
     method: str = Field(description="HTTP method", default="POST")
     description: str = Field(description="Endpoint description")
-    protocols: List[str] = Field(description="Supported protocols", default=["json-rpc"])
+    protocols: list[str] = Field(description="Supported protocols", default=["json-rpc"])
 
 
 class AgentCapability(BaseModel):
@@ -36,29 +37,29 @@ class AgentCard(BaseModel):
     name: str = Field(description="Human-readable agent name")
     version: str = Field(description="Agent version")
     description: str = Field(description="Agent description")
-    
+
     # Core A2A protocol fields
-    capabilities: List[AgentCapability] = Field(description="Agent capabilities")
-    endpoints: List[AgentEndpoint] = Field(description="Available endpoints")
-    protocols: List[str] = Field(description="Supported protocols")
-    
+    capabilities: list[AgentCapability] = Field(description="Agent capabilities")
+    endpoints: list[AgentEndpoint] = Field(description="Available endpoints")
+    protocols: list[str] = Field(description="Supported protocols")
+
     # Metadata
     base_url: str = Field(description="Agent base URL")
     created_at: str = Field(description="Agent creation timestamp")
     updated_at: str = Field(description="Last update timestamp")
-    
+
     # Optional fields
-    vendor: Optional[str] = Field(description="Agent vendor", default="Gary-Zero Project")
-    homepage: Optional[str] = Field(description="Agent homepage URL", default=None)
-    documentation: Optional[str] = Field(description="Documentation URL", default=None)
-    contact: Optional[Dict[str, str]] = Field(description="Contact information", default=None)
-    
+    vendor: str | None = Field(description="Agent vendor", default="Gary-Zero Project")
+    homepage: str | None = Field(description="Agent homepage URL", default=None)
+    documentation: str | None = Field(description="Documentation URL", default=None)
+    contact: dict[str, str] | None = Field(description="Contact information", default=None)
+
     # Security and trust
-    trusted_agents: List[str] = Field(description="List of trusted agent IDs", default=[])
+    trusted_agents: list[str] = Field(description="List of trusted agent IDs", default=[])
     authentication_required: bool = Field(description="Whether authentication is required", default=True)
 
 
-def get_default_capabilities() -> List[AgentCapability]:
+def get_default_capabilities() -> list[AgentCapability]:
     """Get default capabilities for Gary-Zero"""
     return [
         AgentCapability(
@@ -67,7 +68,7 @@ def get_default_capabilities() -> List[AgentCapability]:
             version="1.0.0"
         ),
         AgentCapability(
-            name="file_management", 
+            name="file_management",
             description="Create, read, update, and delete files and directories",
             version="1.0.0"
         ),
@@ -87,7 +88,7 @@ def get_default_capabilities() -> List[AgentCapability]:
             version="1.0.0"
         ),
         AgentCapability(
-            name="mcp_server", 
+            name="mcp_server",
             description="Act as an MCP server for other agents",
             version="1.0.0"
         ),
@@ -109,7 +110,7 @@ def get_default_capabilities() -> List[AgentCapability]:
     ]
 
 
-def get_default_endpoints() -> List[AgentEndpoint]:
+def get_default_endpoints() -> list[AgentEndpoint]:
     """Get default A2A endpoints for Gary-Zero"""
     return [
         AgentEndpoint(
@@ -120,14 +121,14 @@ def get_default_endpoints() -> List[AgentEndpoint]:
         ),
         AgentEndpoint(
             name="negotiate",
-            path="/a2a/negotiate", 
+            path="/a2a/negotiate",
             method="POST",
             description="Negotiate protocol parameters and capabilities"
         ),
         AgentEndpoint(
             name="message",
             path="/a2a/message",
-            method="POST", 
+            method="POST",
             description="Send messages to the agent"
         ),
         AgentEndpoint(
@@ -146,7 +147,7 @@ def get_default_endpoints() -> List[AgentEndpoint]:
         AgentEndpoint(
             name="mcp_tools",
             path="/a2a/mcp/tools",
-            method="GET", 
+            method="GET",
             description="List available MCP tools"
         ),
         AgentEndpoint(
@@ -160,36 +161,36 @@ def get_default_endpoints() -> List[AgentEndpoint]:
 
 def get_agent_card() -> AgentCard:
     """Generate the current agent card for Gary-Zero"""
-    
+
     # Get configuration from settings
     a2a_config = settings.get_settings().get("a2a_config", {})
-    
+
     # Generate or get agent ID
     agent_id = a2a_config.get("agent_id")
     if not agent_id:
         agent_id = f"gary-zero-{str(uuid.uuid4())[:8]}"
-    
+
     # Get base URL
     base_url = a2a_config.get("base_url", "http://localhost:8000")
-    
+
     # Get agent name
     agent_name = a2a_config.get("agent_name", "Gary-Zero")
-    
+
     # Get enabled capabilities
     enabled_capabilities = a2a_config.get("capabilities", [])
     all_capabilities = get_default_capabilities()
-    
+
     # Filter capabilities based on configuration
     if enabled_capabilities:
         capabilities = [cap for cap in all_capabilities if cap.name in enabled_capabilities]
     else:
         capabilities = all_capabilities
-    
+
     # Get trusted agents
     trusted_agents = a2a_config.get("trusted_agents", [])
-    
+
     now = datetime.utcnow().isoformat() + "Z"
-    
+
     return AgentCard(
         id=agent_id,
         name=agent_name,
@@ -213,7 +214,7 @@ def get_agent_card() -> AgentCard:
     )
 
 
-def update_agent_card_config(config: Dict[str, Any]) -> None:
+def update_agent_card_config(config: dict[str, Any]) -> None:
     """Update A2A configuration in settings"""
     current_settings = settings.get_settings()
     current_settings["a2a_config"] = {**current_settings.get("a2a_config", {}), **config}

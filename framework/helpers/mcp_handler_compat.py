@@ -9,11 +9,10 @@ while using the shared MCP library.
 import json
 from typing import Any
 
-from shared_mcp.client import SharedMCPClient, normalize_name
-from shared_mcp.types import ToolResponse, ToolError
-from framework.helpers import dirty_json, errors, settings
+from framework.helpers import dirty_json, settings
 from framework.helpers.print_style import PrintStyle
 from framework.helpers.tool import Response, Tool
+from shared_mcp.client import SharedMCPClient
 
 
 def initialize_mcp(mcp_servers_config: str):
@@ -119,13 +118,13 @@ class MCPTool(Tool):
 
 class MCPConfig:
     """MCP Configuration (backward compatibility wrapper)"""
-    
+
     _instance = None
     _initialized = False
-    
+
     def __init__(self):
         self.shared_client = SharedMCPClient(self._settings_provider)
-        
+
     @staticmethod
     def _settings_provider():
         """Provide settings for the shared client"""
@@ -134,24 +133,24 @@ class MCPConfig:
             "mcp_client_init_timeout": cfg.get("mcp_client_init_timeout", 30),
             "mcp_client_tool_timeout": cfg.get("mcp_client_tool_timeout", 60)
         }
-    
+
     @classmethod
     def get_instance(cls):
         if cls._instance is None:
             cls._instance = cls()
         return cls._instance
-    
+
     @classmethod
     def update(cls, config_str: str):
         """Update configuration from string"""
         instance = cls.get_instance()
-        
+
         servers_data = []
         if config_str and config_str.strip():
             try:
                 parsed_value = dirty_json.try_parse(config_str)
                 normalized = cls.normalize_config(parsed_value)
-                
+
                 if isinstance(normalized, list):
                     valid_servers = []
                     for item in normalized:
@@ -174,13 +173,13 @@ class MCPConfig:
                 PrintStyle.error(
                     f"Error parsing MCP config string: {e}. Config string: '{config_str}'"
                 )
-        
+
         # Update the shared client
         import asyncio
         asyncio.run(instance.shared_client.connect_to_servers(servers_data))
         cls._initialized = True
         return instance
-    
+
     @classmethod
     def normalize_config(cls, servers):
         """Normalize configuration format"""
@@ -203,19 +202,19 @@ class MCPConfig:
             else:
                 normalized.append(servers)
         return normalized
-    
+
     def is_initialized(self) -> bool:
         """Check if initialized"""
         return self._initialized
-    
+
     def get_shared_client(self) -> SharedMCPClient:
         """Get the shared client instance"""
         return self.shared_client
-    
+
     def get_servers_status(self) -> list[dict[str, Any]]:
         """Get servers status"""
         return self.shared_client.get_servers_status()
-    
+
     def get_server_detail(self, server_name: str) -> dict[str, Any]:
         """Get server details"""
         status_list = self.get_servers_status()
@@ -234,36 +233,36 @@ class MCPConfig:
                                 })
                 except Exception:
                     tools = []
-                
+
                 return {
                     "name": server_name,
                     "description": status.get("description", ""),
                     "tools": tools,
                 }
         return {}
-    
+
     def get_server_log(self, server_name: str) -> str:
         """Get server log (placeholder)"""
         return ""
-    
+
     def get_tools(self) -> list[dict[str, dict[str, Any]]]:
         """Get all tools"""
         return self.shared_client.get_tools()
-    
+
     def get_tools_prompt(self, server_name: str = "") -> str:
         """Get tools prompt"""
         return self.shared_client.get_tools_prompt(server_name)
-    
+
     def has_tool(self, tool_name: str) -> bool:
         """Check if tool exists"""
         return self.shared_client.has_tool(tool_name)
-    
+
     def get_tool(self, agent: Any, tool_name: str) -> MCPTool | None:
         """Get tool instance"""
         if not self.has_tool(tool_name):
             return None
         return MCPTool(agent=agent, name=tool_name, method=None, args={}, message="")
-    
+
     async def call_tool(self, tool_name: str, input_data: dict[str, Any]):
         """Call a tool"""
         return await self.shared_client.call_tool(tool_name, input_data)

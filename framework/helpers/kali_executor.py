@@ -5,11 +5,12 @@ This module provides a code execution tool that leverages the Kali Linux Docker
 service for secure execution of penetration testing and security analysis commands.
 """
 
-import os
 import asyncio
-from typing import Dict, Any, Optional, List
+import os
+from typing import Any
+
+from framework.helpers.execution_mode import should_use_kali_service
 from framework.helpers.kali_service import KaliServiceConnector, get_kali_service
-from framework.helpers.execution_mode import should_use_kali_service, get_execution_config
 
 
 class KaliCodeExecutor:
@@ -19,12 +20,12 @@ class KaliCodeExecutor:
     This class provides a secure way to execute penetration testing tools
     and security analysis commands through the Kali Linux Docker service.
     """
-    
+
     def __init__(self):
         """Initialize the Kali code executor."""
-        self.connector: Optional[KaliServiceConnector] = None
+        self.connector: KaliServiceConnector | None = None
         self._initialized = False
-    
+
     async def initialize(self) -> bool:
         """
         Initialize the Kali service connection.
@@ -34,7 +35,7 @@ class KaliCodeExecutor:
         """
         if self._initialized:
             return True
-        
+
         try:
             self.connector = get_kali_service()
             if self.connector and self.connector.is_available():
@@ -45,7 +46,7 @@ class KaliCodeExecutor:
         except Exception as e:
             print(f"Failed to initialize Kali service: {e}")
             return False
-    
+
     def is_available(self) -> bool:
         """
         Check if Kali service is available for execution.
@@ -54,8 +55,8 @@ class KaliCodeExecutor:
             bool: True if available, False otherwise
         """
         return self._initialized and self.connector is not None
-    
-    async def execute_command(self, command: str, timeout: int = 30) -> Dict[str, Any]:
+
+    async def execute_command(self, command: str, timeout: int = 30) -> dict[str, Any]:
         """
         Execute a command in the Kali environment.
         
@@ -73,10 +74,10 @@ class KaliCodeExecutor:
                 "stdout": "",
                 "stderr": "Kali service connection failed"
             }
-        
+
         return self.connector.execute_command(command, timeout)
-    
-    async def run_nmap_scan(self, target: str, scan_type: str = "basic") -> Dict[str, Any]:
+
+    async def run_nmap_scan(self, target: str, scan_type: str = "basic") -> dict[str, Any]:
         """
         Run an Nmap scan against a target.
         
@@ -89,7 +90,7 @@ class KaliCodeExecutor:
         """
         if not await self.initialize():
             return {"success": False, "error": "Kali service not available"}
-        
+
         scan_commands = {
             "basic": f"nmap -sV -sC {target}",
             "full": f"nmap -sS -sV -sC -O -A {target}",
@@ -97,11 +98,11 @@ class KaliCodeExecutor:
             "ping": f"nmap -sn {target}",
             "port": f"nmap -p- {target}"
         }
-        
+
         command = scan_commands.get(scan_type, scan_commands["basic"])
         return await self.execute_command(command, timeout=300)
-    
-    async def run_nikto_scan(self, target: str) -> Dict[str, Any]:
+
+    async def run_nikto_scan(self, target: str) -> dict[str, Any]:
         """
         Run a Nikto web vulnerability scan.
         
@@ -113,8 +114,8 @@ class KaliCodeExecutor:
         """
         command = f"nikto -h {target}"
         return await self.execute_command(command, timeout=180)
-    
-    async def run_sqlmap_test(self, url: str, params: str = "") -> Dict[str, Any]:
+
+    async def run_sqlmap_test(self, url: str, params: str = "") -> dict[str, Any]:
         """
         Run SQLMap for SQL injection testing.
         
@@ -127,8 +128,8 @@ class KaliCodeExecutor:
         """
         command = f"sqlmap -u '{url}' --batch --random-agent {params}"
         return await self.execute_command(command, timeout=300)
-    
-    async def check_ssl_certificate(self, domain: str) -> Dict[str, Any]:
+
+    async def check_ssl_certificate(self, domain: str) -> dict[str, Any]:
         """
         Check SSL certificate information.
         
@@ -140,8 +141,8 @@ class KaliCodeExecutor:
         """
         command = f"echo | openssl s_client -connect {domain}:443 2>/dev/null | openssl x509 -noout -text"
         return await self.execute_command(command, timeout=30)
-    
-    async def get_available_tools(self) -> Dict[str, Any]:
+
+    async def get_available_tools(self) -> dict[str, Any]:
         """
         Get list of available security tools in Kali.
         
@@ -150,10 +151,10 @@ class KaliCodeExecutor:
         """
         if not await self.initialize():
             return {"success": False, "error": "Kali service not available"}
-        
+
         return self.connector.get_kali_tools()
-    
-    async def run_security_audit(self, target: str) -> Dict[str, Any]:
+
+    async def run_security_audit(self, target: str) -> dict[str, Any]:
         """
         Run a comprehensive security audit on a target.
         
@@ -164,11 +165,11 @@ class KaliCodeExecutor:
             Dict containing audit results
         """
         results = {}
-        
+
         # Basic port scan
         print(f"Running port scan on {target}...")
         results['port_scan'] = await self.run_nmap_scan(target, 'basic')
-        
+
         # Check if web services are available
         if 'port_scan' in results and results['port_scan'].get('success'):
             stdout = results['port_scan'].get('stdout', '')
@@ -176,14 +177,14 @@ class KaliCodeExecutor:
                 # Web vulnerability scan
                 print(f"Running web vulnerability scan on {target}...")
                 results['web_scan'] = await self.run_nikto_scan(target)
-        
+
         # SSL certificate check (if HTTPS is available)
         if '443/tcp' in results.get('port_scan', {}).get('stdout', ''):
             print(f"Checking SSL certificate for {target}...")
             results['ssl_check'] = await self.check_ssl_certificate(target)
-        
+
         return results
-    
+
     def close(self):
         """Close the Kali service connection."""
         if self.connector:
@@ -219,7 +220,7 @@ def is_kali_execution_available() -> bool:
     return should_use_kali_service() and os.getenv('KALI_SHELL_URL') is not None
 
 
-async def execute_in_kali(command: str, timeout: int = 30) -> Dict[str, Any]:
+async def execute_in_kali(command: str, timeout: int = 30) -> dict[str, Any]:
     """
     Execute a command in the Kali environment.
     
@@ -239,14 +240,14 @@ async def demo_kali_integration():
     """Demonstrate Kali service integration."""
     print("🔐 Gary-Zero Kali Service Integration Demo")
     print("=" * 50)
-    
+
     if not is_kali_execution_available():
         print("❌ Kali service not available or not configured")
         print("Please ensure KALI_SHELL_URL and related environment variables are set")
         return
-    
+
     executor = get_kali_executor()
-    
+
     # Test basic connectivity
     print("🔗 Testing Kali service connectivity...")
     if await executor.initialize():
@@ -254,7 +255,7 @@ async def demo_kali_integration():
     else:
         print("❌ Failed to connect to Kali service")
         return
-    
+
     # Get available tools
     print("\n🛠️  Getting available tools...")
     tools_result = await executor.get_available_tools()
@@ -264,7 +265,7 @@ async def demo_kali_integration():
         for tool in tools[:5]:  # Show first 5 tools
             if tool.strip():
                 print(f"  • {tool.strip()}")
-    
+
     # Test basic command
     print("\n💻 Testing basic command execution...")
     result = await executor.execute_command("whoami && pwd && uname -a")
@@ -273,7 +274,7 @@ async def demo_kali_integration():
         print(result.get('stdout', ''))
     else:
         print(f"Command failed: {result.get('error', 'Unknown error')}")
-    
+
     print("\n✅ Kali integration demo completed")
     executor.close()
 

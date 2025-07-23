@@ -4,19 +4,20 @@ A2A API Handler for Discovery endpoint
 Handles agent discovery requests from other A2A-compliant agents.
 """
 
-from typing import Dict, Any
+from typing import Any
+
 from pydantic import ValidationError
 
-from framework.a2a.discovery import DiscoveryService, DiscoveryRequest
+from framework.a2a.discovery import DiscoveryRequest, DiscoveryService
 
 
 class A2aDiscover:
     """API handler for A2A discovery endpoint"""
-    
+
     def __init__(self):
         self.discovery_service = DiscoveryService()
-    
-    async def process(self, input_data: Dict[str, Any], request) -> Dict[str, Any]:
+
+    async def process(self, input_data: dict[str, Any], request) -> dict[str, Any]:
         """
         Handle A2A discovery request
         
@@ -35,19 +36,19 @@ class A2aDiscover:
                     "success": False,
                     "error": "requester_id is required"
                 }
-            
+
             # Create discovery request
             discovery_request = DiscoveryRequest(
                 requester_id=requester_id,
                 capabilities_filter=input_data.get("capabilities_filter"),
                 protocols_filter=input_data.get("protocols_filter")
             )
-            
+
             # Process discovery
             response = self.discovery_service.discover(discovery_request)
-            
+
             return response.dict()
-            
+
         except ValidationError as e:
             return {
                 "success": False,

@@ -164,7 +164,7 @@ class Topic(Record):
             print(f"Warning: Error converting context settings to numbers: {e}. Using defaults.")
             ctx_length = 128000  # Default context length
             ctx_history = 0.5   # Default history ratio
-        
+
         msg_max_size = (
             ctx_length
             * ctx_history
