@@ -12,7 +12,7 @@ from typing import Any
 from framework.helpers import dirty_json, settings
 from framework.helpers.print_style import PrintStyle
 from framework.helpers.tool import Response, Tool
-from shared_mcp.client import SharedMCPClient
+from shared_mcp.client import SharedMCPClient, normalize_name
 
 
 def initialize_mcp(mcp_servers_config: str):
