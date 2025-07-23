@@ -240,7 +240,7 @@ def main():
     Returns:
         int: Exit code (0 for success, 1 for failure)
     """
-    print("🚀 Gary-Zero Railway Deployment Startup Validation")
+    print(f"🚀 {APP_NAME} Railway Deployment Startup Validation")
     print("=" * 50)
     
     # Run all validations
