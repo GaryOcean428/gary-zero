@@ -63,15 +63,7 @@ class ConfigLoader:
         
         # Handle literal $VARIABLE strings (not expanded)
         if value and value.startswith("$") and not value.startswith("$$"):
-            # Try to resolve the variable name
-            var_name = value[1:]  # Remove the $
-            resolved_value = os.getenv(var_name)
-            if resolved_value:
-                value = resolved_value
-                logger.debug(f"Resolved {key}=${value} from ${var_name}")
-            else:
-                logger.warning(f"Could not resolve {key}={value}")
-                value = None
+            value = self._resolve_variable(value, key)
         
         # Use default if value is None or empty
         if not value:
