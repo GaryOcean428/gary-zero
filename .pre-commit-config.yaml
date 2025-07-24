@@ -30,7 +30,7 @@ repos:
       - id: mypy
         additional_dependencies: [
           types-requests,
-          types-PyYAML, 
+          types-PyYAML,
           types-python-dateutil,
           types-setuptools
         ]
@@ -81,14 +81,14 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-      
+
       - id: typescript-check
         name: TypeScript type check
         entry: npm run tsc:check
         language: system
         pass_filenames: false
         always_run: true
-        
+
       - id: agent-os-validate
         name: Agent OS validation
         entry: bash scripts/agent_os_check.sh

@@ -27,7 +27,7 @@ jobs:
       ruff-status: ${{ steps.ruff.outputs.status }}
       duplicates-found: ${{ steps.duplicates.outputs.found }}
       default-creds-found: ${{ steps.default-creds.outputs.found }}
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -42,7 +42,7 @@ jobs:
 
     - name: Install dependencies
       run: npm ci
-    
+
     - name: Set up Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v5
       with:
@@ -51,19 +51,19 @@ jobs:
         cache-dependency-path: |
           requirements.txt
           requirements-dev.txt
-    
+
     - name: Install security and quality tools
       run: |
         python -m pip install --upgrade pip
         pip install bandit[toml] ruff mypy safety detect-secrets
         if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    
+
     - name: Run Bandit security scan
       id: bandit
       run: |
         echo "🔍 Running Bandit security analysis..."
-        
+
         # Create bandit configuration if needed
         if [ ! -f .bandit ]; then
           cat > .bandit << EOF
@@ -72,7 +72,7 @@ jobs:
         skips = ["B101", "B601"]  # Skip assert and shell injection in tests
         EOF
         fi
-        
+
         # Run bandit with JSON output for processing
         if bandit -r framework/ api/ security/ -f json -o bandit-report.json; then
           echo "status=passed" >> $GITHUB_OUTPUT
@@ -81,24 +81,24 @@ jobs:
           BANDIT_EXIT=$?
           echo "status=failed" >> $GITHUB_OUTPUT
           echo "❌ Bandit security scan failed with exit code $BANDIT_EXIT"
-          
+
           # Show human-readable output for debugging
           bandit -r framework/ api/ security/ -ll || true
           exit 1
         fi
-    
+
     - name: Run Ruff linting and formatting
       id: ruff
       run: |
         echo "🔍 Running Ruff linting and formatting checks..."
-        
+
         # Check for syntax errors first
         if ! ruff check --select=E9,F63,F7,F82 --statistics .; then
           echo "status=failed" >> $GITHUB_OUTPUT
           echo "❌ Critical Ruff syntax errors found"
           exit 1
         fi
-        
+
         # Full linting check
         if ! ruff check .; then
           echo "status=failed" >> $GITHUB_OUTPUT
@@ -106,7 +106,7 @@ jobs:
           echo "💡 Run 'ruff check --fix .' to attempt automatic fixes"
           exit 1
         fi
-        
+
         # Format check
         if ! ruff format --check .; then
           echo "status=failed" >> $GITHUB_OUTPUT
@@ -114,7 +114,7 @@ jobs:
           echo "💡 Run 'ruff format .' to fix formatting"
           exit 1
         fi
-        
+
         echo "status=passed" >> $GITHUB_OUTPUT
         echo "✅ Ruff linting and formatting passed"
 
@@ -124,17 +124,17 @@ jobs:
       with:
         header: ESLint Report
         path: /tmp/eslint.log
-    
+
     - name: Check for duplicate models
       id: duplicates
       run: |
         echo "🔍 Checking for duplicate model definitions..."
-        
+
         # Search for duplicate model definitions
         DUPLICATES=$(find . -name "*.py" -exec grep -l "class.*Model\|def.*model\|@model" {} \; | \
                     xargs grep -h "class.*Model\|def.*model\|@model" | \
                     sort | uniq -d)
-        
+
         if [ -n "$DUPLICATES" ]; then
           echo "found=true" >> $GITHUB_OUTPUT
           echo "❌ Duplicate model definitions found:"
@@ -146,12 +146,12 @@ jobs:
           echo "found=false" >> $GITHUB_OUTPUT
           echo "✅ No duplicate model definitions found"
         fi
-    
+
     - name: Check for default credentials
       id: default-creds
       run: |
         echo "🔍 Scanning for default credentials..."
-        
+
         # Search for common default credential patterns
         PATTERNS=(
           "password.*=.*['\"]admin['\"]"
@@ -164,7 +164,7 @@ jobs:
           "DEFAULT_.*SECRET"
           "DEFAULT_.*TOKEN"
         )
-        
+
         FOUND_CREDS=""
         for pattern in "${PATTERNS[@]}"; do
           MATCHES=$(grep -r -i "$pattern" . --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=.venv || true)
@@ -172,7 +172,7 @@ jobs:
             FOUND_CREDS="$FOUND_CREDS\n$MATCHES"
           fi
         done
-        
+
         if [ -n "$FOUND_CREDS" ]; then
           echo "found=true" >> $GITHUB_OUTPUT
           echo "❌ Default credentials detected:"
@@ -184,7 +184,7 @@ jobs:
           echo "found=false" >> $GITHUB_OUTPUT
           echo "✅ No default credentials found"
         fi
-    
+
     - name: Upload security reports
       uses: actions/upload-artifact@v4
       if: always()
@@ -203,11 +203,11 @@ jobs:
       fail-fast: false
       matrix:
         test-group: [framework, api, security, integration]
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Set up Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v5
       with:
@@ -216,7 +216,7 @@ jobs:
         cache-dependency-path: |
           requirements.txt
           requirements-dev.txt
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -224,16 +224,16 @@ jobs:
         if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         pip install GitPython  # Required by main.py
-    
+
     - name: Run Vitest CI
       run: |
         echo "🧪 Running Vitest CI tests..."
         npm run test:ci
-    
+
     - name: Run unit tests for ${{ matrix.test-group }}
       run: |
         echo "🧪 Running unit tests for ${{ matrix.test-group }}..."
-        
+
         case "${{ matrix.test-group }}" in
           "framework")
             pytest tests/unit/test_*framework* framework/tests/ -v -n auto \
@@ -265,7 +265,7 @@ jobs:
         WEB_UI_HOST: localhost
         ENVIRONMENT: test
         DATABASE_URL: sqlite:///test.db
-    
+
     - name: Upload coverage artifact
       uses: actions/upload-artifact@v4
       with:
@@ -278,25 +278,25 @@ jobs:
     name: Railway Deployment Dry-Run
     runs-on: ubuntu-latest
     needs: [security-quality-validation, unit-tests]
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Set up Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-    
+
     - name: Install Railway CLI
       run: |
         curl -fsSL https://railway.app/install.sh | sh
         echo "$HOME/.railway/bin" >> $GITHUB_PATH
-    
+
     - name: Validate Railway configuration
       run: |
         echo "🚂 Validating Railway deployment configuration..."
-        
+
         # Check railway.toml exists
         if [ ! -f railway.toml ]; then
           echo "❌ ERROR: railway.toml not found"
@@ -305,7 +305,7 @@ jobs:
         [build]
         builder = "NIXPACKS"
         buildCommand = "./scripts/build.sh"
-        
+
         [deploy]
         startCommand = "./scripts/start.sh"
         healthcheckPath = "/health"
@@ -313,17 +313,17 @@ jobs:
         restartPolicyMaxRetries = 10
         EOF
         fi
-        
+
         # Validate required build scripts exist
         [ -f scripts/build.sh ] || (echo "❌ ERROR: scripts/build.sh not found"; exit 1)
         [ -f scripts/start.sh ] || (echo "❌ ERROR: scripts/start.sh not found"; exit 1)
-        
+
         echo "✅ Railway configuration validation passed"
-    
+
     - name: Railway deployment dry-run
       run: |
         echo "🚂 Running Railway deployment dry-run..."
-        
+
         # Simulate railway deployment without actually deploying
         echo "Simulating: railway up --detach"
         echo "✅ Railway dry-run completed successfully"
@@ -339,25 +339,25 @@ jobs:
     name: CLI Binaries & Dependencies Validation
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Set up Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-    
+
     - name: Install dependency validation tools
       run: |
         python -m pip install --upgrade pip
         pip install pip-audit safety
-    
+
     - name: Validate CLI binary hashes
       run: |
         echo "🔍 Validating CLI binary integrity..."
-        
+
         # Check if binaries directory exists
         if [ -d "bin/" ]; then
           echo "📋 Validating binary hashes in bin/ directory:"
@@ -369,29 +369,29 @@ jobs:
         else
           echo "ℹ️ No bin/ directory found, skipping binary hash validation"
         fi
-        
+
         # Check for binary downloads in scripts
         if grep -r "curl\|wget\|download" scripts/ 2>/dev/null; then
           echo "⚠️ Found download commands in scripts - please verify integrity checks"
           grep -r "curl\|wget\|download" scripts/ || true
         fi
-        
+
         echo "✅ CLI binary validation completed"
-    
+
     - name: Check for dependency vulnerabilities
       run: |
         echo "🔍 Checking for dependency vulnerabilities..."
-        
+
         # Run pip-audit for Python dependencies
         pip-audit --desc --format=json --output=pip-audit-report.json || PIP_AUDIT_EXIT=$?
         pip-audit --desc || echo "pip-audit found issues"
-        
+
         # Run safety check
         safety check --json --output=safety-report.json || SAFETY_EXIT=$?
         safety check || echo "safety found issues"
-        
+
         echo "✅ Dependency vulnerability check completed"
-    
+
     - name: Upload dependency reports
       uses: actions/upload-artifact@v4
       if: always()
@@ -408,35 +408,35 @@ jobs:
     runs-on: ubuntu-latest
     needs: unit-tests
     if: always()
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    
+
     - name: Set up Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-    
+
     - name: Install coverage tools
       run: |
         python -m pip install --upgrade pip
         pip install coverage[toml]
-    
+
     - name: Download all coverage artifacts
       uses: actions/download-artifact@v4
       with:
         pattern: coverage-*
         merge-multiple: true
-    
+
     - name: Merge coverage reports
       run: |
         echo "📊 Merging coverage reports..."
-        
+
         if ls coverage-*.xml 1> /dev/null 2>&1; then
           echo "Found coverage files:"
           ls -la coverage-*.xml
-          
+
           # Combine coverage reports
           coverage combine coverage-*.xml || echo "Some coverage files may be incompatible"
           coverage report --show-missing --fail-under=${{ env.MINIMUM_COVERAGE }} || {
@@ -448,7 +448,7 @@ jobs:
         else
           echo "⚠️ No coverage files found"
         fi
-    
+
     - name: Upload combined coverage
       uses: actions/upload-artifact@v4
       with:
@@ -468,7 +468,7 @@ jobs:
       coverage-analysis
     ]
     if: always()
-    
+
     steps:
     - name: Generate pipeline summary
       run: |
@@ -482,7 +482,7 @@ jobs:
         echo "  Dependency Validation: ${{ needs.dependency-validation.result }}"
         echo "  Coverage Analysis: ${{ needs.coverage-analysis.result }}"
         echo ""
-        
+
         # Check for critical failures
         FAILURES=0
         if [[ "${{ needs.security-quality-validation.result }}" == "failure" ]]; then
@@ -501,22 +501,22 @@ jobs:
             echo "  - Default credentials detected"
           fi
         fi
-        
+
         if [[ "${{ needs.unit-tests.result }}" == "failure" ]]; then
           FAILURES=$((FAILURES + 1))
           echo "❌ Unit tests failed"
         fi
-        
+
         if [[ "${{ needs.railway-dry-run.result }}" == "failure" ]]; then
           FAILURES=$((FAILURES + 1))
           echo "❌ Railway dry-run failed"
         fi
-        
+
         if [[ "${{ needs.coverage-analysis.result }}" == "failure" ]]; then
           FAILURES=$((FAILURES + 1))
           echo "❌ Coverage analysis failed"
         fi
-        
+
         echo ""
         if [ $FAILURES -eq 0 ]; then
           echo "✅ All pipeline stages completed successfully!"

@@ -38,9 +38,9 @@ Claude Rules are found in .clinerules file in the root directory of the reposito
 
 ### Current Status
 
-**Version**: 0.9.0 (Beta)  
-**License**: MIT  
-**Python**: 3.13+ required  
-**Deployment**: Docker-first with Railway cloud integration  
+**Version**: 0.9.0 (Beta)
+**License**: MIT
+**Python**: 3.13+ required
+**Deployment**: Docker-first with Railway cloud integration
 
 For detailed technical information, architecture decisions, and development roadmap, refer to the product documentation in the `.agent-os/product/` directory.

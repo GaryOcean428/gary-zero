@@ -15,6 +15,11 @@ from framework.helpers.tool import Response, Tool
 from shared_mcp.client import SharedMCPClient
 
 
+def normalize_name(name: str) -> str:
+    """Normalize MCP server/tool names for compatibility"""
+    return name.lower().replace("-", "_").replace(" ", "_")
+
+
 def initialize_mcp(mcp_servers_config: str):
     """Initialize MCP with configuration string (backward compatibility)"""
     if not MCPConfig.get_instance().is_initialized():

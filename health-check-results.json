@@ -1,10 +1,10 @@
 {
-  "timestamp": 1753179020.3773313,
-  "duration_seconds": 2.379002094268799,
+  "timestamp": 1753344692.0745869,
+  "duration_seconds": 2.553129196166992,
   "overall": {
-    "status": "warning",
-    "score": 66.66666666666667,
-    "checks_passed": 4,
+    "status": "healthy",
+    "score": 83.33333333333333,
+    "checks_passed": 5,
     "total_checks": 6
   },
   "checks": {
@@ -20,15 +20,15 @@
         "reportError"
       ],
       "missing_features": [],
-      "file_size": 12258,
+      "file_size": 14306,
       "global_initialization": true
     },
     "routes": {
       "status": "pass",
-      "static_routes": 6,
-      "api_handlers": 47,
-      "error_handlers": 3,
-      "total_routes": 53,
+      "static_routes": 11,
+      "api_handlers": 51,
+      "error_handlers": 4,
+      "total_routes": 62,
       "security_middleware": true,
       "authentication": true,
       "health_endpoint": true
@@ -49,7 +49,7 @@
     },
     "code_quality": {
       "status": "fail",
-      "eslint_errors": 287,
+      "eslint_errors": 290,
       "eslint_warnings": 1,
       "typescript_config": true,
       "prettier_config": true,
@@ -57,10 +57,10 @@
       "lint_output_sample": "\n> zero@1.0.0 lint:clean\n> eslint 'webui/index.js' 'webui/components/**/*.js' 'webui/js/AlpineStore.js' 'webui/js/api.js' 'webui/js/components.js' 'webui/js/csp-alpine-fix.js' 'webui/js/enhanced-ux.js' 'webui/js/file_browser.js' 'webui/js/history.js' 'webui/js/image_modal.js' 'webui/js/initFw.js' 'webui/js/messages.js' 'webui/js/modal.js' 'webui/js/modals.js' 'webui/js/scheduler.js' 'webui/js/settings.js' 'webui/js/sleep.js' 'webui/js/speech.js' 'webui/js/speech_browser.js' 'webui/js/time-utils."
     },
     "security": {
-      "status": "fail",
-      "total_vulnerabilities": 3,
+      "status": "pass",
+      "total_vulnerabilities": 0,
       "critical": 0,
-      "high": 3,
+      "high": 0,
       "moderate": 0,
       "low": 0,
       "audit_available": true
@@ -68,15 +68,14 @@
     "dependencies": {
       "status": "pass",
       "total_dependencies": 0,
-      "dev_dependencies": 21,
+      "dev_dependencies": 14,
       "package_name": "zero",
       "version": "1.0.0",
       "node_version_required": ">=22.0.0",
-      "scripts_count": 35
+      "scripts_count": 45
     }
   },
   "recommendations": [
-    "\ud83d\udd27 Fix 287 ESLint errors",
-    "\ud83d\udd12 Fix 3 security vulnerabilities"
+    "\ud83d\udd27 Fix 290 ESLint errors"
   ]
 }

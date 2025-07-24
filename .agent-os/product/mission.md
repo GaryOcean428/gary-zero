@@ -1,7 +1,7 @@
 # Mission Statement - Gary-Zero Agent OS
 
 ## Core Mission
-Gary-Zero Agent OS is an autonomous AI agent framework that empowers users to build, deploy, and orchestrate intelligent agents for complex task automation. Our mission is to democratize AI agent development by providing a transparent, customizable, and extensible platform that grows and learns with users.
+Gary-Zero is an autonomous AI agent framework that empowers users to build, deploy, and orchestrate intelligent agents for complex task automation. Our mission is to democratize AI agent development by providing a transparent, customizable, and extensible platform that grows and learns with users.
 
 ## Vision
 To become the leading open-source platform for autonomous agent development, enabling users to create sophisticated AI workflows without requiring deep technical expertise while maintaining full transparency and control.

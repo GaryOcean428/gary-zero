@@ -136,7 +136,7 @@ model = get_recommended_model_for_provider("OPENAI")  # Returns "o3"
 ```bash
 # Update environment variables to use modern models
 export CHAT_MODEL_NAME="claude-sonnet-4-20250514"
-export UTILITY_MODEL_NAME="gpt-4.1-mini" 
+export UTILITY_MODEL_NAME="gpt-4.1-mini"
 export EMBEDDING_MODEL_NAME="text-embedding-3-large"
 ```
 
@@ -240,6 +240,6 @@ print(is_model_modern("OPENAI", "gpt-4"))  # False
 
 ---
 
-**Last Updated**: January 2025  
-**Version**: 1.0  
+**Last Updated**: January 2025
+**Version**: 1.0
 **Status**: Production Ready

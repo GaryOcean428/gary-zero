@@ -75,7 +75,7 @@ fi
 validate_port() {
     local port="$1"
     local mode="$2"
-    
+
     if [[ "$mode" == "frontend" ]]; then
         if [[ $port -lt 5675 || $port -gt 5699 ]]; then
             echo -e "${YELLOW}Warning: Port $port is outside frontend range (5675-5699)${NC}"
@@ -138,7 +138,7 @@ else
     echo -e "${YELLOW}No Python virtual environment found. Creating one...${NC}"
     python -m venv .venv
     source .venv/bin/activate
-    
+
     if [[ -f "requirements.txt" ]]; then
         echo -e "${BLUE}Installing Python dependencies...${NC}"
         pip install -r requirements.txt

@@ -35,7 +35,9 @@ class SettingsField(TypedDict, total=False):
     id: str
     title: str
     description: str
-    type: Literal["text", "number", "select", "range", "textarea", "password", "switch", "button"]
+    type: Literal[
+        "text", "number", "select", "range", "textarea", "password", "switch", "button"
+    ]
     value: Any
     min: float
     max: float
@@ -72,7 +74,9 @@ def convert_out(settings: Settings) -> SettingsOutput:
     try:
         from models import ModelProvider
 
-        provider_options = [FieldOption(value=p.name, label=p.value) for p in ModelProvider]
+        provider_options = [
+            FieldOption(value=p.name, label=p.value) for p in ModelProvider
+        ]
     except ImportError:
         # Fallback provider options if models not available
         provider_options = [
@@ -110,7 +114,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "description": "Select model from the chosen provider",
             "type": "select",
             "value": settings["chat_model_name"],
-            "options": [FieldOption(value=model["value"], label=model["label"]) for model in provider_models],
+            "options": [
+                FieldOption(value=model["value"], label=model["label"])
+                for model in provider_models
+            ],
         }
     )
 
@@ -240,7 +247,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "description": "Select model from the chosen provider",
             "type": "select",
             "value": settings["util_model_name"],
-            "options": [FieldOption(value=model["value"], label=model["label"]) for model in util_provider_models],
+            "options": [
+                FieldOption(value=model["value"], label=model["label"])
+                for model in util_provider_models
+            ],
         }
     )
 
@@ -332,7 +342,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "description": "Select model from the chosen provider",
             "type": "select",
             "value": settings["embed_model_name"],
-            "options": [FieldOption(value=model["value"], label=model["label"]) for model in embed_provider_models],
+            "options": [
+                FieldOption(value=model["value"], label=model["label"])
+                for model in embed_provider_models
+            ],
         }
     )
 
@@ -409,7 +422,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "description": "Select model from the chosen provider",
             "type": "select",
             "value": settings["browser_model_name"],
-            "options": [FieldOption(value=model["value"], label=model["label"]) for model in browser_provider_models],
+            "options": [
+                FieldOption(value=model["value"], label=model["label"])
+                for model in browser_provider_models
+            ],
         }
     )
 
@@ -477,7 +493,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "description": "Select model for coding agent from the chosen provider",
             "type": "select",
             "value": settings.get("coding_agent_name", "claude-3-5-sonnet-20241022"),
-            "options": [FieldOption(value=model["value"], label=model["label"]) for model in coding_provider_models],
+            "options": [
+                FieldOption(value=model["value"], label=model["label"])
+                for model in coding_provider_models
+            ],
         }
     )
 
@@ -554,8 +573,13 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "title": "Supervisor agent model name",
             "description": "Select model for supervisor agent from the chosen provider",
             "type": "select",
-            "value": settings.get("supervisor_agent_name", "claude-3-5-sonnet-20241022"),
-            "options": [FieldOption(value=model["value"], label=model["label"]) for model in supervisor_provider_models],
+            "value": settings.get(
+                "supervisor_agent_name", "claude-3-5-sonnet-20241022"
+            ),
+            "options": [
+                FieldOption(value=model["value"], label=model["label"])
+                for model in supervisor_provider_models
+            ],
         }
     )
 
@@ -702,7 +726,9 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "description": "Set user password for web UI",
             "type": "password",
             "value": (
-                PASSWORD_PLACEHOLDER if dotenv.get_dotenv_value(dotenv.KEY_AUTH_PASSWORD) else ""
+                PASSWORD_PLACEHOLDER
+                if dotenv.get_dotenv_value(dotenv.KEY_AUTH_PASSWORD)
+                else ""
             ),
         }
     )
@@ -732,18 +758,30 @@ def convert_out(settings: Settings) -> SettingsOutput:
     # api keys model section
     api_keys_fields: list[SettingsField] = []
     api_keys_fields.append(_get_api_key_field(settings, "openai", "OpenAI API Key"))
-    api_keys_fields.append(_get_api_key_field(settings, "anthropic", "Anthropic API Key"))
+    api_keys_fields.append(
+        _get_api_key_field(settings, "anthropic", "Anthropic API Key")
+    )
     api_keys_fields.append(_get_api_key_field(settings, "chutes", "Chutes API Key"))
     api_keys_fields.append(_get_api_key_field(settings, "deepseek", "DeepSeek API Key"))
     api_keys_fields.append(_get_api_key_field(settings, "google", "Google API Key"))
     api_keys_fields.append(_get_api_key_field(settings, "groq", "Groq API Key"))
-    api_keys_fields.append(_get_api_key_field(settings, "huggingface", "HuggingFace API Key"))
+    api_keys_fields.append(
+        _get_api_key_field(settings, "huggingface", "HuggingFace API Key")
+    )
     api_keys_fields.append(_get_api_key_field(settings, "meta", "Meta API Key"))
-    api_keys_fields.append(_get_api_key_field(settings, "mistralai", "MistralAI API Key"))
-    api_keys_fields.append(_get_api_key_field(settings, "openrouter", "OpenRouter API Key"))
-    api_keys_fields.append(_get_api_key_field(settings, "perplexity", "Perplexity API Key"))
+    api_keys_fields.append(
+        _get_api_key_field(settings, "mistralai", "MistralAI API Key")
+    )
+    api_keys_fields.append(
+        _get_api_key_field(settings, "openrouter", "OpenRouter API Key")
+    )
+    api_keys_fields.append(
+        _get_api_key_field(settings, "perplexity", "Perplexity API Key")
+    )
     api_keys_fields.append(_get_api_key_field(settings, "qwen", "Qwen API Key"))
-    api_keys_fields.append(_get_api_key_field(settings, "sambanova", "Sambanova API Key"))
+    api_keys_fields.append(
+        _get_api_key_field(settings, "sambanova", "Sambanova API Key")
+    )
     api_keys_fields.append(_get_api_key_field(settings, "xai", "xAI API Key"))
     api_keys_fields.append(_get_api_key_field(settings, "github", "GitHub API Key"))
     api_keys_fields.append(_get_api_key_field(settings, "e2b", "E2B API Key"))
@@ -772,7 +810,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "type": "select",
             "value": settings["agent_prompts_subdir"],
             "options": [
-                FieldOption(value=subdir, label=_get_role_display_name(subdir)) 
+                FieldOption(value=subdir, label=_get_role_display_name(subdir))
                 for subdir in files.get_subdirectories("prompts")
             ],
         }
@@ -806,11 +844,16 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "type": "select",
             "value": settings["agent_knowledge_subdir"],
             "options": [
-                FieldOption(value="default", label="Default (Framework knowledge only)"),
+                FieldOption(
+                    value="default", label="Default (Framework knowledge only)"
+                ),
                 FieldOption(value="custom", label="Custom (User-defined knowledge)"),
-            ] + [
+            ]
+            + [
                 FieldOption(value=subdir, label=subdir.title())
-                for subdir in files.get_subdirectories("knowledge", exclude=["default", "custom"])
+                for subdir in files.get_subdirectories(
+                    "knowledge", exclude=["default", "custom"]
+                )
             ],
         }
     )
@@ -862,7 +905,9 @@ def convert_out(settings: Settings) -> SettingsOutput:
     This is used for browser automation tasks.""",
             "type": "password",
             "value": (
-                PASSWORD_PLACEHOLDER if dotenv.get_dotenv_value(dotenv.KEY_RFC_PASSWORD) else ""
+                PASSWORD_PLACEHOLDER
+                if dotenv.get_dotenv_value(dotenv.KEY_RFC_PASSWORD)
+                else ""
             ),
         }
     )
@@ -1080,7 +1125,9 @@ def convert_out(settings: Settings) -> SettingsOutput:
     stt_section: SettingsSection = {
         "id": "stt",
         "title": "Speech to Text",
-        "description": ("Voice transcription preferences and server turn detection settings."),
+        "description": (
+            "Voice transcription preferences and server turn detection settings."
+        ),
         "fields": stt_fields,
         "tab": "agent",
     }
@@ -1145,7 +1192,9 @@ def convert_out(settings: Settings) -> SettingsOutput:
     mcp_client_section: SettingsSection = {
         "id": "mcp_client",
         "title": "External MCP Servers",
-        "description": ("Gary-Zero can use external MCP servers, local or remote as tools."),
+        "description": (
+            "Gary-Zero can use external MCP servers, local or remote as tools."
+        ),
         "fields": mcp_client_fields,
         "tab": "mcp",
     }
@@ -1433,7 +1482,11 @@ def _write_sensitive_settings(settings: Settings):
     for key, val in settings["api_keys"].items():
         if val and val != PASSWORD_PLACEHOLDER:
             # Convert api_key_provider format to provider format for dotenv
-            env_key = f"API_KEY_{key.upper()}" if not key.startswith("api_key_") else key.upper()
+            env_key = (
+                f"API_KEY_{key.upper()}"
+                if not key.startswith("api_key_")
+                else key.upper()
+            )
             dotenv.save_dotenv_value(env_key, val)
 
     dotenv.save_dotenv_value(dotenv.KEY_AUTH_LOGIN, settings["auth_login"])
@@ -1559,7 +1612,8 @@ def _apply_settings(previous: Settings | None) -> None:
         # force memory reload on embedding model change
         if not previous or (
             current_settings["embed_model_name"] != previous["embed_model_name"]
-            or current_settings["embed_model_provider"] != previous["embed_model_provider"]
+            or current_settings["embed_model_provider"]
+            != previous["embed_model_provider"]
             or current_settings["embed_model_kwargs"] != previous["embed_model_kwargs"]
         ):
             from framework.helpers.memory import reload as memory_reload
@@ -1570,10 +1624,12 @@ def _apply_settings(previous: Settings | None) -> None:
         if not previous or current_settings["mcp_servers"] != previous["mcp_servers"]:
 
             async def update_mcp_settings(mcp_servers: str):
-                PrintStyle(background_color="black", font_color="white", padding=True).print(
-                    "Updating MCP config..."
+                PrintStyle(
+                    background_color="black", font_color="white", padding=True
+                ).print("Updating MCP config...")
+                AgentContext.log_to_all(
+                    type="info", content="Updating MCP settings...", temp=True
                 )
-                AgentContext.log_to_all(type="info", content="Updating MCP settings...", temp=True)
 
                 mcp_config = MCPConfig.get_instance()
                 try:
@@ -1584,19 +1640,19 @@ def _apply_settings(previous: Settings | None) -> None:
                         content=f"Failed to update MCP settings: {e}",
                         temp=False,
                     )
-                    PrintStyle(background_color="red", font_color="black", padding=True).print(
-                        "Failed to update MCP settings"
-                    )
-                    PrintStyle(background_color="black", font_color="red", padding=True).print(
-                        f"{e}"
-                    )
+                    PrintStyle(
+                        background_color="red", font_color="black", padding=True
+                    ).print("Failed to update MCP settings")
+                    PrintStyle(
+                        background_color="black", font_color="red", padding=True
+                    ).print(f"{e}")
 
-                PrintStyle(background_color="#6734C3", font_color="white", padding=True).print(
-                    "Parsed MCP config:"
-                )
-                PrintStyle(background_color="#334455", font_color="white", padding=False).print(
-                    mcp_config.model_dump_json()
-                )
+                PrintStyle(
+                    background_color="#6734C3", font_color="white", padding=True
+                ).print("Parsed MCP config:")
+                PrintStyle(
+                    background_color="#334455", font_color="white", padding=False
+                ).print(mcp_config.model_dump_json())
                 AgentContext.log_to_all(
                     type="info", content="Finished updating MCP settings.", temp=True
                 )

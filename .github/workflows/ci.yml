@@ -105,16 +105,16 @@ jobs:
   prepare:
     name: Git Workflow & Environment Setup
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0  # Needed for full Git history check
-    
+
     - name: Check for uncommitted changes
       run: |
         echo "🔍 Checking for uncommitted changes in CI..."
-        
+
         # Verify working directory is clean
         if ! git diff-index --quiet HEAD --; then
           echo "❌ ERROR: CI detected uncommitted changes!"
@@ -126,13 +126,13 @@ jobs:
           git status
           exit 1
         fi
-        
+
         echo "✅ Git working directory is clean"
-    
+
     - name: Validate commit history
       run: |
         echo "🔍 Validating recent commit history..."
-        
+
         # Check for merge commits on main branch
         if [ "${{ github.ref }}" = "refs/heads/main" ]; then
           MERGE_COMMITS=$(git log --oneline --merges -5 --pretty=format:"%h %s")
@@ -141,11 +141,11 @@ jobs:
             echo "$MERGE_COMMITS"
           fi
         fi
-        
+
         # Show recent commits for context
         echo "📋 Recent commits:"
         git log --oneline -5
-        
+
         echo "✅ Commit history validation completed"
 
   # QUALITY PHASE
@@ -153,12 +153,12 @@ jobs:
     name: Code Quality & Security
     runs-on: ubuntu-latest
     needs: prepare
-    
+
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0  # Needed for some security scanners
-    
+
     - name: Set up Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v5
       with:
@@ -167,12 +167,12 @@ jobs:
         cache-dependency-path: |
           requirements.txt
           requirements-dev.txt
-        
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements-dev.txt
-        
+
     - name: Lint with ruff
       run: |
         # Check for syntax errors and undefined names
@@ -181,25 +181,25 @@ jobs:
         ruff check .
         # Format check
         ruff format --check .
-        
+
     - name: Type check with mypy
       run: |
         mypy framework/ --ignore-missing-imports --no-strict-optional --show-error-codes
-        
+
     - name: Security scan with bandit
       run: |
         bandit -r framework/ api/ security/ -f json -o bandit-report.json || true
         bandit -r framework/ api/ security/ -ll
-        
+
     - name: Dependency security check
       run: |
         safety check --json --output safety-report.json || true
         safety check
-        
+
     - name: Secret detection
       run: |
         detect-secrets scan --baseline .secrets.baseline --all-files
-        
+
     - name: Upload security reports
       uses: actions/upload-artifact@v4
       if: always()
@@ -218,10 +218,10 @@ jobs:
       fail-fast: false
       matrix:
         test-type: [unit, integration, performance]
-        
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v5
       with:
@@ -230,14 +230,14 @@ jobs:
         cache-dependency-path: |
           requirements.txt
           requirements-dev.txt
-        
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements-dev.txt
         # Install core dependencies needed for tests
         pip install GitPython
-        
+
     - name: Run ${{ matrix.test-type }} tests
       run: |
         if [ "${{ matrix.test-type }}" = "unit" ]; then
@@ -262,7 +262,7 @@ jobs:
         WEB_UI_HOST: localhost
         SEARXNG_URL: http://localhost:8080
         E2B_API_KEY: test-key
-        
+
     - name: Upload coverage to Codecov
       if: matrix.test-type != 'performance'
       uses: codecov/codecov-action@v4
@@ -272,7 +272,7 @@ jobs:
         name: codecov-${{ matrix.test-type }}
         fail_ci_if_error: true
         token: ${{ secrets.CODECOV_TOKEN }}
-        
+
     - name: Upload performance results
       if: matrix.test-type == 'performance'
       uses: actions/upload-artifact@v4
@@ -284,44 +284,44 @@ jobs:
     name: End-to-End Tests
     runs-on: ubuntu-latest
     needs: prepare
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        
+
     - name: Set up Node.js ${{ env.NODE_VERSION }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
-        
+
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements-dev.txt
         pip install GitPython
-        
+
     - name: Install Node.js dependencies
       run: npm ci
-      
+
     - name: Install Playwright browsers
       run: npx playwright install --with-deps chromium
-      
+
     - name: Run E2E tests
       run: |
         pytest tests/e2e/ -v --timeout=900 -m "e2e"
       env:
         PORT: 8080
         WEB_UI_HOST: localhost
-        
+
     - name: Run JavaScript tests
       run: |
         npm run test:ci
-        
+
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: always()
@@ -336,15 +336,15 @@ jobs:
     name: Docker Build & Test
     runs-on: ubuntu-latest
     needs: [code-quality, python-tests]
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Test Docker build
       run: |
         docker build --no-cache -t gary-zero-test .
         echo "✅ Docker build test passed"
-        
+
     - name: Test Docker health endpoint
       run: |
         # Start container and test health endpoint
@@ -352,14 +352,14 @@ jobs:
           -e PORT=8000 \
           -e PYTHONUNBUFFERED=1 \
           gary-zero-test
-          
+
         # Wait for container to start
         sleep 10
-        
+
         # Test health endpoint (with timeout)
         timeout 30 bash -c 'until curl -f http://localhost:8000/health; do sleep 2; done'
         echo "✅ Docker health endpoint test passed"
-        
+
         # Cleanup
         docker stop gary-zero-test
         docker rm gary-zero-test
@@ -369,30 +369,30 @@ jobs:
     runs-on: ubuntu-latest
     needs: [python-tests]
     if: always()
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        
+
     - name: Install coverage tools
       run: |
         python -m pip install --upgrade pip
         pip install coverage pytest-cov
-        
+
     - name: Download coverage artifacts
       uses: actions/download-artifact@v4
       continue-on-error: true
-      
+
     - name: Combine coverage reports
       run: |
         coverage combine || echo "No coverage files to combine"
         coverage report --show-missing --fail-under=${{ env.MINIMUM_COVERAGE }} || echo "Coverage below threshold"
         coverage xml
-        
+
     - name: Upload final coverage
       uses: codecov/codecov-action@v4
       with:
@@ -407,42 +407,42 @@ jobs:
     runs-on: ubuntu-latest
     needs: [python-tests]
     if: always()
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Download performance results
       uses: actions/download-artifact@v4
       with:
         name: performance-results
       continue-on-error: true
-      
+
     - name: Analyze performance metrics
       run: |
         if [ -f benchmark-results.json ]; then
           python -c "
           import json
           import sys
-          
+
           try:
               with open('benchmark-results.json', 'r') as f:
                   data = json.load(f)
-              
+
               # Analyze benchmark results
               benchmarks = data.get('benchmarks', [])
               print(f'📊 Performance Analysis: {len(benchmarks)} benchmarks executed')
-              
+
               for bench in benchmarks:
                   name = bench.get('name', 'Unknown')
                   mean = bench.get('stats', {}).get('mean', 0)
                   min_time = bench.get('stats', {}).get('min', 0)
                   max_time = bench.get('stats', {}).get('max', 0)
                   print(f'  {name}: {mean:.4f}s (min: {min_time:.4f}s, max: {max_time:.4f}s)')
-                  
+
                   # Flag slow benchmarks
                   if mean > 5.0:
                       print(f'  ⚠️ WARNING: {name} is slow (>{mean:.2f}s)')
-                      
+
               print('✅ Performance analysis completed')
           except Exception as e:
               print(f'⚠️ Could not analyze performance results: {e}')
@@ -456,32 +456,32 @@ jobs:
     name: Deployment Validation
     runs-on: ubuntu-latest
     needs: [code-quality, python-tests, docker-build]
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python ${{ env.PYTHON_VERSION }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ env.PYTHON_VERSION }}
-        
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install fastapi uvicorn python-dotenv pydantic psutil
         if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
         pip install GitPython
-        
+
     - name: Port Configuration Test
       run: |
         python -c "
         import os
         import socket
-        
+
         # Test port binding with environment variable
         port = int(os.getenv('PORT', 5000))
         print(f'Testing port binding on 0.0.0.0:{port}')
-        
+
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.bind(('0.0.0.0', port))
@@ -493,7 +493,7 @@ jobs:
         "
       env:
         PORT: 8080
-        
+
     - name: Test build script
       run: |
         chmod +x scripts/build.sh
@@ -502,27 +502,27 @@ jobs:
         mkdir -p logs work_dir tmp memory tmp/scheduler /app/data
         echo '[]' > tmp/scheduler/tasks.json
         echo "✅ Build script validation passed"
-        
+
     - name: Test start script syntax
       run: |
         chmod +x scripts/start.sh
         # Validate script syntax
         bash -n scripts/start.sh
         echo "✅ Start script syntax validation passed"
-        
+
     - name: Validate health endpoint
       run: |
         # Test that health endpoint can be imported and basic structure is valid
         python -c "
         from main import app, HealthResponse
         import time
-        
+
         # Test HealthResponse model
         health = HealthResponse()
         assert health.status == 'healthy'
         assert isinstance(health.timestamp, float)
         assert health.version == '0.9.0'
-        
+
         print('✅ Health endpoint validation passed')
         "
 
@@ -531,10 +531,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [deployment-validation]
     if: github.ref == 'refs/heads/main'
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Validate Railway configuration
       run: |
         # Check railway.toml exists and has required fields
@@ -542,15 +542,15 @@ jobs:
           echo "❌ ERROR: railway.toml not found"
           exit 1
         fi
-        
+
         # Check for required configuration
         grep -q "builder.*NIXPACKS" railway.toml || (echo "❌ ERROR: NIXPACKS builder not configured"; exit 1)
         grep -q "buildCommand.*build.sh" railway.toml || (echo "❌ ERROR: build.sh not configured"; exit 1)
         grep -q "startCommand.*start.sh" railway.toml || (echo "❌ ERROR: start.sh not configured"; exit 1)
         grep -q "healthcheckPath.*/health" railway.toml || (echo "❌ ERROR: health check path not configured"; exit 1)
-        
+
         echo "✅ Railway configuration validation passed"
-        
+
     - name: Validate deployment scripts
       run: |
         # Check that standardized scripts exist and are executable
@@ -558,7 +558,7 @@ jobs:
         [ -f scripts/start.sh ] || (echo "❌ ERROR: scripts/start.sh not found"; exit 1)
         [ -x scripts/build.sh ] || (echo "❌ ERROR: scripts/build.sh not executable"; exit 1)
         [ -x scripts/start.sh ] || (echo "❌ ERROR: scripts/start.sh not executable"; exit 1)
-        
+
         echo "✅ Deployment scripts validation passed"
 
   deployment-summary:
@@ -566,7 +566,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [railway-validation, coverage-report, performance-analysis]
     if: always()
-    
+
     steps:
     - name: Deployment Summary
       run: |

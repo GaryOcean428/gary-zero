@@ -71,7 +71,7 @@ export DEFAULT_AUTH_LOGIN="admin"
 export DEFAULT_AUTH_PASSWORD="secure-default-password"
 
 # Runtime credentials (override defaults)
-export AUTH_LOGIN="runtime-admin"  
+export AUTH_LOGIN="runtime-admin"
 export AUTH_PASSWORD="runtime-secure-password"
 ```
 
@@ -321,8 +321,8 @@ python main.py --emergency-access
 
 ---
 
-**⚠️ Action Required By**: January 31, 2025  
-**Security Level**: Critical  
-**Downtime Risk**: High if not completed  
+**⚠️ Action Required By**: January 31, 2025
+**Security Level**: Critical
+**Downtime Risk**: High if not completed
 
 **Questions?** Check [CREDENTIALS_MANAGEMENT.md](../CREDENTIALS_MANAGEMENT.md) or create a GitHub issue.
