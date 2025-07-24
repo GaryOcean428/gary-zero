@@ -2,37 +2,46 @@
 
 This directory contains documentation for Gary-Zero's tools and instruments.
 
+
 ## Available Tools
 
 ### Core Tools
+
 - [Anthropic Computer Use & Claude Code](./anthropic-computer-use-claude-code.md) - Desktop automation and advanced code editing capabilities
 
 ### Tool Categories
 
 #### Desktop Automation
+
 - **Computer Use Tool**: Mouse, keyboard, and window control for desktop automation
 
-#### Code Development  
+#### Code Development
+
 - **Claude Code Tool**: Multi-file editing, Git operations, and terminal commands
 
 #### Browser Automation
+
 - **Browser Agent**: Web automation and interaction capabilities (existing)
 
 #### Code Execution
+
 - **Code Execution Tool**: Python, Node.js, and terminal execution (existing)
 
 #### Knowledge & Memory
+
 - **Knowledge Tool**: Access to knowledge base and documentation (existing)
 - **Memory Tools**: Save, load, and manage agent memory (existing)
+
 
 ## Tool Development
 
 ### Creating New Tools
 
 1. **Inherit from Tool base class**:
+
    ```python
    from framework.helpers.tool import Tool, Response
-   
+
    class MyCustomTool(Tool):
        async def execute(self, **kwargs) -> Response:
            # Tool implementation
@@ -62,6 +71,7 @@ Tools with configurable behavior should:
 4. **Include section in `framework/helpers/settings/api.py`**
 
 Example settings pattern:
+
 ```python
 # In types.py
 tool_enabled: bool
@@ -72,23 +82,28 @@ tool_max_actions: int
 "tool_max_actions": 100,
 ```
 
+
 ## Security Considerations
 
 ### Tool Safety
+
 - Tools should default to disabled state
 - Implement approval mechanisms for sensitive operations
 - Use workspace sandboxing where applicable
 - Validate inputs and restrict dangerous operations
 
 ### Access Controls
+
 - File system access should be restricted to workspace
 - Network access should be configurable
 - Command execution should have timeouts and restrictions
 
 ### Audit Trail
+
 - Log all tool actions
 - Provide clear feedback to users
 - Enable monitoring of tool usage
+
 
 ## Contributing
 
@@ -99,6 +114,7 @@ When contributing new tools:
 3. Include comprehensive tests
 4. Document usage and configuration
 5. Consider backwards compatibility
+
 
 ## See Also
 

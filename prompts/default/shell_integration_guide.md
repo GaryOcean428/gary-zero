@@ -1,6 +1,8 @@
 # Kali Shell Access Guide
 
+
 ## Available Shell Service
+
 You have access to a dedicated Kali Linux shell environment for advanced security testing and analysis:
 
 - **Service**: `kali-linux-docker` (Railway deployment)
@@ -9,9 +11,11 @@ You have access to a dedicated Kali Linux shell environment for advanced securit
 - **Access Methods**: Both private Railway network and public endpoints available
 - **Real-time UI**: Shell operations are automatically displayed to users via dynamic iframe
 
+
 ## Shell Access Methods
 
 ### 1. Direct Shell Commands
+
 Use the `shell_execute` tool when you need specialized security tools not available in standard environments:
 
 ```python
@@ -22,7 +26,7 @@ await shell_execute(
     timeout=60
 )
 
-# Example: Web vulnerability scan  
+# Example: Web vulnerability scan
 await shell_execute(
     command="nikto -h https://target.com",
     description="Web application vulnerability assessment",
@@ -31,6 +35,7 @@ await shell_execute(
 ```
 
 ### 2. Security Tool Integration
+
 Access to comprehensive Kali Linux security toolkit:
 
 **Network Analysis:**
@@ -54,6 +59,7 @@ Access to comprehensive Kali Linux security toolkit:
 - `testssl.sh` - SSL/TLS vulnerability testing
 
 ### 3. Interactive Shell Sessions
+
 For multi-step operations requiring shell state persistence:
 
 ```python
@@ -71,12 +77,13 @@ await shell_execute(
 ```
 
 ### 4. File Operations
+
 Transfer files between environments when needed:
 
 ```python
 # Upload analysis target
 await shell_file_upload(
-    local_path="/tmp/target_config.txt", 
+    local_path="/tmp/target_config.txt",
     remote_path="/kali/analysis/config.txt"
 )
 
@@ -87,11 +94,12 @@ await shell_file_download(
 )
 ```
 
+
 ## When to Use Shell vs E2B
 
 **Use Kali Shell for:**
 - Security analysis and vulnerability assessments
-- Network penetration testing and reconnaissance  
+- Network penetration testing and reconnaissance
 - Specialized Linux security tool requirements
 - Long-running security scans (up to 10 minutes)
 - SSL/TLS certificate analysis
@@ -101,10 +109,11 @@ await shell_file_download(
 **Use E2B for:**
 - Standard development and coding tasks
 - Data analysis and processing
-- Web scraping and automation  
+- Web scraping and automation
 - General computational work
 - Quick script execution
 - File manipulation and parsing
+
 
 ## Security Considerations
 
@@ -115,21 +124,24 @@ await shell_file_download(
 - **Transparency**: Real-time iframe displays all shell operations to users
 - **Timeout**: Commands have reasonable timeouts to prevent resource abuse
 
+
 ## User Visibility & Transparency
 
 When you execute shell commands, users automatically see:
 
 - **Dynamic Iframe**: Real-time terminal interface appears in the UI
 - **Command Execution**: Live output and progress of security operations
-- **Interactive Sessions**: Full terminal access for complex workflows  
+- **Interactive Sessions**: Full terminal access for complex workflows
 - **File Transfers**: Visual feedback on file upload/download operations
 - **Session Management**: Clear indication of active shell sessions
 
 This ensures complete transparency for all security operations and builds user trust.
 
+
 ## Common Usage Patterns
 
 ### Network Security Assessment
+
 ```python
 # Comprehensive network scan
 results = await shell_execute(
@@ -147,6 +159,7 @@ if "80/tcp open" in results.get('stdout', ''):
 ```
 
 ### SSL/TLS Security Analysis
+
 ```python
 # Certificate analysis
 cert_info = await shell_execute(
@@ -163,6 +176,7 @@ ssl_test = await shell_execute(
 ```
 
 ### Web Application Security Testing
+
 ```python
 # Directory enumeration
 dir_scan = await shell_execute(
@@ -178,14 +192,16 @@ sql_test = await shell_execute(
 )
 ```
 
+
 ## Error Handling
 
 The shell service includes robust error handling:
 
 - **Service Unavailable**: Graceful fallback to E2B when Kali service is down
 - **Command Timeout**: Automatic termination of long-running commands
-- **Authentication Errors**: Clear error messages for configuration issues  
+- **Authentication Errors**: Clear error messages for configuration issues
 - **Network Issues**: Retry logic for temporary connectivity problems
+
 
 ## Best Practices
 

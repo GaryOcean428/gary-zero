@@ -2,6 +2,7 @@
 
 This guide explains how to configure and use the Agent2Agent (A2A) protocol implementation in Gary-Zero for multi-agent interoperability.
 
+
 ## What is A2A Protocol?
 
 The Agent2Agent (A2A) protocol enables standardized communication between AI agents across different vendors and platforms. Gary-Zero's A2A implementation allows it to:
@@ -12,6 +13,7 @@ The Agent2Agent (A2A) protocol enables standardized communication between AI age
 - **Share MCP tools** and resources
 - **Receive push notifications** from other agents
 - **Stream real-time data** via WebSocket connections
+
 
 ## A2A Protocol Components
 
@@ -54,6 +56,7 @@ Gary-Zero exposes its capabilities and endpoints through a standardized agent ca
 | `/a2a/mcp/tools` | GET | MCP tools discovery |
 | `/a2a/mcp/execute` | POST | MCP tool execution |
 
+
 ## Configuration
 
 ### Method 1: Web UI Configuration
@@ -78,7 +81,7 @@ Add A2A configuration to your `tmp/settings.json`:
     "base_url": "https://my-agent.example.com",
     "capabilities": [
       "code_execution",
-      "file_management", 
+      "file_management",
       "web_browsing",
       "mcp_client",
       "mcp_server"
@@ -91,6 +94,7 @@ Add A2A configuration to your `tmp/settings.json`:
   }
 }
 ```
+
 
 ## Usage Examples
 
@@ -134,7 +138,7 @@ curl -X POST https://your-gary-zero.com/a2a/message \
   -d '{
     "message": {
       "id": "msg-123",
-      "session_id": "session-abc-456", 
+      "session_id": "session-abc-456",
       "sender_id": "my-agent-123",
       "recipient_id": "gary-zero-unique-id",
       "type": "request",
@@ -191,6 +195,7 @@ ws.onmessage = function(event) {
 };
 ```
 
+
 ## Testing A2A Implementation
 
 ### Built-in Interoperability Test
@@ -205,7 +210,7 @@ python test_a2a_interoperability.py
 This test verifies:
 - ✅ Agent card discovery
 - ✅ Capability discovery
-- ✅ Protocol negotiation  
+- ✅ Protocol negotiation
 - ✅ MCP tools discovery
 - ✅ Push notifications
 
@@ -215,6 +220,7 @@ This test verifies:
 2. **Test agent card**: `curl http://localhost:8000/.well-known/agent.json`
 3. **Test discovery**: Use the web UI's "Test A2A Interoperability" button
 4. **Check endpoints**: Visit `http://localhost:8000/docs` for API documentation
+
 
 ## Security Considerations
 
@@ -231,6 +237,7 @@ This test verifies:
 3. **Rate Limiting**: Implement rate limiting for A2A endpoints
 4. **Audit Logging**: Monitor A2A communication for security events
 
+
 ## Integration with MCP
 
 Gary-Zero's A2A implementation seamlessly integrates with its MCP capabilities:
@@ -238,6 +245,7 @@ Gary-Zero's A2A implementation seamlessly integrates with its MCP capabilities:
 - **MCP Server Mode**: Gary-Zero can expose its tools to other agents via A2A
 - **MCP Client Mode**: Gary-Zero can discover and use tools from other MCP servers
 - **Cross-Protocol**: A2A agents can discover and execute MCP tools
+
 
 ## Troubleshooting
 
@@ -269,6 +277,7 @@ Enable debug logging to troubleshoot A2A issues:
 import logging
 logging.getLogger('framework.a2a').setLevel(logging.DEBUG)
 ```
+
 
 ## Advanced Configuration
 
@@ -306,6 +315,7 @@ async def custom_a2a_endpoint(request_data: dict):
     return {"success": True, "message": "Custom endpoint works!"}
 ```
 
+
 ## Production Deployment
 
 ### Environment Variables
@@ -337,6 +347,7 @@ Monitor A2A endpoints with standard web monitoring tools:
 - **Metrics**: Track request counts and response times for A2A endpoints
 - **Logging**: Monitor A2A communication patterns and errors
 
+
 ## Contributing
 
 To contribute to A2A protocol development:
@@ -345,6 +356,7 @@ To contribute to A2A protocol development:
 2. Add tests for new features in the test suite
 3. Update documentation for any API changes
 4. Ensure backward compatibility with existing A2A agents
+
 
 ## Resources
 

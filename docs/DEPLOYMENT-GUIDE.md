@@ -1,5 +1,6 @@
 # Gary-Zero CI/CD Deployment Guide
 
+
 ## 🚀 Quick Start
 
 The new CI/CD architecture is now fully implemented with 4 reusable composite workflows. Here's how to use it:
@@ -8,6 +9,7 @@ The new CI/CD architecture is now fully implemented with 4 reusable composite wo
 
 1. **Railway Account**: Sign up at [railway.app](https://railway.app)
 2. **GitHub Secrets**: Configure the following secrets in your repository:
+
    ```
    RAILWAY_TOKEN=your_railway_api_token
    DOCKER_USERNAME=your_docker_hub_username (optional)
@@ -18,10 +20,12 @@ The new CI/CD architecture is now fully implemented with 4 reusable composite wo
 ### Development Workflow
 
 1. **Feature Development**:
+
    ```bash
    git checkout -b feature/my-new-feature
    git push origin feature/my-new-feature
    ```
+
    - Triggers: Static checks + Tests (workflows A + B)
    - Duration: ~10-15 minutes
    - Coverage threshold: 75%
@@ -32,11 +36,13 @@ The new CI/CD architecture is now fully implemented with 4 reusable composite wo
    - Automated PR comment with results
 
 3. **Main Branch Deployment**:
+
    ```bash
    git checkout main
    git merge feature/my-new-feature
    git push origin main
    ```
+
    - Triggers: Full CI/CD pipeline (workflows A + B + C + D)
    - Duration: ~25-35 minutes
    - Coverage threshold: 80%
@@ -54,10 +60,13 @@ Use workflow dispatch for manual deployments:
    - Skip deployment (optional)
    - Choose environment (production/staging)
 
+
 ## 🧩 Composite Workflows Overview
 
 ### A. Static Checks (`_static-checks.yml`)
+
 **Tools**: Ruff, Black, MyPy, ESLint, Prettier, TypeScript, detect-secrets
+
 ```yaml
 uses: ./.github/workflows/_static-checks.yml
 with:
@@ -67,7 +76,9 @@ with:
 ```
 
 ### B. Tests (`_tests.yml`)
+
 **Coverage**: Unit, Integration, E2E, Performance, Coverage merge
+
 ```yaml
 uses: ./.github/workflows/_tests.yml
 with:
@@ -78,7 +89,9 @@ with:
 ```
 
 ### C. Security Audit (`_security-audit.yml`)
+
 **Tools**: Bandit, Safety, npm audit, Trivy, OSSF Scorecard
+
 ```yaml
 uses: ./.github/workflows/_security-audit.yml
 with:
@@ -89,7 +102,9 @@ with:
 ```
 
 ### D. Deploy (`_deploy.yml`)
+
 **Process**: Railway validation, Docker build, CLI deployment
+
 ```yaml
 uses: ./.github/workflows/_deploy.yml
 with:
@@ -102,6 +117,7 @@ secrets:
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 ```
 
+
 ## 🚪 Quality Gate
 
 The quality gate ensures all checks pass before deployment:
@@ -112,6 +128,7 @@ The quality gate ensures all checks pass before deployment:
 - ✅ All validations complete successfully
 
 If any check fails, deployment is blocked until issues are resolved.
+
 
 ## 🚂 Railway Configuration
 
@@ -132,23 +149,28 @@ WEB_UI_HOST = { default = "0.0.0.0" }
 ```
 
 ### Port Configuration ✅
+
 - Uses `process.env.PORT` in application
 - Binds to `0.0.0.0` for Railway compatibility
 - Health endpoint at `/health`
 
+
 ## 📊 Monitoring & Reporting
 
 ### GitHub Integration
+
 - **Status Checks**: Required for branch protection
 - **PR Comments**: Automated result summaries
 - **Security Alerts**: SARIF integration
 - **Releases**: Automatic creation on successful deployment
 
 ### Artifacts & Reports
+
 - **Coverage Reports**: Combined XML uploaded to Codecov
 - **Security Reports**: JSON artifacts with detailed findings
 - **Performance Metrics**: Benchmark results
 - **Deployment Logs**: Complete audit trail
+
 
 ## 🔧 Troubleshooting
 
@@ -188,6 +210,7 @@ bash scripts/start.sh
 # Test health endpoint
 curl http://localhost:8000/health
 ```
+
 
 ## 🎯 Next Steps
 

@@ -1,5 +1,7 @@
 ![Gary-Zero Logo](res/header.png)
+
 # Gary-Zero Documentation
+
 To begin with Gary-Zero, follow the links below for detailed guides on various topics:
 
 - **[Installation](installation.md):** Set up (or [update](installation.md#how-to-update-gary-zero)) Gary-Zero on your system.
@@ -12,12 +14,13 @@ To begin with Gary-Zero, follow the links below for detailed guides on various t
 - **[Contributing](contribution.md):** Learn how to contribute to the Gary-Zero project.
 - **[Troubleshooting and FAQ](troubleshooting.md):** Find answers to common issues and questions.
 
-### Your experience with Gary-Zero starts now!
+### Your experience with Gary-Zero starts now
 
 - **Download Gary-Zero:** Follow the [installation guide](installation.md) to download and run Gary-Zero.
 - **Join the Community:** Join the Gary-Zero [Skool](https://www.skool.com/gary-zero) or [Discord](https://discord.gg/Z2tun2N3) community to discuss ideas, ask questions, and collaborate with other contributors.
 - **Share your Work:** Share your Gary-Zero creations, workflows and discoverings on our [Show and Tell](https://github.com/frdel/gary-zero/discussions/categories/show-and-tell) area on GitHub.
 - **Report Issues:** Use the [GitHub issue tracker](https://github.com/frdel/gary-zero/issues) to report framework-relative bugs or suggest new features.
+
 
 ## Table of Contents
 

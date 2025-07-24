@@ -12,6 +12,7 @@ reviewers: []
 
 This directory contains documentation for various external services integrated into the system.
 
+
 ## Contents
 
 - `api-integrations.md` - Overview of APIs used and their endpoints
@@ -19,11 +20,13 @@ This directory contains documentation for various external services integrated i
 - `webhooks.md` - Details of configured webhooks
 - `auth-providers.md` - Authentication and authorization providers setup
 
+
 ## Guidelines
 
 - Ensure all API keys and secrets are stored securely
 - Document each integration's purpose and usage
 - Include setup and configuration instructions
+
 
 ## Review Process
 

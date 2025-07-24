@@ -2,14 +2,16 @@
 
 The Gary-Zero Performance Framework provides comprehensive performance optimization tools for high-performance applications.
 
+
 ## Overview
 
 The framework includes four main components:
 
 - **Caching System**: Multi-tier caching with in-memory and persistent storage
-- **Async Utilities**: Enhanced async patterns and background task management  
+- **Async Utilities**: Enhanced async patterns and background task management
 - **Performance Monitoring**: Real-time metrics collection and resource tracking
 - **Resource Optimization**: Automatic memory and CPU optimization
+
 
 ## Quick Start
 
@@ -41,6 +43,7 @@ def memory_intensive_task():
     # Memory-intensive operation
     return result
 ```
+
 
 ## Caching System
 
@@ -88,7 +91,7 @@ def get_user_with_profile(user_id, include_profile=True):
 ### Memory Cache Features
 
 - **LRU Eviction**: Automatically evicts least recently used items
-- **TTL Support**: Time-based expiration with configurable defaults  
+- **TTL Support**: Time-based expiration with configurable defaults
 - **Thread Safety**: Safe for concurrent access
 - **Memory Efficiency**: Optimized memory usage with weak references
 
@@ -135,6 +138,7 @@ pickle_cache = PersistentCache(
 # Store complex objects
 cache.set("model", trained_model, ttl=86400)  # Cache for 24 hours
 ```
+
 
 ## Async Utilities
 
@@ -211,6 +215,7 @@ async def flaky_operation():
     return response.data
 ```
 
+
 ## Performance Monitoring
 
 ### Real-Time Metrics Collection
@@ -282,6 +287,7 @@ monitor = get_performance_monitor()
 avg_time = monitor.metrics.get_average("operation_duration_user_lookup", duration_seconds=3600)
 print(f"Average user lookup time: {avg_time:.3f} seconds")
 ```
+
 
 ## Resource Optimization
 
@@ -373,6 +379,7 @@ for recommendation in report['recommendations']:
     print(f"  - {recommendation}")
 ```
 
+
 ## Integration Example
 
 Here's a complete example integrating all performance components:
@@ -386,20 +393,20 @@ class HighPerformanceService:
         self.cache_manager = get_cache_manager()
         self.monitor = get_performance_monitor()
         self.optimizer = get_resource_optimizer()
-        
+
     async def start(self):
         """Initialize performance monitoring and optimization."""
         await self.monitor.start()
         self.optimizer.start_auto_optimization(interval=300.0)
-        
+
         # Register cache cleanup with optimizer
         self.optimizer.register_cache_cleanup(self.cache_manager.clear)
-        
+
     async def stop(self):
         """Clean shutdown of performance systems."""
         await self.monitor.stop()
         self.optimizer.stop_auto_optimization()
-    
+
     @cached(ttl=300)
     @timer("user_data_fetch")
     @auto_optimize(memory_threshold=0.8)
@@ -407,19 +414,19 @@ class HighPerformanceService:
         """Get user data with caching, timing, and auto-optimization."""
         with self.monitor.timer("database_query"):
             return database.get_user(user_id)
-    
+
     @async_timer("async_task_processing")
     async def process_background_task(self, data):
         """Process data in background with performance monitoring."""
         task_manager = get_task_manager()
-        
+
         async def processing_task():
             with self.monitor.timer("data_processing"):
                 return await heavy_data_processing(data)
-        
+
         task_id = await task_manager.submit("data_processing", processing_task())
         return await task_manager.wait(task_id)
-    
+
     def get_performance_report(self):
         """Get comprehensive performance report."""
         return {
@@ -432,22 +439,23 @@ class HighPerformanceService:
 async def main():
     service = HighPerformanceService()
     await service.start()
-    
+
     try:
         # Use the service
         user_data = service.get_user_data(123)
         result = await service.process_background_task(large_dataset)
-        
+
         # Get performance report
         report = service.get_performance_report()
         print(f"Cache hit ratio: {report['cache_stats']['hit_ratio']:.2%}")
-        
+
     finally:
         await service.stop()
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
+
 
 ## Configuration
 
@@ -499,6 +507,7 @@ optimizer = ResourceOptimizer(
 )
 ```
 
+
 ## Best Practices
 
 ### Caching
@@ -529,11 +538,13 @@ optimizer = ResourceOptimizer(
 3. **Register cleanup functions** for custom caches and resources
 4. **Use auto-optimization** for production environments
 
+
 ## Troubleshooting
 
 ### Common Issues
 
 **High Memory Usage**
+
 ```python
 # Check memory status
 optimizer = get_resource_optimizer()
@@ -546,6 +557,7 @@ print(result.recommendations)
 ```
 
 **Performance Bottlenecks**
+
 ```python
 # Analyze operation timings
 monitor = get_performance_monitor()
@@ -557,6 +569,7 @@ for operation, metrics in summary['operation_metrics'].items():
 ```
 
 **Cache Misses**
+
 ```python
 # Check cache statistics
 cache_manager = get_cache_manager()

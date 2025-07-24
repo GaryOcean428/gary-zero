@@ -2,6 +2,7 @@
 
 Now that you've configured Docker Hub credentials in Railway, Gary-Zero can pull and use Docker images to enhance its execution capabilities. Here are practical examples of how to leverage this.
 
+
 ## Available Docker Hub Features
 
 With Docker Hub credentials configured, Gary-Zero can:
@@ -10,6 +11,7 @@ With Docker Hub credentials configured, Gary-Zero can:
 2. **Access your private Docker images** for proprietary tools
 3. **Use official images** from verified publishers
 4. **Create custom execution environments** on-demand
+
 
 ## Usage Examples
 
@@ -42,7 +44,7 @@ print(data.describe())
 ```python
 # Use official database client images
 {
-  "tool": "code_execution_tool", 
+  "tool": "code_execution_tool",
   "runtime": "docker",
   "docker_image": "postgres:16-alpine",
   "code": """
@@ -59,7 +61,7 @@ psql --version
 # Use language-specific environments
 {
   "tool": "code_execution_tool",
-  "runtime": "docker", 
+  "runtime": "docker",
   "docker_image": "rust:latest",
   "code": """
 // Write and compile Rust code
@@ -86,29 +88,35 @@ model = company_ml_toolkit.load_model('production')
 }
 ```
 
+
 ## Best Practices
 
 ### 1. Image Selection
+
 - Use official images when possible (verified publishers)
 - Specify tags for reproducibility (`:latest` can change)
 - Use Alpine variants for smaller footprint
 - Cache commonly used images
 
 ### 2. Security Considerations
+
 - Docker images run in E2B's secure sandbox
 - Network access is controlled by E2B
 - Credentials are never exposed to containers
 - Images are pulled fresh (no local cache)
 
 ### 3. Performance Tips
+
 - Smaller images pull faster
 - Pre-built images are faster than building on-demand
 - Consider creating custom images for repeated tasks
 - Use multi-stage builds for optimization
 
+
 ## Common Use Cases
 
 ### Machine Learning Workflows
+
 ```python
 # TensorFlow environment
 {
@@ -120,6 +128,7 @@ model = company_ml_toolkit.load_model('production')
 ```
 
 ### Web Scraping
+
 ```python
 # Playwright/Puppeteer environment
 {
@@ -135,6 +144,7 @@ playwright install chromium
 ```
 
 ### API Development
+
 ```python
 # Node.js API environment
 {
@@ -148,6 +158,7 @@ console.log('Express available:', !!express);
 """
 }
 ```
+
 
 ## Integration with E2B
 
@@ -163,25 +174,30 @@ The execution flow:
 4. Code runs in Docker container within E2B sandbox
 5. Results returned to Gary-Zero
 
+
 ## Troubleshooting
 
 ### Image Pull Failures
+
 - Verify Docker Hub credentials in Railway env
 - Check image name spelling and tag
 - Ensure image exists (public or in your account)
 - Check Docker Hub rate limits
 
 ### Performance Issues
+
 - Use smaller images (Alpine variants)
 - Pre-pull common images
 - Consider image layer caching
 - Monitor pull times in logs
 
 ### Access Errors
+
 - Verify DOCKER_USERNAME and DOCKER_PASSWORD
 - Check private repository access
 - Ensure credentials have pull permissions
 - Test with public images first
+
 
 ## Next Steps
 

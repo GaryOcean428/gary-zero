@@ -87,5 +87,6 @@
     "files.autoSave": "afterDelay",
     "editor.wordWrap": "on",
     "editor.formatOnPaste": true,
-    "editor.aiStats.enabled": true
+    "editor.aiStats.enabled": true,
+    "editor.defaultFormatter": "charliermarsh.ruff"
 }

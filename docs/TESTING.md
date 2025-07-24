@@ -2,6 +2,7 @@
 
 This document provides comprehensive guidance for running, writing, and maintaining tests in the Gary-Zero project.
 
+
 ## Table of Contents
 
 1. [Test Structure](#test-structure)
@@ -13,6 +14,7 @@ This document provides comprehensive guidance for running, writing, and maintain
 7. [Performance Testing](#performance-testing)
 8. [Security Testing](#security-testing)
 9. [Troubleshooting](#troubleshooting)
+
 
 ## Test Structure
 
@@ -51,6 +53,7 @@ Tests are organized using pytest markers:
 - `@pytest.mark.slow` - Tests that take longer than 1 second
 - `@pytest.mark.mock_external` - Tests that mock external services
 
+
 ## Running Tests
 
 ### Prerequisites
@@ -64,11 +67,13 @@ pip install -r requirements-dev.txt
 ### Basic Test Execution
 
 Run all tests:
+
 ```bash
 pytest
 ```
 
 Run specific test types:
+
 ```bash
 # Unit tests only (fast)
 pytest -m unit
@@ -84,6 +89,7 @@ pytest -m security
 ```
 
 Run tests with coverage:
+
 ```bash
 pytest --cov=framework --cov=api --cov=security --cov-report=html
 ```
@@ -91,18 +97,21 @@ pytest --cov=framework --cov=api --cov=security --cov-report=html
 ### Advanced Test Options
 
 Run tests in parallel:
+
 ```bash
 pytest -n auto  # Auto-detect CPU cores
 pytest -n 4     # Use 4 processes
 ```
 
 Run tests with benchmarking:
+
 ```bash
 pytest --benchmark-only  # Only benchmark tests
 pytest --benchmark-skip  # Skip benchmark tests
 ```
 
 Run specific test files or functions:
+
 ```bash
 pytest tests/unit/test_performance_monitor.py
 pytest tests/unit/test_performance_monitor.py::TestMetricsCollector::test_record_metric
@@ -111,12 +120,14 @@ pytest tests/unit/test_performance_monitor.py::TestMetricsCollector::test_record
 ### JavaScript/TypeScript Tests
 
 Run JavaScript tests using Vitest:
+
 ```bash
 npm run test           # Run tests
 npm run test:coverage  # Run with coverage
 npm run test:ui        # Run with UI
 npm run test:watch     # Watch mode
 ```
+
 
 ## Writing Tests
 
@@ -135,15 +146,15 @@ from framework.performance.monitor import MetricsCollector
 
 class TestMetricsCollector:
     """Test cases for MetricsCollector class."""
-    
+
     def test_record_metric_stores_value_correctly(self):
         """Test that recording a metric stores the value correctly."""
         # Arrange
         collector = MetricsCollector()
-        
+
         # Act
         collector.record("test_metric", 42.0, tags={"env": "test"})
-        
+
         # Assert
         latest = collector.get_latest("test_metric")
         assert latest is not None
@@ -157,14 +168,14 @@ class TestMetricsCollector:
 @pytest.mark.integration
 class TestMultiAgentCoordination:
     """Integration tests for multi-agent coordination."""
-    
+
     @pytest.mark.asyncio
     async def test_distributed_task_execution(self, coordinator):
         """Test distributed task execution across multiple agents."""
         # Arrange
         session_id = "test-session"
         await coordinator.create_workflow_session(session_id, ["agent-1", "agent-2"])
-        
+
         task_definition = {
             "task_id": "integration-test",
             "subtasks": [
@@ -172,10 +183,10 @@ class TestMultiAgentCoordination:
                 {"id": "subtask-2", "required_capabilities": ["web_scraping"]}
             ]
         }
-        
+
         # Act
         result = await coordinator.execute_distributed_task(session_id, task_definition)
-        
+
         # Assert
         assert result["status"] == "completed"
         assert result["completed_subtasks"] > 0
@@ -187,18 +198,18 @@ class TestMultiAgentCoordination:
 @pytest.mark.performance
 class TestPerformanceMetrics:
     """Performance benchmark tests."""
-    
+
     def test_metrics_collection_performance(self, benchmark):
         """Benchmark metrics collection performance."""
         collector = MetricsCollector()
-        
+
         def record_metrics():
             for i in range(1000):
                 collector.record(f"metric_{i % 10}", float(i))
-        
+
         # Benchmark the operation
         result = benchmark(record_metrics)
-        
+
         # Verify performance expectations
         assert len(collector._metrics) == 10
 ```
@@ -215,9 +226,10 @@ def test_api_call_with_mock(mock_openai_api):
         model="gpt-4",
         messages=[{"role": "user", "content": "Test message"}]
     )
-    
+
     assert response.choices[0].message.content == "This is a mock response from OpenAI API"
 ```
+
 
 ## Environment Configuration
 
@@ -228,7 +240,7 @@ The test environment automatically configures these variables:
 ```python
 TEST_CONFIG = {
     "PORT": "8080",
-    "WEB_UI_HOST": "localhost", 
+    "WEB_UI_HOST": "localhost",
     "SEARXNG_URL": "http://localhost:8080/mock-searxng",
     "E2B_API_KEY": "test-e2b-key-12345",
     "OPENAI_API_KEY": "test-openai-key-12345",
@@ -269,6 +281,7 @@ def test_with_custom_config(custom_test_config):
         pass
 ```
 
+
 ## CI/CD Pipeline
 
 ### GitHub Actions Workflow
@@ -288,16 +301,16 @@ The CI pipeline runs comprehensive tests:
 jobs:
   code-quality:
     # Ruff linting, MyPy type checking, Bandit security scan
-    
+
   python-tests:
     strategy:
       matrix:
         test-type: [unit, integration, performance]
     # Parallel test execution with coverage
-    
+
   e2e-tests:
     # End-to-end testing with Playwright
-    
+
   deployment-validation:
     # Port configuration and Docker build validation
 ```
@@ -313,6 +326,7 @@ python -m mypy framework/
 python -m bandit -r framework/ api/ security/
 python -m pytest --cov=framework --cov-fail-under=80
 ```
+
 
 ## Coverage and Quality
 
@@ -357,6 +371,7 @@ Run hooks manually:
 pre-commit run --all-files
 ```
 
+
 ## Performance Testing
 
 ### Benchmark Tests
@@ -369,7 +384,7 @@ def test_performance_operation(benchmark):
     def operation_to_benchmark():
         # Your operation here
         return expensive_computation()
-    
+
     result = benchmark(operation_to_benchmark)
     assert result is not None
 ```
@@ -392,14 +407,15 @@ Set performance expectations:
 def test_operation_performance():
     """Test that operation meets performance requirements."""
     start_time = time.time()
-    
+
     # Perform operation
     result = expensive_operation()
-    
+
     duration = time.time() - start_time
     assert duration < 5.0  # Should complete within 5 seconds
     assert result is not None
 ```
+
 
 ## Security Testing
 
@@ -419,7 +435,7 @@ def test_code_injection_prevention(code_validator, malicious_code_samples):
     """Test that code injection attempts are blocked."""
     for attack_name, malicious_code in malicious_code_samples.items():
         result = code_validator.validate_code(malicious_code)
-        
+
         assert result.is_valid is False, f"Failed to block {attack_name}"
         assert len(result.blocked_items) > 0
 ```
@@ -429,6 +445,7 @@ def test_code_injection_prevention(code_validator, malicious_code_samples):
 - **Bandit**: Scans for security vulnerabilities in Python code
 - **Safety**: Checks dependencies for known security issues
 - **Detect-secrets**: Prevents secrets from being committed
+
 
 ## Troubleshooting
 
@@ -484,10 +501,10 @@ def test_mock_debugging(mock_openai_api):
     """Debug mock service behavior."""
     # Check mock configuration
     assert mock_openai_api is not None
-    
+
     # Verify mock calls
     response = mock_openai_api.chat.completions.create(model="gpt-4", messages=[])
-    
+
     # Debug mock call history
     print(mock_openai_api.chat.completions.create.call_args_list)
 ```
@@ -504,10 +521,10 @@ def test_performance_debugging():
     """Debug performance of specific operation."""
     profiler = cProfile.Profile()
     profiler.enable()
-    
+
     # Your operation here
     expensive_operation()
-    
+
     profiler.disable()
     stats = pstats.Stats(profiler)
     stats.sort_stats('cumulative')

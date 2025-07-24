@@ -2,14 +2,17 @@
 
 The Live Activity Monitor provides real-time tracking of browser activities, coding operations, and user interactions within the Gary-Zero application.
 
+
 ## Features
 
 ### 🔄 Real-Time Monitoring
+
 - Automatic activity tracking for browser navigation, code editing, and iframe changes
 - Updates every 3 seconds with smooth animations
 - Activity count indicators and notifications
 
 ### 🎛️ Interactive Controls
+
 - **Toggle Visibility**: Collapsible interface with activity count badge
 - **Filter Activities**: View all activities or filter by type (Browser, Coding, Iframe Changes)
 - **Refresh**: Manual refresh of activity data
@@ -17,10 +20,12 @@ The Live Activity Monitor provides real-time tracking of browser activities, cod
 - **Clear Activities**: Remove all stored activities
 
 ### 🎨 Modern UI Design
+
 - Beautiful glassmorphism design with gradient backgrounds
 - Responsive layout that works on desktop and mobile
 - Smooth animations and transitions
 - Dark mode compatible styling
+
 
 ## Usage
 
@@ -50,9 +55,9 @@ fetch('/activity_monitor', {
 
 // Get recent activities
 fetch('/activity_monitor', {
-    method: 'POST', 
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ 
+    body: JSON.stringify({
         action: 'get_activities',
         limit: 50,
         type: 'browser' // optional filter
@@ -80,7 +85,7 @@ The activity monitor can be controlled programmatically via the global `window.a
 ```javascript
 // Log a custom activity
 window.activityMonitor.logActivity(
-    'browser', 
+    'browser',
     'User performed custom action',
     'https://example.com',
     { customData: 'value' }
@@ -93,6 +98,7 @@ const activities = await window.activityMonitor.getActivities(25, 'coding');
 await window.activityMonitor.clearActivities();
 ```
 
+
 ## Integration Points
 
 ### Automatic Activity Logging
@@ -100,7 +106,7 @@ await window.activityMonitor.clearActivities();
 The system automatically logs activities for:
 
 - **Message Sending**: When users send messages to the AI
-- **AI Responses**: When the AI responds to user messages  
+- **AI Responses**: When the AI responds to user messages
 - **Navigation**: Browser history changes and page navigation
 - **Settings**: Configuration changes and API calls
 - **Focus Changes**: When users switch between the app and other windows
@@ -116,6 +122,7 @@ window.logCodingActivity('upload', 'path/to/file.txt', 'User uploaded new file')
 window.logCodingActivity('delete', 'old/file.js', 'User deleted obsolete file');
 ```
 
+
 ## Testing
 
 ### Test Page
@@ -130,6 +137,7 @@ Visit `/activity-monitor-test.html` for a standalone test interface with:
 
 Use the "Populate Sample Data" feature to add realistic test activities for development and demonstration purposes.
 
+
 ## Configuration
 
 ### Activity Limits
@@ -142,8 +150,9 @@ Use the "Populate Sample Data" feature to add realistic test activities for deve
 
 The activity monitor automatically adapts to different screen sizes:
 - **Desktop**: Full feature set with side-by-side controls
-- **Tablet**: Stacked layout with preserved functionality  
+- **Tablet**: Stacked layout with preserved functionality
 - **Mobile**: Simplified controls and compressed iframe height
+
 
 ## Security
 
@@ -151,6 +160,7 @@ The activity monitor automatically adapts to different screen sizes:
 - API endpoints require authentication
 - iframe uses sandbox restrictions for security
 - External URL loading requires user confirmation
+
 
 ## Browser Compatibility
 

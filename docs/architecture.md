@@ -1,14 +1,19 @@
 # Architecture Overview
+
 Gary-Zero is built on a flexible and modular architecture designed for extensibility and customization. This section outlines the key components and the interactions between them.
 
+
 ## System Architecture
+
 This simplified diagram illustrates the hierarchical relationship between agents and their interaction with tools, extensions, instruments, prompts, memory and knowledge base.
 
 ![Gary-Zero Architecture](res/arch-01.svg)
 
 The user or Agent 0 is at the top of the hierarchy, delegating tasks to subordinate agents, which can further delegate to other agents. Each agent can utilize tools and access the shared assets (prompts, memory, knowledge, extensions and instruments) to perform its tasks.
 
+
 ## Runtime Architecture
+
 Gary-Zero's runtime architecture is built around Docker containers:
 
 1. **Host System (your machine)**:
@@ -30,14 +35,16 @@ This architecture ensures:
 - Flexible deployment options for advanced users
 
 > [!NOTE]
-> The legacy approach of running Gary-Zero directly on the host system (using Python, Conda, etc.) 
-> is still possible but requires Remote Function Calling (RFC) configuration through the Settings 
-> page. See [Full Binaries Installation](installation.md#in-depth-guide-for-full-binaries-installation) 
+> The legacy approach of running Gary-Zero directly on the host system (using Python, Conda, etc.)
+> is still possible but requires Remote Function Calling (RFC) configuration through the Settings
+> page. See [Full Binaries Installation](installation.md#in-depth-guide-for-full-binaries-installation)
 > for detailed instructions.
+
 
 ## Implementation Details
 
 ### Directory Structure
+
 | Directory | Description |
 | --- | --- |
 | `/docker` | Docker-related files for runtime container |
@@ -60,6 +67,7 @@ This architecture ensures:
 | `/work_dir` | Working directory |
 
 ### Key Files
+
 | File | Description |
 | --- | --- |
 | `.env` | Environment configuration |
@@ -74,16 +82,20 @@ This architecture ensures:
 | `run_ui.py` | Web UI launcher |
 
 > [!NOTE]
-> When using the Docker runtime container, these directories are mounted 
+> When using the Docker runtime container, these directories are mounted
 > within the `/a0` volume for data persistence until the container is restarted or deleted.
 
+
 ## Core Components
+
 Gary-Zero's architecture revolves around the following key components:
 
 ### 1. Agents
+
 The core actors within the framework. Agents receive instructions, reason, make decisions, and utilize tools to achieve their objectives. Agents operate within a hierarchical structure, with superior agents delegating tasks to subordinate agents.
 
 #### Agent Hierarchy and Communication
+
 Gary-Zero employs a hierarchical agent structure, where a top-level agent (often the user) can delegate tasks to subordinate agents. This hierarchy allows for the efficient breakdown of complex tasks into smaller, more manageable sub-tasks.
 
 Communication flows between agents through messages, which are structured according to the prompt templates. These messages typically include:
@@ -95,6 +107,7 @@ Communication flows between agents through messages, which are structured accord
 | `Responses or queries:` | Results, feedback or queries from tools or other agents |
 
 #### Interaction Flow
+
 A typical interaction flow within Gary-Zero might look like this:
 
 ![Interaction Flow](res/flow-01.svg)
@@ -108,9 +121,11 @@ A typical interaction flow within Gary-Zero might look like this:
 7. Agent 0 provides the final response to the user
 
 ### 2. Tools
+
 Tools are functionalities that agents can leverage. These can include anything from web search and code execution to interacting with APIs or controlling external software. Gary-Zero provides a mechanism for defining and integrating both built-in and custom tools.
 
 #### Built-in Tools
+
 Gary-Zero comes with a set of built-in tools designed to help agents perform tasks efficiently:
 
 | Tool | Function |
@@ -125,9 +140,11 @@ Gary-Zero comes with a set of built-in tools designed to help agents perform tas
 | webpage_content_tool | Enables agents to fetch and analyze the text content of webpages |
 
 #### Knowledge Tool
+
 The `knowledge_tool` uses SearXNG to search the web and retrieve information. It can also search the local knowledge base and memory for relevant information. The tool returns a summary of the information, which can be used by the agent to make decisions or answer questions.
 
 #### SearXNG Integration
+
 Gary-Zero has integrated SearXNG as its primary search tool, replacing the previous knowledge tools (Perplexity and DuckDuckGo). This integration enhances the agent's ability to retrieve information while ensuring user privacy and customization.
 
 - Privacy-Focused Search
@@ -140,11 +157,12 @@ The integration provides access to various types of content, including images, v
 In cases where SearXNG might not return satisfactory results, Gary-Zero can be configured to fall back on other sources or methods, ensuring that users always have access to information.
 
 > [!NOTE]
-> The Knowledge Tool is designed to work seamlessly with both online searches through 
-> SearXNG and local knowledge base queries, providing a comprehensive information 
+> The Knowledge Tool is designed to work seamlessly with both online searches through
+> SearXNG and local knowledge base queries, providing a comprehensive information
 > retrieval system.
 
 #### Custom Tools
+
 Users can create custom tools to extend Gary-Zero's capabilities. Custom tools can be integrated into the framework by defining a tool specification, which includes the tool's prompt to be placed in `/prompts/$FOLDERNAME/agent.system.tool.$TOOLNAME.md`, as detailed below.
 
 1. Create `agent.system.tool.$TOOL_NAME.md` in `prompts/$SUBDIR`
@@ -153,14 +171,16 @@ Users can create custom tools to extend Gary-Zero's capabilities. Custom tools c
 4. Follow existing patterns for consistency
 
 > [!NOTE]
-> Tools are always present in system prompt, so you should keep them to minimum. 
-> To save yourself some tokens, use the [Instruments module](#adding-instruments) 
+> Tools are always present in system prompt, so you should keep them to minimum.
+> To save yourself some tokens, use the [Instruments module](#adding-instruments)
 > to call custom scripts or functions.
 
 ### 3. Memory System
+
 The memory system is a critical component of Gary-Zero, enabling the agent to learn and adapt from past interactions. It operates on a hybrid model where part of the memory is managed automatically by the framework while users can also manually input and extract information.
 
 #### Memory Structure
+
 The memory is categorized into four distinct areas:
 - **Storage and retrieval** of user-provided information (e.g., names, API keys)
 - **Fragments**: Contains pieces of information from previous conversations, updated automatically
@@ -198,9 +218,11 @@ By dynamically adjusting context windows and summarizing past interactions, Gary
 > To maximize the effectiveness of context summarization, users should provide clear and specific instructions during interactions. This helps Gary-Zero understand which details are most important to retain.
 
 ### 4. Prompts
+
 The `prompts` directory contains various Markdown files that control agent behavior and communication. The most important file is `agent.system.main.md`, which acts as a central hub, referencing other prompt files.
 
 #### Core Prompt Files
+
 | Prompt File | Description |
 |---|---|
 | agent.system.main.role.md | Defines the agent's overall role and capabilities |
@@ -213,19 +235,22 @@ The `prompts` directory contains various Markdown files that control agent behav
 | agent.system.tool.*.md | Individual tool prompt files |
 
 #### Prompt Organization
+
 - **Default Prompts**: Located in `prompts/default/`, serve as the base configuration
 - **Custom Prompts**: Can be placed in custom subdirectories (e.g., `prompts/my-custom/`)
 - **Behavior Files**: Stored in memory as `behaviour.md`, containing dynamic rules
 - **Tool Prompts**: Organized in tool-specific files for modularity
 
 #### Custom Prompts
+
 1. Create directory in `prompts/` (e.g., `my-custom-prompts`)
 2. Copy and modify needed files from `prompts/default/`
 3. Gary-Zero will merge your custom files with the default ones
 4. Select your custom prompts in the Settings page (Agent Config section)
 
 #### Dynamic Behavior System
-- **Behavior Adjustment**: 
+
+- **Behavior Adjustment**:
   - Agents can modify their behavior in real-time based on user instructions
   - Behavior changes are automatically integrated into the system prompt
   - Behavioral rules are merged intelligently, avoiding duplicates and conflicts
@@ -249,8 +274,8 @@ The `prompts` directory contains various Markdown files that control agent behav
   - Changes are applied without disrupting other components
   - Maintains separation between core functionality and behavioral rules
 
-> [!NOTE]  
-> You can customize any of these files. Gary-Zero will use the files in your custom `prompts_subdir` 
+> [!NOTE]
+> You can customize any of these files. Gary-Zero will use the files in your custom `prompts_subdir`
 > if they exist, otherwise, it will fall back to the files in `prompts/default`.
 
 > [!TIP]
@@ -258,6 +283,7 @@ The `prompts` directory contains various Markdown files that control agent behav
 > Changes made through behavior rules persist across sessions while maintaining the core functionality.
 
 ### 5. Knowledge
+
 Knowledge refers to the user-provided information and data that agents can leverage:
 
 - **Custom Knowledge**: Add files to `/knowledge/custom/main` directory manually or through the "Import Knowledge" button in the UI
@@ -265,13 +291,14 @@ Knowledge refers to the user-provided information and data that agents can lever
   - Automatically imported and indexed
   - Expandable format support
 
-- **Knowledge Base**: 
+- **Knowledge Base**:
   - Can include PDFs, databases, books, documentation
   - `/docs` folder automatically added
   - Used for answering questions and decision-making
   - Supports RAG-augmented tasks
 
 ### 6. Instruments
+
 Instruments provide a way to add custom functionalities to Gary-Zero without adding to the token count of the system prompt:
 - Stored in long-term memory of Gary-Zero
 - Unlimited number of instruments available
@@ -281,15 +308,18 @@ Instruments provide a way to add custom functionalities to Gary-Zero without add
 - Scripts are run inside the Docker Container
 
 #### Adding Instruments
+
 1. Create folder in `instruments/custom` (no spaces in name)
 2. Add `.md` description file for the interface
 3. Add `.sh` script (or other executable) for implementation
 4. The agent will automatically detect and use the instrument
 
 ### 7. Extensions
+
 Extensions are a powerful feature of Gary-Zero, designed to keep the main codebase clean and organized while allowing for greater flexibility and modularity.
 
 #### Structure
+
 Extensions can be found in `python/extensions` directory:
 - **Folder Organization**: Extensions are stored in designated subfolders corresponding to different aspects of the agent's message loop
 - **Execution Order**: Files are executed in alphabetical order for predictable behavior
@@ -297,17 +327,19 @@ Extensions can be found in `python/extensions` directory:
 - **Modularity**: Each extension focuses on a specific functionality
 
 #### Types
+
 - **Message Loop Prompts**: Handle system messages and history construction
 - **Memory Management**: Handle recall and solution memorization
 - **System Integration**: Manage interaction with external systems
 
 #### Adding Extensions
+
 1. Create Python file in appropriate `python/extensions` subfolder
 2. Follow naming convention for execution order (start with number)
 3. Implement functionality following existing patterns
 4. Ensure compatibility with main system
 5. Test thoroughly before deployment
 
-> [!NOTE]  
+> [!NOTE]
 > Consider contributing valuable custom components to the main repository.
 > See [Contributing](contribution.md) for more information.

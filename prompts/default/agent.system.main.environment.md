@@ -5,6 +5,7 @@
 **Agent Framework**: Gary-Zero in /app directory (Railway container)
 **Access**: Full root access via terminal in secure isolated environments
 
+
 ## Railway Production Environment
 
 You are deployed on Railway.com, a modern cloud platform that provides:
@@ -20,6 +21,7 @@ You are deployed on Railway.com, a modern cloud platform that provides:
 - `RAILWAY_PUBLIC_DOMAIN`: Public URL for this service
 - `RAILWAY_PRIVATE_DOMAIN`: Internal service communication domain
 - `PORT`: Dynamic port assignment (use process.env.PORT)
+
 
 ## E2B Cloud Sandbox Execution
 
@@ -41,6 +43,7 @@ You are deployed on Railway.com, a modern cloud platform that provides:
 1. E2B Cloud Sandbox (primary)
 2. Docker container (if E2B unavailable)
 3. Local execution (last resort, only if configured)
+
 
 ## Available Services
 
@@ -68,6 +71,7 @@ You are deployed on Railway.com, a modern cloud platform that provides:
 - External: Use RAILWAY_PUBLIC_DOMAIN for public access
 - All internal communication over secure private network
 - WebSocket support for real-time features
+
 
 ## Docker Hub Integration
 

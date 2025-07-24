@@ -84,6 +84,9 @@ class Settings(TypedDict):
     browser_model_name: str
     browser_model_kwargs: dict[str, str]
     browser_model_vision: bool
+    browser_model_rl_requests: int
+    browser_model_rl_input: int
+    browser_model_rl_output: int
 
     # Voice model settings
     voice_model_provider: str
@@ -104,7 +107,9 @@ class Settings(TypedDict):
     code_model_rl_output: int
 
     # MCP Servers settings
-    mcp_servers: dict[str, Any]
+    mcp_servers: str  # Change to string to match actual usage
+    mcp_client_init_timeout: int
+    mcp_client_tool_timeout: int
 
     # Database settings
     database_url: str
@@ -127,6 +132,8 @@ class Settings(TypedDict):
     rfc_url: str
     rfc_password: str
     rfc_auto_docker: bool
+    rfc_port_http: int
+    rfc_port_ssh: int
 
     # OpenAI Codex CLI settings
     codex_cli_enabled: bool
@@ -163,6 +170,26 @@ class Settings(TypedDict):
     claude_code_max_file_size: int
     claude_code_enable_git_ops: bool
     claude_code_enable_terminal: bool
+
+    # Agent configuration settings
+    agent_prompts_subdir: str
+    agent_memory_subdir: str
+    agent_knowledge_subdir: str
+
+    # STT settings
+    stt_model_size: str
+    stt_language: str
+    stt_silence_threshold: float
+    stt_silence_duration: int
+    stt_waiting_timeout: int
+
+    # API Keys
+    api_keys: dict[str, str]
+
+    # Auth Settings
+    auth_login: str
+    auth_password: str
+    root_password: str
 
 
 # Default settings values that can be used across modules
@@ -226,10 +253,10 @@ DEFAULT_SETTINGS: Settings = {
     "stt_model_size": "base",
     "stt_language": "en",
     "stt_silence_threshold": 0.5,
-    "stt_silence_duration": 1.0,
+    "stt_silence_duration": 1000,
     "stt_waiting_timeout": 30,
     # MCP settings
-    "mcp_servers": {},
+    "mcp_servers": "filesystem,github,github.com/pashpashpash/mcp-taskmanager,mcp-browserbase,mcp-playwright,memory",
     "mcp_client_init_timeout": 30,
     "mcp_client_tool_timeout": 300,
     # Database settings
@@ -285,4 +312,8 @@ DEFAULT_SETTINGS: Settings = {
     "claude_code_enable_terminal": True,
     # API Keys (initially empty dict)
     "api_keys": {},
+    # Auth settings
+    "auth_login": "admin",
+    "auth_password": "",
+    "root_password": "",
 }

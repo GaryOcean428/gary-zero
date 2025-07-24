@@ -13,6 +13,7 @@ classification: "confidential"
 
 This directory contains security policies, procedures, and configuration documentation.
 
+
 ## Contents
 
 - `security-policies.md` - Security policies and compliance requirements
@@ -22,12 +23,14 @@ This directory contains security policies, procedures, and configuration documen
 - `incident-response.md` - Security incident response procedures
 - `vulnerability-management.md` - Vulnerability assessment and management
 
+
 ## Guidelines
 
 - All security documentation is confidential
 - Follow principle of least privilege
 - Document all security decisions and configurations
 - Regular security reviews and updates required
+
 
 ## Review Process
 

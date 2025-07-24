@@ -4,17 +4,19 @@ This guide explains how to build and run Gary-Zero with NVIDIA GPU acceleration 
 
 ---
 
+
 ## Prerequisites
 
 Before you begin, ensure you have:
 
 1. **NVIDIA GPU** with CUDA capability
 2. **NVIDIA Driver** installed on your host system
-3. **NVIDIA Container Toolkit** ([Install Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html))  
+3. **NVIDIA Container Toolkit** ([Install Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html))
    _This enables Docker to access your GPU_
 4. **Docker** and **Docker Compose** installed
 
 ---
+
 
 ## 1. Build the CUDA Docker Image
 
@@ -27,6 +29,7 @@ docker build --no-cache -t frdel/gary-zero-run-cuda:testing --build-arg BRANCH=$
 ```
 
 ---
+
 
 ## 2. Run Gary-Zero with CUDA Support
 
@@ -41,6 +44,7 @@ docker-compose -f docker-compose.cuda.yml up -d
 
 ---
 
+
 ## 3. Access Gary-Zero
 
 Once the container is running, open your browser and go to:
@@ -48,6 +52,7 @@ Once the container is running, open your browser and go to:
 [http://localhost:50080](http://localhost:50080)
 
 ---
+
 
 ## 4. Stopping Gary-Zero
 
@@ -59,11 +64,13 @@ docker-compose -f docker-compose.cuda.yml down
 
 ---
 
+
 ## 5. Switching Between CPU and GPU Versions
 
 You can easily switch between the CPU and GPU versions:
 
 1. **Stop the currently running version:**
+
    ```bash
    # For CPU version:
    docker-compose down
@@ -72,6 +79,7 @@ You can easily switch between the CPU and GPU versions:
    ```
 
 2. **Start the version you want:**
+
    ```bash
    # CPU version:
    docker-compose -f docker-compose.yml up -d
@@ -82,17 +90,21 @@ You can easily switch between the CPU and GPU versions:
 
 ---
 
+
 ## Troubleshooting & Tips
 
 - **First time setup may take several minutes** as dependencies are downloaded and installed.
 - If you encounter issues with GPU access, verify your NVIDIA drivers and the NVIDIA Container Toolkit are correctly installed.
 - To check if CUDA is available inside the container, you can run:
+
   ```bash
   docker exec -it <container_name> python3 -c "import torch; print(torch.cuda.is_available())"
   ```
+
 - For advanced configuration, see the comments in [`Dockerfile.cuda`](mdc:docker/run/Dockerfile.cuda).
 
 ---
+
 
 ## More Information
 

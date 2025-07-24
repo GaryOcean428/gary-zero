@@ -2,6 +2,7 @@
 
 This document describes the integration between Gary-Zero and the Kali Linux Docker service deployed on Railway, enabling secure penetration testing and security analysis capabilities.
 
+
 ## Overview
 
 The Kali integration allows Gary-Zero to:
@@ -9,6 +10,7 @@ The Kali integration allows Gary-Zero to:
 - Perform penetration testing and vulnerability assessments
 - Access a comprehensive suite of security analysis tools
 - Maintain secure service-to-service communication within Railway's private network
+
 
 ## Configuration
 
@@ -43,6 +45,7 @@ KALI_PUBLIC_URL=https://kali-linux-docker.up.railway.app
 CODE_EXECUTION_MODE=kali
 ```
 
+
 ## Usage
 
 ### Basic Command Execution
@@ -69,13 +72,13 @@ executor = KaliCodeExecutor()
 if await executor.initialize():
     # Run an Nmap scan
     scan_result = await executor.run_nmap_scan("target.com", "basic")
-    
+
     # Run a web vulnerability scan
     web_result = await executor.run_nikto_scan("https://target.com")
-    
+
     # Perform comprehensive security audit
     audit_result = await executor.run_security_audit("target.com")
-    
+
     # Close connection
     executor.close()
 ```
@@ -91,42 +94,48 @@ kali = get_kali_service()
 if kali and kali.is_available():
     # Execute custom command
     result = kali.execute_command("whoami && pwd")
-    
+
     # Get service information
     info = kali.get_service_info()
-    
+
     # Get available tools
     tools = kali.get_kali_tools()
-    
+
     # Close connection
     kali.close()
 ```
+
 
 ## Available Security Tools
 
 The Kali integration provides access to common security tools:
 
 ### Network Scanning
+
 - **Nmap**: Network discovery and port scanning
 - **Masscan**: High-speed port scanner
 - **Zmap**: Internet-wide network scanner
 
 ### Web Application Testing
+
 - **Nikto**: Web vulnerability scanner
 - **SQLMap**: SQL injection testing tool
 - **Burp Suite**: Web application security testing
 - **OWASP ZAP**: Web application security scanner
 
 ### Penetration Testing
+
 - **Metasploit**: Penetration testing framework
 - **Aircrack-ng**: Wireless security auditing
 - **John the Ripper**: Password cracking tool
 - **Hashcat**: Advanced password recovery
 
 ### SSL/TLS Analysis
+
 - **OpenSSL**: SSL/TLS analysis and certificate inspection
 - **SSLyze**: SSL configuration scanner
 - **testssl.sh**: SSL/TLS security assessment
+
 
 ## API Reference
 
@@ -159,6 +168,7 @@ High-level executor for security operations.
 - `get_available_tools() -> Dict`: List available tools
 - `close()`: Close connection
 
+
 ## Execution Modes
 
 The Gary-Zero framework supports multiple execution modes:
@@ -187,28 +197,34 @@ If `CODE_EXECUTION_MODE` is not set, the system will auto-detect based on:
 2. Environment (Railway, Docker, local)
 3. Service availability
 
+
 ## Security Considerations
 
 ### Network Communication
+
 - Uses Railway's private network (`railway.internal`) for internal communication
 - Authentication via username/password credentials
 - HTTPS for external access when needed
 
 ### Access Control
+
 - Service-to-service communication restricted to Railway project
 - Credentials managed via Railway's environment variable system
 - No hardcoded credentials in source code
 
 ### Execution Safety
+
 - Commands executed in isolated Kali container
 - Timeouts prevent runaway processes
 - Error handling and logging for audit trails
+
 
 ## Troubleshooting
 
 ### Common Issues
 
 1. **Service Unavailable**
+
    ```python
    # Check if service is configured
    from framework.helpers.kali_service import is_kali_service_available
@@ -242,6 +258,7 @@ from framework.helpers.execution_mode import get_execution_info
 print(get_execution_info())
 ```
 
+
 ## Example Use Cases
 
 ### 1. Website Security Assessment
@@ -250,13 +267,13 @@ print(get_execution_info())
 async def assess_website(domain):
     executor = KaliCodeExecutor()
     await executor.initialize()
-    
+
     # Comprehensive audit
     results = await executor.run_security_audit(domain)
-    
+
     # Additional SSL check
     ssl_info = await executor.check_ssl_certificate(domain)
-    
+
     executor.close()
     return results, ssl_info
 ```
@@ -267,15 +284,15 @@ async def assess_website(domain):
 async def network_recon(target_network):
     executor = KaliCodeExecutor()
     await executor.initialize()
-    
+
     # Host discovery
     hosts = await executor.run_nmap_scan(target_network, "ping")
-    
+
     # Port scanning for discovered hosts
     for host in parse_discovered_hosts(hosts):
         scan = await executor.run_nmap_scan(host, "full")
         process_scan_results(scan)
-    
+
     executor.close()
 ```
 
@@ -284,18 +301,19 @@ async def network_recon(target_network):
 ```python
 async def custom_security_scan(target, tools):
     kali = get_kali_service()
-    
+
     if not kali or not kali.is_available():
         return {"error": "Kali service not available"}
-    
+
     results = {}
     for tool, command in tools.items():
         result = kali.execute_command(command.format(target=target))
         results[tool] = result
-    
+
     kali.close()
     return results
 ```
+
 
 ## Future Enhancements
 

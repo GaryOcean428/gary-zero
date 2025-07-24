@@ -1,11 +1,15 @@
 # Railway Platform Operations Guide
 
+
 ## Overview
+
 This guide helps AI agents understand how to operate effectively in the Railway cloud environment with E2B integration.
+
 
 ## Key Differences from Local Development
 
 ### 1. **Environment Variables**
+
 - Railway injects environment variables automatically
 - Access via `process.env` (Node.js) or `os.getenv()` (Python)
 - Key Railway variables:
@@ -17,22 +21,26 @@ This guide helps AI agents understand how to operate effectively in the Railway 
   - `RAILWAY_SERVICE_ID` - Current service identifier
 
 ### 2. **Service Communication**
+
 - **Internal**: Use `http://$RAILWAY_PRIVATE_DOMAIN:$PORT`
 - **External**: Use `https://$RAILWAY_PUBLIC_DOMAIN`
 - All internal traffic stays within Railway's private network
 - No egress fees for internal communication
 
 ### 3. **File System**
+
 - `/app` - Application root directory (not /a0)
 - Ephemeral by default - use volumes for persistence
 - No direct host access - use E2B sandboxes for code execution
 
 ### 4. **Code Execution via E2B**
+
 - ALL code execution happens in E2B cloud sandboxes
 - Sandboxes are isolated and temporary
 - Files created in sandbox don't persist
 - Network access is available from sandboxes
 - Railway env vars are accessible in sandboxes
+
 
 ## Working with MCP Servers
 
@@ -46,9 +54,11 @@ MCP (Model Context Protocol) servers extend agent capabilities:
    - Slack for team communication
    - Database connectors
 
+
 ## Best Practices for Railway
 
 ### 1. **Port Configuration**
+
 ```javascript
 // CORRECT - Railway
 const port = process.env.PORT || 8080;
@@ -59,6 +69,7 @@ app.listen(3000, 'localhost');
 ```
 
 ### 2. **Service Discovery**
+
 ```python
 # CORRECT - Using Railway private domain
 api_url = f"http://{os.getenv('BACKEND_RAILWAY_PRIVATE_DOMAIN')}:{os.getenv('BACKEND_PORT')}"
@@ -68,15 +79,18 @@ api_url = "http://localhost:3001"
 ```
 
 ### 3. **Database Connections**
+
 - Use Railway's database templates
 - Connection strings provided via env vars
 - Always use connection pooling
 - Handle connection failures gracefully
 
 ### 4. **Static Assets**
+
 - Serve via CDN when possible
 - Use Railway's static file serving for small assets
 - Consider object storage for large files
+
 
 ## Security Considerations
 
@@ -97,6 +111,7 @@ api_url = "http://localhost:3001"
    - Resource limits enforced
    - Automatic cleanup after execution
 
+
 ## Debugging in Railway
 
 1. **Logs**: Available in Railway dashboard
@@ -104,9 +119,11 @@ api_url = "http://localhost:3001"
 3. **Health Checks**: Configure in railway.toml
 4. **Deployment Status**: Check build and deploy logs
 
+
 ## Common Patterns
 
 ### API Service Pattern
+
 ```javascript
 // Express API on Railway
 const app = express();
@@ -129,6 +146,7 @@ app.listen(port, '0.0.0.0', () => {
 ```
 
 ### Worker Service Pattern
+
 ```python
 import os
 from celery import Celery
@@ -144,6 +162,7 @@ def process_task(data):
     return {'processed': data, 'env': os.getenv('RAILWAY_ENVIRONMENT')}
 ```
 
+
 ## Docker Hub Integration
 
 Connecting Docker Hub provides:
@@ -156,21 +175,25 @@ To connect:
 1. Go to Railway Settings
 2. Add Docker Hub integration
 3. Use in railway.toml:
+
    ```toml
    [build]
    image = "yourdockerhub/image:tag"
    ```
 
+
 ## Troubleshooting
 
-### Common Issues:
+### Common Issues
+
 1. **Port Binding**: Always use `0.0.0.0` and `$PORT`
 2. **Memory Limits**: Check Railway plan limits
 3. **Build Failures**: Check Dockerfile and dependencies
 4. **Network Issues**: Verify RAILWAY_PRIVATE_DOMAIN usage
 5. **E2B Failures**: Check E2B_API_KEY configuration
 
-### Debug Commands:
+### Debug Commands
+
 ```bash
 # Check environment
 echo $RAILWAY_ENVIRONMENT

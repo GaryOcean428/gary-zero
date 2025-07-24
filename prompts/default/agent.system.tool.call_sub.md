@@ -11,6 +11,7 @@ if superior, orchestrate
 respond to existing subordinates using call_subordinate tool with reset false
 
 example usage
+
 ~~~json
 {
     "thoughts": [

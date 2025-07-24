@@ -2,7 +2,6 @@
 
 # `Gary-Zero`
 
-
 [![CI](https://img.shields.io/github/actions/workflow/status/GaryOcean428/gary-zero/ci.yml?style=for-the-badge)](https://github.com/GaryOcean428/gary-zero/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/codecov/c/github/GaryOcean428/gary-zero?style=for-the-badge)](https://codecov.io/gh/GaryOcean428/gary-zero)
 [![Scorecard](https://img.shields.io/badge/Security-OSSF_Scorecard-0A192F?style=for-the-badge)](https://github.com/ossf/scorecard)
@@ -24,7 +23,6 @@
 
 </div>
 
-
 <div align="center">
 
 > ### 📢 **NEWS: Gary-Zero now includes MCP Server & Client functionality!** 📢
@@ -33,15 +31,9 @@
 
 </div>
 
-
-
 [![Showcase](/docs/res/showcase-thumb.png)](https://youtu.be/lazLNcEYsiQ)
 
-
-
 ## A personal, organic agentic framework that grows and learns with you
-
-
 
 - Gary-Zero is not a predefined agentic framework. It is designed to be dynamic, organically growing, and learning as you use it.
 - Gary-Zero is fully transparent, readable, comprehensible, customizable, and interactive.
@@ -91,6 +83,7 @@
 - The terminal interface is real-time streamed and interactive. You can stop and intervene at any point. If you see your agent heading in the wrong direction, just stop and tell it right away.
 - There is a lot of freedom in this framework. You can instruct your agents to regularly report back to superiors asking for permission to continue. You can instruct them to use point-scoring systems when deciding when to delegate subtasks. Superiors can double-check subordinates' results and dispute. The possibilities are endless.
 
+
 ## 🚀 Things you can build with Gary-Zero
 
 - **Development Projects** - `"Create a React dashboard with real-time data visualization"`
@@ -104,10 +97,10 @@
 - **Research** - `"Gather and summarize five recent AI papers about CoT prompting"`
 
 # Hacking Edition
+
 - Gary-Zero also offers a Hacking Edition based on Kali linux with modified prompts for cybersecurity tasks
 - The setup is the same as the regular version, just use the frdel/gary-zero-run:hacking image instead of frdel/gary-zero-run
 > **Note:** The Hacking Edition and all its prompts and features will be merged into the main branch in the following release.
-
 
 # ⚙️ Installation
 
@@ -134,11 +127,13 @@ docker run -p 5675:80 frdel/gary-zero-run
 **Before every Railway deployment, run this 8-step checklist:**
 
 #### 1. Pull Latest Code
+
 ```bash
 git pull origin main
 ```
 
 #### 2. Verify Port Configuration
+
 ```bash
 # Check Warp 2.0 port assignments
 grep -E "PORT=|WEB_UI_PORT=" .env.example
@@ -146,24 +141,28 @@ grep -E "PORT=|WEB_UI_PORT=" .env.example
 ```
 
 #### 3. Railway Configuration Check
+
 ```bash
 # Verify railway.toml has correct port bindings
 grep -A5 "\[environment\]" railway.toml
 ```
 
 #### 4. Environment Variables Validation
+
 ```bash
 # Ensure no hardcoded secrets in .env.example
 grep -i "password\|secret\|key" .env.example | grep -v "your_"
 ```
 
 #### 5. Inter-Service URLs Check
+
 ```bash
 # Look for localhost references that should use Railway variables
 grep -r "localhost:" --exclude="*.md" --exclude-dir=node_modules .
 ```
 
 #### 6. Deploy & Verify
+
 ```bash
 railway up
 # Check Railway dashboard → Service → Logs for:
@@ -171,12 +170,14 @@ railway up
 ```
 
 #### 7. Health Check
+
 ```bash
 # Test deployed endpoints
 curl -f https://your-service.up.railway.app/healthz
 ```
 
 #### 8. Final Verification
+
 - ✅ Port ranges enforced (Frontend: 5675-5699, Backend: 8765-8799)
 - ✅ No hardcoded localhost URLs
 - ✅ Railway reference variables used
@@ -184,6 +185,7 @@ curl -f https://your-service.up.railway.app/healthz
 - ✅ Service responds on correct ports
 
 > **Pro Tip:** Use `npm run dev` (port 5675) for frontend development and `npm run dev:backend` (port 8765) for backend services.
+
 
 ## 🐳 Fully Dockerized, with Speech-to-Text and TTS
 
@@ -200,6 +202,7 @@ curl -f https://your-service.up.railway.app/healthz
 - No coding is required; only prompting and communication skills are necessary.
 - With a solid system prompt, the framework is reliable even with small models, including precise tool usage.
 
+
 ## 👀 Keep in Mind
 
 1. **Gary-Zero Can Be Dangerous!**
@@ -209,7 +212,6 @@ curl -f https://your-service.up.railway.app/healthz
 2. **Gary-Zero Is Prompt-based.**
 
 - The whole framework is guided by the **prompts/** folder. Agent guidelines, tool instructions, messages, utility AI functions, it's all there.
-
 
 ## 🚀 CI/CD Architecture
 
@@ -249,6 +251,7 @@ graph LR
 
 📖 **[View Complete CI/CD Architecture Documentation](./docs/ci-cd-architecture.md)**
 
+
 ## 📚 Read the Documentation
 
 | Page | Description |
@@ -260,20 +263,24 @@ graph LR
 | [Contributing](./docs/contribution.md) | How to contribute |
 | [Troubleshooting](./docs/troubleshooting.md) | Common issues and their solutions |
 
+
 ## Coming soon
 
 - **MCP**
 - **Knowledge and RAG Tools**
 
+
 ## 🎯 Changelog
 
 ### v0.8.5 - **MCP Server + Client**
+
 [Release video](https://youtu.be/pM5f4Vz3_IQ)
 
 - Gary-Zero can now act as MCP Server
 - Gary-Zero can use external MCP servers as tools
 
 ### v0.8.4.1 - 2
+
 Default models set to gpt-4.1
 - Code execution tool improvements
 - Browser agent improvements
@@ -286,34 +293,39 @@ Default models set to gpt-4.1
 - Compatibility and stability improvements
 
 ### v0.8.4
+
 [Release video](https://youtu.be/QBh_h_D_E24)
 
 - **Remote access (mobile)**
 
 ### v0.8.3.1
+
 [Release video](https://youtu.be/AGNpQ3_GxFQ)
 
 - **Automatic embedding**
 
-
 ### v0.8.3
+
 [Release video](https://youtu.be/bPIZo0poalY)
 
 - ***Planning and scheduling***
 
 ### v0.8.2
+
 [Release video](https://youtu.be/xMUNynQ9x6Y)
 
 - **Multitasking in terminal**
 - **Chat names**
 
 ### v0.8.1
+
 [Release video](https://youtu.be/quv145buW74)
 
 - **Browser Agent**
 - **UX Improvements**
 
 ### v0.8
+
 [Release video](https://youtu.be/cHDCCSr1YRI)
 
 - **Docker Runtime**
@@ -327,6 +339,7 @@ Default models set to gpt-4.1
 - **In-chat File Attachments**
 
 ### v0.7
+
 [Release video](https://youtu.be/U_Gl0NPalKA)
 
 - **Automatic Memory**
@@ -336,17 +349,20 @@ Default models set to gpt-4.1
 - **Reflection Prompts**
 - **Bug Fixes**
 
+
 ## 🎯 Quality Metrics
 
 Gary-Zero maintains high code quality standards through automated testing and continuous improvement:
 
 ### Current Quality Score: 85+/100
+
 - **Security**: 95+/100 - Zero known vulnerabilities
 - **Code Quality**: 75+/100 - Reduced linting errors by 70%
 - **Architecture**: 60+/100 - Improved error handling and documentation
 - **Performance**: 50+/100 - Optimized for development speed
 
 ### Quality Improvements
+
 - ✅ **Security**: All 6 NPM vulnerabilities resolved by replacing npm-audit-html with audit-ci
 - ✅ **Code Standards**: Python exception naming follows PEP 8 conventions
 - ✅ **Line Length**: 52% reduction in line-too-long violations
@@ -354,12 +370,14 @@ Gary-Zero maintains high code quality standards through automated testing and co
 - ✅ **Type Safety**: Comprehensive type hints for better IDE support
 
 ### Automated Quality Checks
+
 ```bash
 npm run check:all        # Run all quality checks
 npm run security         # Security audit
 npm run lint:clean       # JavaScript linting
 python lint.py check     # Python linting
 ```
+
 
 ## 🤝 Community and Support
 

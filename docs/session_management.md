@@ -1,8 +1,10 @@
 # Remote Session Management Documentation
 
+
 ## Overview
 
 The Remote Session Management system provides unified session management for tools that require persistent connections across local and remote environments. It enables agents to perform code editing, GUI automation, and shell commands securely while maintaining session state and connection pooling.
+
 
 ## Architecture
 
@@ -22,6 +24,7 @@ The Remote Session Management system provides unified session management for too
 - **TERMINAL** - Terminal and file operations (Claude Code)
 - **SSH** - SSH connections (future expansion)
 - **WEBSOCKET** - WebSocket connections (E2B, future)
+
 
 ## Configuration
 
@@ -85,6 +88,7 @@ SESSION_MAX_OUTPUT_SIZE=1048576
 # Output retention time (seconds)
 SESSION_OUTPUT_RETENTION=3600
 ```
+
 
 ## Tool-Specific Configuration
 
@@ -189,6 +193,7 @@ E2B_ENVIRONMENT=Python3
 E2B_TIMEOUT=300
 ```
 
+
 ## Usage Examples
 
 ### Basic Session Management
@@ -289,6 +294,7 @@ scan_response = await session_manager.execute_with_session(
 )
 ```
 
+
 ## Advanced Features
 
 ### Session Persistence
@@ -339,6 +345,7 @@ session_manager.register_approval_handler(
 )
 ```
 
+
 ## Example Workflows
 
 ### Code Generation and Testing
@@ -365,6 +372,7 @@ results = await audit.run(target="example.com")
 print(f"Audit results: {results}")
 ```
 
+
 ## Error Handling
 
 The session management system provides comprehensive error handling:
@@ -374,13 +382,14 @@ try:
     response = await session_manager.execute_with_session(
         SessionType.CLI, message
     )
-    
+
     if not response.success:
         print(f"Error: {response.error}")
-        
+
 except Exception as e:
     print(f"Execution failed: {e}")
 ```
+
 
 ## Monitoring and Debugging
 
@@ -409,6 +418,7 @@ health = await session.health_check()
 print(f"Session health: {health.success}")
 ```
 
+
 ## Railway Deployment Configuration
 
 For Railway deployment, ensure these environment variables are preserved:
@@ -422,6 +432,7 @@ E2B_API_KEY=your-e2b-api-key
 GEMINI_API_KEY=your-gemini-api-key
 ```
 
+
 ## Security Considerations
 
 1. **Approval Requirements** - Configure approval for sensitive operations
@@ -429,6 +440,7 @@ GEMINI_API_KEY=your-gemini-api-key
 3. **Output Size Limits** - Prevent memory exhaustion from large outputs
 4. **Session Timeouts** - Automatically cleanup idle sessions
 5. **Error Isolation** - Errors in one session don't affect others
+
 
 ## Troubleshooting
 
@@ -468,6 +480,7 @@ print(f"Pool stats: {stats['pool_stats']}")
 await session_manager.cleanup_resources(max_idle_time=60)
 ```
 
+
 ## Performance Optimization
 
 1. **Enable Connection Pooling** - Reuse sessions for better performance
@@ -475,6 +488,7 @@ await session_manager.cleanup_resources(max_idle_time=60)
 3. **Optimize Timeouts** - Balance responsiveness with resource usage
 4. **Monitor Resource Usage** - Track session counts and memory usage
 5. **Cleanup Strategy** - Regular cleanup of idle sessions and old outputs
+
 
 ## Future Enhancements
 

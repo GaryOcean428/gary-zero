@@ -1,22 +1,27 @@
 # E2B and Docker Hub Configuration Guide
 
+
 ## E2B Setup (Required for Secure Code Execution)
 
 ### 1. Get E2B API Key
-1. Visit https://e2b.dev
+
+1. Visit <https://e2b.dev>
 2. Sign up for an account
 3. Go to Dashboard → API Keys
 4. Create a new API key
 5. Copy the key (starts with `e2b_`)
 
 ### 2. Configure in Railway
+
 1. Go to your Railway project
 2. Navigate to service → Variables
 3. Add: `E2B_API_KEY=e2b_your_key_here`
 4. Railway will restart the service automatically
 
 ### 3. Verify E2B is Working
+
 Run this in the agent:
+
 ```json
 {
   "tool": "code_execution_tool",
@@ -27,9 +32,11 @@ Run this in the agent:
 
 Should return: `Execution environment: E2B Cloud Sandbox`
 
+
 ## Docker Hub Access for Enhanced Sandbox Capabilities
 
 ### Purpose
+
 Giving Gary-Zero access to Docker Hub allows the agent to:
 1. **Pull Specialized Images**: Access pre-built tool containers during execution
 2. **Use Custom Environments**: Run code in specialized Docker images
@@ -39,6 +46,7 @@ Giving Gary-Zero access to Docker Hub allows the agent to:
 ### Setup Docker Hub Credentials
 
 Add these environment variables to your Railway service:
+
 ```
 DOCKER_USERNAME=your_dockerhub_username
 DOCKER_PASSWORD=your_dockerhub_password
@@ -52,14 +60,15 @@ DOCKER_REGISTRY=docker.io (optional, defaults to Docker Hub)
 With Docker Hub access, Gary-Zero can:
 
 1. **Pull and Run Specialized Containers**
+
    ```python
    # Gary-Zero can now execute code like this internally:
    import docker
    client = docker.from_env()
-   
+
    # Pull a specialized data science image
    client.images.pull('jupyter/datascience-notebook:latest')
-   
+
    # Run code in that container
    container = client.containers.run(
        'jupyter/datascience-notebook:latest',
@@ -88,9 +97,11 @@ With Docker Hub access, Gary-Zero can:
 3. **Resource Limits**: Gary-Zero respects Railway's resource constraints
 4. **Image Verification**: Only pulls from trusted sources
 
+
 ## E2B + Docker Hub Synergy
 
 ### Primary Execution Path
+
 1. **E2B First**: Fast, secure, pre-configured sandboxes
 2. **Docker Fallback**: When specialized tools are needed
 3. **Local Last Resort**: Only if both are unavailable
@@ -118,10 +129,13 @@ User asks Gary-Zero to: "Analyze this image using specialized computer vision to
 3. Runs analysis in the Docker container
 4. Returns results to user
 
+
 ## Best Practices
 
 ### 1. Image Selection
+
 Gary-Zero will intelligently select images based on task:
+
 ```python
 task_images = {
     "machine_learning": "tensorflow/tensorflow:latest-gpu",
@@ -132,18 +146,22 @@ task_images = {
 ```
 
 ### 2. Private Images
+
 For proprietary tools, use private Docker Hub repos:
+
 ```
 your-company/private-ml-tools:v2.0
 your-username/custom-agent-tools:latest
 ```
 
 ### 3. Resource Management
+
 Gary-Zero automatically:
 - Cleans up containers after use
 - Manages image cache
 - Respects memory limits
 - Handles timeouts gracefully
+
 
 ## Troubleshooting
 
@@ -167,6 +185,7 @@ Gary-Zero automatically:
 ### Testing Docker Access
 
 Ask Gary-Zero to verify Docker access:
+
 ```
 "Check if you can access Docker Hub and list available images"
 ```
@@ -176,10 +195,13 @@ Gary-Zero will:
 2. List accessible images
 3. Report any issues
 
+
 ## Advanced Configuration
 
 ### Custom Registry
+
 Use private registries beyond Docker Hub:
+
 ```
 DOCKER_REGISTRY=your-registry.com
 DOCKER_USERNAME=your-username
@@ -187,16 +209,19 @@ DOCKER_PASSWORD=your-token
 ```
 
 ### Image Caching
+
 Gary-Zero caches frequently used images:
 - Faster subsequent executions
 - Reduced bandwidth usage
 - Automatic cleanup of old images
 
 ### Multi-Stage Execution
+
 Gary-Zero can chain containers:
 1. Data prep in one container
 2. Analysis in another
 3. Visualization in a third
+
 
 ## Summary
 
@@ -206,7 +231,7 @@ With Docker Hub access, Gary-Zero becomes significantly more powerful:
 - ✅ Private tool integration
 - ✅ Enhanced capabilities beyond E2B
 
-Remember: 
+Remember:
 - E2B for speed and security
 - Docker for specialization and flexibility
 - This is about giving Gary-Zero access to Docker images, not deploying Gary-Zero from Docker!

@@ -1,8 +1,10 @@
 # Secret Store Documentation
 
+
 ## Overview
 
 The Gary-Zero Internal Secret Store provides secure, encrypted storage for API keys, passwords, and other sensitive information. It replaces hard-coded secrets and insecure environment variable usage with a centralized, auditable secret management system.
+
 
 ## Features
 
@@ -15,6 +17,7 @@ The Gary-Zero Internal Secret Store provides secure, encrypted storage for API k
 - **🔌 Easy Integration**: Helper functions for seamless component integration
 - **⚡ Thread Safe**: Concurrent access with proper locking
 - **🔙 Backward Compatible**: Automatic fallback to environment variables
+
 
 ## Quick Start
 
@@ -56,6 +59,7 @@ class MyTool:
         self.secrets = SecretStoreIntegration("my_tool")
         self.api_key = self.secrets.get_api_key("openai", required=True)
 ```
+
 
 ## Core Components
 
@@ -123,9 +127,11 @@ db_url = get_database_url()
 creds = get_auth_credentials("kali")  # {"username": "...", "password": "..."}
 ```
 
+
 ## CLI Reference
 
 ### Add Secret
+
 ```bash
 python -m framework.security.secret_cli add <name> [options]
 
@@ -141,6 +147,7 @@ Options:
 ```
 
 ### Get Secret
+
 ```bash
 python -m framework.security.secret_cli get <name> [options]
 
@@ -149,6 +156,7 @@ Options:
 ```
 
 ### List Secrets
+
 ```bash
 python -m framework.security.secret_cli list [options]
 
@@ -158,6 +166,7 @@ Options:
 ```
 
 ### Update Secret
+
 ```bash
 python -m framework.security.secret_cli update <name> [options]
 
@@ -170,6 +179,7 @@ Options:
 ```
 
 ### Delete Secret
+
 ```bash
 python -m framework.security.secret_cli delete <name> [options]
 
@@ -178,6 +188,7 @@ Options:
 ```
 
 ### Import from Environment
+
 ```bash
 python -m framework.security.secret_cli import-env [options]
 
@@ -187,6 +198,7 @@ Options:
 ```
 
 ### Utilities
+
 ```bash
 # Export metadata (without values)
 python -m framework.security.secret_cli export [--output FILE]
@@ -197,6 +209,7 @@ python -m framework.security.secret_cli cleanup
 # Check secrets needing rotation
 python -m framework.security.secret_cli rotation
 ```
+
 
 ## Integration Patterns
 
@@ -210,15 +223,15 @@ from framework.security import SecretStoreIntegration
 class MyComponent:
     def __init__(self, component_name: str):
         self.secrets = SecretStoreIntegration(component_name)
-    
+
     def connect_to_api(self):
         # Automatically handles fallback to environment variables
         api_key = self.secrets.get_api_key("openai", required=True)
         return OpenAIClient(api_key=api_key)
-    
+
     def get_database(self):
         db_url = self.secrets.get_secret(
-            "database_url", 
+            "database_url",
             env_fallback="DATABASE_URL",
             required=True
         )
@@ -255,15 +268,16 @@ def setup_services():
     # Helper functions handle fallback automatically
     openai_key = get_openai_api_key()
     db_url = get_database_url()
-    
+
     if not openai_key:
         raise ValueError("OpenAI API key required")
-    
+
     return {
         "openai": OpenAI(api_key=openai_key),
         "database": Database(db_url)
     }
 ```
+
 
 ## Migration Guide
 
@@ -271,6 +285,7 @@ def setup_services():
 
 1. The secret store is automatically available in the security framework
 2. Set the `SECRET_STORE_KEY` environment variable for persistence:
+
    ```bash
    export SECRET_STORE_KEY="your-base64-encoded-key"
    ```
@@ -320,9 +335,11 @@ class MyTool:
 
 1. Identify hard-coded secrets in your codebase
 2. Move them to the secret store:
+
    ```bash
    python -m framework.security.secret_cli add my_secret --value "hard-coded-value"
    ```
+
 3. Update code to use secret store
 4. Remove hard-coded values
 
@@ -335,6 +352,7 @@ python -m framework.security.secret_cli add api_key --rotation 30 --expires 90
 # Check which secrets need rotation
 python -m framework.security.secret_cli rotation
 ```
+
 
 ## Security Considerations
 
@@ -368,6 +386,7 @@ All secret operations are logged with:
 - Timestamp and success/failure status
 - IP address and user agent (when available)
 
+
 ## Configuration
 
 ### Environment Variables
@@ -389,6 +408,7 @@ config = SecretStoreConfig(
     max_secrets=1000                            # Maximum number of secrets
 )
 ```
+
 
 ## Troubleshooting
 
@@ -419,6 +439,7 @@ import logging
 logging.getLogger('framework.security.secret_store').setLevel(logging.DEBUG)
 ```
 
+
 ## Best Practices
 
 1. **Use descriptive secret names**: `openai_api_key` not `key1`
@@ -430,6 +451,7 @@ logging.getLogger('framework.security.secret_store').setLevel(logging.DEBUG)
 7. **Use environment fallback**: Maintain backward compatibility
 8. **Validate inputs**: Always check if secrets are found before using
 
+
 ## Future Enhancements
 
 - **Remote storage backends**: Support for cloud key management services
@@ -439,6 +461,7 @@ logging.getLogger('framework.security.secret_store').setLevel(logging.DEBUG)
 - **Secret scanning**: Integration with GitGuardian and similar tools
 - **Multi-tenant support**: Namespace isolation for different components
 - **Secret sharing**: Secure sharing between components with permissions
+
 
 ## Examples
 
@@ -451,6 +474,7 @@ See `demo_secret_store_integration.py` for a complete working example that demon
 - Security features
 
 Run the demo:
+
 ```bash
 python demo_secret_store_integration.py
 ```

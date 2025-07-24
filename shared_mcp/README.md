@@ -2,6 +2,7 @@
 
 This is the shared MCP (Model Context Protocol) library extracted from gary-zero. It provides reusable MCP server and client implementations that can be used across all repositories in the Gary ecosystem.
 
+
 ## Features
 
 - **MCP Server Implementation**: FastMCP-based server with tool registration and dynamic configuration
@@ -9,11 +10,13 @@ This is the shared MCP (Model Context Protocol) library extracted from gary-zero
 - **Type Definitions**: Common types and configurations for consistent usage
 - **Thread-Safe**: Built with threading safety for concurrent usage
 
+
 ## Installation
 
 ```bash
 pip install shared-mcp
 ```
+
 
 ## Usage
 
@@ -59,6 +62,7 @@ tools = client.get_tools()
 result = await client.call_tool("my-server.my-tool", {"param": "value"})
 ```
 
+
 ## Architecture
 
 The library is organized into the following modules:
@@ -67,9 +71,11 @@ The library is organized into the following modules:
 - `shared_mcp.client`: MCP client implementation and configuration
 - `shared_mcp.types`: Common type definitions and configurations
 
+
 ## Compatibility
 
 This library maintains backward compatibility with the original gary-zero implementation while providing a clean, reusable interface for other repositories.
+
 
 ## License
 

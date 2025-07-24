@@ -12,6 +12,7 @@ reviewers: []
 
 This directory contains documentation for agent coordination, orchestration, and workflow management.
 
+
 ## Contents
 
 - `agent-workflows.md` - Agent workflow definitions and coordination patterns
@@ -21,12 +22,14 @@ This directory contains documentation for agent coordination, orchestration, and
 - `conflict-resolution.md` - Handling conflicts and resource contention
 - `agent-registry.md` - Registry of available agents and their capabilities
 
+
 ## Guidelines
 
 - Define clear agent responsibilities and boundaries
 - Implement robust error handling and recovery mechanisms
 - Monitor agent performance and resource utilization
 - Document all agent interactions and dependencies
+
 
 ## Review Process
 

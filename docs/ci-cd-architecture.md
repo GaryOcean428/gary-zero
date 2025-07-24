@@ -1,8 +1,10 @@
 # Gary-Zero CI/CD Architecture
 
+
 ## Overview
 
 Gary-Zero uses a modular CI/CD architecture built around 4 reusable composite workflows that can be mixed and matched based on the deployment scenario.
+
 
 ## Architecture Diagram
 
@@ -94,7 +96,7 @@ graph TB
     MB --> C3
     MB --> C4
     MB --> C5
-    
+
     %% Quality gate
     A1 --> QG
     A2 --> QG
@@ -141,9 +143,11 @@ graph TB
     class COV,SEC,LOGS,REL,DOCK outputNode
 ```
 
+
 ## Composite Workflow Details
 
 ### A. Static Checks (`_static-checks.yml`)
+
 **Purpose**: Code quality and consistency validation
 - **Python Analysis**: Ruff linting, Black formatting, MyPy type checking
 - **Node.js Analysis**: ESLint, Prettier formatting, TypeScript compilation
@@ -151,6 +155,7 @@ graph TB
 - **Outputs**: Lint status, formatting compliance
 
 ### B. Tests (`_tests.yml`)
+
 **Purpose**: Comprehensive testing and coverage analysis
 - **Unit Tests**: Framework, API, security, plugins (parallel execution)
 - **Integration Tests**: API bridge, multi-agent, session management
@@ -160,6 +165,7 @@ graph TB
 - **Outputs**: Test results, coverage metrics, performance benchmarks
 
 ### C. Security Audit (`_security-audit.yml`)
+
 **Purpose**: Multi-layered security scanning and compliance
 - **Python Security**: Bandit static analysis, Safety vulnerability scanning, pip-audit
 - **Node.js Security**: npm audit for dependency vulnerabilities
@@ -169,6 +175,7 @@ graph TB
 - **Outputs**: Security status, critical issue count, compliance reports
 
 ### D. Deploy (`_deploy.yml`)
+
 **Purpose**: Production deployment with validation
 - **Pre-deployment Validation**: Railway config, Railpack validation, health endpoints
 - **Docker Operations**: Multi-platform builds, registry push, image testing
@@ -176,9 +183,11 @@ graph TB
 - **Post-deployment**: Release creation, notification system
 - **Outputs**: Deployment URL, deployment status, release artifacts
 
+
 ## Workflow Usage Patterns
 
 ### Feature Branch Pattern (A + B)
+
 ```yaml
 # Triggered by: feature branch pushes, pull requests
 jobs:
@@ -187,11 +196,13 @@ jobs:
   tests:
     uses: ./.github/workflows/_tests.yml
 ```
+
 - **Purpose**: Fast feedback for development
 - **Coverage**: Code quality + testing
 - **Duration**: ~10-15 minutes
 
 ### Main Branch Pattern (A + B + C + D)
+
 ```yaml
 # Triggered by: main branch pushes, manual dispatch
 jobs:
@@ -207,9 +218,11 @@ jobs:
     uses: ./.github/workflows/_deploy.yml
     needs: [quality-gate]
 ```
+
 - **Purpose**: Complete CI/CD pipeline
 - **Coverage**: Quality + security + deployment
 - **Duration**: ~25-35 minutes
+
 
 ## Quality Gate System
 
@@ -222,15 +235,16 @@ graph LR
     C[Security Audit] --> QG
     QG -->|✅ Pass| D[Deploy]
     QG -->|❌ Fail| E[Block Deployment]
-    
+
     classDef passNode fill:#c8e6c9,stroke:#2e7d32
     classDef failNode fill:#ffcdd2,stroke:#c62828
     classDef gateNode fill:#fff3e0,stroke:#e65100,stroke-width:3px
-    
+
     class D passNode
     class E failNode
     class QG gateNode
 ```
+
 
 ## Configuration Matrix
 
@@ -241,9 +255,11 @@ graph LR
 | Main Branch | ✅ | ✅ | ✅ | ✅ | 80% |
 | Manual Deploy | ✅ | ✅ | Optional | Optional | 80% |
 
+
 ## Railway Integration
 
 ### Deployment Validation
+
 ```yaml
 # Railway configuration validation
 - railway.toml existence and structure
@@ -254,6 +270,7 @@ graph LR
 ```
 
 ### Deployment Process
+
 ```yaml
 # Railway CLI deployment
 1. Authentication with Railway token
@@ -263,9 +280,11 @@ graph LR
 5. URL extraction and validation
 ```
 
+
 ## Security Integration
 
 ### Multi-layer Security Scanning
+
 - **Static Analysis**: Bandit for Python security issues
 - **Dependency Scanning**: Safety and npm audit for vulnerabilities
 - **Container Scanning**: Trivy for Docker image vulnerabilities
@@ -273,43 +292,52 @@ graph LR
 - **License Compliance**: Automated license compatibility checking
 
 ### Security Reporting
+
 - JSON reports for all security tools
 - SARIF format for GitHub Security tab integration
 - Artifact retention for security audit trails
 - Configurable failure thresholds
 
+
 ## Monitoring and Observability
 
 ### Workflow Outputs
+
 - **Coverage Reports**: Combined XML reports uploaded to Codecov
 - **Security Reports**: JSON artifacts with detailed findings
 - **Performance Metrics**: Benchmark results in JSON format
 - **Deployment Logs**: Complete deployment audit trail
 
 ### GitHub Integration
+
 - **Status Checks**: Required for branch protection
 - **PR Comments**: Automated result summaries
 - **Security Alerts**: SARIF integration with GitHub Security
 - **Releases**: Automated release creation on successful deployment
 
+
 ## Benefits
 
 ### 🔄 Reusability
+
 - **Modular Design**: Mix and match composite workflows
 - **Configuration Flexibility**: Parameterized inputs for different scenarios
 - **Environment Agnostic**: Works across development and production
 
 ### ⚡ Performance
+
 - **Parallel Execution**: Tests run in parallel matrices
 - **Smart Caching**: Docker buildx and dependency caching
 - **Fast Feedback**: Feature branch workflow completes in ~10 minutes
 
 ### 🔒 Security
+
 - **Multi-layer Scanning**: Comprehensive security validation
 - **Supply Chain Security**: OSSF Scorecard integration
 - **Compliance**: License and dependency auditing
 
 ### 🚀 Deployment
+
 - **Zero-downtime**: Railway platform deployment
 - **Health Verification**: Automated health checks
 - **Rollback Capability**: Docker registry versioning

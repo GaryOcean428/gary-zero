@@ -2,6 +2,7 @@
 
 This document provides a comprehensive overview of the Gary-Zero framework architecture improvements, including the dependency injection container, security framework, performance optimizations, and interface-based design.
 
+
 ## 🏗️ Architecture Overview
 
 The Gary-Zero framework has been enhanced with modern architectural patterns to support scalable, maintainable, and secure development:
@@ -14,6 +15,7 @@ The Gary-Zero framework has been enhanced with modern architectural patterns to 
 4. **Performance Framework** - Caching, monitoring, and optimization
 5. **Activity Monitor** - Real-time application monitoring
 6. **Testing Infrastructure** - Comprehensive test coverage
+
 
 ## 📦 Dependency Injection Container
 
@@ -45,7 +47,7 @@ container.register_singleton("config", {"api_key": "secret"})
 class UserService(BaseService):
     def __init__(self, config: dict):
         self.config = config
-        
+
 container.register_service("user_service", UserService)
 
 # Get services (dependencies auto-injected)
@@ -71,6 +73,7 @@ services = container.list_registered()
 # Factory registration
 container.register_factory("uuid", lambda: str(uuid.uuid4()))
 ```
+
 
 ## 🔐 Security Framework
 
@@ -162,6 +165,7 @@ clean_sql = sanitizer.sanitize_sql_input("user'; DROP TABLE users; --")
 # Detect suspicious patterns
 is_suspicious = sanitizer.detect_suspicious_patterns("../../../etc/passwd")
 ```
+
 
 ## ⚡ Performance Framework
 
@@ -257,6 +261,7 @@ task_ids = await task_manager.submit_tasks(tasks)
 results = await task_manager.wait_for_tasks(task_ids)
 ```
 
+
 ## 🔌 Interface-Based Design
 
 ### Overview
@@ -272,7 +277,7 @@ class MyService(Service):
     async def initialize(self) -> None:
         # Service initialization
         pass
-        
+
     async def shutdown(self) -> None:
         # Service cleanup
         pass
@@ -281,7 +286,7 @@ class MyRepository(Repository):
     async def save(self, entity: Any) -> str:
         # Save entity and return ID
         pass
-        
+
     async def find_by_id(self, entity_id: str) -> Any:
         # Find entity by ID
         pass
@@ -296,19 +301,20 @@ class UserService(BaseService):
     def __init__(self):
         super().__init__()
         self.users = {}
-        
+
     async def initialize(self):
         await super().initialize()
         # Custom initialization
-        
+
     async def shutdown(self):
         # Custom cleanup
         await super().shutdown()
-        
+
     def create_user(self, user_data):
         # Business logic
         pass
 ```
+
 
 ## 📊 Activity Monitor
 
@@ -350,6 +356,7 @@ The activity monitor includes a complete web interface accessible via `/activity
 - Load external URLs for monitoring
 - Activity count indicators
 
+
 ## 🧪 Testing Infrastructure
 
 ### Overview
@@ -390,6 +397,7 @@ python -m pytest tests/test_integration.py -v
 - **Performance Modules**: 66-84% coverage across all components
 - **Integration Tests**: Comprehensive end-to-end workflow testing
 
+
 ## 🚀 Getting Started
 
 ### Quick Setup
@@ -417,6 +425,7 @@ python run_ui.py
 5. **Write tests**: Create unit and integration tests
 6. **Monitor activities**: Use activity monitor for debugging
 
+
 ## 📈 Performance Metrics
 
 ### Benchmarks
@@ -432,6 +441,7 @@ python run_ui.py
 - **Statistical Analysis**: Min, max, average, percentile calculations
 - **Resource Tracking**: Automatic resource optimization
 - **Performance Timers**: Decorator-based timing with context managers
+
 
 ## 🔒 Security Features
 
@@ -450,6 +460,7 @@ python run_ui.py
 - Log security events for analysis
 - Sanitize content before processing
 - Monitor for suspicious patterns
+
 
 ## 🔧 Configuration
 
@@ -497,6 +508,7 @@ monitor = PerformanceMonitor(config={
     "alert_thresholds": {"cpu": 80, "memory": 90}
 })
 ```
+
 
 ## 🎯 Best Practices
 

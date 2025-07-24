@@ -17,7 +17,7 @@ from .settings_types import DEFAULT_SETTINGS, Settings
 try:
     from framework.helpers.mcp_handler import MCPConfig
 except ImportError:
-    MCPConfig = None
+    MCPConfig = None  # type: ignore
 
 # Constants for repeated descriptions
 MODEL_PARAMS_DESCRIPTION = (
@@ -56,10 +56,6 @@ class SettingsSection(TypedDict, total=False):
 
 class SettingsOutput(TypedDict):
     sections: list[SettingsSection]
-
-
-class PartialSettings(Settings, total=False):
-    pass
 
 
 PASSWORD_PLACEHOLDER = "****PSWD****"
@@ -115,7 +111,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "type": "select",
             "value": settings["chat_model_name"],
             "options": [
-                FieldOption(value=model["value"], label=model["label"])
+                FieldOption(value=model.get("value", ""), label=model.get("label", ""))
                 for model in provider_models
             ],
         }
@@ -248,7 +244,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "type": "select",
             "value": settings["util_model_name"],
             "options": [
-                FieldOption(value=model["value"], label=model["label"])
+                FieldOption(value=model.get("value", ""), label=model.get("label", ""))
                 for model in util_provider_models
             ],
         }
@@ -343,7 +339,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "type": "select",
             "value": settings["embed_model_name"],
             "options": [
-                FieldOption(value=model["value"], label=model["label"])
+                FieldOption(value=model.get("value", ""), label=model.get("label", ""))
                 for model in embed_provider_models
             ],
         }
@@ -423,7 +419,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "type": "select",
             "value": settings["browser_model_name"],
             "options": [
-                FieldOption(value=model["value"], label=model["label"])
+                FieldOption(value=model.get("value", ""), label=model.get("label", ""))
                 for model in browser_provider_models
             ],
         }
@@ -494,7 +490,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "type": "select",
             "value": settings.get("coding_agent_name", "claude-3-5-sonnet-20241022"),
             "options": [
-                FieldOption(value=model["value"], label=model["label"])
+                FieldOption(value=model.get("value", ""), label=model.get("label", ""))
                 for model in coding_provider_models
             ],
         }
@@ -577,7 +573,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
                 "supervisor_agent_name", "claude-3-5-sonnet-20241022"
             ),
             "options": [
-                FieldOption(value=model["value"], label=model["label"])
+                FieldOption(value=model.get("value", ""), label=model.get("label", ""))
                 for model in supervisor_provider_models
             ],
         }

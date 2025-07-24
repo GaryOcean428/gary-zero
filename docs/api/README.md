@@ -1,8 +1,10 @@
 # Gary-Zero Framework API Documentation
 
+
 ## Overview
 
 The Gary-Zero framework provides a comprehensive set of APIs for building AI agents with dependency injection, service management, and tool execution capabilities.
+
 
 ## Core Components
 
@@ -52,7 +54,7 @@ class MyService(BaseService):
         """Initialize the service."""
         # Initialization logic here
         await self._set_initialized()
-    
+
     async def shutdown(self) -> None:
         """Shutdown the service."""
         # Cleanup logic here
@@ -126,6 +128,7 @@ class MessageBus(Protocol):
     async def unsubscribe(self, topic: str, handler: Any) -> None: ...
 ```
 
+
 ## Tool Framework
 
 ### Tool Base Class
@@ -151,6 +154,7 @@ class Response:
     message: str      # Response message
     break_loop: bool  # Whether to break the execution loop
 ```
+
 
 ## Exception Classes
 
@@ -192,6 +196,7 @@ def validate_config(config):
         raise ConfigurationError("Required field missing")
 ```
 
+
 ## Usage Examples
 
 ### Basic Service Setup
@@ -205,12 +210,12 @@ class DatabaseService(BaseService):
         super().__init__()
         self.connection_string = connection_string
         self.connection = None
-    
+
     async def initialize(self):
         # Connect to database
         self.connection = await connect(self.connection_string)
         await self._set_initialized()
-    
+
     async def shutdown(self):
         # Close database connection
         if self.connection:
@@ -236,7 +241,7 @@ class UserService(BaseService):
     def __init__(self, database: DatabaseService):
         super().__init__()
         self.database = database
-    
+
     async def get_user(self, user_id: str):
         return await self.database.query("SELECT * FROM users WHERE id = ?", user_id)
 
@@ -255,7 +260,7 @@ class CalculatorTool(Tool):
         operation = kwargs.get("operation")
         a = float(kwargs.get("a", 0))
         b = float(kwargs.get("b", 0))
-        
+
         if operation == "add":
             result = a + b
         elif operation == "multiply":
@@ -265,12 +270,13 @@ class CalculatorTool(Tool):
                 message=f"Unknown operation: {operation}",
                 break_loop=False
             )
-        
+
         return Response(
             message=f"Result: {result}",
             break_loop=False
         )
 ```
+
 
 ## Best Practices
 
@@ -279,6 +285,7 @@ class CalculatorTool(Tool):
 3. **Type Hints**: Use type hints for all public APIs
 4. **Documentation**: Document all public methods and classes
 5. **Testing**: Write tests for all service implementations
+
 
 ## Version Information
 

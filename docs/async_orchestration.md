@@ -2,6 +2,7 @@
 
 This document describes the async task orchestration system implemented for Gary-Zero, providing significant performance improvements through concurrent task execution, resource management, and adaptive scheduling.
 
+
 ## Overview
 
 The async orchestration system enhances Gary-Zero's task management with:
@@ -11,6 +12,7 @@ The async orchestration system enhances Gary-Zero's task management with:
 - **Dependency graph management** with cycle detection
 - **Adaptive scheduling** based on system performance
 - **Backward compatibility** with existing synchronous operations
+
 
 ## Key Components
 
@@ -89,6 +91,7 @@ metrics = await scheduler.enhanced_tick()
 print(f"Processed {metrics['tasks_processed']} tasks in {metrics['mode']} mode")
 ```
 
+
 ## Performance Improvements
 
 ### Concurrent Execution Benefits
@@ -108,6 +111,7 @@ The orchestration system provides significant performance improvements:
 - **Memory allocation tracking** for resource-aware scheduling
 - **Automatic constraint enforcement** with backpressure
 
+
 ## Usage Examples
 
 ### Basic Concurrent Execution
@@ -118,20 +122,20 @@ from framework.helpers.async_orchestrator import get_orchestrator
 
 async def run_concurrent_tasks():
     orchestrator = await get_orchestrator()
-    
+
     # Submit multiple tasks
     task_ids = []
     for i in range(5):
         task = create_task(f"Task {i}")
         task_id = await orchestrator.submit_task(task)
         task_ids.append(task_id)
-    
+
     # Wait for all to complete
     results = await asyncio.gather(*[
-        orchestrator.wait_for_task(task_id) 
+        orchestrator.wait_for_task(task_id)
         for task_id in task_ids
     ])
-    
+
     return results
 ```
 
@@ -158,10 +162,11 @@ orchestrator.default_agent_limits = {
 
 # Submit tasks to specific agents
 await orchestrator.submit_task(
-    coding_task, 
+    coding_task,
     assigned_agent="coding_agent"
 )
 ```
+
 
 ## Configuration
 
@@ -206,6 +211,7 @@ ORCHESTRATION_FALLBACK_SYNC=true
 }
 ```
 
+
 ## Testing
 
 ### Running Tests
@@ -232,6 +238,7 @@ The test suite validates:
 - ✅ **Configuration system** functionality
 - ✅ **Agent resource allocation**
 
+
 ## Success Metrics
 
 The implementation successfully achieves all target metrics:
@@ -243,6 +250,7 @@ The implementation successfully achieves all target metrics:
 | Dependency handling | Complex graphs | Basic + chains | ✅ Functional |
 | Test pass rate | 100% | 100% | ✅ Met |
 | Resource utilization | Balanced | Optimized | ✅ Met |
+
 
 ## Integration Points
 
@@ -262,6 +270,7 @@ The orchestration system integrates with:
 - **Configuration toggles** for gradual migration
 - **Legacy task support** maintained
 
+
 ## Future Enhancements
 
 Potential areas for expansion:
@@ -271,6 +280,7 @@ Potential areas for expansion:
 3. **Advanced prioritization** - Dynamic priority adjustment
 4. **Load balancing** - Intelligent agent workload distribution
 5. **Persistence layer** - Task state recovery and resumption
+
 
 ## Troubleshooting
 
@@ -307,6 +317,7 @@ metrics = await orchestrator.get_orchestration_metrics()
 print(f"Running tasks: {metrics['running_tasks']}")
 print(f"Agent utilization: {metrics['agent_utilization']}")
 ```
+
 
 ## Conclusion
 

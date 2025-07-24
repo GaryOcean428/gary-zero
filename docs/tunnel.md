@@ -2,6 +2,7 @@
 
 The tunnel feature in Gary-Zero allows you to expose your local Gary-Zero instance to the internet using Flaredantic tunnels. This makes it possible to share your Gary-Zero instance with others without requiring them to install and run Gary-Zero themselves.
 
+
 ## How It Works
 
 Gary-Zero uses the [Flaredantic](https://pypi.org/project/flaredantic/) library to create secure tunnels to expose your local instance to the internet. These tunnels:
@@ -11,6 +12,7 @@ Gary-Zero uses the [Flaredantic](https://pypi.org/project/flaredantic/) library 
 - Generate unique URLs for each session
 - Can be regenerated on demand
 
+
 ## Using the Tunnel Feature
 
 1. Open the settings and navigate to the "External Services" tab
@@ -18,6 +20,7 @@ Gary-Zero uses the [Flaredantic](https://pypi.org/project/flaredantic/) library 
 3. Click the "Create Tunnel" button to generate a new tunnel
 4. Once created, the tunnel URL will be displayed and can be copied to share with others
 5. The tunnel URL will remain active until you stop the tunnel or close the Gary-Zero application
+
 
 ## Security Considerations
 
@@ -28,6 +31,7 @@ When sharing your Gary-Zero instance via a tunnel:
 - Consider setting up authentication if you're sharing sensitive information
 - The tunnel exposes your local Gary-Zero instance, not your entire system
 
+
 ## Troubleshooting
 
 If you encounter issues with the tunnel feature:
@@ -36,6 +40,7 @@ If you encounter issues with the tunnel feature:
 2. Try refreshing the tunnel URL
 3. Restart Gary-Zero
 4. Check the console logs for any error messages
+
 
 ## Adding Authentication
 

@@ -2,12 +2,14 @@
 
 This document provides examples of how to use the shared MCP library in different repositories within the Gary ecosystem.
 
+
 ## Table of Contents
 
 1. [Server Examples](#server-examples)
 2. [Client Examples](#client-examples)
 3. [Migration from Gary-Zero](#migration-from-gary-zero)
 4. [Integration in Other Repositories](#integration-in-other-repositories)
+
 
 ## Server Examples
 
@@ -41,7 +43,7 @@ async def handle_message(message, attachments, chat_id, persistent_chat):
 # Register the handler
 server.register_message_handler(handle_message)
 
-# Define finish chat handler  
+# Define finish chat handler
 async def handle_finish_chat(chat_id):
     try:
         # Your chat cleanup logic here
@@ -82,6 +84,7 @@ proxy = DynamicMcpProxy.get_instance()
 proxy.reconfigure(server, "my-token")
 ```
 
+
 ## Client Examples
 
 ### Basic Client Setup
@@ -102,7 +105,7 @@ server_configs = [
         "disabled": False
     },
     {
-        "name": "remote-server", 
+        "name": "remote-server",
         "description": "Remote MCP server",
         "url": "http://localhost:8000/sse",
         "headers": {"Authorization": "Bearer token"},
@@ -148,11 +151,13 @@ client = SharedMCPClient(my_settings_provider)
 # Rest of usage same as above...
 ```
 
+
 ## Migration from Gary-Zero
 
 The shared library maintains backward compatibility, so existing gary-zero code continues to work:
 
 ### Before (Gary-Zero specific)
+
 ```python
 from framework.helpers.mcp_server import mcp_server, DynamicMcpProxy
 from framework.helpers.mcp_handler import MCPConfig, initialize_mcp
@@ -163,6 +168,7 @@ initialize_mcp('{"servers": []}')
 ```
 
 ### After (Using Shared Library Directly)
+
 ```python
 from shared_mcp.server import SharedMCPServer
 from shared_mcp.client import SharedMCPClient
@@ -177,6 +183,7 @@ client = SharedMCPClient()
 1. **Phase 1 (Immediate)**: Continue using existing imports - backward compatibility maintained
 2. **Phase 2 (Optional)**: Gradually migrate to direct shared library usage for new features
 3. **Phase 3 (Future)**: Consider full migration to shared library for cleaner architecture
+
 
 ## Integration in Other Repositories
 
@@ -197,15 +204,15 @@ class Monkey1MCPServer:
             """
         )
         self._setup_handlers()
-    
+
     def _setup_handlers(self):
         async def handle_analysis_request(message, attachments, chat_id, persistent_chat):
             # Monkey1-specific analysis logic
             result = self._perform_analysis(message, attachments)
             return ToolResponse(response=result, chat_id=chat_id or "")
-        
+
         self.server.register_message_handler(handle_analysis_request)
-    
+
     def _perform_analysis(self, message, attachments):
         # Your monkey1-specific logic here
         return f"Analysis complete: {message}"
@@ -231,15 +238,15 @@ class Gary8DServer:
             """
         )
         self._setup_handlers()
-    
+
     def _setup_handlers(self):
         async def handle_planning_request(message, attachments, chat_id, persistent_chat):
             # Gary8D-specific planning logic
             plan = self._create_plan(message)
             return ToolResponse(response=plan, chat_id=chat_id or "")
-        
+
         self.server.register_message_handler(handle_planning_request)
-    
+
     def _create_plan(self, message):
         # Your Gary8D-specific logic here
         return f"Plan created for: {message}"
@@ -256,7 +263,7 @@ from shared_mcp.client import SharedMCPClient
 
 async def connect_to_other_repos():
     client = SharedMCPClient()
-    
+
     # Connect to multiple repositories
     configs = [
         {
@@ -265,34 +272,35 @@ async def connect_to_other_repos():
             "description": "Main Gary-Zero instance"
         },
         {
-            "name": "monkey1", 
+            "name": "monkey1",
             "url": "http://monkey1.local:8001/sse",
             "description": "Monkey1 analysis agent"
         },
         {
             "name": "gary8d",
-            "url": "http://gary8d.local:8002/sse", 
+            "url": "http://gary8d.local:8002/sse",
             "description": "Gary8D planning agent"
         }
     ]
-    
+
     await client.connect_to_servers(configs)
-    
+
     # Use tools from different repositories
     gary_result = await client.call_tool("gary-zero.send_message", {
         "message": "Hello from another repo"
     })
-    
+
     analysis_result = await client.call_tool("monkey1.analyze_data", {
         "data": "some data to analyze"
     })
-    
+
     plan_result = await client.call_tool("gary8d.create_plan", {
         "goal": "complex multi-step task"
     })
-    
+
     return gary_result, analysis_result, plan_result
 ```
+
 
 ## Configuration Examples
 
@@ -310,7 +318,7 @@ def setup_production_server(app_name, token):
         This server handles production workloads with enhanced security and monitoring.
         """
     )
-    
+
     # Register production handlers with error handling
     async def production_handler(message, attachments, chat_id, persistent_chat):
         try:
@@ -321,13 +329,13 @@ def setup_production_server(app_name, token):
             # Log error, send alerts, etc.
             log_production_error(e)
             return ToolError(error="Internal server error", chat_id=chat_id or "")
-    
+
     server.register_message_handler(production_handler)
-    
+
     # Setup proxy with production token
     proxy = DynamicMcpProxy.get_instance()
     proxy.reconfigure(server, token)
-    
+
     return server, proxy
 
 async def process_production_request(message, attachments):
@@ -348,7 +356,7 @@ class MultiEnvironmentClient:
     def __init__(self, environment="development"):
         self.environment = environment
         self.client = SharedMCPClient(self._get_settings)
-    
+
     def _get_settings(self):
         if self.environment == "production":
             return {
@@ -360,11 +368,11 @@ class MultiEnvironmentClient:
                 "mcp_client_init_timeout": 60,
                 "mcp_client_tool_timeout": 120
             }
-    
+
     async def connect_to_environment(self):
         configs = self._get_environment_configs()
         await self.client.connect_to_servers(configs)
-    
+
     def _get_environment_configs(self):
         if self.environment == "production":
             return [
@@ -377,11 +385,11 @@ class MultiEnvironmentClient:
         else:
             return [
                 {
-                    "name": "dev-gary-zero", 
+                    "name": "dev-gary-zero",
                     "url": "http://localhost:8000/sse"
                 }
             ]
-    
+
     def _get_prod_token(self):
         # Get production token from secure source
         return "production-token"

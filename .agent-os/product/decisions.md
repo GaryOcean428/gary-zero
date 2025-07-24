@@ -1,4 +1,5 @@
-# Architecture & Design Decisions - Gary-Zero  
+# Architecture & Design Decisions - Gary-Zero
+
 
 ## Decision Log Format
 
@@ -11,6 +12,7 @@ Each decision includes:
 - **Decision**: What was decided
 - **Consequences**: Positive and negative outcomes
 - **Alternatives**: Options considered but rejected
+
 
 ## Authoritative Persona Rules Overrides
 
@@ -25,41 +27,46 @@ These roles should be consulted where their expertise applies, and their recomme
 
 ---
 
-## D001: Docker-First Architecture
 
-**Date**: 2024-12-01
-**Status**: Accepted
+## D001: Railway-Managed Containerization
+
+**Date**: 2024-12-01 (Updated: 2025-01-27)
+**Status**: Superseded by Railway Cloud Architecture
 
 ### Context
 
-Need to provide consistent deployment across different operating systems and environments while ensuring security isolation for agent code execution.
+Need to provide consistent deployment across different environments while ensuring security isolation for agent code execution. Initially considered Docker-first approach, but evolved to Railway's managed containerization for better cloud-native deployment.
 
 ### Decision
 
-Adopt Docker as the primary deployment method with containerized runtime environment.
+Adopt Railway's managed containerization with Nixpacks/Railpack for automatic container orchestration and deployment.
 
 ### Consequences
 
 **Positive:**
 
-- Consistent behavior across all platforms
-- Built-in security isolation
-- Simplified deployment and updates
-- Reduced host system dependencies
+- Consistent behavior across all cloud deployments
+- Managed security isolation and scaling
+- Simplified deployment without Docker complexity
+- Reduced infrastructure management overhead
+- Automatic health monitoring and restarts
 
 **Negative:**
 
-- Requires Docker installation
-- Additional resource overhead
-- Complexity for direct host execution
+- Dependency on Railway platform
+- Limited control over container configuration
+- Vendor lock-in considerations
+- Less flexibility for local development
 
 ### Alternatives Considered
 
+- Direct Docker container management
 - Native Python installation with virtual environments
-- Virtual machine-based deployment
-- Cloud-only deployment
+- Multi-cloud deployment approach
+- Self-hosted container orchestration
 
 ---
+
 
 ## D002: FastAPI Over Flask
 
@@ -97,6 +104,7 @@ Use FastAPI as primary web framework with Flask maintained for legacy compatibil
 
 ---
 
+
 ## D003: Hierarchical Agent Structure
 
 **Date**: 2024-10-20
@@ -132,6 +140,7 @@ Implement hierarchical agent structure where superior agents delegate to subordi
 - Event-driven agent collaboration
 
 ---
+
 
 ## D004: MCP Protocol Integration
 
@@ -169,6 +178,7 @@ Implement both MCP server and client capabilities for full ecosystem integration
 
 ---
 
+
 ## D005: Transparent Prompt System
 
 **Date**: 2024-09-15
@@ -204,6 +214,7 @@ Store all prompts in accessible files within `/prompts` directory structure.
 - Encrypted prompt storage
 
 ---
+
 
 ## D006: Memory System Architecture
 
@@ -241,6 +252,7 @@ Implement hybrid memory system with automatic and manual components using vector
 
 ---
 
+
 ## D007: Python 3.13+ Requirement
 
 **Date**: 2024-11-20
@@ -276,6 +288,7 @@ Require Python 3.13+ as minimum version for optimal performance and feature avai
 - Docker-only deployment to avoid version conflicts
 
 ---
+
 
 ## D008: Railway Cloud Deployment
 
@@ -313,6 +326,7 @@ Standardize on Railway as primary cloud deployment platform.
 
 ---
 
+
 ## D009: WebSocket Real-time Communication
 
 **Date**: 2024-10-10
@@ -348,6 +362,7 @@ Implement WebSocket-based communication for real-time updates and interactions.
 - Pure REST API with intervals
 
 ---
+
 
 ## D010: Plugin Architecture
 
@@ -385,6 +400,7 @@ Implement dynamic plugin system with Python module loading and configuration-dri
 
 ---
 
+
 ## D011: Security-First Design
 
 **Date**: 2024-11-10
@@ -396,7 +412,7 @@ Agent systems require robust security due to code execution capabilities and dat
 
 ### Decision
 
-Implement multi-layer security with Docker sandboxing, input validation, and access controls.
+Implement multi-layer security with Railway's managed isolation, E2B sandboxing, input validation, and access controls.
 
 ### Consequences
 
@@ -420,6 +436,7 @@ Implement multi-layer security with Docker sandboxing, input validation, and acc
 - External security service integration
 
 ---
+
 
 ## D012: Open Source MIT License
 
@@ -457,6 +474,7 @@ Release under MIT license for maximum permissive use and contribution.
 
 ---
 
+
 ## D013: Test-Driven Quality Assurance
 
 **Date**: 2024-10-15
@@ -493,6 +511,7 @@ Implement comprehensive test suite with unit, integration, and end-to-end testin
 
 ---
 
+
 ## Future Decisions Under Consideration
 
 ### FD001: Multi-Model Support Strategy
@@ -520,6 +539,7 @@ Investigating potential for blockchain-based agent identity and transaction reco
 Determining approach for horizontal scaling and performance optimization.
 
 ---
+
 
 ## DEC-002: Agent OS as Coordination Layer
 
@@ -559,6 +579,7 @@ Adopt Agent OS as the primary coordination layer for Gary8D multi-agent workflow
 
 ---
 
+
 ## D014: Multi-Persona System Integration
 
 **Date**: 2025-01-27
@@ -594,6 +615,7 @@ Integrate persona rules from .clinerules as authoritative overrides in Agent OS 
 - Use only Agent OS roles without .clinerules personas
 
 ---
+
 
 ## Decision Review Process
 

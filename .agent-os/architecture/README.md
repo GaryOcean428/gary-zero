@@ -12,6 +12,7 @@ reviewers: []
 
 This directory contains cloud and runtime architecture diagrams and documentation.
 
+
 ## Contents
 
 - `cloud-architecture.md` - Cloud infrastructure design and components
@@ -19,12 +20,14 @@ This directory contains cloud and runtime architecture diagrams and documentatio
 - `system-diagrams/` - Visual architecture diagrams and schemas
 - `technical-decisions.md` - Architectural decision records (ADRs)
 
+
 ## Guidelines
 
 - All architecture diagrams should be version controlled
 - Include both high-level and detailed component diagrams
 - Document architectural decisions with rationale
 - Keep diagrams up-to-date with system changes
+
 
 ## Review Process
 

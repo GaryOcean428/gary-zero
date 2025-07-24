@@ -1,4 +1,4 @@
-### browser_agent:
+### browser_agent
 
 subordinate agent controls playwright browser
 message argument talks to agent give clear instructions credentials task based
@@ -10,6 +10,7 @@ dont use phrase wait for instructions use end task
 downloads default in /a0/tmp/downloads
 
 usage:
+
 ```json
 {
   "thoughts": ["I need to log in to..."],

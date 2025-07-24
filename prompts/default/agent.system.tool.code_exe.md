@@ -39,6 +39,7 @@ Primary method: E2B Cloud Sandboxes for maximum security and isolation
 **Example Usage**:
 
 1. Python code execution:
+
 ~~~json
 {
     "thoughts": [
@@ -56,6 +57,7 @@ Primary method: E2B Cloud Sandboxes for maximum security and isolation
 ~~~
 
 2. Install packages and run:
+
 ~~~json
 {
     "thoughts": [
@@ -72,6 +74,7 @@ Primary method: E2B Cloud Sandboxes for maximum security and isolation
 ~~~
 
 3. Check execution environment:
+
 ~~~json
 {
     "thoughts": [

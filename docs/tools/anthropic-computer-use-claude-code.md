@@ -2,6 +2,7 @@
 
 This document describes the newly integrated Anthropic Computer Use and Claude Code tools that enable desktop automation and advanced code editing capabilities in Gary-Zero.
 
+
 ## Table of Contents
 
 1. [Overview](#overview)
@@ -12,6 +13,7 @@ This document describes the newly integrated Anthropic Computer Use and Claude C
 6. [Usage Examples](#usage-examples)
 7. [Troubleshooting](#troubleshooting)
 
+
 ## Overview
 
 Gary-Zero now supports two powerful new tools that extend its capabilities beyond text-based interactions:
@@ -20,6 +22,7 @@ Gary-Zero now supports two powerful new tools that extend its capabilities beyon
 - **Claude Code Tool**: Provides context-aware multi-file editing, Git operations, and terminal command execution
 
 Both tools are designed with security in mind and are disabled by default. They require explicit user configuration and, in the case of Computer Use, approval for sensitive operations.
+
 
 ## Anthropic Computer Use Tool
 
@@ -74,6 +77,7 @@ Access settings via the **Tools** tab in the Gary-Zero settings panel:
 {"action": "scroll", "x": 500, "y": 600, "direction": "up", "clicks": 3}
 ```
 
+
 ## Claude Code Tool
 
 ### Features
@@ -108,6 +112,7 @@ Access settings via the **Tools** tab in the Gary-Zero settings panel:
 ### Supported Operations
 
 #### File Operations
+
 ```python
 # Read file
 {"operation_type": "file", "operation": "read", "path": "src/main.py"}
@@ -126,6 +131,7 @@ Access settings via the **Tools** tab in the Gary-Zero settings panel:
 ```
 
 #### Git Operations
+
 ```python
 # Git status
 {"operation_type": "git", "operation": "status"}
@@ -142,12 +148,14 @@ Access settings via the **Tools** tab in the Gary-Zero settings panel:
 ```
 
 #### Terminal Operations
+
 ```python
 # Execute command
 {"operation_type": "terminal", "command": "npm test", "cwd": "./", "timeout": 60}
 ```
 
 #### Workspace Operations
+
 ```python
 # Get workspace info
 {"operation_type": "workspace", "operation": "info"}
@@ -158,6 +166,7 @@ Access settings via the **Tools** tab in the Gary-Zero settings panel:
 # Directory tree
 {"operation_type": "workspace", "operation": "tree", "max_depth": 3}
 ```
+
 
 ## Settings Configuration
 
@@ -178,6 +187,7 @@ For production use, consider these security practices:
 - Limit Claude Code file size restrictions
 - Review allowed file extensions for Claude Code
 - Monitor terminal command execution logs
+
 
 ## Security Considerations
 
@@ -202,6 +212,7 @@ For production use, consider these security practices:
 - Comprehensive logging of all actions
 - Error handling prevents crashes from affecting the main system
 
+
 ## Usage Examples
 
 ### Example 1: Automated Screenshot Analysis
@@ -217,15 +228,15 @@ tool_response = await computer_use_tool.execute(action="screenshot")
 ```python
 # Read existing code
 code_content = await claude_code_tool.execute(
-    operation_type="file", 
-    operation="read", 
+    operation_type="file",
+    operation="read",
     path="src/api.py"
 )
 
 # Modify code based on analysis
 await claude_code_tool.execute(
     operation_type="file",
-    operation="write", 
+    operation="write",
     path="src/api.py",
     content=modified_code
 )
@@ -254,6 +265,7 @@ await claude_code_tool.execute(
 # If tests pass, push changes
 await claude_code_tool.execute(operation_type="git", operation="push")
 ```
+
 
 ## Troubleshooting
 
@@ -290,6 +302,7 @@ await claude_code_tool.execute(operation_type="git", operation="push")
 **Problem**: Permission errors
 - **Solution**: Check file/directory permissions and workspace configuration.
 
+
 ## API Reference
 
 Both tools inherit from the base `Tool` class and implement the standard Gary-Zero tool interface:
@@ -305,12 +318,14 @@ class ClaudeCode(Tool):
 ```
 
 Response format:
+
 ```python
 @dataclass
 class Response:
     message: str      # Result description
     break_loop: bool  # Whether to stop agent execution
 ```
+
 
 ## Contributing
 
@@ -321,6 +336,7 @@ To extend these tools:
 3. Update settings configuration if needed
 4. Ensure security considerations are addressed
 5. Update documentation
+
 
 ## See Also
 

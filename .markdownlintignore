@@ -1,0 +1,28 @@
+# Ignore virtual environment and node modules
+.venv/
+node_modules/
+venv/
+
+# Ignore build artifacts and generated files
+build/
+dist/
+*.egg-info/
+
+# Ignore temporary and cache files
+tmp/
+.cache/
+__pycache__/
+
+# Ignore git directory
+.git/
+
+# Ignore specific directories with many files that aren't critical to fix
+.agent-os/_inputs/
+.github/chatmodes/
+
+# Ignore symlinked directories
+.venv/lib64/
+
+# Ignore specific files that might have legitimate long lines
+CHANGELOG.md
+LICENSE.md

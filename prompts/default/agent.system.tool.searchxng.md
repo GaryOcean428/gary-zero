@@ -8,6 +8,7 @@ provides privacy-focused search results without tracking
 usage:
 
 1 general web search
+
 ~~~json
 {
     "thoughts": [
@@ -23,6 +24,7 @@ usage:
 ~~~
 
 2 news search
+
 ~~~json
 {
     "thoughts": [

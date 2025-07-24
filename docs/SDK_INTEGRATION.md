@@ -2,6 +2,7 @@
 
 This document provides guidance on using the OpenAI Agents SDK integration in Gary-Zero, which adds standardized agent loops, guardrails, handoffs, and tracing capabilities.
 
+
 ## Overview
 
 The OpenAI Agents SDK integration provides:
@@ -12,6 +13,7 @@ The OpenAI Agents SDK integration provides:
 - **Agent Handoffs**: Coordinated task delegation between agents
 - **Tool Compatibility**: Wrapper system for existing Gary-Zero tools
 - **Backward Compatibility**: Graceful fallback to traditional Gary-Zero functionality
+
 
 ## Quick Start
 
@@ -69,6 +71,7 @@ results = migrate_existing_agent_to_sdk(
 )
 ```
 
+
 ## Features
 
 ### Guardrails System
@@ -114,7 +117,7 @@ trace_id = tracer.start_agent_trace("MyAgent", task_id="task123")
 
 # Add custom events
 tracer.add_trace_event(
-    trace_id, 
+    trace_id,
     TraceEventType.TOOL_CALL,
     {"tool_name": "search", "query": "example"}
 )
@@ -135,7 +138,7 @@ orchestrator = get_sdk_orchestrator()
 # Execute task with specific agent
 result = await orchestrator.execute_with_agent(
     agent_id="sdk_agent_123",
-    task_id="task456", 
+    task_id="task456",
     message="Process this request"
 )
 
@@ -146,6 +149,7 @@ success = await orchestrator.coordinate_handoff(
     context={"reason": "specialized processing needed"}
 )
 ```
+
 
 ## Configuration
 
@@ -195,11 +199,13 @@ output_validator = manager.output_validator
 safety_evaluator = manager.safety_evaluator
 ```
 
+
 ## API Reference
 
 ### Core Classes
 
 #### `GaryZeroSDKAgent`
+
 Wrapper that adapts Gary-Zero agents to OpenAI Agents SDK.
 
 **Methods:**
@@ -208,15 +214,17 @@ Wrapper that adapts Gary-Zero agents to OpenAI Agents SDK.
 - `get_session_data()` - Get current session information
 
 #### `GuardrailsManager`
+
 Central manager for safety and validation systems.
 
 **Methods:**
 - `process_input(message)` - Apply input guardrails
-- `process_output(result)` - Apply output guardrails  
+- `process_output(result)` - Apply output guardrails
 - `evaluate_interaction(input, output)` - Safety evaluation
 - `get_status()` - Get system status
 
 #### `AgentTracer`
+
 Enhanced tracing for agent operations.
 
 **Methods:**
@@ -240,6 +248,7 @@ from framework.helpers.sdk_integration import test_sdk_integration
 results = test_sdk_integration()  # Comprehensive test results
 ```
 
+
 ## Error Handling
 
 The SDK integration includes comprehensive error handling:
@@ -260,6 +269,7 @@ if error_record["retry_suggested"]:
     delay = error_record.get("retry_delay", 5)
     # Implement retry logic
 ```
+
 
 ## Monitoring and Debugging
 
@@ -302,33 +312,40 @@ print(f"Recent input violations: {len(input_violations)}")
 print(f"Recent output violations: {len(output_violations)}")
 ```
 
+
 ## Best Practices
 
 ### 1. Gradual Migration
+
 - Start with SDK integration disabled for critical agents
 - Test with non-production workloads first
 - Monitor guardrails violations and adjust settings
 
 ### 2. Error Handling
+
 - Always check if SDK features are available before using them
 - Implement fallback logic for when SDK features fail
 - Monitor trace and guardrail logs for issues
 
 ### 3. Performance
+
 - Use tracing to identify bottlenecks
 - Monitor guardrails impact on response times
 - Adjust batch sizes for parallel agent operations
 
 ### 4. Safety
+
 - Start with strict guardrails in production
 - Regularly review safety evaluation results
 - Implement custom guardrails for domain-specific risks
+
 
 ## Troubleshooting
 
 ### Common Issues
 
 1. **Import Errors**
+
    ```python
    # Check if SDK is properly installed
    try:
@@ -339,6 +356,7 @@ print(f"Recent output violations: {len(output_violations)}")
    ```
 
 2. **Guardrails Not Working**
+
    ```python
    # Check guardrails status
    from framework.helpers.guardrails import get_guardrails_manager
@@ -347,6 +365,7 @@ print(f"Recent output violations: {len(output_violations)}")
    ```
 
 3. **Tracing Issues**
+
    ```python
    # Verify tracing initialization
    from framework.helpers.agent_tracing import get_agent_tracer
@@ -365,9 +384,11 @@ results = test_sdk_integration()
 print(json.dumps(results, indent=2))
 ```
 
+
 ## Migration from Legacy System
 
 ### Step 1: Enable SDK Integration
+
 Update your agent initialization to use SDK features:
 
 ```python
@@ -379,6 +400,7 @@ agent = create_sdk_enabled_agent(config, context, sdk_config)
 ```
 
 ### Step 2: Update Tool Usage
+
 Tools will automatically work with SDK wrappers, but you can optimize:
 
 ```python
@@ -387,6 +409,7 @@ Tools will automatically work with SDK wrappers, but you can optimize:
 ```
 
 ### Step 3: Add Safety Checks
+
 Implement guardrails gradually:
 
 ```python
@@ -401,6 +424,7 @@ if len(violations) > threshold:
     pass
 ```
 
+
 ## Advanced Usage
 
 ### Custom Guardrails
@@ -413,7 +437,7 @@ class CustomInputValidator(InputValidator):
         super().__init__()
         # Add custom patterns
         self.banned_patterns.append(r'custom_pattern')
-    
+
     async def validate_and_sanitize(self, message):
         # Custom validation logic
         message = await super().validate_and_sanitize(message)
@@ -437,6 +461,7 @@ tracer.add_trace_event(
     }
 )
 ```
+
 
 ## Support
 

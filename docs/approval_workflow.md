@@ -1,8 +1,10 @@
 # Approval Workflow System Documentation
 
+
 ## Overview
 
 The Gary Zero approval workflow system provides robust permissioning and approval frameworks that require explicit user confirmation for sensitive or irreversible operations. The system includes detailed audit logging, role-based access control, and flexible configuration options.
+
 
 ## Key Features
 
@@ -14,13 +16,14 @@ The Gary Zero approval workflow system provides robust permissioning and approva
 - **Runtime Configuration**: Policies can be updated without restart
 - **Multiple Interface Support**: CLI and Web UI interfaces
 
+
 ## Quick Start
 
 ### Basic Setup
 
 ```python
 from framework.security import (
-    ApprovalWorkflow, UserRole, RiskLevel, 
+    ApprovalWorkflow, UserRole, RiskLevel,
     set_global_approval_workflow, require_approval
 )
 
@@ -60,27 +63,33 @@ else:
     print("Action was not approved")
 ```
 
+
 ## High-Risk Actions
 
 The system includes pre-configured high-risk actions:
 
 ### File Operations
+
 - **file_write** (MEDIUM): Write or modify files
 - **file_delete** (HIGH): Delete files or directories
 
-### System Operations  
+### System Operations
+
 - **shell_command** (HIGH): Execute shell commands
 - **code_execution** (HIGH): Execute code in containers
 - **config_change** (MEDIUM): Modify system configuration
 
 ### External Operations
+
 - **external_api_call** (MEDIUM): Make external API calls
 - **computer_control** (CRITICAL): Desktop/GUI automation
 - **payment_transaction** (CRITICAL): Financial transactions
 
+
 ## Role-Based Permissions
 
 ### Role Hierarchy
+
 1. **OWNER**: Full access to all actions
 2. **ADMIN**: Access to most actions except critical ones
 3. **USER**: Limited access to basic operations
@@ -91,9 +100,9 @@ The system includes pre-configured high-risk actions:
 
 ```python
 role_permissions = {
-    "owner": ["file_write", "file_delete", "shell_command", "external_api_call", 
+    "owner": ["file_write", "file_delete", "shell_command", "external_api_call",
               "computer_control", "code_execution", "payment_transaction", "config_change"],
-    "admin": ["file_write", "file_delete", "shell_command", "external_api_call", 
+    "admin": ["file_write", "file_delete", "shell_command", "external_api_call",
               "code_execution", "config_change"],
     "user": ["file_write", "external_api_call", "config_change"],
     "guest": [],
@@ -101,16 +110,19 @@ role_permissions = {
 }
 ```
 
+
 ## Approval Policies
 
 ### ALWAYS_ASK
+
 Always requires user approval, no caching.
 
 ```python
 workflow.configure_action("shell_command", approval_policy=ApprovalPolicy.ALWAYS_ASK)
 ```
 
-### ASK_ONCE  
+### ASK_ONCE
+
 Asks for approval once, then caches for 1 hour by default.
 
 ```python
@@ -118,6 +130,7 @@ workflow.configure_action("file_write", approval_policy=ApprovalPolicy.ASK_ONCE)
 ```
 
 ### NEVER_ASK
+
 Auto-approves without user interaction.
 
 ```python
@@ -125,11 +138,13 @@ workflow.configure_action("config_read", approval_policy=ApprovalPolicy.NEVER_AS
 ```
 
 ### ROLE_BASED
+
 Uses role-based rules for approval decisions.
 
 ```python
 workflow.configure_action("admin_action", approval_policy=ApprovalPolicy.ROLE_BASED)
 ```
+
 
 ## Configuration Management
 
@@ -169,7 +184,7 @@ config_manager.apply_config()
       "required_roles": ["owner", "admin", "user"]
     },
     "shell_command": {
-      "approval_policy": "always_ask", 
+      "approval_policy": "always_ask",
       "timeout_seconds": 180,
       "required_roles": ["owner", "admin"]
     }
@@ -184,7 +199,7 @@ config_manager.apply_config()
 config_manager.update_user_role("new_user", "admin")
 
 # Update action policy
-config_manager.update_action_policy("file_delete", 
+config_manager.update_action_policy("file_delete",
     approval_policy="always_ask",
     timeout_seconds=600
 )
@@ -200,6 +215,7 @@ config_manager.register_custom_action({
 })
 ```
 
+
 ## User Interfaces
 
 ### CLI Interface
@@ -211,7 +227,7 @@ cli_interface = CLIApprovalInterface(workflow)
 
 # CLI commands available:
 # approve <request_id> [note] - Approve a pending request
-# reject <request_id> [reason] - Reject a pending request  
+# reject <request_id> [reason] - Reject a pending request
 # list - List all pending requests
 # status - Show approval statistics
 # help - Show help message
@@ -229,12 +245,13 @@ pending_requests = web_interface.get_pending_requests_for_ui()
 
 # Handle UI response
 success = await web_interface.handle_ui_response(
-    request_id="req_123", 
+    request_id="req_123",
     action="approve",
     user_id="approver",
     reason="Approved for maintenance"
 )
 ```
+
 
 ## Integration with Tools
 
@@ -260,10 +277,10 @@ async def risky_operation(user_id: str, **kwargs):
         action_description="Perform risky operation",
         parameters=kwargs
     )
-    
+
     if not approved:
         raise PermissionError("Operation not approved")
-    
+
     # Proceed with operation
     return perform_operation(**kwargs)
 ```
@@ -280,6 +297,7 @@ class ShellTool:
         # Tool execution now requires approval
         return subprocess.run(command, shell=True)
 ```
+
 
 ## Audit Logging
 
@@ -302,6 +320,7 @@ print(f"Approval rate: {summary.get('approval_rate', 0):.2%}")
 - **APPROVAL_REQUEST**: When approval is requested
 - **APPROVAL_DECISION**: When approval is granted/denied
 - **SECURITY_VIOLATION**: When unauthorized access is attempted
+
 
 ## Security Considerations
 
@@ -327,6 +346,7 @@ The system avoids exposing sensitive environment variables:
 - API keys and credentials are filtered from logs
 - Parameter values are truncated in audit logs
 
+
 ## Statistics and Monitoring
 
 ```python
@@ -342,6 +362,7 @@ for action, count in stats['requests_by_action_type'].items():
     print(f"{action}: {count} requests")
 ```
 
+
 ## Testing
 
 ### Unit Tests
@@ -354,12 +375,12 @@ from framework.security import ApprovalWorkflow, UserRole, RiskLevel
 async def test_approval_workflow():
     workflow = ApprovalWorkflow()
     workflow.set_user_role("test_user", UserRole.ADMIN)
-    
+
     # Test auto-approval
     workflow.configure_action("test_action", approval_policy="never_ask")
     approved = await workflow.request_approval(
         user_id="test_user",
-        action_type="test_action", 
+        action_type="test_action",
         action_description="Test",
         parameters={}
     )
@@ -373,48 +394,55 @@ async def test_approval_workflow():
 async def test_decorator_integration():
     workflow = ApprovalWorkflow()
     set_global_approval_workflow(workflow)
-    
+
     @require_approval("test_op", RiskLevel.LOW)
     async def test_function(user_id: str):
         return "success"
-    
+
     # Configure for auto-approval
     workflow.register_action(ActionDefinition(...))
-    
+
     result = await test_function("test_user")
     assert result == "success"
 ```
 
+
 ## Best Practices
 
 ### 1. Risk Level Assignment
+
 - Use CRITICAL for irreversible system changes
 - Use HIGH for potentially dangerous operations
 - Use MEDIUM for operations affecting user data
 - Use LOW for safe, informational operations
 
 ### 2. Role Design
+
 - Assign minimum necessary permissions
 - Use SUBORDINATE_AGENT role for automated processes
 - Regularly review and update role assignments
 
 ### 3. Approval Policies
+
 - Use ALWAYS_ASK for critical operations
 - Use ASK_ONCE for frequent, medium-risk operations
 - Avoid NEVER_ASK except for safe operations
 - Configure appropriate timeouts based on operation urgency
 
 ### 4. Configuration Management
+
 - Store configuration in version control
 - Use environment-specific config files
 - Regularly backup approval logs
 - Monitor approval statistics for anomalies
 
 ### 5. User Interface
+
 - Provide clear descriptions for approval requests
 - Show relevant parameters (but sanitize sensitive data)
 - Implement timeout warnings
 - Log all approval decisions with reasoning
+
 
 ## Troubleshooting
 
