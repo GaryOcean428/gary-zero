@@ -3,7 +3,7 @@
 ## Purpose & Capabilities
 - **Browser automation**: Headless Chrome/Chromium control
 - **Web scraping**: Extract data from dynamic web pages
-- **Form interaction**: Automated form filling and submission  
+- **Form interaction**: Automated form filling and submission
 - **JavaScript execution**: Run custom scripts in browser context
 - **Screenshot generation**: Capture web page images
 
@@ -11,7 +11,7 @@
 ```toml
 # Railway Environment Variables
 MORPHISM_BROWSER_URL="https://${{morphism-browser.RAILWAY_PUBLIC_DOMAIN}}"
-MORPHISM_API_KEY="your_morphism_api_key"  # If authentication required
+MORPHISM_API_KEY="your_morphism_api_key"  # If authentication required  # pragma: allowlist secret
 MORPHISM_TIMEOUT="30"  # Default request timeout
 MORPHISM_USER_AGENT="Gary-Zero-Agent/1.0"
 ```
@@ -36,7 +36,7 @@ response = requests.post(f"{morphism_url}/navigate", json={
     "wait_for": "networkidle"
 })
 
-# Take screenshot  
+# Take screenshot
 screenshot = requests.post(f"{morphism_url}/screenshot", json={
     "format": "png",
     "full_page": True
@@ -59,7 +59,7 @@ interface MorphismConfig {
 
 class MorphismClient {
   constructor(private config: MorphismConfig) {}
-  
+
   async navigate(url: string): Promise<any> {
     const response = await fetch(`${this.config.baseUrl}/navigate`, {
       method: 'POST',
@@ -68,7 +68,7 @@ class MorphismClient {
     });
     return response.json();
   }
-  
+
   async screenshot(options = {}): Promise<Blob> {
     const response = await fetch(`${this.config.baseUrl}/screenshot`, {
       method: 'POST',

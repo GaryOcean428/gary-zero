@@ -252,6 +252,36 @@ graph LR
 📖 **[View Complete CI/CD Architecture Documentation](./docs/ci-cd-architecture.md)**
 
 
+## 🏗️ Agent-OS Specifications
+
+Gary-Zero is built on the **Agent-OS** specification framework, providing standardized patterns for agent coordination, cloud service integration, and scalable architecture.
+
+### 📋 Core Specifications
+
+| Specification | Purpose | Status |
+|---------------|---------|--------|
+| [Cloud Services Integration](./specs/cloud_services_integration_overview.md) | Multi-service architecture patterns | ✅ v1.0.0 |
+| [Morphism Browser Service](./specs/morphism_service_spec.md) | Web automation and browser control | ✅ v1.0.0 |
+| [PostgreSQL Prisma Service](./specs/postgresql_prisma_service_spec.md) | Database integration and ORM patterns | ✅ v1.0.0 |
+| [Redis Service](./specs/redis_service_spec.md) | Caching and session management | ✅ v1.0.0 |
+| [Security Compliance](./specs/security_compliance_requirements.md) | Security framework and requirements | ✅ v1.0.0 |
+| [Performance Optimization](./specs/performance_optimization_observability_spec.md) | Monitoring and observability | ✅ v1.0.0 |
+
+### 🎯 Agent-OS Benefits
+
+- **🔄 Standardized Integration**: Consistent patterns for service communication
+- **📈 Scalable Architecture**: Cloud-native design with Railway deployment
+- **🔒 Security-First**: Built-in security compliance and credential management
+- **🛠️ Developer Experience**: Clear specifications for feature development
+- **📊 Observability**: Comprehensive monitoring and performance tracking
+- **🚦 Quality Assurance**: Automated CI guards ensure specification consistency
+
+### 📚 Specification Development
+
+- **Template**: [.agent-os/instructions/create-spec.md](./.agent-os/instructions/create-spec.md)
+- **Guidelines**: [.agent-os/specs/README.md](./.agent-os/specs/README.md)
+- **Development Standards**: [.agent-os/development-standards/DEVELOPMENT_STANDARDS.md](./.agent-os/development-standards/DEVELOPMENT_STANDARDS.md)
+
 ## 📚 Read the Documentation
 
 | Page | Description |

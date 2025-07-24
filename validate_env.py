@@ -38,7 +38,9 @@ class EnvironmentValidator:
 
     def validate_langchain_config(self) -> None:
         """Validate LangChain Anthropic configuration"""
-        stream_usage = self.get_env_value("LANGCHAIN_ANTHROPIC_STREAM_USAGE", "true") or "true"
+        stream_usage = (
+            self.get_env_value("LANGCHAIN_ANTHROPIC_STREAM_USAGE", "true") or "true"
+        )
 
         if stream_usage.lower() == "false":
             self.info.append(
@@ -61,14 +63,14 @@ class EnvironmentValidator:
     def validate_feature_flags(self) -> None:
         """Validate development feature flags"""
         dev_features = (
-            (self.get_env_value("ENABLE_DEV_FEATURES", "true") or "true").lower() == "true"
-        )
+            self.get_env_value("ENABLE_DEV_FEATURES", "true") or "true"
+        ).lower() == "true"
         vscode_integration = (
-            (self.get_env_value("VSCODE_INTEGRATION_ENABLED", "true") or "true").lower() == "true"
-        )
+            self.get_env_value("VSCODE_INTEGRATION_ENABLED", "true") or "true"
+        ).lower() == "true"
         chat_auto_resize = (
-            (self.get_env_value("CHAT_AUTO_RESIZE_ENABLED", "true") or "true").lower() == "true"
-        )
+            self.get_env_value("CHAT_AUTO_RESIZE_ENABLED", "true") or "true"
+        ).lower() == "true"
         node_env = self.get_env_value("NODE_ENV", "development") or "development"
 
         if node_env == "production":

@@ -12,7 +12,7 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, List, Optional, Union
 
 import requests
 
@@ -29,7 +29,7 @@ def validate_environment_variables() -> dict[str, Any]:
 
     optional_vars = ["KALI_PUBLIC_URL", "CODE_EXECUTION_MODE", "SHELL_SERVICE_ENABLED"]
 
-    results = {"required": {}, "optional": {}, "all_required_present": True}
+    results: dict[str, Any] = {"required": {}, "optional": {}, "all_required_present": True}
 
     # Check required variables
     for var in required_vars:
@@ -66,6 +66,11 @@ def test_shell_connectivity() -> dict[str, Any]:
             "error": "Missing required environment variables for connectivity test",
             "connectivity": False,
         }
+    
+    # Ensure we have string values
+    shell_url = str(shell_url)
+    username = str(username)
+    password = str(password)
 
     try:
         # Test health endpoint
@@ -155,7 +160,7 @@ def test_shell_command_execution() -> dict[str, Any]:
                         "timeout": 10,
                         "environment": "kali",
                     },
-                    auth=(username, password),
+                    auth=(str(username), str(password)),
                     timeout=15,
                 )
 
@@ -253,9 +258,10 @@ def validate_framework_integration() -> dict[str, Any]:
         results["prompt_integration"] = {"error": str(e)}
 
     # Overall integration status
-    results["integration_complete"] = results["all_files_present"] and results.get(
-        "prompt_integration", {}
-    ).get("shell_integration_included", False)
+    prompt_data = dict(results.get("prompt_integration", {}))
+    results["integration_complete"] = bool(
+        results["all_files_present"] and prompt_data.get("shell_integration_included", False)
+    )
 
     return results
 
@@ -403,8 +409,9 @@ def generate_integration_report(results: dict[str, Any]) -> str:
         )
 
         for cmd, result in cmd_results.get("command_results", {}).items():
-            status = "✅" if result.get("success") else "❌"
-            output = result.get("stdout", "").strip()[:50]
+            result_dict = dict(result) if isinstance(result, dict) else {}
+            status = "✅" if result_dict.get("success") else "❌"
+            output = str(result_dict.get("stdout", "")).strip()[:50]
             output_display = f" → {output}" if output else ""
             report_lines.append(f"    {status} {cmd}{output_display}")
     else:

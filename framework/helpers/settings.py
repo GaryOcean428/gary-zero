@@ -111,7 +111,9 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "type": "select",
             "value": settings["chat_model_name"],
             "options": [
-                FieldOption(value=str(model.get("value", "")), label=str(model.get("label", "")))
+                FieldOption(
+                    value=str(model.get("value", "")), label=str(model.get("label", ""))
+                )
                 for model in provider_models
             ],
         }
@@ -244,7 +246,9 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "type": "select",
             "value": settings["util_model_name"],
             "options": [
-                FieldOption(value=str(model.get("value", "")), label=str(model.get("label", "")))
+                FieldOption(
+                    value=str(model.get("value", "")), label=str(model.get("label", ""))
+                )
                 for model in util_provider_models
             ],
         }
@@ -339,7 +343,9 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "type": "select",
             "value": settings["embed_model_name"],
             "options": [
-                FieldOption(value=str(model.get("value", "")), label=str(model.get("label", "")))
+                FieldOption(
+                    value=str(model.get("value", "")), label=str(model.get("label", ""))
+                )
                 for model in embed_provider_models
             ],
         }
@@ -419,7 +425,9 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "type": "select",
             "value": settings["browser_model_name"],
             "options": [
-                FieldOption(value=str(model.get("value", "")), label=str(model.get("label", "")))
+                FieldOption(
+                    value=str(model.get("value", "")), label=str(model.get("label", ""))
+                )
                 for model in browser_provider_models
             ],
         }
@@ -490,7 +498,9 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "type": "select",
             "value": settings.get("coding_agent_name", "claude-3-5-sonnet-20241022"),
             "options": [
-                FieldOption(value=str(model.get("value", "")), label=str(model.get("label", "")))
+                FieldOption(
+                    value=str(model.get("value", "")), label=str(model.get("label", ""))
+                )
                 for model in coding_provider_models
             ],
         }
@@ -573,7 +583,9 @@ def convert_out(settings: Settings) -> SettingsOutput:
                 "supervisor_agent_name", "claude-3-5-sonnet-20241022"
             ),
             "options": [
-                FieldOption(value=str(model.get("value", "")), label=str(model.get("label", "")))
+                FieldOption(
+                    value=str(model.get("value", "")), label=str(model.get("label", ""))
+                )
                 for model in supervisor_provider_models
             ],
         }

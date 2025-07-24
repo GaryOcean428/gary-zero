@@ -46,8 +46,8 @@ redis_client = redis.Redis(connection_pool=redis_pool)
 # Session storage
 def store_session(session_id: str, data: dict, ttl: int = 3600):
     redis_client.setex(
-        f"session:{session_id}", 
-        ttl, 
+        f"session:{session_id}",
+        ttl,
         json.dumps(data)
     )
 
@@ -76,12 +76,12 @@ class SessionManager {
   async storeSession(sessionId: string, data: object, ttl = 3600): Promise<void> {
     await redis.setex(`session:${sessionId}`, ttl, JSON.stringify(data));
   }
-  
+
   async getSession(sessionId: string): Promise<object | null> {
     const data = await redis.get(`session:${sessionId}`);
     return data ? JSON.parse(data) : null;
   }
-  
+
   async deleteSession(sessionId: string): Promise<void> {
     await redis.del(`session:${sessionId}`);
   }
@@ -101,7 +101,7 @@ class RateLimiter {
 
 ## Security Boundaries & Timeouts
 - **Connection Security**: Password authentication and SSL/TLS support
-- **Data Encryption**: Optional encryption for sensitive cached data  
+- **Data Encryption**: Optional encryption for sensitive cached data
 - **Access Control**: Redis ACL for user-based permissions
 - **Connection Timeouts**: 5-second default with configurable limits
 - **Memory Limits**: Configurable max memory with eviction policies

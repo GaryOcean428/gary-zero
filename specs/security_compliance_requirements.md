@@ -61,4 +61,3 @@ git pull origin main
   - **Logging & Monitoring**: Implement logging on essential actions and set up alerts for suspicious activities.
 
 ---
-

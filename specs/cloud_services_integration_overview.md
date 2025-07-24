@@ -14,12 +14,12 @@ graph TD
     A --> E[Morphism Browser]
     A --> F[PostgreSQL Database]
     A --> G[Redis Cache]
-    
+
     F --> H[User Authentication]
     F --> I[Configuration Storage]
     G --> J[Session Management]
     G --> K[Rate Limiting]
-    
+
     B --> L[Security Tools]
     C --> M[Code Execution]
     D --> N[Desktop Automation]
@@ -83,8 +83,8 @@ KALI_SHELL_URL="http://${{kali-linux-docker.RAILWAY_PRIVATE_DOMAIN}}:${{kali-lin
 MORPHISM_BROWSER_URL="https://${{morphism-browser.RAILWAY_PUBLIC_DOMAIN}}"
 
 # External APIs
-E2B_API_KEY="e2b_your_api_key"
-ANTHROPIC_API_KEY="your_anthropic_api_key"
+E2B_API_KEY="e2b_your_api_key"  # pragma: allowlist secret
+ANTHROPIC_API_KEY="your_anthropic_api_key"  # pragma: allowlist secret
 ```
 
 ## Performance Considerations

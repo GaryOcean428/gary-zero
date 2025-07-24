@@ -247,7 +247,7 @@ class DatabaseAuth:
             return False
 
     def authenticate_user(
-        self, username: str, password: str, ip_address: str = None
+        self, username: str, password: str, ip_address: str | None = None
     ) -> tuple[bool, dict | None]:
         """Authenticate a user with username and password.
 
@@ -440,7 +440,7 @@ class DatabaseAuth:
             return None
 
     def create_session(
-        self, user_id: int, ip_address: str = None, user_agent: str = None
+        self, user_id: int, ip_address: str | None = None, user_agent: str | None = None
     ) -> str | None:
         """Create a new session for authenticated user.
 
@@ -551,8 +551,8 @@ class DatabaseAuth:
         user_id: int,
         provider: str,
         access_token: str,
-        refresh_token: str = None,
-        expires_at: datetime = None,
+        refresh_token: str | None = None,
+        expires_at: datetime | None = None,
     ) -> bool:
         """Store OAuth tokens for future OAuth implementation.
 

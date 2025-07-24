@@ -24,7 +24,7 @@
   from fastapi import FastAPI
 
   app = FastAPI()
-  
+
   @app.get("/health")
   def read_health():
       return {"status": "ok"}
@@ -43,7 +43,7 @@
 
 ## Health Checks
 
-- Configure application health checks 
+- Configure application health checks
 
 ## Rollbacks
 
@@ -61,7 +61,7 @@
 
 1. **Feature Branch Deployment**
    - Deploy feature branches to isolated environments for testing.
-  
+
 2. **Gradual Rollout**
    - Gradually increase traffic to the new deployment and monitor performance and metrics.
 
@@ -104,7 +104,7 @@ jobs:
     needs: build-and-test
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Deploy to Railway
         run: |
           railway up
