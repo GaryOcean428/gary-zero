@@ -1,0 +1,153 @@
+# Technology Stack - Gary-Zero Agent OS
+
+## Core Architecture
+
+### Runtime Environment
+- **Language**: Python 3.13+ (primary), JavaScript/TypeScript (UI)
+- **Framework**: FastAPI for async API, Flask for legacy support
+- **Containerization**: Docker with Docker Compose
+- **Process Management**: Uvicorn ASGI server with Gunicorn for production
+
+### Backend Technologies
+
+#### Web Framework & API
+- **FastAPI 0.115.0+**: Modern async web framework
+- **Uvicorn 0.32.0+**: ASGI server with standard features
+- **Pydantic 2.8.0+**: Data validation and settings management
+- **WebSockets 12.0+**: Real-time bidirectional communication
+
+#### AI & Language Models
+- **LangChain Core 0.3.0+**: LLM abstraction and orchestration
+- **LangChain Anthropic 0.3.3+**: Claude integration
+- **LangChain OpenAI 0.3.11+**: GPT integration
+- **Custom Model Registry**: Support for multiple AI providers
+
+#### Agent Communication & Protocols
+- **MCP (Model Context Protocol) 1.12.0+**: Agent interoperability
+- **FastMCP 2.3.0+**: High-performance MCP implementation
+- **Shared-MCP**: Custom MCP extensions for multi-agent systems
+- **WebSocket**: Real-time agent communication
+
+#### Task Orchestration & Execution
+- **Docker SDK 7.1.0+**: Container management for secure execution
+- **Playwright 1.45.0+**: Web automation and browser control
+- **PSUtil 7.0.0+**: System monitoring and resource management
+- **AsyncIO-MQTT 0.16.0+**: Asynchronous message queuing
+
+### Frontend Technologies
+
+#### Web Interface
+- **Vanilla JavaScript/TypeScript**: Lightweight, dependency-free UI
+- **CSS3**: Modern styling with CSS Grid and Flexbox
+- **WebSocket API**: Real-time UI updates
+- **Progressive Web App**: Installable web application
+
+#### Static Assets Management
+- **FastAPI StaticFiles**: Efficient static file serving
+- **Responsive Design**: Mobile-first approach
+- **Component Architecture**: Modular UI components
+
+### Database & Storage
+
+#### Memory & Knowledge Management
+- **Vector Database**: Embedded vector storage for memory
+- **File System**: Persistent storage for knowledge base
+- **JSON Configuration**: Settings and metadata storage
+- **SQLite**: Lightweight database for logs and analytics
+
+#### Session Management
+- **In-Memory Sessions**: Fast session state management
+- **Persistent Memory**: Long-term agent memory storage
+- **File-based Storage**: Configuration and user data persistence
+
+### Security & Authentication
+
+#### Security Framework
+- **HTTPBearer**: Token-based authentication
+- **CORS Middleware**: Cross-origin request handling
+- **GZip Middleware**: Response compression
+- **Input Validation**: Pydantic-based request validation
+
+#### Secure Execution
+- **Docker Sandboxing**: Isolated code execution environment
+- **Secret Management**: Environment-based secret handling
+- **Permission Controls**: Fine-grained access controls
+- **Security Scanning**: Automated vulnerability detection
+
+### Development & Deployment
+
+#### Code Quality & Testing
+- **Pytest 8.2.0+**: Comprehensive testing framework
+- **Pytest-AsyncIO**: Async testing support
+- **Black 24.4.0+**: Code formatting
+- **Ruff 0.11.13+**: Fast Python linter
+- **MyPy 1.10.0+**: Static type checking
+
+#### CI/CD Pipeline
+- **GitHub Actions**: Automated testing and deployment
+- **Docker Hub**: Container registry
+- **Railway**: Cloud deployment platform
+- **Quality Gates**: Multi-stage validation pipeline
+
+#### Development Tools
+- **Pre-commit**: Git hooks for code quality
+- **Poetry/Pip**: Dependency management
+- **Docker Compose**: Local development environment
+- **Hot Reload**: Development server with auto-restart
+
+### Infrastructure & Deployment
+
+#### Cloud Deployment
+- **Railway**: Primary cloud platform
+- **Docker Containers**: Portable deployment units
+- **Environment Variables**: Configuration management
+- **Health Checks**: Application monitoring
+
+#### Networking & Communication
+- **HTTP/HTTPS**: Web protocol support
+- **WebSocket**: Real-time communication
+- **TCP/UDP**: Network protocol support
+- **Reverse Proxy**: Production-ready routing
+
+### Integration & Extensibility
+
+#### Plugin System
+- **Dynamic Loading**: Runtime plugin discovery
+- **Python Modules**: Native Python plugin architecture
+- **Configuration Driven**: YAML/JSON plugin configuration
+- **Event System**: Plugin communication framework
+
+#### External Integrations
+- **Search Engines**: SearXNG, DuckDuckGo, Perplexity
+- **AI Providers**: OpenAI, Anthropic, Google, local models
+- **Development Tools**: VSCode, Git, GitHub
+- **Cloud Services**: Railway, Docker Hub, various APIs
+
+## Performance & Scalability
+
+### Optimization Features
+- **Async/Await**: Non-blocking I/O operations
+- **Connection Pooling**: Efficient resource management
+- **Caching**: Memory and disk-based caching
+- **Compression**: GZip response compression
+
+### Monitoring & Observability
+- **Performance Metrics**: Built-in performance monitoring
+- **Logging System**: Structured logging with multiple levels
+- **Health Endpoints**: Application health monitoring
+- **Resource Tracking**: Memory and CPU usage monitoring
+
+## Architecture Principles
+
+### Design Patterns
+- **Microservices**: Modular service architecture
+- **Event-Driven**: Asynchronous event processing
+- **Plugin Architecture**: Extensible component system
+- **Configuration as Code**: Infrastructure and settings management
+
+### Quality Attributes
+- **Scalability**: Horizontal and vertical scaling support
+- **Reliability**: Fault tolerance and error recovery
+- **Maintainability**: Clean, documented, and testable code
+- **Security**: Defense in depth with multiple security layers
+- **Performance**: Optimized for speed and resource efficiency
