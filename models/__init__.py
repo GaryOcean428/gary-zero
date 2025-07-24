@@ -17,6 +17,8 @@ try:
     ModelType = models_module.ModelType
     get_api_key = models_module.get_api_key
     get_model = models_module.get_model
+    get_rate_limiter = models_module.get_rate_limiter
+    parse_chunk = models_module.parse_chunk
 except (ImportError, AttributeError):
     # Fallback definitions if main models.py is not available
     from enum import Enum
@@ -38,3 +40,19 @@ except (ImportError, AttributeError):
 
     def get_model(model_type, provider, name, **kwargs):
         return None
+    
+    def get_rate_limiter(provider, name, requests, input_tokens, output_tokens):
+        from framework.helpers.rate_limiter import RateLimiter
+        return RateLimiter(
+            requests=requests or 1000,
+            input_tokens=input_tokens or 1000000,
+            output_tokens=output_tokens or 1000000
+        )
+    
+    def parse_chunk(chunk):
+        if isinstance(chunk, str):
+            return chunk
+        elif hasattr(chunk, "content"):
+            return str(chunk.content)
+        else:
+            return str(chunk)
