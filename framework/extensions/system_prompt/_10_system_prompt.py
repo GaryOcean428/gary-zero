@@ -38,7 +38,12 @@ def get_tools_prompt(agent: Agent):
 
 def get_mcp_tools_prompt(agent: Agent):
     mcp_config = MCPConfig.get_instance()
-    if mcp_config.servers:
+    # Check if any servers are available by checking the status
+    servers_status = mcp_config.get_servers_status()
+    has_connected_servers = servers_status and any(
+        server.get("connected", False) for server in servers_status
+    )
+    if has_connected_servers:
         pre_progress = agent.context.log.progress
         agent.context.log.set_progress(
             "Collecting MCP tools"
