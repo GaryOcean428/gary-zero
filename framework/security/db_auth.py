@@ -266,9 +266,9 @@ class DatabaseAuth:
                 # Get user data
                 cursor.execute(
                     """
-                    SELECT id, username, password_hash, is_active, failed_login_attempts, 
+                    SELECT id, username, password_hash, is_active, failed_login_attempts,
                            locked_until, must_change_password, password_changed_at
-                    FROM auth_users 
+                    FROM auth_users
                     WHERE username = %s
                 """,
                     (username,),
@@ -311,7 +311,7 @@ class DatabaseAuth:
 
                     cursor.execute(
                         """
-                        UPDATE auth_users 
+                        UPDATE auth_users
                         SET failed_login_attempts = %s, locked_until = %s, updated_at = %s
                         WHERE id = %s
                     """,
@@ -328,7 +328,7 @@ class DatabaseAuth:
                 # Authentication successful - reset failed attempts and update last login
                 cursor.execute(
                     """
-                    UPDATE auth_users 
+                    UPDATE auth_users
                     SET failed_login_attempts = 0, locked_until = NULL, last_login = %s, updated_at = %s
                     WHERE id = %s
                 """,
@@ -378,7 +378,7 @@ class DatabaseAuth:
 
                 cursor.execute(
                     """
-                    UPDATE auth_users 
+                    UPDATE auth_users
                     SET password_hash = %s, password_changed_at = %s, must_change_password = FALSE, updated_at = %s
                     WHERE username = %s
                 """,
@@ -415,7 +415,7 @@ class DatabaseAuth:
 
                 cursor.execute(
                     """
-                    UPDATE auth_users 
+                    UPDATE auth_users
                     SET password_hash = %s, password_changed_at = %s, must_change_password = TRUE, updated_at = %s
                     WHERE username = %s
                 """,
@@ -506,8 +506,8 @@ class DatabaseAuth:
                 # Update last activity
                 cursor.execute(
                     """
-                    UPDATE auth_sessions 
-                    SET last_activity = %s 
+                    UPDATE auth_sessions
+                    SET last_activity = %s
                     WHERE session_token = %s
                 """,
                     (datetime.utcnow(), session_token),
@@ -529,7 +529,7 @@ class DatabaseAuth:
 
                 cursor.execute(
                     """
-                    DELETE FROM auth_sessions 
+                    DELETE FROM auth_sessions
                     WHERE expires_at < %s
                 """,
                     (datetime.utcnow(),),
@@ -574,8 +574,8 @@ class DatabaseAuth:
                     """
                     INSERT INTO auth_oauth_tokens (user_id, provider, access_token, refresh_token, expires_at)
                     VALUES (%s, %s, %s, %s, %s)
-                    ON CONFLICT (user_id, provider) 
-                    DO UPDATE SET 
+                    ON CONFLICT (user_id, provider)
+                    DO UPDATE SET
                         access_token = EXCLUDED.access_token,
                         refresh_token = EXCLUDED.refresh_token,
                         expires_at = EXCLUDED.expires_at,

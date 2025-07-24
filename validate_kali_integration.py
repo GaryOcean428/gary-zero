@@ -66,7 +66,7 @@ def test_shell_connectivity() -> dict[str, Any]:
             "error": "Missing required environment variables for connectivity test",
             "connectivity": False,
         }
-    
+
     # Ensure we have string values
     shell_url = str(shell_url)
     username = str(username)
@@ -149,7 +149,7 @@ def test_shell_command_execution() -> dict[str, Any]:
             {"command": "which nmap", "description": "Check if nmap is available"},
         ]
 
-        results = {}
+        results: dict[str, Any] = {}
 
         for test_cmd in test_commands:
             try:
@@ -218,7 +218,7 @@ def validate_framework_integration() -> dict[str, Any]:
         "webui/js/shell-iframe.js",
     ]
 
-    results = {
+    results: dict[str, Any] = {
         "files_present": {},
         "all_files_present": True,
         "integration_complete": False,
@@ -276,7 +276,7 @@ async def test_kali_executor_integration() -> dict[str, Any]:
             is_kali_execution_available,
         )
 
-        results = {
+        results: dict[str, Any] = {
             "import_successful": True,
             "availability_check": is_kali_execution_available(),
             "executor_tests": {},
@@ -409,7 +409,10 @@ def generate_integration_report(results: dict[str, Any]) -> str:
         )
 
         for cmd, result in cmd_results.get("command_results", {}).items():
-            result_dict = dict(result) if isinstance(result, dict) else {}
+            if isinstance(result, dict):
+                result_dict = result
+            else:
+                result_dict = {}
             status = "✅" if result_dict.get("success") else "❌"
             output = str(result_dict.get("stdout", "")).strip()[:50]
             output_display = f" → {output}" if output else ""
@@ -547,7 +550,7 @@ async def main():
     print("🔍 Starting Kali Shell Integration Validation...")
     print("=" * 50)
 
-    results = {}
+    results: dict[str, Any] = {}
 
     # Test 1: Environment Variables
     print("\n📋 Validating environment variables...")
