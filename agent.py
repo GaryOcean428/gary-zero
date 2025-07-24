@@ -62,7 +62,9 @@ class AgentContext:
         self.id = id or str(uuid.uuid4())
         self.name = name
         self.config = config
-        self.log = log or log.Log()
+        # Import log module to ensure it's available
+        from framework.helpers import log as log_module
+        self.log = log or log_module.Log()
         self.agent0 = agent0 or Agent(0, self.config, self)
         self.paused = paused
         self.streaming_agent = streaming_agent
