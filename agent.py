@@ -801,28 +801,76 @@ class Agent:
         return self.history.output_text(human_label="user", ai_label="assistant")
 
     def get_chat_model(self):
-        return models.get_model(
-            models.ModelType.CHAT,
-            self.config.chat_model.provider,
-            self.config.chat_model.name,
-            **self.config.chat_model.kwargs,
-        )
+        try:
+            model = models.get_model(
+                models.ModelType.CHAT,
+                self.config.chat_model.provider,
+                self.config.chat_model.name,
+                **self.config.chat_model.kwargs,
+            )
+            if model is None:
+                raise ValueError(
+                    f"Chat model returned None - provider: {self.config.chat_model.provider}, "
+                    f"name: {self.config.chat_model.name}"
+                )
+            return model
+        except Exception as e:
+            error_msg = (
+                f"Failed to initialize chat model - "
+                f"provider: {self.config.chat_model.provider}, "
+                f"name: {self.config.chat_model.name}, "
+                f"error: {str(e)}"
+            )
+            self.context.log.log(type="error", content=error_msg)
+            raise RuntimeError(error_msg) from e
 
     def get_utility_model(self):
-        return models.get_model(
-            models.ModelType.CHAT,
-            self.config.utility_model.provider,
-            self.config.utility_model.name,
-            **self.config.utility_model.kwargs,
-        )
+        try:
+            model = models.get_model(
+                models.ModelType.CHAT,
+                self.config.utility_model.provider,
+                self.config.utility_model.name,
+                **self.config.utility_model.kwargs,
+            )
+            if model is None:
+                raise ValueError(
+                    f"Utility model returned None - provider: {self.config.utility_model.provider}, "
+                    f"name: {self.config.utility_model.name}"
+                )
+            return model
+        except Exception as e:
+            error_msg = (
+                f"Failed to initialize utility model - "
+                f"provider: {self.config.utility_model.provider}, "
+                f"name: {self.config.utility_model.name}, "
+                f"error: {str(e)}"
+            )
+            self.context.log.log(type="error", content=error_msg)
+            raise RuntimeError(error_msg) from e
 
     def get_embedding_model(self):
-        return models.get_model(
-            models.ModelType.EMBEDDING,
-            self.config.embeddings_model.provider,
-            self.config.embeddings_model.name,
-            **self.config.embeddings_model.kwargs,
-        )
+        try:
+            model = models.get_model(
+                models.ModelType.EMBEDDING,
+                self.config.embeddings_model.provider,
+                self.config.embeddings_model.name,
+                **self.config.embeddings_model.kwargs,
+            )
+            if model is None:
+                raise ValueError(
+                    f"Embedding model returned None - provider: {self.config.embeddings_model.provider}, "
+                    f"name: {self.config.embeddings_model.name}"
+                )
+            return model
+        except Exception as e:
+            error_msg = (
+                f"Failed to initialize embedding model - "
+                f"provider: {self.config.embeddings_model.provider}, "
+                f"name: {self.config.embeddings_model.name}, "
+                f"error: {str(e)}"
+            )
+            self.context.log.log(type="error", content=error_msg)
+            raise RuntimeError(error_msg) from e
 
     async def call_utility_model(
         self,
