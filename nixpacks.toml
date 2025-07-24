@@ -1,8 +1,0 @@
-[providers]
-python = "3.13"
-
-[build]
-buildCommand = "pip install -r requirements.txt"
-
-[start]
-cmd = "python start_uvicorn.py"
