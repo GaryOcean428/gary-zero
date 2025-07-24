@@ -194,9 +194,25 @@ echo $NODE_ENV
 3. Enable appropriate authentication (AUTH_LOGIN/AUTH_PASSWORD)
 4. Consider using Railway's private networking for database connections
 
+## Cloud Service Architecture
+
+Gary Zero leverages Railway's private networking to connect with specialized services:
+
+### Connected Services
+1. **Kali Linux Docker Service**: Provides penetration testing and security analysis tools
+2. **E2B Code Execution**: Secure sandboxed environment for running code
+3. **Morphism Browser**: Automated browser control and web interaction
+4. **Computer Use Integration**: Desktop automation through Anthropic's Computer Use API
+
+### Service Communication
+- Services communicate via Railway's internal network (`railway.internal`)
+- Environment variables use Railway reference syntax: `${{service-name.VARIABLE}}`
+- Private networking ensures secure inter-service communication
+
 ## Performance Optimization
 
 1. Use Railway's built-in PostgreSQL for optimal database performance
 2. Configure appropriate restart policies for high availability
 3. Monitor resource usage through Railway dashboard
 4. Consider enabling Railway's autoscaling features for production workloads
+5. Leverage Railway's internal networking for fast service-to-service communication

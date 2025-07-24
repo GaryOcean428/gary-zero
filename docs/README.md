@@ -4,7 +4,11 @@ To begin with Gary-Zero, follow the links below for detailed guides on various t
 
 - **[Installation](installation.md):** Set up (or [update](installation.md#how-to-update-gary-zero)) Gary-Zero on your system.
 - **[Usage Guide](usage.md):** Explore GUI features and usage scenarios.
+- **[Railway Deployment](railway-deployment.md):** Deploy Gary-Zero to Railway.com cloud platform.
+- **[Cloud Environment](CLOUD_ENVIRONMENT.md):** Comprehensive cloud architecture with specialized services.
 - **[Architecture Overview](architecture.md):** Understand the internal workings of the framework.
+- **[Kali Integration](KALI_INTEGRATION.md):** Security testing capabilities through Railway-hosted Kali Linux.
+- **[Computer Use & Code Tools](tools/anthropic-computer-use-claude-code.md):** Desktop automation and advanced code editing.
 - **[Contributing](contribution.md):** Learn how to contribute to the Gary-Zero project.
 - **[Troubleshooting and FAQ](troubleshooting.md):** Find answers to common issues and questions.
 
