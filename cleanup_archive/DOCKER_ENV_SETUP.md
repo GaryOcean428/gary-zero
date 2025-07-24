@@ -85,7 +85,7 @@ Using your `.env` file naming convention:
 
 ```bash
 docker run -p 50001:50001 \
-  -e OPENAI_API_KEY="your-key" \
+  -e OPENAI_API_KEY="your-key" \  # pragma: allowlist secret
   -e ANTHROPIC_API_KEY="your-key" \
   -e GROQ_API_KEY="your-key" \
   garyocean77/gary-zero:latest

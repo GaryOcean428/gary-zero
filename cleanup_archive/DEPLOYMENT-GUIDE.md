@@ -1,5 +1,6 @@
 # Gary-Zero CI/CD Deployment Guide
 
+
 ## 🚀 Quick Start
 
 The new CI/CD architecture is now fully implemented with 4 reusable composite workflows. Here's how to use it:
@@ -59,6 +60,7 @@ Use workflow dispatch for manual deployments:
    - Skip deployment (optional)
    - Choose environment (production/staging)
 
+
 ## 🧩 Composite Workflows Overview
 
 ### A. Static Checks (`_static-checks.yml`)
@@ -115,6 +117,7 @@ secrets:
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 ```
 
+
 ## 🚪 Quality Gate
 
 The quality gate ensures all checks pass before deployment:
@@ -125,6 +128,7 @@ The quality gate ensures all checks pass before deployment:
 - ✅ All validations complete successfully
 
 If any check fails, deployment is blocked until issues are resolved.
+
 
 ## 🚂 Railway Configuration
 
@@ -150,6 +154,7 @@ WEB_UI_HOST = { default = "0.0.0.0" }
 - Binds to `0.0.0.0` for Railway compatibility
 - Health endpoint at `/health`
 
+
 ## 📊 Monitoring & Reporting
 
 ### GitHub Integration
@@ -165,6 +170,7 @@ WEB_UI_HOST = { default = "0.0.0.0" }
 - **Security Reports**: JSON artifacts with detailed findings
 - **Performance Metrics**: Benchmark results
 - **Deployment Logs**: Complete audit trail
+
 
 ## 🔧 Troubleshooting
 
@@ -204,6 +210,7 @@ bash scripts/start.sh
 # Test health endpoint
 curl http://localhost:8000/health
 ```
+
 
 ## 🎯 Next Steps
 

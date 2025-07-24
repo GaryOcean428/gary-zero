@@ -71,8 +71,8 @@ PERPLEXITY_API_KEY=your-perplexity-api-key
 #### Database Connection (if using external database)
 
 ```bash
-DATABASE_URL=postgres://user:pass@host:port/db?sslmode=require
-POSTGRES_URL=postgres://user:pass@host:port/db?sslmode=require
+DATABASE_URL=postgres://user:pass@host:port/db?sslmode=require  # pragma: allowlist secret
+POSTGRES_URL=postgres://user:pass@host:port/db?sslmode=require  # pragma: allowlist secret
 ```
 
 #### Additional Security Variables

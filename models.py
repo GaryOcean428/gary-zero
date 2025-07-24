@@ -78,7 +78,7 @@ def get_api_key(service) -> str | None:
         or dotenv.get_dotenv_value(f"{service.upper()}_API_TOKEN")
     )
     if key_value and key_value != "None":
-        return key_value
+        return str(key_value)
     return None
 
 

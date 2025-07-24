@@ -2,6 +2,8 @@
 
 Gary-Zero is built on a flexible and modular architecture designed for extensibility and customization. This section outlines the key components and the interactions between them.
 
+> **📋 Note**: For detailed technology stack information, see [.agent-os/product/tech-stack.md](../.agent-os/product/tech-stack.md)
+
 
 ## System Architecture
 

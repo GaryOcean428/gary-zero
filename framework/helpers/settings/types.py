@@ -256,7 +256,10 @@ DEFAULT_SETTINGS: Settings = {
     "stt_silence_duration": 1000,
     "stt_waiting_timeout": 30,
     # MCP settings
-    "mcp_servers": "filesystem,github,github.com/pashpashpash/mcp-taskmanager,mcp-browserbase,mcp-playwright,memory",
+    "mcp_servers": (
+        "filesystem,github,github.com/pashpashpash/mcp-taskmanager,"
+        "mcp-browserbase,mcp-playwright,memory"
+    ),
     "mcp_client_init_timeout": 30,
     "mcp_client_tool_timeout": 300,
     # Database settings

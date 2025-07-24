@@ -1,6 +1,8 @@
 ![Gary-Zero Logo](res/header.png)
 
-# Gary-Zero Documentation
+# Gary-Zero Documentation - Consolidated
+
+> **🧹 Cleanup Notice**: This documentation has been consolidated to remove redundancy and conflicts. Archived files are in `../cleanup_archive/`.
 
 To begin with Gary-Zero, follow the links below for detailed guides on various topics:
 

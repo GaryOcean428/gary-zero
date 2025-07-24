@@ -36,8 +36,8 @@ jobs:
     name: Static Code Analysis
     uses: ./.github/workflows/_static-checks.yml
     with:
-      python-version: ${{ env.PYTHON_VERSION }}
-      node-version: ${{ env.NODE_VERSION }}
+      python-version: "3.13"
+      node-version: "22"
       skip-secret-scan: false
 
   # Composite Workflow B: Tests
@@ -45,9 +45,9 @@ jobs:
     name: Test Suite
     uses: ./.github/workflows/_tests.yml
     with:
-      python-version: ${{ env.PYTHON_VERSION }}
-      node-version: ${{ env.NODE_VERSION }}
-      coverage-threshold: ${{ env.COVERAGE_THRESHOLD }}
+      python-version: "3.13"
+      node-version: "22"
+      coverage-threshold: 80
       skip-e2e: false
 
   # Composite Workflow C: Security Audit
@@ -56,8 +56,8 @@ jobs:
     uses: ./.github/workflows/_security-audit.yml
     if: ${{ !inputs.skip-security }}
     with:
-      python-version: ${{ env.PYTHON_VERSION }}
-      node-version: ${{ env.NODE_VERSION }}
+      python-version: "3.13"
+      node-version: "22"
       fail-on-security-issues: true
       ossf-scorecard: true
 

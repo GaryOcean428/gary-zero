@@ -210,7 +210,7 @@ class TaskManager:
                     context_id=task.context_id,
                     agent_id=task.agent_id or task.assigned_agent,
                     parent_id=task.parent_id,
-                    subtask_ids=list(task.subtask_ids),
+                    subtask_ids=set(task.subtask_ids),
                     result=task.result,
                     error_message=task.error_message,
                     metadata=task.metadata or task.context,

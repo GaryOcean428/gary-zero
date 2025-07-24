@@ -16,9 +16,10 @@ try:
     from framework.helpers import dotenv
 
     dotenv.load_dotenv()
+    dotenv_module = dotenv
 except ImportError:
     print("⚠️  Warning: Could not import dotenv helper, using os.environ directly")
-    dotenv = None
+    dotenv_module = None
 
 
 class EnvironmentValidator:
@@ -29,15 +30,15 @@ class EnvironmentValidator:
         self.warnings: list[str] = []
         self.info: list[str] = []
 
-    def get_env_value(self, key: str, default: str = None) -> str:
+    def get_env_value(self, key: str, default: str | None = None) -> str | None:
         """Get environment variable value using dotenv helper if available"""
-        if dotenv:
-            return dotenv.get_dotenv_value(key, default)
+        if dotenv_module:
+            return dotenv_module.get_dotenv_value(key, default)
         return os.environ.get(key, default)
 
     def validate_langchain_config(self) -> None:
         """Validate LangChain Anthropic configuration"""
-        stream_usage = self.get_env_value("LANGCHAIN_ANTHROPIC_STREAM_USAGE", "true")
+        stream_usage = self.get_env_value("LANGCHAIN_ANTHROPIC_STREAM_USAGE", "true") or "true"
 
         if stream_usage.lower() == "false":
             self.info.append(
@@ -60,15 +61,15 @@ class EnvironmentValidator:
     def validate_feature_flags(self) -> None:
         """Validate development feature flags"""
         dev_features = (
-            self.get_env_value("ENABLE_DEV_FEATURES", "true").lower() == "true"
+            (self.get_env_value("ENABLE_DEV_FEATURES", "true") or "true").lower() == "true"
         )
         vscode_integration = (
-            self.get_env_value("VSCODE_INTEGRATION_ENABLED", "true").lower() == "true"
+            (self.get_env_value("VSCODE_INTEGRATION_ENABLED", "true") or "true").lower() == "true"
         )
         chat_auto_resize = (
-            self.get_env_value("CHAT_AUTO_RESIZE_ENABLED", "true").lower() == "true"
+            (self.get_env_value("CHAT_AUTO_RESIZE_ENABLED", "true") or "true").lower() == "true"
         )
-        node_env = self.get_env_value("NODE_ENV", "development")
+        node_env = self.get_env_value("NODE_ENV", "development") or "development"
 
         if node_env == "production":
             if not dev_features:
@@ -103,7 +104,8 @@ class EnvironmentValidator:
             self.warnings.append("⚠️  Web UI restricted to localhost only")
 
         try:
-            port_num = int(port)
+            port_str = port or "50001"
+            port_num = int(port_str)
             if 1024 <= port_num <= 65535:
                 self.info.append(f"✅ Web UI port {port_num} configured")
             else:

@@ -1,0 +1,203 @@
+# Specification Update Guard
+# Ensures PRs that modify core functionality also update specifications
+
+name: Spec Update Guard
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+    branches: [main]
+
+jobs:
+  spec-guard:
+    name: Specification Update Guard
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Get changed files
+      id: changed-files
+      uses: tj-actions/changed-files@v40
+      with:
+        files: |
+          framework/**
+          python/**
+          shared_mcp/**
+          models.py
+          agent.py
+          initialize.py
+        files_ignore: |
+          **/*.md
+          **/*.txt
+          **/*.log
+          **/__pycache__/**
+          **/*.pyc
+          **/tests/**
+          **/test_**
+        
+    - name: Get spec files
+      id: spec-files
+      uses: tj-actions/changed-files@v40
+      with:
+        files: |
+          specs/**
+          .agent-os/specs/**
+          docs/**.md
+          
+    - name: Check for spec updates
+      if: steps.changed-files.outputs.any_changed == 'true'
+      run: |
+        echo "🔍 Checking specification update requirements..."
+        echo ""
+        
+        # Count changed core files
+        CORE_FILES_COUNT=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | wc -w)
+        SPEC_FILES_COUNT=$(echo "${{ steps.spec-files.outputs.all_changed_files }}" | wc -w)
+        
+        echo "📊 Change Summary:"
+        echo "  • Core functionality files changed: $CORE_FILES_COUNT"
+        echo "  • Specification files updated: $SPEC_FILES_COUNT"
+        echo ""
+        
+        echo "📂 Changed core files:"
+        for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+          echo "  • $file"
+        done
+        echo ""
+        
+        if [ "$SPEC_FILES_COUNT" -gt 0 ]; then
+          echo "📋 Updated specification files:"
+          for file in ${{ steps.spec-files.outputs.all_changed_files }}; do
+            echo "  • $file"
+          done
+          echo ""
+        fi
+        
+        # Determine if spec update is required
+        REQUIRES_SPEC_UPDATE=false
+        
+        # Check for significant changes that require spec updates
+        for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+          case "$file" in
+            framework/tools/*)
+              REQUIRES_SPEC_UPDATE=true
+              echo "⚠️  Tool changes detected: $file"
+              ;;
+            framework/helpers/*)
+              if [[ "$file" == *"task_"* ]] || [[ "$file" == *"agent_"* ]] || [[ "$file" == *"memory"* ]]; then
+                REQUIRES_SPEC_UPDATE=true
+                echo "⚠️  Core helper changes detected: $file"
+              fi
+              ;;
+            shared_mcp/*)
+              REQUIRES_SPEC_UPDATE=true
+              echo "⚠️  MCP protocol changes detected: $file"
+              ;;
+            models.py|agent.py)
+              REQUIRES_SPEC_UPDATE=true
+              echo "⚠️  Core model/agent changes detected: $file"
+              ;;
+            framework/api/*)
+              REQUIRES_SPEC_UPDATE=true
+              echo "⚠️  API changes detected: $file"
+              ;;
+          esac
+        done
+        
+        echo ""
+        
+        if [ "$REQUIRES_SPEC_UPDATE" = true ]; then
+          if [ "$SPEC_FILES_COUNT" -eq 0 ]; then
+            echo "❌ SPECIFICATION UPDATE REQUIRED"
+            echo ""
+            echo "This PR modifies core functionality but doesn't include specification updates."
+            echo ""
+            echo "📋 Required Actions:"
+            echo "  1. Review the changed files for new features or behavior changes"
+            echo "  2. Update or create specifications in specs/ or .agent-os/specs/"
+            echo "  3. Update relevant documentation in docs/"
+            echo "  4. Consider updating the main README.md if user-facing changes exist"
+            echo ""
+            echo "💡 Specification Guidelines:"
+            echo "  • Tool changes → Update/create tool specifications"
+            echo "  • API changes → Update API documentation and specs"
+            echo "  • Agent behavior → Update agent coordination specs"
+            echo "  • MCP changes → Update MCP integration specs"
+            echo ""
+            echo "🔗 Resources:"
+            echo "  • Spec template: .agent-os/instructions/create-spec.md"
+            echo "  • Spec directory: .agent-os/specs/README.md"
+            echo "  • Documentation guide: docs/README.md"
+            
+            exit 1
+          else
+            echo "✅ SPECIFICATION UPDATE DETECTED"
+            echo ""
+            echo "Good! This PR includes both core changes and specification updates."
+            echo "The changes will be reviewed to ensure specifications are complete."
+          fi
+        else
+          echo "✅ NO SPECIFICATION UPDATE REQUIRED"
+          echo ""
+          echo "The changes in this PR don't require specification updates."
+          echo "Only minor changes or non-functional modifications detected."
+        fi
+
+    - name: PR Comment - Spec Requirements
+      if: failure()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const comment = `## 📋 Specification Update Required
+          
+          This PR modifies core functionality but doesn't include the required specification updates.
+          
+          ### 🔍 Changes Detected
+          Core functionality changes were found that require documentation updates to maintain consistency with the Agent-OS specification system.
+          
+          ### ✅ Required Actions
+          1. **Review Changes**: Analyze your modifications for new features or behavior changes
+          2. **Update Specifications**: Create or update relevant specs in \`specs/\` or \`.agent-os/specs/\`
+          3. **Update Documentation**: Ensure \`docs/\` reflects any user-facing changes
+          4. **README Updates**: Update main README.md if needed for user-visible features
+          
+          ### 📚 Resources
+          - **Spec Template**: \`.agent-os/instructions/create-spec.md\`
+          - **Spec Directory**: \`.agent-os/specs/README.md\`
+          - **Documentation Guide**: \`docs/README.md\`
+          
+          ### 💡 Guidelines
+          - **Tool Changes** → Update/create tool specifications
+          - **API Changes** → Update API documentation and specs  
+          - **Agent Behavior** → Update agent coordination specs
+          - **MCP Changes** → Update MCP integration specs
+          
+          Once you've added the necessary specification updates, the check will pass automatically.`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+    - name: Success summary
+      if: success()
+      run: |
+        echo "🎉 Specification Guard Check Passed"
+        echo ""
+        echo "The PR meets specification update requirements:"
+        if [ "${{ steps.changed-files.outputs.any_changed }}" = "true" ]; then
+          if [ "${{ steps.spec-files.outputs.any_changed }}" = "true" ]; then
+            echo "  ✅ Core changes include specification updates"
+          else
+            echo "  ✅ Changes don't require specification updates"
+          fi
+        else
+          echo "  ✅ No core functionality changes detected"
+        fi
