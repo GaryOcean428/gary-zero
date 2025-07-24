@@ -83,10 +83,57 @@ def get_api_key(service) -> str | None:
 
 
 def get_model(model_type: ModelType, provider: ModelProvider, name: str, **kwargs):
+    """Get a model instance for the specified provider and type.
+
+    Args:
+        model_type: Type of model (CHAT or EMBEDDING)
+        provider: Model provider enum
+        name: Model name
+        **kwargs: Additional model configuration
+
+    Returns:
+        Model instance
+
+    Raises:
+        ValueError: If provider/model combination is not supported
+        Exception: If model initialization fails
+    """
     # Construct the function name for the model getter
     fnc_name = f"get_{provider.name.lower()}_{model_type.name.lower()}"
-    model = globals()[fnc_name](name, **kwargs)
-    return model
+
+    try:
+        # Check if the function exists
+        if fnc_name not in globals():
+            available_functions = [
+                k
+                for k in globals()
+                if k.startswith("get_") and ("_chat" in k or "_embedding" in k)
+            ]
+            raise ValueError(
+                f"Provider {provider.name} does not support "
+                f"{model_type.name} models. Function '{fnc_name}' not found. "
+                f"Available functions: {available_functions[:5]}..."
+            )
+
+        # Call the function
+        model_func = globals()[fnc_name]
+        model = model_func(name, **kwargs)
+
+        if model is None:
+            raise ValueError(
+                f"Model function '{fnc_name}' returned None - "
+                f"check API key and configuration"
+            )
+
+        return model
+
+    except KeyError as e:
+        raise ValueError(f"Provider function '{fnc_name}' not found: {e}") from e
+    except Exception as e:
+        raise Exception(
+            f"Failed to initialize {provider.name} {model_type.name} "
+            f"model '{name}': {e}"
+        ) from e
 
 
 def get_rate_limiter(

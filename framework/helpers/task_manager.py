@@ -67,6 +67,22 @@ class Task:
     progress: float = 0.0
     estimated_duration: int | None = None  # in minutes
     actual_duration: int | None = None  # in minutes
+    # Additional fields for persistence compatibility
+    context_id: str | None = None
+    agent_id: str | None = None
+    result: str | None = None
+    error_message: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def __hash__(self):
+        """Make Task objects hashable using their ID."""
+        return hash(self.id)
+
+    def __eq__(self, other):
+        """Check equality based on ID."""
+        if isinstance(other, Task):
+            return self.id == other.id
+        return False
 
 
 @dataclass
@@ -171,21 +187,33 @@ class TaskManager:
                     TaskStatus as PersistenceTaskStatus,
                 )
 
+                # Map priority enum to integer
+                priority_map = {
+                    TaskPriority.LOW: 1,
+                    TaskPriority.MEDIUM: 2,
+                    TaskPriority.HIGH: 3,
+                    TaskPriority.CRITICAL: 4,
+                }
+                priority_int = priority_map.get(task.priority, 2)
+
                 persistence_task = PersistenceTask(
                     id=task.id,
                     title=task.title,
                     description=task.description,
                     category=PersistenceTaskCategory(task.category.value),
                     status=PersistenceTaskStatus(task.status.value),
-                    priority=1,  # Default priority
+                    priority=priority_int,
                     progress=task.progress,
                     created_at=task.created_at,
                     started_at=task.started_at,
                     completed_at=task.completed_at,
-                    agent_id=task.assigned_agent,
+                    context_id=task.context_id,
+                    agent_id=task.agent_id or task.assigned_agent,
                     parent_id=task.parent_id,
                     subtask_ids=list(task.subtask_ids),
-                    metadata=task.context,
+                    result=task.result,
+                    error_message=task.error_message,
+                    metadata=task.metadata or task.context,
                 )
 
                 db.save_task(persistence_task)
