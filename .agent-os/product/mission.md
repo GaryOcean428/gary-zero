@@ -24,9 +24,11 @@ To become the leading open-source platform for autonomous agent development, ena
 - **Rule Enforcement**: Coding standards and best practices are enforced via the `.clinerules` file, ensuring consistency and reliability across all development activities.
 - **No Hard-coded Rails**: Agents operate with complete freedom within user-defined parameters
 - **Computer as a Tool**: Direct OS interaction through terminal and code execution
+- **Cloud-Native Execution**: Railway.com deployment with connected services for specialized environments
 - **Hierarchical Agent Structure**: Superior-subordinate relationships for complex task delegation
 - **MCP Integration**: Both server and client capabilities for ecosystem interoperability
 - **Docker-first Architecture**: Consistent deployment across all environments
+- **Visual Computing**: Anthropic Computer Use for desktop automation and visual task execution
 
 ## Success Metrics
 - User adoption and community growth

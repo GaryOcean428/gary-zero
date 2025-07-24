@@ -41,10 +41,12 @@ fi
 
 # Check for environment variable requirements
 echo "🔧 Validating environment configuration..."
-if grep -q "PORT" railway.toml; then
+if [ -f "railpack.json" ] && grep -q "PORT" railpack.json; then
+    echo "✅ PORT configuration found in railpack.json"
+elif [ -f "railway.toml" ] && grep -q "PORT" railway.toml; then
     echo "✅ PORT configuration found in railway.toml"
 else
-    echo "❌ ERROR: PORT configuration not found in railway.toml"
+    echo "❌ ERROR: PORT configuration not found in railway configuration"
     exit 1
 fi
 

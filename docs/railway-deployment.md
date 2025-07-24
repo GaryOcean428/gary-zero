@@ -4,7 +4,7 @@ This document provides comprehensive guidance for deploying Gary Zero to Railway
 
 ## Overview
 
-Gary Zero is configured for Railway deployment using the `railway.toml` configuration file in the project root.
+Gary Zero is configured for Railway deployment with a comprehensive cloud environment that includes specialized services for enhanced capabilities. The main application connects to Railway-hosted services including Kali Linux for security testing, E2B for secure code execution, and browser automation services.
 
 ## Prerequisites
 
@@ -58,6 +58,12 @@ Based on `.env.example`, you'll need to configure the following environment vari
 - `OPENAI_API_KEY` (if using OpenAI models)
 - `ANTHROPIC_API_KEY` (if using Anthropic models)
 - `GOOGLE_API_KEY` (if using Google/Gemini models)
+
+#### Cloud Service Configuration
+- `KALI_SHELL_URL` (Railway reference variable to Kali service)
+- `KALI_USERNAME` and `KALI_PASSWORD` (Kali authentication)
+- `E2B_API_KEY` (E2B code execution service)
+- `MORPHISM_BROWSER_URL` (Browser automation service)
 
 #### Optional but Recommended
 - `JWT_SECRET`

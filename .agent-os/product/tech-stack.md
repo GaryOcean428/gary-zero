@@ -31,6 +31,8 @@
 #### Task Orchestration & Execution
 - **Docker SDK 7.1.0+**: Container management for secure execution
 - **Playwright 1.45.0+**: Web automation and browser control
+- **Anthropic Computer Use**: Desktop automation and visual interaction
+- **E2B SDK**: Cloud code execution and sandboxing
 - **PSUtil 7.0.0+**: System monitoring and resource management
 - **AsyncIO-MQTT 0.16.0+**: Asynchronous message queuing
 
@@ -98,10 +100,11 @@
 ### Infrastructure & Deployment
 
 #### Cloud Deployment
-- **Railway**: Primary cloud platform
+- **Railway**: Primary cloud platform with inter-service communication
 - **Docker Containers**: Portable deployment units
-- **Environment Variables**: Configuration management
-- **Health Checks**: Application monitoring
+- **Environment Variables**: Configuration management with Railway reference variables
+- **Health Checks**: Application monitoring and service discovery
+- **Private Networking**: Railway's internal service communication
 
 #### Networking & Communication
 - **HTTP/HTTPS**: Web protocol support
@@ -140,12 +143,15 @@
 - **Configuration Driven**: YAML/JSON plugin configuration
 - **Event System**: Plugin communication framework
 
-#### External Dependencies
+#### External Dependencies & Cloud Services
 - **Agent OS Coordination Layer**: Primary orchestration system for multi-agent workflows
 - **Gary8D Agent Personas**: Specialized expert agents for domain-specific tasks
 - **MCP Protocol Stack**: Model Context Protocol for agent interoperability
 - **Vector Database Services**: External vector storage for scalable memory systems
 - **Task Queue Systems**: Redis, RabbitMQ for distributed task processing
+- **Kali Linux Service**: Railway-hosted penetration testing environment
+- **E2B Code Execution**: Secure cloud code execution sandbox
+- **Morphism Browser**: Railway-deployed browser automation service
 
 #### External Integrations
 - **Search Engines**: SearXNG, DuckDuckGo, Perplexity
