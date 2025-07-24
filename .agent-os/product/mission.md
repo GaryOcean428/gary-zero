@@ -21,6 +21,7 @@ To become the leading open-source platform for autonomous agent development, ena
 4. **For Security Professionals**: Specialized toolsets for cybersecurity tasks and penetration testing
 
 ## Unique Differentiators
+- **Rule Enforcement**: Coding standards and best practices are enforced via the `.clinerules` file, ensuring consistency and reliability across all development activities.
 - **No Hard-coded Rails**: Agents operate with complete freedom within user-defined parameters
 - **Computer as a Tool**: Direct OS interaction through terminal and code execution
 - **Hierarchical Agent Structure**: Superior-subordinate relationships for complex task delegation

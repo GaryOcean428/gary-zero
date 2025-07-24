@@ -1,3 +1,88 @@
+name: Comprehensive CI/CD Pipeline for Gary-Zero
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+  schedule:
+    - cron: '0 0 * * *' # Daily run for Dependabot
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.13"
+  NODE_VERSION: "22"
+  MINIMUM_COVERAGE: 80
+
+jobs:
+  prepare:
+    name: Git Workflow & Environment Setup
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Check for uncommitted changes
+      run: |
+        if ! git diff-index --quiet HEAD --; then
+          echo "Uncommitted changes detected!"
+          exit 1
+        fi
+
+  security-quality-check:
+    name: Security and Quality Checks
+    runs-on: ubuntu-latest
+    needs: prepare
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${env.PYTHON_VERSION}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${env.PYTHON_VERSION}
+    - name: Install Dependencies
+      run: |
+        pip install bandit ruff
+    - name: Run Bandit
+      run: bandit -r .
+    - name: Run Ruff
+      run: ruff check .
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: security-quality-check
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${env.PYTHON_VERSION}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${env.PYTHON_VERSION}
+    - name: Install Dependencies
+      run: |
+        pip install pytest
+    - name: Run Unit Tests
+      run: pytest
+
+  railway-dry-run:
+    name: Railway Dry-Run
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+    - uses: actions/checkout@v4
+    - name: Railway Dry Run
+      run: railway run echo "Dry Run for Deployment"
+
+  check-duplicates-defaults:
+    name: Check Duplicates and Default Credentials
+    runs-on: ubuntu-latest
+    needs: railway-dry-run
+    steps:
+    - uses: actions/checkout@v4
+    - name: Check for Duplicates
+      run: grep -r "def model(" . | sort | uniq -d
+    - name: Check for Default Credentials
+      run: grep -r "default_credentials" .
+
 # Comprehensive CI/CD Pipeline for Gary-Zero
 # Unified workflow combining testing, security, deployment validation
 

@@ -75,21 +75,24 @@ repos:
   # Test execution
   - repo: local
     hooks:
-      - id: pytest-check
-        name: pytest-check
-        entry: pytest
+      - id: vitest-check
+        name: Vitest test runner
+        entry: npm run test:run
         language: system
-        types: [python]
-        args: [
-          '--cov=framework',
-          '--cov=api', 
-          '--cov=security',
-          '--cov-fail-under=75',
-          '--maxfail=5',
-          '-x',
-          'tests/unit/',
-          'tests/integration/'
-        ]
+        pass_filenames: false
+        always_run: true
+      
+      - id: typescript-check
+        name: TypeScript type check
+        entry: npm run tsc:check
+        language: system
+        pass_filenames: false
+        always_run: true
+        
+      - id: agent-os-validate
+        name: Agent OS validation
+        entry: bash scripts/agent_os_check.sh
+        language: system
         pass_filenames: false
         always_run: true
 

@@ -73,6 +73,9 @@ def initialize_agent():
         embeddings_model=embedding_llm,
         browser_model=browser_llm,
         mcp_servers=current_settings["mcp_servers"],
+        prompts_subdir=current_settings["agent_prompts_subdir"],
+        memory_subdir=current_settings["agent_memory_subdir"],
+        knowledge_subdirs=[current_settings["agent_knowledge_subdir"], "default"],
     )
 
     # update SSH and docker settings

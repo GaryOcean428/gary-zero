@@ -109,6 +109,29 @@
 - **TCP/UDP**: Network protocol support
 - **Reverse Proxy**: Production-ready routing
 
+### Application Framework
+
+#### Agent OS Workflow Engine
+- **Multi-Agent Orchestration**: Hierarchical agent coordination system
+- **Task Delegation**: Automatic subtask distribution across agent personas
+- **Workflow State Management**: Persistent workflow execution state
+- **Agent Role Mapping**: Dynamic role assignment based on task requirements
+- **Decision Coordination**: Integrated decision-making with authoritative persona rules
+
+#### Vector Memory System
+- **Persistent Agent Memory**: Long-term context retention across sessions
+- **Vector Storage**: Embedded vector database for semantic memory search
+- **Memory Consolidation**: Automatic memory summarization and optimization
+- **Cross-Agent Memory Sharing**: Shared knowledge base across agent instances
+- **Memory Analytics**: Usage patterns and memory effectiveness tracking
+
+#### Agent Registry
+- **Dynamic Agent Discovery**: Runtime agent capability registration
+- **Persona Mapping**: Gary8D agent persona to Agent OS role mapping
+- **Capability Matching**: Automatic agent selection based on task requirements
+- **Load Balancing**: Intelligent agent workload distribution
+- **Health Monitoring**: Agent availability and performance tracking
+
 ### Integration & Extensibility
 
 #### Plugin System
@@ -116,6 +139,13 @@
 - **Python Modules**: Native Python plugin architecture
 - **Configuration Driven**: YAML/JSON plugin configuration
 - **Event System**: Plugin communication framework
+
+#### External Dependencies
+- **Agent OS Coordination Layer**: Primary orchestration system for multi-agent workflows
+- **Gary8D Agent Personas**: Specialized expert agents for domain-specific tasks
+- **MCP Protocol Stack**: Model Context Protocol for agent interoperability
+- **Vector Database Services**: External vector storage for scalable memory systems
+- **Task Queue Systems**: Redis, RabbitMQ for distributed task processing
 
 #### External Integrations
 - **Search Engines**: SearXNG, DuckDuckGo, Perplexity

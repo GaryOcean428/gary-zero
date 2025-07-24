@@ -120,13 +120,70 @@ A detailed setup guide for Windows, macOS, and Linux with a video can be found i
 ### ⚡ Quick Start
 
 ```bash
-# Pull and run with Docker
+# Pull and run with Docker (Warp 2.0 Compatible)
 
 docker pull frdel/gary-zero-run
-docker run -p 50001:80 frdel/gary-zero-run
+# Use Warp 2.0 frontend port range (5675-5699)
+docker run -p 5675:80 frdel/gary-zero-run
 
-# Visit http://localhost:50001 to start
+# Visit http://localhost:5675 to start
 ```
+
+### 🚄 Railway Deployment Quick-Check
+
+**Before every Railway deployment, run this 8-step checklist:**
+
+#### 1. Pull Latest Code
+```bash
+git pull origin main
+```
+
+#### 2. Verify Port Configuration
+```bash
+# Check Warp 2.0 port assignments
+grep -E "PORT=|WEB_UI_PORT=" .env.example
+# Frontend: 5675-5699 | Backend: 8765-8799
+```
+
+#### 3. Railway Configuration Check
+```bash
+# Verify railway.toml has correct port bindings
+grep -A5 "\[environment\]" railway.toml
+```
+
+#### 4. Environment Variables Validation
+```bash
+# Ensure no hardcoded secrets in .env.example
+grep -i "password\|secret\|key" .env.example | grep -v "your_"
+```
+
+#### 5. Inter-Service URLs Check
+```bash
+# Look for localhost references that should use Railway variables
+grep -r "localhost:" --exclude="*.md" --exclude-dir=node_modules .
+```
+
+#### 6. Deploy & Verify
+```bash
+railway up
+# Check Railway dashboard → Service → Logs for:
+# "Listening on 0.0.0.0:8765" (backend)
+```
+
+#### 7. Health Check
+```bash
+# Test deployed endpoints
+curl -f https://your-service.up.railway.app/healthz
+```
+
+#### 8. Final Verification
+- ✅ Port ranges enforced (Frontend: 5675-5699, Backend: 8765-8799)
+- ✅ No hardcoded localhost URLs
+- ✅ Railway reference variables used
+- ✅ No secrets in .env.example
+- ✅ Service responds on correct ports
+
+> **Pro Tip:** Use `npm run dev` (port 5675) for frontend development and `npm run dev:backend` (port 8765) for backend services.
 
 ## 🐳 Fully Dockerized, with Speech-to-Text and TTS
 

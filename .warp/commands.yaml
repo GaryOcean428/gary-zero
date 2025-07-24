@@ -1,0 +1,199 @@
+# ==============================================
+# Warp Commands Palette - Gary-Zero Development
+# ==============================================
+# Quick access commands for Gary-Zero development and Railway deployment
+
+commands:
+  # ==============================================
+  # Development Commands (Warp 2.0 Port Strategy)
+  # ==============================================
+  
+  - name: "Gary-Zero: Start Development (Frontend Port)"
+    command: "npm run dev"
+    description: "Start Gary-Zero on port 5675 (Warp 2.0 frontend range)"
+    tags: ["dev", "frontend", "gary-zero"]
+    
+  - name: "Gary-Zero: Start Backend Development"
+    command: "npm run dev:backend" 
+    description: "Start Gary-Zero backend on port 8765 (Warp 2.0 backend range)"
+    tags: ["dev", "backend", "gary-zero"]
+
+  - name: "Gary-Zero: Docker Development"
+    command: "docker run -p 5675:80 frdel/gary-zero-run"
+    description: "Run Gary-Zero in Docker with Warp 2.0 port mapping"
+    tags: ["docker", "dev", "gary-zero"]
+
+  # ==============================================
+  # Railway Deployment Commands
+  # ==============================================
+  
+  - name: "Railway: Deploy Project"
+    command: "railway up"
+    description: "Deploy current project to Railway"
+    tags: ["railway", "deploy"]
+    
+  - name: "Railway: Login"
+    command: "railway login"
+    description: "Login to Railway CLI"
+    tags: ["railway", "auth"]
+    
+  - name: "Railway: Check Status"
+    command: "railway status"
+    description: "Check Railway project status"
+    tags: ["railway", "status"]
+    
+  - name: "Railway: View Logs"
+    command: "railway logs"
+    description: "View Railway service logs"
+    tags: ["railway", "logs", "debug"]
+    
+  - name: "Railway: Open Dashboard"
+    command: "railway open"
+    description: "Open Railway project dashboard in browser"
+    tags: ["railway", "dashboard"]
+
+  # ==============================================
+  # Railway Quick-Check Commands
+  # ==============================================
+  
+  - name: "Railway: Pre-Deploy Check"
+    command: |
+      echo "🚄 Railway Pre-Deploy Checklist"
+      echo "================================"
+      echo "1. Checking port configuration..."
+      grep -E "PORT=|WEB_UI_PORT=" .env.example
+      echo ""
+      echo "2. Verifying Railway config..."
+      grep -A5 "\[environment\]" railway.toml
+      echo ""
+      echo "3. Scanning for hardcoded secrets..."
+      grep -i "password\|secret\|key" .env.example | grep -v "your_" || echo "✅ No hardcoded secrets found"
+      echo ""
+      echo "4. Checking for localhost references..."
+      grep -r "localhost:" --exclude="*.md" --exclude-dir=node_modules . | head -5 || echo "✅ No problematic localhost refs found"
+      echo ""
+      echo "Ready for 'railway up'! 🚀"
+    description: "Run complete Railway deployment checklist"
+    tags: ["railway", "checklist", "deploy"]
+
+  - name: "Railway: Port Validation"
+    command: |
+      echo "🔍 Warp 2.0 Port Strategy Validation"
+      echo "====================================="
+      echo "Frontend range (5675-5699): Should be used for UI services"
+      echo "Backend range (8765-8799): Should be used for API services"
+      echo ""
+      echo "Current configuration:"
+      grep -E "PORT=|WEB_UI_PORT=|API_PORT=|WEBSOCKET_PORT=" .env.example railway.toml
+    description: "Validate Warp 2.0 port strategy compliance"
+    tags: ["warp", "ports", "validation"]
+
+  # ==============================================
+  # Agent OS & AI Triggers
+  # ==============================================
+  
+  - name: "Agent OS: Initialize Gary-Zero Context"
+    command: |
+      echo "🤖 Initializing Agent OS context for Gary-Zero..."
+      echo "Project: Gary-Zero AI Agent Framework"
+      echo "Ports: Frontend(5675-5699) | Backend(8765-8799)"
+      echo "Environment: $(cat .env.example | grep NODE_ENV | cut -d'=' -f2)"
+      echo "Railway Status: $(railway status 2>/dev/null || echo 'Not connected')"
+      echo "Context initialized. Ready for AI assistance."
+    description: "Initialize Agent OS context with Gary-Zero project info"
+    tags: ["agent-os", "ai", "context"]
+    
+  - name: "Agent OS: Generate Deployment Summary"
+    command: |
+      echo "📊 Gary-Zero Deployment Summary"
+      echo "=============================="
+      echo "Repository: $(git remote get-url origin 2>/dev/null || echo 'No remote')"
+      echo "Branch: $(git branch --show-current 2>/dev/null || echo 'Unknown')"
+      echo "Last Commit: $(git log -1 --oneline 2>/dev/null || echo 'No commits')"
+      echo "Port Strategy: Frontend(5675-5699) | Backend(8765-8799)" 
+      echo "Railway Config: $([ -f railway.toml ] && echo 'Present' || echo 'Missing')"
+      echo ""
+      echo "🔗 Useful links:"
+      echo "- Railway Dashboard: railway open"
+      echo "- Local Dev: http://localhost:5675"
+      echo "- Logs: railway logs"
+    description: "Generate comprehensive deployment summary for AI agents"
+    tags: ["agent-os", "summary", "deployment"]
+
+  # ==============================================
+  # Quality & Security Commands
+  # ==============================================
+  
+  - name: "Gary-Zero: Run Quality Checks"
+    command: "npm run check:all"
+    description: "Run all Gary-Zero quality checks (linting, security, accessibility)"
+    tags: ["quality", "testing", "gary-zero"]
+    
+  - name: "Gary-Zero: Security Audit"
+    command: "npm run security"
+    description: "Run security audit on Gary-Zero dependencies"
+    tags: ["security", "audit", "gary-zero"]
+    
+  - name: "Gary-Zero: Fix Common Issues"
+    command: "npm run fix:all"
+    description: "Auto-fix linting, formatting, and security issues"
+    tags: ["fix", "auto", "gary-zero"]
+
+  # ==============================================
+  # Environment Setup Commands
+  # ==============================================
+  
+  - name: "Gary-Zero: Setup Development Environment"
+    command: |
+      echo "🛠️  Setting up Gary-Zero development environment..."
+      echo "Installing dependencies..."
+      npm install
+      echo "Setting up Python virtual environment..."
+      python -m venv .venv
+      source .venv/bin/activate
+      pip install -r requirements.txt 2>/dev/null || echo "⚠️  requirements.txt not found"
+      echo "Creating .env from template..."
+      cp .env.example .env 2>/dev/null || echo "⚠️  .env.example not found"
+      echo "✅ Development environment setup complete!"
+      echo "Next steps:"
+      echo "1. Edit .env with your API keys"
+      echo "2. Run 'npm run dev' to start development server"
+    description: "Complete development environment setup for Gary-Zero"
+    tags: ["setup", "environment", "gary-zero"]
+
+  - name: "Gary-Zero: Health Check"
+    command: |
+      echo "🏥 Gary-Zero Health Check"
+      echo "========================"
+      echo "Node.js: $(node --version 2>/dev/null || echo 'Not installed')"
+      echo "Python: $(python --version 2>/dev/null || echo 'Not installed')"
+      echo "Railway CLI: $(railway --version 2>/dev/null || echo 'Not installed')"
+      echo "Docker: $(docker --version 2>/dev/null || echo 'Not installed')"
+      echo ""
+      echo "Project files:"
+      echo "- package.json: $([ -f package.json ] && echo '✅' || echo '❌')"
+      echo "- railway.toml: $([ -f railway.toml ] && echo '✅' || echo '❌')"
+      echo "- .env.example: $([ -f .env.example ] && echo '✅' || echo '❌')"
+      echo "- .env: $([ -f .env ] && echo '✅' || echo '❌ (create from .env.example)')"
+    description: "Check Gary-Zero project health and dependencies"
+    tags: ["health", "check", "gary-zero"]
+
+# ==============================================
+# Command Categories for Better Organization
+# ==============================================
+categories:
+  - name: "Gary-Zero Development"
+    description: "Commands for Gary-Zero AI agent development"
+    tags: ["gary-zero", "dev"]
+    
+  - name: "Railway Deployment" 
+    description: "Railway cloud deployment and management"
+    tags: ["railway", "deploy"]
+    
+  - name: "Agent OS Integration"
+    description: "Commands optimized for AI agent assistance"
+    tags: ["agent-os", "ai"]
+    
+  - name: "Quality Assurance"
+    description: "Code quality, security, and testing commands"
+    tags: ["quality", "security", "testing"]

@@ -10,8 +10,75 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - **BREAKING**: Deprecated `railway-deployment.yml` GitHub workflow (superseded by railpack.json)
 - **BREAKING**: Deprecated `nixpacks.toml` configuration file (superseded by railpack.json)
+- **BREAKING**: Legacy model purge - 45 deprecated AI models removed from catalog
+- **BREAKING**: Default credential system overhaul requiring environment variable configuration
+
+### Security
+- **BREAKING CHANGE**: Enhanced authentication system requires explicit credential configuration
+- Removed hardcoded default credentials from codebase
+- Implemented mandatory environment variable-based authentication
+- Added comprehensive secret scanning and detection pipeline
 
 ### Migration Notes
+
+#### AI Model Catalog Modernization & Legacy Model Purge
+
+**Date**: January 2025  
+**Impact**: BREAKING CHANGE for users relying on deprecated models
+
+**What Changed:**
+- **45 deprecated AI models removed** from active catalog (pre-June 2024 models)
+- **93 modern models prioritized** in all UI selections and API responses
+- **Enhanced model categorization** with voice, code, and vision-capable model support
+- **Automatic fallback system** for deprecated model requests
+
+**Affected Models:**
+- OpenAI: `gpt-4`, `gpt-3.5-turbo`, `text-embedding-ada-002` → Upgrade to `o3`, `gpt-4.1-mini`, `text-embedding-3-large`
+- Anthropic: `claude-2.0`, `claude-instant-1.2` → Upgrade to `claude-sonnet-4-20250514`, `claude-4-haiku-20250514`
+- Google: `gemini-1.5-pro`, `text-bison-001` → Upgrade to `gemini-2.0-flash`, `gemini-2.0-pro`
+
+**Action Required:**
+- **Review current model selections** in Settings → Agent Configuration
+- **Update API integrations** to use modern model names
+- **Test functionality** with new default models
+- **Update environment variables** if hardcoded model names are used
+
+**Documentation**: See [docs/ai-models.md](docs/ai-models.md) for complete migration guide
+
+#### Authentication System Security Overhaul
+
+**Date**: January 2025  
+**Impact**: BREAKING CHANGE requiring immediate credential configuration
+
+**What Changed:**
+- **Removed hardcoded default credentials** from source code
+- **Mandatory environment variable configuration** for authentication
+- **Enhanced secret scanning** prevents credential commits
+- **Separation of concerns** between code and configuration
+
+**Required Environment Variables:**
+```bash
+# Web UI Authentication (Required)
+export DEFAULT_AUTH_LOGIN="your-secure-username"
+export DEFAULT_AUTH_PASSWORD="your-secure-password"
+export AUTH_LOGIN="runtime-admin"
+export AUTH_PASSWORD="runtime-secure-password"
+
+# Container Access (Optional)
+export DEFAULT_ROOT_PASSWORD="container-password"
+
+# AI Provider Keys (As needed)
+export OPENAI_API_KEY="sk-your-openai-key"
+export ANTHROPIC_API_KEY="sk-ant-your-anthropic-key"
+```
+
+**Action Required:**
+- **⚠️ IMMEDIATE**: Set authentication environment variables before next deployment
+- **Update deployment scripts** with credential configuration
+- **Test login functionality** with new credential system
+- **Schedule regular credential rotation** (monthly recommended)
+
+**Documentation**: See [docs/credential-rotation-guide.md](docs/credential-rotation-guide.md) for complete migration instructions
 
 #### Railway Deployment Configuration Migration
 

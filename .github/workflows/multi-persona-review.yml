@@ -1,0 +1,246 @@
+name: Multi-Persona Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  multi-persona-review:
+    name: Multi-Persona Code Review
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '22'
+        cache: 'npm'
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        npm ci
+        python -m pip install --upgrade pip
+        pip install ruff bandit mypy safety
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Run Security Specialist Review
+      id: security-review
+      run: |
+        echo "🔒 Security Specialist Review"
+        echo "=============================" > security-review.md
+        echo "" >> security-review.md
+        
+        # Bandit security scan
+        echo "## Security Vulnerabilities" >> security-review.md
+        if bandit -r . -f txt --skip B101,B601 2>/dev/null | grep -E "Issue:|Severity:" > bandit-output.txt; then
+          echo "🚨 **Critical security issues found:**" >> security-review.md
+          echo '```' >> security-review.md
+          cat bandit-output.txt >> security-review.md
+          echo '```' >> security-review.md
+        else
+          echo "✅ No critical security vulnerabilities detected." >> security-review.md
+        fi
+        
+        # Check for hardcoded secrets
+        echo "" >> security-review.md
+        echo "## Secret Detection" >> security-review.md
+        if grep -r -i "password\|secret\|token\|api_key" . --include="*.js" --include="*.py" --exclude-dir=node_modules --exclude-dir=.git | grep -v "example" | head -5 > secrets.txt; then
+          echo "⚠️ **Potential secrets detected:**" >> security-review.md
+          echo '```' >> security-review.md
+          cat secrets.txt >> security-review.md
+          echo '```' >> security-review.md
+          echo "Please ensure these are using environment variables." >> security-review.md
+        else
+          echo "✅ No hardcoded secrets detected." >> security-review.md
+        fi
+
+    - name: Run Performance Optimizer Review
+      id: performance-review
+      run: |
+        echo "⚡ Performance Optimizer Review"
+        echo "===============================" > performance-review.md
+        echo "" >> performance-review.md
+        
+        # Check for performance anti-patterns
+        echo "## Performance Analysis" >> performance-review.md
+        
+        # JavaScript performance checks
+        if find . -name "*.js" -exec grep -l "document.write\|eval\|innerHTML.*+\|for.*in.*Object" {} \; > perf-issues-js.txt 2>/dev/null && [ -s perf-issues-js.txt ]; then
+          echo "⚠️ **JavaScript Performance Issues:**" >> performance-review.md
+          echo '```' >> performance-review.md
+          while read file; do
+            echo "File: $file"
+            grep -n "document.write\|eval\|innerHTML.*+\|for.*in.*Object" "$file" || true
+          done < perf-issues-js.txt >> performance-review.md
+          echo '```' >> performance-review.md
+        else
+          echo "✅ No major JavaScript performance issues detected." >> performance-review.md
+        fi
+        
+        # Python performance checks
+        echo "" >> performance-review.md
+        if find . -name "*.py" -exec grep -l "import \*\|global \|exec(\|eval(" {} \; > perf-issues-py.txt 2>/dev/null && [ -s perf-issues-py.txt ]; then
+          echo "⚠️ **Python Performance Issues:**" >> performance-review.md
+          echo '```' >> performance-review.md
+          while read file; do
+            echo "File: $file"
+            grep -n "import \*\|global \|exec(\|eval(" "$file" || true
+          done < perf-issues-py.txt >> performance-review.md
+          echo '```' >> performance-review.md
+        else
+          echo "✅ No major Python performance issues detected." >> performance-review.md
+        fi
+
+    - name: Run Code Quality Specialist Review
+      id: quality-review
+      run: |
+        echo "✨ Code Quality Specialist Review"
+        echo "==================================" > quality-review.md
+        echo "" >> quality-review.md
+        
+        # ESLint review
+        echo "## JavaScript/TypeScript Quality" >> quality-review.md
+        if npm run lint 2>&1 | grep -E "warning|error" > eslint-output.txt; then
+          WARNINGS=$(grep -c "warning" eslint-output.txt || echo "0")
+          ERRORS=$(grep -c "error" eslint-output.txt || echo "0")
+          
+          echo "📊 **Lint Summary:** $ERRORS errors, $WARNINGS warnings" >> quality-review.md
+          
+          if [ "$ERRORS" -gt "0" ]; then
+            echo "" >> quality-review.md
+            echo "🚨 **Critical Issues (Errors):**" >> quality-review.md
+            echo '```' >> quality-review.md
+            grep "error" eslint-output.txt | head -10 >> quality-review.md
+            echo '```' >> quality-review.md
+          fi
+          
+          if [ "$WARNINGS" -gt "0" ] && [ "$WARNINGS" -lt "20" ]; then
+            echo "" >> quality-review.md
+            echo "⚠️ **Suggestions (Warnings):**" >> quality-review.md
+            echo '```' >> quality-review.md
+            grep "warning" eslint-output.txt | head -10 >> quality-review.md
+            echo '```' >> quality-review.md
+          elif [ "$WARNINGS" -ge "20" ]; then
+            echo "" >> quality-review.md
+            echo "⚠️ **Too many warnings ($WARNINGS) - showing first 5:**" >> quality-review.md
+            echo '```' >> quality-review.md
+            grep "warning" eslint-output.txt | head -5 >> quality-review.md
+            echo '```' >> quality-review.md
+          fi
+        else
+          echo "✅ No linting issues found." >> quality-review.md
+        fi
+        
+        # Python quality check
+        echo "" >> quality-review.md
+        echo "## Python Quality" >> quality-review.md
+        if ruff check . --output-format=text 2>&1 | head -20 > ruff-output.txt && [ -s ruff-output.txt ]; then
+          echo "📊 **Ruff Analysis:**" >> quality-review.md
+          echo '```' >> quality-review.md
+          cat ruff-output.txt >> quality-review.md
+          echo '```' >> quality-review.md
+        else
+          echo "✅ No Python quality issues found." >> quality-review.md
+        fi
+
+    - name: Run Architecture Specialist Review
+      id: architecture-review
+      run: |
+        echo "🏗️ Architecture Specialist Review"
+        echo "==================================" > architecture-review.md
+        echo "" >> architecture-review.md
+        
+        # Check project structure
+        echo "## Project Structure Analysis" >> architecture-review.md
+        
+        # Count files by type
+        JS_FILES=$(find . -name "*.js" -not -path "./node_modules/*" | wc -l)
+        PY_FILES=$(find . -name "*.py" | wc -l)
+        TEST_FILES=$(find . -name "*test*" -o -name "*spec*" | wc -l)
+        
+        echo "📊 **File Distribution:**" >> architecture-review.md
+        echo "- JavaScript files: $JS_FILES" >> architecture-review.md
+        echo "- Python files: $PY_FILES" >> architecture-review.md
+        echo "- Test files: $TEST_FILES" >> architecture-review.md
+        echo "" >> architecture-review.md
+        
+        # Check for architectural patterns
+        if [ -d "api/" ] && [ -d "webui/" ]; then
+          echo "✅ Good separation between API and UI components." >> architecture-review.md
+        else
+          echo "⚠️ Consider separating API and UI components into distinct directories." >> architecture-review.md
+        fi
+        
+        if [ -f "requirements.txt" ] && [ -f "package.json" ]; then
+          echo "✅ Multi-language project properly configured." >> architecture-review.md
+        fi
+        
+        # Check for configuration management
+        if [ -f "railway.toml" ] || [ -f "docker-compose.yml" ]; then
+          echo "✅ Deployment configuration present." >> architecture-review.md
+        else
+          echo "⚠️ Consider adding deployment configuration files." >> architecture-review.md
+        fi
+
+    - name: Combine Reviews and Post Comment
+      uses: marocchino/sticky-pull-request-comment@v2
+      with:
+        header: Multi-Persona Code Review
+        message: |
+          # 🔍 Multi-Persona Code Review Results
+          
+          This automated review was conducted by our AI specialists to help improve code quality, security, and architecture.
+          
+          <details>
+          <summary>🔒 Security Specialist Review</summary>
+          
+          $(cat security-review.md)
+          
+          </details>
+          
+          <details>
+          <summary>⚡ Performance Optimizer Review</summary>
+          
+          $(cat performance-review.md)
+          
+          </details>
+          
+          <details>
+          <summary>✨ Code Quality Specialist Review</summary>
+          
+          $(cat quality-review.md)
+          
+          </details>
+          
+          <details>
+          <summary>🏗️ Architecture Specialist Review</summary>
+          
+          $(cat architecture-review.md)
+          
+          </details>
+          
+          ---
+          
+          💡 **Next Steps:**
+          - Address any critical security issues immediately
+          - Consider performance optimizations where suggested
+          - Fix linting errors before merging
+          - Review architectural suggestions for long-term maintainability
+          
+          *This review was generated automatically. For human review, please request a reviewer.*

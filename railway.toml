@@ -4,7 +4,7 @@
 
 [build]
 builder = "NIXPACKS"
-buildCommand = "bash scripts/build.sh"
+buildCommand = "bash scripts/build.sh && bash scripts/agent_os_check.sh"
 
 [deploy]
 startCommand = "bash scripts/start.sh"
@@ -14,15 +14,30 @@ restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
 
 [environment]
-PORT = { default = "8000" }
+# Warp 2.0 Port Strategy: Backend services use 8765-8799
+PORT = { default = "8765" }
 WEB_UI_HOST = { default = "0.0.0.0" }
+# Frontend port range: 5675-5699 (for multi-service deployments)
+WEB_UI_PORT = { default = "5675" }
+# Additional backend ports for microservices
+API_PORT = { default = "8767" }
+WEBSOCKET_PORT = { default = "8766" }
 PYTHONUNBUFFERED = { default = "1" }
 TOKENIZERS_PARALLELISM = { default = "false" }
 
-# Railway reference variables for inter-service communication
-# Replace localhost URLs with these patterns:
-# http://localhost:4000 -> http://${{api.RAILWAY_PRIVATE_DOMAIN}}:${{api.PORT}}
-# https://my-api.example.com -> https://${{api.RAILWAY_PUBLIC_DOMAIN}}
+# ======================
+# Railway Reference Variables (Warp 2.0 Compatible)
+# ======================
+# Inter-service Communication Patterns:
+# Frontend to Backend: http://${{backend.RAILWAY_PRIVATE_DOMAIN}}:${{backend.PORT}}
+# Backend to Database: ${{postgres.DATABASE_URL}}
+# External API Access: https://${{backend.RAILWAY_PUBLIC_DOMAIN}}
+# WebSocket Connection: wss://${{backend.RAILWAY_PUBLIC_DOMAIN}}/ws
+
+# Port Strategy Reference:
+# - Frontend services: 5675-5699
+# - Backend services: 8765-8799
+# - Database connections: Use Railway reference variables
 
 [services.web]
 source = "."

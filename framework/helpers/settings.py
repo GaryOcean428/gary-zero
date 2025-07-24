@@ -762,13 +762,18 @@ def convert_out(settings: Settings) -> SettingsOutput:
     agent_fields.append(
         {
             "id": "agent_prompts_subdir",
-            "title": "Prompts Subdirectory",
-            "description": """The name of the model to use for embeddings.
-    This is used for vector storage and retrieval.""",
+            "title": "Agent Role & Prompts",
+            "description": (
+                "Select the agent role and prompt templates that define the agent's behavior, "
+                "specialization, and communication style. Different roles are optimized for specific task types: "
+                "'default' for general tasks, 'research_agent' for deep research and analysis, "
+                "'hacker' for cybersecurity and penetration testing."
+            ),
             "type": "select",
             "value": settings["agent_prompts_subdir"],
             "options": [
-                FieldOption(value=subdir, label=subdir) for subdir in files.get_subdirectories("prompts")
+                FieldOption(value=subdir, label=_get_role_display_name(subdir)) 
+                for subdir in files.get_subdirectories("prompts")
             ],
         }
     )
@@ -776,41 +781,49 @@ def convert_out(settings: Settings) -> SettingsOutput:
     agent_fields.append(
         {
             "id": "agent_memory_subdir",
-            "title": "Memory Subdirectory",
+            "title": "Memory Profile",
             "description": (
-                "Subdirectory of /memory folder to use for agent memory storage. "
-                "Used to separate memory storage between different instances."
+                "Memory profile name for isolated agent memory storage. Each profile maintains "
+                "separate conversation history, learned patterns, and contextual knowledge. "
+                "Use different profiles to maintain context separation between distinct projects, "
+                "client work, or task domains (e.g., 'development', 'research', 'security')."
             ),
             "type": "text",
             "value": settings["agent_memory_subdir"],
-            # "options": [
-            #     {"value": subdir, "label": subdir}
-            #     for subdir in files.get_subdirectories("memory", exclude="embeddings")
-            # ],
         }
     )
 
     agent_fields.append(
         {
             "id": "agent_knowledge_subdir",
-            "title": "Knowledge subdirectory",
+            "title": "Knowledge Domain",
             "description": (
-                "Subdirectory of /knowledge folder to use for agent knowledge import. "
-                "'default' subfolder is always imported and contains framework knowledge."
+                "Select specialized knowledge domain to preload into the agent's knowledge base. "
+                "This supplements the default framework knowledge with domain-specific information, "
+                "examples, and best practices. Custom knowledge can include industry standards, "
+                "company policies, technical documentation, or specialized methodologies."
             ),
             "type": "select",
             "value": settings["agent_knowledge_subdir"],
             "options": [
-                FieldOption(value=subdir, label=subdir)
-                for subdir in files.get_subdirectories("knowledge", exclude="default")
+                FieldOption(value="default", label="Default (Framework knowledge only)"),
+                FieldOption(value="custom", label="Custom (User-defined knowledge)"),
+            ] + [
+                FieldOption(value=subdir, label=subdir.title())
+                for subdir in files.get_subdirectories("knowledge", exclude=["default", "custom"])
             ],
         }
     )
 
     agent_section: SettingsSection = {
         "id": "agent",
-        "title": "Agent Config",
-        "description": "Agent parameters.",
+        "title": "Agent Configuration",
+        "description": (
+            "Configure the agent's core behavior, specialization, and knowledge domains. "
+            "These settings determine how the agent approaches tasks, what knowledge it has access to, "
+            "and how it maintains context between conversations. Choose configurations that align "
+            "with your primary use cases for optimal performance."
+        ),
         "fields": agent_fields,
         "tab": "agent",
     }
@@ -1454,9 +1467,9 @@ def get_default_settings() -> Settings:
             "browser_model_name": "claude-3-5-sonnet-20241022",
             "browser_model_vision": True,
             "browser_model_kwargs": {"temperature": "0"},
-            "agent_prompts_subdir": "prompts",
-            "agent_memory_subdir": "memory",
-            "agent_knowledge_subdir": "knowledge",
+            "agent_prompts_subdir": "default",
+            "agent_memory_subdir": "default",
+            "agent_knowledge_subdir": "default",
             "api_keys": {},
             "auth_login": os.getenv("DEFAULT_AUTH_LOGIN", "admin"),
             "auth_password": hashlib.sha256(
@@ -1664,6 +1677,16 @@ def get_runtime_config(settings: Settings):
             "code_exec_http_port": settings["rfc_port_http"],
             "code_exec_ssh_user": "root",
         }
+
+
+def _get_role_display_name(role_dir: str) -> str:
+    """Convert role directory name to user-friendly display name."""
+    role_names = {
+        "default": "General Purpose Agent",
+        "research_agent": "Deep Research Specialist",
+        "hacker": "Cybersecurity Expert",
+    }
+    return role_names.get(role_dir, role_dir.replace("_", " ").title())
 
 
 def create_auth_token() -> str:

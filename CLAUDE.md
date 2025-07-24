@@ -15,6 +15,8 @@ The complete product specification is maintained in the `.agent-os/product/` dir
 
 ### Development Guidelines
 
+Development is guided by the rules specified in the `.clinerules` file, which enforces standards across TypeScript, React, and multi-agent systems. This ensures all development aligns with best practices.
+
 Claude Rules are found in .clinerules file in the root directory of the repository.
 
 ### Key Features
