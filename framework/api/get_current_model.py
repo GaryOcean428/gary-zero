@@ -18,9 +18,12 @@ class GetCurrentModel(ApiHandler):
             Dictionary containing current model information
         """
         try:
-            # Get current model settings
-            current_provider = models.get_model_provider()
-            current_model = models.get_model_name()
+            # Get current model settings from user settings
+            from framework.helpers.settings import get_settings
+            settings = get_settings()
+            
+            current_provider = settings.get("chat_model_provider", "unknown")
+            current_model = settings.get("chat_model_name", "unknown")
 
             # Get model display name/label
             from framework.helpers.model_catalog import get_models_for_provider
@@ -53,8 +56,8 @@ class GetCurrentModel(ApiHandler):
                 model_type = "code"
                 capabilities.append("code")
 
-            # Check for vision capability
-            vision_enabled = models.get_model_vision()
+            # Check for vision capability from settings
+            vision_enabled = settings.get("chat_model_vision", False)
             if vision_enabled:
                 capabilities.append("vision")
 
