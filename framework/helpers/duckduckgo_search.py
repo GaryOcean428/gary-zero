@@ -28,29 +28,28 @@ async def search_async(query: str, max_results=10) -> dict:
 
         def _sync_search():
             with DDGS() as ddgs:
-                return list(ddgs.text(
-                    query,
-                    safesearch="off",
-                    max_results=max_results,
-                ))
+                return list(
+                    ddgs.text(
+                        query,
+                        safesearch="off",
+                        max_results=max_results,
+                    )
+                )
 
         results = await loop.run_in_executor(None, _sync_search)
 
         # Format results to match SearXNG format expected by search_engine.py
         formatted_results = []
         for result in results:
-            formatted_results.append({
-                'title': result.get('title', ''),
-                'url': result.get('href', ''),
-                'content': result.get('body', '')
-            })
+            formatted_results.append(
+                {
+                    "title": result.get("title", ""),
+                    "url": result.get("href", ""),
+                    "content": result.get("body", ""),
+                }
+            )
 
-        return {
-            'results': formatted_results
-        }
+        return {"results": formatted_results}
 
     except Exception as e:
-        return {
-            'results': [],
-            'error': str(e)
-        }
+        return {"results": [], "error": str(e)}

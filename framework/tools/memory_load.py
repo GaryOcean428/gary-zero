@@ -6,7 +6,6 @@ DEFAULT_LIMIT = 10
 
 
 class MemoryLoad(Tool):
-
     async def execute(
         self,
         query="",

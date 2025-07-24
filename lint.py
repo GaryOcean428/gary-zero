@@ -50,7 +50,9 @@ def main():
 
     if args.action == "format" or args.action == "all":
         # Format code with Black
-        exit_codes.append(run_command(["black", args.path], "Formatting code with Black"))
+        exit_codes.append(
+            run_command(["black", args.path], "Formatting code with Black")
+        )
 
         # Fix issues with Ruff
         exit_codes.append(
@@ -62,7 +64,9 @@ def main():
 
     elif args.action == "check" or args.action == "all":
         # Check with Ruff
-        exit_codes.append(run_command(["ruff", "check", args.path], "Checking code with Ruff"))
+        exit_codes.append(
+            run_command(["ruff", "check", args.path], "Checking code with Ruff")
+        )
 
         # Check with MyPy
         exit_codes.append(run_command(["mypy", args.path], "Type checking with MyPy"))
@@ -76,7 +80,9 @@ def main():
             )
         )
 
-        exit_codes.append(run_command(["black", args.path], "Formatting code with Black"))
+        exit_codes.append(
+            run_command(["black", args.path], "Formatting code with Black")
+        )
 
     elif args.action == "stats":
         # Show statistics
@@ -91,7 +97,9 @@ def main():
         exit_codes.append(run_command(["black", args.path], "Formatting with Black"))
 
     elif args.action == "ruff":
-        exit_codes.append(run_command(["ruff", "check", args.path], "Checking with Ruff"))
+        exit_codes.append(
+            run_command(["ruff", "check", args.path], "Checking with Ruff")
+        )
 
     elif args.action == "mypy":
         exit_codes.append(run_command(["mypy", args.path], "Type checking with MyPy"))
@@ -101,24 +109,38 @@ def main():
 
     elif args.action == "frontend" or args.action == "all":
         # Frontend linting
-        exit_codes.append(run_command(["markdownlint", "docs/", "*.md"], "Checking Markdown files"))
-        exit_codes.append(run_command(["stylelint", "webui/**/*.css"], "Checking CSS files"))
-        exit_codes.append(run_command(["htmlhint", "webui/**/*.html"], "Checking HTML files"))
+        exit_codes.append(
+            run_command(["markdownlint", "docs/", "*.md"], "Checking Markdown files")
+        )
+        exit_codes.append(
+            run_command(["stylelint", "webui/**/*.css"], "Checking CSS files")
+        )
+        exit_codes.append(
+            run_command(["htmlhint", "webui/**/*.html"], "Checking HTML files")
+        )
 
     elif args.action == "markdown":
-        exit_codes.append(run_command(["markdownlint", "docs/", "*.md"], "Checking Markdown files"))
+        exit_codes.append(
+            run_command(["markdownlint", "docs/", "*.md"], "Checking Markdown files")
+        )
 
     elif args.action == "css":
-        exit_codes.append(run_command(["stylelint", "webui/**/*.css"], "Checking CSS files"))
+        exit_codes.append(
+            run_command(["stylelint", "webui/**/*.css"], "Checking CSS files")
+        )
 
     elif args.action == "html":
-        exit_codes.append(run_command(["htmlhint", "webui/**/*.html"], "Checking HTML files"))
+        exit_codes.append(
+            run_command(["htmlhint", "webui/**/*.html"], "Checking HTML files")
+        )
 
     # Summary
     failed_count = sum(1 for code in exit_codes if code != 0)
     total_count = len(exit_codes)
 
-    print(f"\n📊 Summary: {total_count - failed_count}/{total_count} tasks completed successfully")
+    print(
+        f"\n📊 Summary: {total_count - failed_count}/{total_count} tasks completed successfully"
+    )
 
     if failed_count > 0:
         print(f"⚠️  {failed_count} task(s) had issues")

@@ -15,7 +15,6 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
-
 class AIVisualizationValidator:
     """Validator for the AI action visualization system."""
 
@@ -26,7 +25,7 @@ class AIVisualizationValidator:
             "tests_failed": 0,
             "errors": [],
             "warnings": [],
-            "components": {}
+            "components": {},
         }
 
     def validate_component(self, component_name: str, test_func, *args, **kwargs):
@@ -53,11 +52,15 @@ class AIVisualizationValidator:
         except Exception as e:
             self.validation_results["tests_failed"] += 1
             self.validation_results["errors"].append(f"{component_name}: {str(e)}")
-            self.validation_results["components"][component_name] = f"❌ ERROR: {str(e)}"
+            self.validation_results["components"][component_name] = (
+                f"❌ ERROR: {str(e)}"
+            )
             print(f"❌ {component_name}: ERROR - {str(e)}")
             return False
 
-    async def validate_async_component(self, component_name: str, test_func, *args, **kwargs):
+    async def validate_async_component(
+        self, component_name: str, test_func, *args, **kwargs
+    ):
         """Validate an async component and record results."""
         self.validation_results["tests_run"] += 1
 
@@ -78,7 +81,9 @@ class AIVisualizationValidator:
         except Exception as e:
             self.validation_results["tests_failed"] += 1
             self.validation_results["errors"].append(f"{component_name}: {str(e)}")
-            self.validation_results["components"][component_name] = f"❌ ERROR: {str(e)}"
+            self.validation_results["components"][component_name] = (
+                f"❌ ERROR: {str(e)}"
+            )
             print(f"❌ {component_name}: ERROR - {str(e)}")
             return False
 
@@ -118,13 +123,15 @@ class AIVisualizationValidator:
             "framework/tools/ai_action_visualization.py",
             "webui/js/ai-action-visualization.js",
             "docs/AI_ACTION_VISUALIZATION.md",
-            "demo_ai_visualization.py"
+            "demo_ai_visualization.py",
         ]
 
         all_passed = True
         for file_path in required_files:
             file_exists = os.path.exists(file_path)
-            self.validate_component(f"File {file_path}", lambda exists=file_exists: exists)
+            self.validate_component(
+                f"File {file_path}", lambda exists=file_exists: exists
+            )
             if not file_exists:
                 all_passed = False
 
@@ -145,19 +152,25 @@ class AIVisualizationValidator:
 
             # Test manager creation
             manager = get_ai_action_manager()
-            self.validate_component("Action Manager Creation", lambda: manager is not None)
+            self.validate_component(
+                "Action Manager Creation", lambda: manager is not None
+            )
 
             # Test interceptor registration
             interceptor_count = len(manager.interceptors)
-            self.validate_component("Interceptor Registration", lambda: interceptor_count > 0)
+            self.validate_component(
+                "Interceptor Registration", lambda: interceptor_count > 0
+            )
 
             # Test action creation
             action = AIAction(
                 provider=AIProvider.GARY_ZERO_NATIVE,
                 action_type=AIActionType.CODE_EXECUTION,
-                description="Test action"
+                description="Test action",
             )
-            self.validate_component("Action Creation", lambda: action.action_id is not None)
+            self.validate_component(
+                "Action Creation", lambda: action.action_id is not None
+            )
 
             # Test enum values
             provider_count = len(list(AIProvider))
@@ -168,7 +181,9 @@ class AIVisualizationValidator:
             return True
 
         except Exception as e:
-            self.validation_results["errors"].append(f"Interceptor validation failed: {e}")
+            self.validation_results["errors"].append(
+                f"Interceptor validation failed: {e}"
+            )
             return False
 
     async def validate_streaming_system(self):
@@ -184,27 +199,37 @@ class AIVisualizationValidator:
 
             # Test service creation
             service = get_streaming_service()
-            await self.validate_async_component("Streaming Service Creation",
-                                                lambda: asyncio.create_task(self._check_service(service)))
+            await self.validate_async_component(
+                "Streaming Service Creation",
+                lambda: asyncio.create_task(self._check_service(service)),
+            )
 
             # Test message creation
             message = ActionStreamMessage("test", {"data": "test"})
-            await self.validate_async_component("Stream Message Creation",
-                                              lambda: asyncio.create_task(self._check_message(message)))
+            await self.validate_async_component(
+                "Stream Message Creation",
+                lambda: asyncio.create_task(self._check_message(message)),
+            )
 
             # Test JSON serialization
             json_data = message.to_json()
-            await self.validate_async_component("Message JSON Serialization",
-                                              lambda: asyncio.create_task(self._check_json(json_data)))
+            await self.validate_async_component(
+                "Message JSON Serialization",
+                lambda: asyncio.create_task(self._check_json(json_data)),
+            )
 
             # Test service configuration
-            await self.validate_async_component("Service Configuration",
-                                              lambda: asyncio.create_task(self._check_service_config(service)))
+            await self.validate_async_component(
+                "Service Configuration",
+                lambda: asyncio.create_task(self._check_service_config(service)),
+            )
 
             return True
 
         except Exception as e:
-            self.validation_results["errors"].append(f"Streaming validation failed: {e}")
+            self.validation_results["errors"].append(
+                f"Streaming validation failed: {e}"
+            )
             return False
 
     async def _check_service(self, service):
@@ -221,7 +246,7 @@ class AIVisualizationValidator:
 
     async def _check_service_config(self, service):
         """Check service has host and port."""
-        return hasattr(service, 'host') and hasattr(service, 'port')
+        return hasattr(service, "host") and hasattr(service, "port")
 
     def validate_ui_components(self):
         """Validate UI components."""
@@ -240,13 +265,15 @@ class AIVisualizationValidator:
                 "AIActionVisualizationManager",
                 "initializeWebSocket",
                 "visualizeAIAction",
-                "createVisualizationContainer"
+                "createVisualizationContainer",
             ]
 
             all_passed = True
             for class_name in required_classes:
                 has_class = class_name in js_content
-                self.validate_component(f"JS Component {class_name}", lambda exists=has_class: exists)
+                self.validate_component(
+                    f"JS Component {class_name}", lambda exists=has_class: exists
+                )
                 if not has_class:
                     all_passed = False
 
@@ -257,7 +284,9 @@ class AIVisualizationValidator:
                     html_content = f.read()
 
                 script_included = "ai-action-visualization.js" in html_content
-                self.validate_component("HTML Script Integration", lambda: script_included)
+                self.validate_component(
+                    "HTML Script Integration", lambda: script_included
+                )
                 if not script_included:
                     all_passed = False
             else:
@@ -278,6 +307,7 @@ class AIVisualizationValidator:
             # Add current directory to path to handle relative imports
             import os
             import sys
+
             current_dir = os.path.dirname(os.path.abspath(__file__))
             if current_dir not in sys.path:
                 sys.path.insert(0, current_dir)
@@ -294,21 +324,31 @@ class AIVisualizationValidator:
                 ("Visualization Tool", AI_ACTION_VISUALIZATION_TOOL),
                 ("Update Tool", AI_ACTION_UPDATE_TOOL),
                 ("Streaming Tool", AI_ACTION_STREAMING_TOOL),
-                ("Interception Tool", AI_ACTION_INTERCEPTION_TOOL)
+                ("Interception Tool", AI_ACTION_INTERCEPTION_TOOL),
             ]
 
             all_passed = True
             for tool_name, tool_def in tools:
-                has_required_keys = all(key in tool_def for key in ["name", "description", "class", "parameters"])
-                self.validate_component(f"Tool Definition {tool_name}", lambda valid=has_required_keys: valid)
+                has_required_keys = all(
+                    key in tool_def
+                    for key in ["name", "description", "class", "parameters"]
+                )
+                self.validate_component(
+                    f"Tool Definition {tool_name}",
+                    lambda valid=has_required_keys: valid,
+                )
                 if not has_required_keys:
                     all_passed = False
 
             return all_passed
 
         except ImportError as e:
-            self.validation_results["warnings"].append(f"Tool import failed (dependencies missing): {e}")
-            self.validate_component("Tool Integration", lambda: True)  # Don't fail for missing dependencies
+            self.validation_results["warnings"].append(
+                f"Tool import failed (dependencies missing): {e}"
+            )
+            self.validate_component(
+                "Tool Integration", lambda: True
+            )  # Don't fail for missing dependencies
             return True
         except Exception as e:
             self.validation_results["errors"].append(f"Tool validation failed: {e}")
@@ -320,29 +360,39 @@ class AIVisualizationValidator:
         print("-" * 50)
 
         try:
-            from framework.helpers.ai_visualization_init import get_ai_visualization_system
+            from framework.helpers.ai_visualization_init import (
+                get_ai_visualization_system,
+            )
 
             # Test system creation
             system = get_ai_visualization_system()
-            await self.validate_async_component("System Creation",
-                                              lambda: asyncio.create_task(self._check_system(system)))
+            await self.validate_async_component(
+                "System Creation",
+                lambda: asyncio.create_task(self._check_system(system)),
+            )
 
             # Test configuration loading
             config = system.config
-            await self.validate_async_component("Configuration Loading",
-                                              lambda: asyncio.create_task(self._check_config(config)))
+            await self.validate_async_component(
+                "Configuration Loading",
+                lambda: asyncio.create_task(self._check_config(config)),
+            )
 
             # Test initialization without actually starting services
             system.config["auto_start_interception"] = False
             system.config["auto_start_streaming"] = False
 
-            await self.validate_async_component("System Initialization",
-                                              lambda: asyncio.create_task(self._check_initialization(system)))
+            await self.validate_async_component(
+                "System Initialization",
+                lambda: asyncio.create_task(self._check_initialization(system)),
+            )
 
             return True
 
         except Exception as e:
-            self.validation_results["errors"].append(f"Integration validation failed: {e}")
+            self.validation_results["errors"].append(
+                f"Integration validation failed: {e}"
+            )
             return False
 
     async def _check_system(self, system):
@@ -366,7 +416,7 @@ class AIVisualizationValidator:
         optional_deps = [
             ("WebSockets", "websockets"),
             ("PIL", "PIL"),
-            ("PyAutoGUI", "pyautogui")
+            ("PyAutoGUI", "pyautogui"),
         ]
 
         for dep_name, dep_module in optional_deps:
@@ -374,21 +424,27 @@ class AIVisualizationValidator:
                 __import__(dep_module)
                 self.validate_component(f"Optional Dependency {dep_name}", lambda: True)
             except ImportError:
-                self.validation_results["warnings"].append(f"Optional dependency {dep_name} not available")
-                self.validate_component(f"Optional Dependency {dep_name}", lambda: True)  # Don't fail for optional
+                self.validation_results["warnings"].append(
+                    f"Optional dependency {dep_name} not available"
+                )
+                self.validate_component(
+                    f"Optional Dependency {dep_name}", lambda: True
+                )  # Don't fail for optional
 
         # Check environment variables
         env_vars = [
             "AI_VISUALIZATION_AUTO_START",
             "AI_STREAMING_AUTO_START",
             "AI_STREAMING_HOST",
-            "AI_STREAMING_PORT"
+            "AI_STREAMING_PORT",
         ]
 
         for env_var in env_vars:
             has_var = env_var in os.environ
             if not has_var:
-                self.validation_results["warnings"].append(f"Environment variable {env_var} not set (using defaults)")
+                self.validation_results["warnings"].append(
+                    f"Environment variable {env_var} not set (using defaults)"
+                )
 
         self.validate_component("Environment Check", lambda: True)  # Always pass
         return True
@@ -407,7 +463,7 @@ class AIVisualizationValidator:
             ("Streaming System", self.validate_streaming_system),
             ("UI Components", self.validate_ui_components),
             ("Tool Integration", self.validate_tool_integration),
-            ("System Integration", self.validate_system_integration)
+            ("System Integration", self.validate_system_integration),
         ]
 
         for validator_name, validator_func in validators:
@@ -439,7 +495,11 @@ class AIVisualizationValidator:
         print(f"Total Tests: {total_tests}")
         print(f"Passed: {passed} ✅")
         print(f"Failed: {failed} ❌")
-        print(f"Success Rate: {(passed/total_tests)*100:.1f}%" if total_tests > 0 else "N/A")
+        print(
+            f"Success Rate: {(passed / total_tests) * 100:.1f}%"
+            if total_tests > 0
+            else "N/A"
+        )
 
         if self.validation_results["warnings"]:
             print(f"\nWarnings ({len(self.validation_results['warnings'])}):")
@@ -462,9 +522,11 @@ class AIVisualizationValidator:
             print(f"\n⚠️ {failed} validation(s) failed.")
             print("🔧 Please address the issues above before using the system.")
 
-    def save_validation_report(self, filename: str = "ai_visualization_validation_report.json"):
+    def save_validation_report(
+        self, filename: str = "ai_visualization_validation_report.json"
+    ):
         """Save validation report to file."""
-        with open(filename, 'w') as f:
+        with open(filename, "w") as f:
             json.dump(self.validation_results, f, indent=2, default=str)
         print(f"\n📄 Validation report saved to: {filename}")
 

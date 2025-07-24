@@ -1,6 +1,8 @@
-
 import models
-from framework.helpers.settings.constants import MODEL_PARAMS_DESCRIPTION, PASSWORD_PLACEHOLDER
+from framework.helpers.settings.constants import (
+    MODEL_PARAMS_DESCRIPTION,
+    PASSWORD_PLACEHOLDER,
+)
 from framework.helpers.settings.field_builders import FieldBuilder
 from framework.helpers.settings.types import Settings, SettingsField, SettingsSection
 
@@ -20,7 +22,7 @@ class SectionBuilder:
             include_vision=True,
             include_context_length=True,
             include_context_history=True,
-            model_params_description=MODEL_PARAMS_DESCRIPTION
+            model_params_description=MODEL_PARAMS_DESCRIPTION,
         )
         return {
             "id": "chat_model",
@@ -40,7 +42,7 @@ class SectionBuilder:
             model_params_description=(
                 "Any other parameters supported by the model. "
                 "Format is KEY=VALUE on individual lines, just like .env file."
-            )
+            ),
         )
         return {
             "id": "util_model",
@@ -63,7 +65,7 @@ class SectionBuilder:
             model_params_description=(
                 "Any other parameters supported by the model. "
                 "Format is KEY=VALUE on individual lines, just like .env file."
-            )
+            ),
         )
         return {
             "id": "embed_model",
@@ -84,7 +86,7 @@ class SectionBuilder:
             model_params_description=(
                 "Any other parameters supported by the model. "
                 "Format is KEY=VALUE on individual lines, just like .env file."
-            )
+            ),
         )
         # Override description for browser model provider
         for field in browser_model_fields:
@@ -103,7 +105,9 @@ class SectionBuilder:
             "description": (
                 "Settings for the web browser model. Gary-Zero uses "
                 "<a href='https://github.com/browser-use/browser-use' target='_blank'>"
-                "browser-use</a> agentic framework to handle web interactions."
+                "browser-use</a> agentic framework to handle web interactions. "
+                "<a href='https://docs.gary-zero.com/configuration/models#browser-model' target='_blank'>"
+                "Learn more</a>"
             ),
             "fields": browser_model_fields,
             "tab": "agent",
@@ -184,8 +188,7 @@ class SectionBuilder:
             {
                 "id": "agent_prompts_subdir",
                 "title": "Prompts Subdirectory",
-                "description": """The name of the model to use for embeddings.
-    This is used for vector storage and retrieval.""",
+                "description": "Prompt directory used by the agent",
                 "type": "select",
                 "value": settings["agent_prompts_subdir"],
                 "options": [
@@ -218,7 +221,9 @@ class SectionBuilder:
                 "value": settings["agent_knowledge_subdir"],
                 "options": [
                     {"value": subdir, "label": subdir}
-                    for subdir in files.get_subdirectories("knowledge", exclude="default")
+                    for subdir in files.get_subdirectories(
+                        "knowledge", exclude="default"
+                    )
                 ],
             }
         )
@@ -257,8 +262,7 @@ class SectionBuilder:
             {
                 "id": "rfc_password",
                 "title": "RFC Password",
-                "description": """The name of the model to use for browser operations.
-    This is used for browser automation tasks.""",
+                "description": "Password for Remote Function Call authentication",
                 "type": "password",
                 "value": (
                     PASSWORD_PLACEHOLDER
@@ -597,9 +601,9 @@ class SectionBuilder:
             model_params_description=(
                 "Any other parameters supported by the voice model. "
                 "Format is KEY=VALUE on individual lines, just like .env file."
-            )
+            ),
         )
-        
+
         # Add voice-specific fields
         voice_architecture_field = {
             "id": "voice_architecture",
@@ -612,7 +616,7 @@ class SectionBuilder:
                 {"value": "chained", "label": "Chained (transcribe → LLM → TTS)"},
             ],
         }
-        
+
         transport_field = {
             "id": "voice_transport",
             "title": "Transport Protocol",
@@ -624,11 +628,11 @@ class SectionBuilder:
                 {"value": "webrtc", "label": "WebRTC"},
             ],
         }
-        
+
         # Insert voice-specific fields after the model selection
         voice_model_fields.insert(2, voice_architecture_field)
         voice_model_fields.insert(3, transport_field)
-        
+
         return {
             "id": "voice_model",
             "title": "Voice Model",
@@ -650,16 +654,20 @@ class SectionBuilder:
             model_params_description=(
                 "Any other parameters supported by the code model. "
                 "Format is KEY=VALUE on individual lines, just like .env file."
-            )
+            ),
         )
-        
+
         # Override description for code model provider
         for field in code_model_fields:
             if field["id"] == "code_model_provider":
-                field["description"] = "Select provider for code model used for development tasks"
+                field["description"] = (
+                    "Select provider for code model used for development tasks"
+                )
             elif field["id"] == "code_model_name":
-                field["description"] = "Select code-oriented model for programming, debugging, and development tasks"
-        
+                field["description"] = (
+                    "Select code-oriented model for programming, debugging, and development tasks"
+                )
+
         return {
             "id": "code_model",
             "title": "Code Model",

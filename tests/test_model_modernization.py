@@ -7,16 +7,15 @@ This module tests the updated model catalog and settings to ensure:
 3. New voice and code model sections are properly configured
 """
 
-import pytest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 
 from framework.helpers.model_catalog import (
-    get_modern_models_for_provider,
-    get_deprecated_models_for_provider,
-    get_voice_models_for_provider,
     get_code_models_for_provider,
-    is_model_modern,
+    get_deprecated_models_for_provider,
+    get_modern_models_for_provider,
+    get_voice_models_for_provider,
     is_model_deprecated,
+    is_model_modern,
 )
 
 
@@ -28,11 +27,11 @@ class TestModelCatalogModernization:
         # Test with OPENAI which has many modern models
         modern_openai = get_modern_models_for_provider("OPENAI")
         assert len(modern_openai) > 0
-        
+
         # First model should be o3 (most recent)
         assert modern_openai[0]["value"] == "o3"
         assert modern_openai[0]["modern"] is True
-        
+
         # All returned models should be modern
         for model in modern_openai:
             assert model.get("modern", False) is True
@@ -42,12 +41,12 @@ class TestModelCatalogModernization:
         # Test with OPENAI which has deprecated models
         deprecated_openai = get_deprecated_models_for_provider("OPENAI")
         assert len(deprecated_openai) > 0
-        
+
         # Should include models like gpt-4, gpt-3.5-turbo
         deprecated_values = [m["value"] for m in deprecated_openai]
         assert "gpt-4" in deprecated_values
         assert "gpt-3.5-turbo" in deprecated_values
-        
+
         # All returned models should be deprecated
         for model in deprecated_openai:
             assert model.get("deprecated", False) is True
@@ -57,12 +56,12 @@ class TestModelCatalogModernization:
         # Test OPENAI voice models
         voice_openai = get_voice_models_for_provider("OPENAI")
         assert len(voice_openai) > 0
-        
+
         # Should include realtime models
         voice_values = [m["value"] for m in voice_openai]
         assert "gpt-4o-realtime-preview" in voice_values
         assert "gpt-4o-audio" in voice_values
-        
+
         # All returned models should have voice capability
         for model in voice_openai:
             assert model.get("voice", False) is True
@@ -78,14 +77,14 @@ class TestModelCatalogModernization:
         # Test ANTHROPIC code models
         code_anthropic = get_code_models_for_provider("ANTHROPIC")
         assert len(code_anthropic) > 0
-        
+
         code_values = [m["value"] for m in code_anthropic]
         assert "claude-code" in code_values
-        
+
         # Test DEEPSEEK code models
         code_deepseek = get_code_models_for_provider("DEEPSEEK")
         assert len(code_deepseek) > 0
-        
+
         code_values_deepseek = [m["value"] for m in code_deepseek]
         assert "deepseek-coder" in code_values_deepseek
 
@@ -94,11 +93,11 @@ class TestModelCatalogModernization:
         # Test modern model detection
         assert is_model_modern("OPENAI", "o3") is True
         assert is_model_modern("ANTHROPIC", "claude-3-5-sonnet-20241022") is True
-        
+
         # Test deprecated model detection
         assert is_model_deprecated("OPENAI", "gpt-4") is True
         assert is_model_deprecated("OPENAI", "gpt-3.5-turbo") is True
-        
+
         # Test that modern models are not deprecated
         assert is_model_deprecated("OPENAI", "o3") is False
         assert is_model_deprecated("ANTHROPIC", "claude-3-5-sonnet-20241022") is False
@@ -114,10 +113,10 @@ class TestModelCatalogModernization:
         """Test behavior with nonexistent provider."""
         modern_fake = get_modern_models_for_provider("NONEXISTENT")
         assert len(modern_fake) == 0
-        
+
         voice_fake = get_voice_models_for_provider("NONEXISTENT")
         assert len(voice_fake) == 0
-        
+
         code_fake = get_code_models_for_provider("NONEXISTENT")
         assert len(code_fake) == 0
 
@@ -128,11 +127,11 @@ class TestFieldBuilderModernization:
     def test_field_builder_modern_preference(self):
         """Test that field builder prefers modern models."""
         from framework.helpers.settings.field_builders import FieldBuilder
-        
+
         # Mock models module
         mock_model_provider = Mock()
         mock_model_provider.OPENAI = "OPENAI"
-        
+
         # Mock settings
         mock_settings = {
             "chat_model_provider": "OPENAI",
@@ -143,9 +142,9 @@ class TestFieldBuilderModernization:
             "chat_model_rl_requests": 0,
             "chat_model_rl_input": 0,
             "chat_model_rl_output": 0,
-            "chat_model_kwargs": {}
+            "chat_model_kwargs": {},
         }
-        
+
         # Create fields
         fields = FieldBuilder.create_model_fields(
             "chat",
@@ -153,19 +152,19 @@ class TestFieldBuilderModernization:
             [mock_model_provider.OPENAI],  # Pass as list to avoid iteration error
             include_vision=True,
             include_context_length=True,
-            include_context_history=True
+            include_context_history=True,
         )
-        
+
         # Find model name field
         model_name_field = None
         for field in fields:
             if field["id"] == "chat_model_name":
                 model_name_field = field
                 break
-        
+
         assert model_name_field is not None
         assert len(model_name_field["options"]) > 0
-        
+
         # First option should be a modern model (o3)
         first_option = model_name_field["options"][0]
         assert first_option["value"] == "o3"
@@ -177,7 +176,7 @@ class TestNewSections:
     def test_voice_model_section_structure(self):
         """Test voice model section has correct structure."""
         from framework.helpers.settings.section_builders import SectionBuilder
-        
+
         # Mock settings
         mock_settings = {
             "voice_model_provider": "OPENAI",
@@ -187,16 +186,16 @@ class TestNewSections:
             "voice_model_rl_requests": 0,
             "voice_model_rl_input": 0,
             "voice_model_rl_output": 0,
-            "voice_model_kwargs": {}
+            "voice_model_kwargs": {},
         }
-        
+
         section = SectionBuilder.build_voice_model_section(mock_settings)
-        
+
         assert section["id"] == "voice_model"
         assert section["title"] == "Voice Model"
         assert section["tab"] == "agent"
         assert len(section["fields"]) > 0
-        
+
         # Check for voice-specific fields
         field_ids = [field["id"] for field in section["fields"]]
         assert "voice_architecture" in field_ids
@@ -207,7 +206,7 @@ class TestNewSections:
     def test_code_model_section_structure(self):
         """Test code model section has correct structure."""
         from framework.helpers.settings.section_builders import SectionBuilder
-        
+
         # Mock settings
         mock_settings = {
             "code_model_provider": "ANTHROPIC",
@@ -215,16 +214,16 @@ class TestNewSections:
             "code_model_rl_requests": 0,
             "code_model_rl_input": 0,
             "code_model_rl_output": 0,
-            "code_model_kwargs": {}
+            "code_model_kwargs": {},
         }
-        
+
         section = SectionBuilder.build_code_model_section(mock_settings)
-        
+
         assert section["id"] == "code_model"
         assert section["title"] == "Code Model"
         assert section["tab"] == "agent"
         assert len(section["fields"]) > 0
-        
+
         # Check for standard model fields
         field_ids = [field["id"] for field in section["fields"]]
         assert "code_model_provider" in field_ids
@@ -233,7 +232,7 @@ class TestNewSections:
     def test_voice_section_options(self):
         """Test voice section has correct options."""
         from framework.helpers.settings.section_builders import SectionBuilder
-        
+
         mock_settings = {
             "voice_model_provider": "OPENAI",
             "voice_model_name": "gpt-4o-realtime-preview",
@@ -242,11 +241,11 @@ class TestNewSections:
             "voice_model_rl_requests": 0,
             "voice_model_rl_input": 0,
             "voice_model_rl_output": 0,
-            "voice_model_kwargs": {}
+            "voice_model_kwargs": {},
         }
-        
+
         section = SectionBuilder.build_voice_model_section(mock_settings)
-        
+
         # Find architecture field
         arch_field = None
         transport_field = None
@@ -255,13 +254,13 @@ class TestNewSections:
                 arch_field = field
             elif field["id"] == "voice_transport":
                 transport_field = field
-        
+
         assert arch_field is not None
         assert len(arch_field["options"]) == 2
         arch_values = [opt["value"] for opt in arch_field["options"]]
         assert "speech_to_speech" in arch_values
         assert "chained" in arch_values
-        
+
         assert transport_field is not None
         assert len(transport_field["options"]) == 2
         transport_values = [opt["value"] for opt in transport_field["options"]]

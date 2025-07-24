@@ -1,0 +1,228 @@
+# OSSF Scorecard Weekly Security Audit
+# Runs weekly analysis of security posture and uploads results to GitHub Security tab
+# Complements the main CI/CD security workflow with dedicated scheduled scanning
+
+name: OSSF Scorecard Weekly
+
+on:
+  schedule:
+    # Run every Sunday at 2:00 AM UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+    inputs:
+      upload-sarif:
+        description: 'Upload SARIF results to Security tab'
+        type: boolean
+        default: true
+
+permissions:
+  # Required for OSSF Scorecard to read repository metadata
+  contents: read
+  # Required for uploading SARIF results to Security tab
+  security-events: write
+  # Required for OIDC token verification  
+  id-token: write
+  # Required for reading Actions data
+  actions: read
+
+jobs:
+  scorecard-analysis:
+    name: OSSF Scorecard Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+        fetch-depth: 0
+
+    - name: Run OSSF Scorecard
+      uses: ossf/scorecard-action@v2.3.1
+      with:
+        results_file: ossf-scorecard-results.sarif
+        results_format: sarif
+        # Publish results to the OSSF Scorecard API
+        publish_results: true
+        # Additional configuration for comprehensive analysis
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload SARIF results to GitHub Security tab
+      if: ${{ always() && (github.event_name == 'schedule' || inputs.upload-sarif) }}
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ossf-scorecard-results.sarif
+        category: "OSSF-Scorecard-Weekly"
+
+    - name: Upload SARIF as artifact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ossf-scorecard-results
+        path: ossf-scorecard-results.sarif
+        retention-days: 30
+
+    - name: Analyze and report scorecard results
+      if: always()
+      run: |
+        echo "🔒 OSSF Scorecard Weekly Analysis Report"
+        echo "======================================="
+        echo "Analysis Date: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo "Repository: ${{ github.repository }}"
+        echo "Commit: ${{ github.sha }}"
+        echo ""
+        
+        # Check if SARIF file exists and parse basic metrics
+        if [ -f "ossf-scorecard-results.sarif" ]; then
+          echo "✅ SARIF results generated successfully"
+          
+          # Basic SARIF analysis (requires jq for full parsing)
+          if command -v jq &> /dev/null; then
+            TOTAL_RULES=$(jq '.runs[0].tool.driver.rules | length' ossf-scorecard-results.sarif 2>/dev/null || echo "unknown")
+            TOTAL_RESULTS=$(jq '.runs[0].results | length' ossf-scorecard-results.sarif 2>/dev/null || echo "unknown")
+            
+            echo "📊 Analysis Metrics:"
+            echo "  • Total security checks: $TOTAL_RULES"
+            echo "  • Total findings: $TOTAL_RESULTS"
+            
+            # Extract high-level results (warnings/errors)
+            if [ "$TOTAL_RESULTS" != "unknown" ] && [ "$TOTAL_RESULTS" -gt 0 ]; then
+              echo "  • ⚠️  Review Security tab for detailed findings"
+            else
+              echo "  • ✅ No security issues detected"
+            fi
+          else
+            echo "📄 SARIF file size: $(wc -c < ossf-scorecard-results.sarif) bytes"
+          fi
+          
+          echo ""
+          echo "🔍 Key Areas Analyzed:"
+          echo "  • Branch protection policies"
+          echo "  • Code review practices"
+          echo "  • Dependency management"
+          echo "  • Security policy presence"
+          echo "  • Vulnerability disclosure"
+          echo "  • Binary artifacts"
+          echo "  • Dangerous workflow patterns"
+          echo "  • License compliance"
+          echo "  • Maintained status"
+          echo "  • Packaging and signing"
+          
+        else
+          echo "❌ SARIF results file not found"
+          exit 1
+        fi
+        
+        echo ""
+        echo "📈 Next Steps:"
+        echo "  • Review findings in GitHub Security tab"
+        echo "  • Address any identified security issues"
+        echo "  • Monitor scorecard trends over time"
+        echo "  • Consider implementing additional security measures"
+        
+        echo ""
+        echo "🔗 Resources:"
+        echo "  • OSSF Scorecard: https://github.com/ossf/scorecard"
+        echo "  • Security best practices: https://github.com/ossf/scorecard/blob/main/docs/checks.md"
+        echo "  • Gary-Zero Security Policy: https://github.com/${{ github.repository }}/security/policy"
+
+    - name: Create issue on security concerns
+      if: failure()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const title = `🔒 OSSF Scorecard Weekly Analysis Failed - ${new Date().toISOString().split('T')[0]}`;
+          const body = `## OSSF Scorecard Analysis Failure
+          
+          The weekly OSSF Scorecard security analysis has failed.
+          
+          **Details:**
+          - **Workflow:** ${context.workflow}
+          - **Run ID:** ${context.runId}
+          - **Commit:** ${context.sha}
+          - **Triggered by:** ${context.eventName}
+          - **Date:** ${new Date().toISOString()}
+          
+          **Actions Required:**
+          1. Review the [failed workflow run](${context.payload.repository.html_url}/actions/runs/${context.runId})
+          2. Check for any repository configuration issues
+          3. Verify OSSF Scorecard service status
+          4. Re-run the workflow if issue is transient
+          
+          **Security Impact:**
+          The failure of this security analysis may indicate potential issues with our security posture monitoring. This should be addressed promptly to ensure continuous security oversight.
+          
+          ---
+          *This issue was automatically created by the OSSF Scorecard weekly workflow.*`;
+          
+          // Check if similar issue already exists
+          const existingIssues = await github.rest.issues.listForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            state: 'open',
+            labels: 'security,automated'
+          });
+          
+          const existingSecurityIssue = existingIssues.data.find(issue => 
+            issue.title.includes('OSSF Scorecard Weekly Analysis Failed')
+          );
+          
+          if (!existingSecurityIssue) {
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['security', 'automated', 'ossf-scorecard']
+            });
+            console.log('Created security analysis failure issue');
+          } else {
+            console.log('Similar security issue already exists, skipping creation');
+          }
+
+  summary:
+    name: Weekly Security Summary
+    runs-on: ubuntu-latest
+    needs: [scorecard-analysis]
+    if: always()
+    
+    steps:
+    - name: Generate weekly summary
+      run: |
+        echo "📊 Gary-Zero Weekly Security Summary"
+        echo "==================================="
+        echo "Week of: $(date -u '+%Y-%m-%d')"
+        echo "Repository: ${{ github.repository }}"
+        echo ""
+        echo "🔒 OSSF Scorecard Analysis: ${{ needs.scorecard-analysis.result }}"
+        echo ""
+        
+        if [ "${{ needs.scorecard-analysis.result }}" = "success" ]; then
+          echo "✅ Weekly security analysis completed successfully"
+          echo ""
+          echo "📋 Summary:"
+          echo "  • Security posture assessment: Complete"
+          echo "  • SARIF results uploaded to Security tab"
+          echo "  • Scorecard metrics published to OSSF API"
+          echo ""
+          echo "🔍 Review Actions:"
+          echo "  • Check GitHub Security tab for detailed findings"
+          echo "  • Compare with previous week's results"
+          echo "  • Address any new security recommendations"
+        else
+          echo "❌ Weekly security analysis encountered issues"
+          echo ""
+          echo "🚨 Action Required:"
+          echo "  • Review workflow logs for specific errors"
+          echo "  • Check repository access permissions"
+          echo "  • Verify OSSF Scorecard service availability"
+          echo "  • Consider manual security review if automated scan fails"
+        fi
+        
+        echo ""
+        echo "🔄 Next Scheduled Run: $(date -d 'next sunday 2:00' -u '+%Y-%m-%d %H:%M UTC')"
+        echo ""
+        echo "📚 Security Resources:"
+        echo "  • Security Policy: https://github.com/${{ github.repository }}/security/policy"
+        echo "  • Vulnerability Reporting: https://github.com/${{ github.repository }}/security/advisories"
+        echo "  • Security Tab: https://github.com/${{ github.repository }}/security"

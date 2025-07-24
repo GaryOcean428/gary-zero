@@ -10,11 +10,12 @@ from framework.helpers.strings import calculate_valid_match_lengths
 
 
 class SSHInteractiveSession:
-
     # end_comment = "# @@==>> SSHInteractiveSession End-of-Command  <<==@@"
     # ps1_label = "SSHInteractiveSession CLI>"
 
-    def __init__(self, logger: Log, hostname: str, port: int, username: str, password: str):
+    def __init__(
+        self, logger: Log, hostname: str, port: int, username: str, password: str
+    ):
         self.logger = logger
         self.hostname = hostname
         self.port = port
@@ -92,13 +93,17 @@ class SSHInteractiveSession:
         leftover = b""
         start_time = time.time()
 
-        while self.shell.recv_ready() and (timeout <= 0 or time.time() - start_time < timeout):
-
+        while self.shell.recv_ready() and (
+            timeout <= 0 or time.time() - start_time < timeout
+        ):
             # data = self.shell.recv(1024)
             data = self.receive_bytes()
 
             # Trim own command from output
-            if self.last_command and len(self.last_command) > self.trimmed_command_length:
+            if (
+                self.last_command
+                and len(self.last_command) > self.trimmed_command_length
+            ):
                 command_to_trim = self.last_command[self.trimmed_command_length :]
                 data_to_trim = leftover + data
 
@@ -158,7 +163,9 @@ class SSHInteractiveSession:
             # Check if the last byte is part of a multi-byte UTF-8 sequence (continuation byte)
             if (last_byte & 0b11000000) == 0b10000000:  # It's a continuation byte
                 # Now, find the start of this sequence by checking earlier bytes
-                for i in range(2, 5):  # Look back up to 4 bytes (since UTF-8 is up to 4 bytes long)
+                for i in range(
+                    2, 5
+                ):  # Look back up to 4 bytes (since UTF-8 is up to 4 bytes long)
                     if len(data) - i < 0:
                         break
                     byte = data[-i]
@@ -167,10 +174,14 @@ class SSHInteractiveSession:
                     if (byte & 0b11100000) == 0b11000000:  # 2-byte sequence (110xxxxx)
                         data += recv_all(1)  # Need 1 more byte to complete
                         break
-                    elif (byte & 0b11110000) == 0b11100000:  # 3-byte sequence (1110xxxx)
+                    elif (
+                        byte & 0b11110000
+                    ) == 0b11100000:  # 3-byte sequence (1110xxxx)
                         data += recv_all(2)  # Need 2 more bytes to complete
                         break
-                    elif (byte & 0b11111000) == 0b11110000:  # 4-byte sequence (11110xxx)
+                    elif (
+                        byte & 0b11111000
+                    ) == 0b11110000:  # 4-byte sequence (11110xxx)
                         data += recv_all(3)  # Need 3 more bytes to complete
                         break
 
@@ -194,6 +205,8 @@ class SSHInteractiveSession:
             # Handle carriage returns '\r' by splitting and taking the last part
             parts = [part for part in lines[i].split("\r") if part.strip()]
             if parts:
-                lines[i] = parts[-1].rstrip()  # Overwrite with the last part after the last '\r'
+                lines[i] = parts[
+                    -1
+                ].rstrip()  # Overwrite with the last part after the last '\r'
 
         return "\n".join(lines)

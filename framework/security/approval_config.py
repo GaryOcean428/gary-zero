@@ -22,7 +22,9 @@ class ApprovalConfigManager:
     """Manager for approval workflow configuration."""
 
     def __init__(self, config_file: str | None = None):
-        self.config_file = Path(config_file) if config_file else Path("approval_config.json")
+        self.config_file = (
+            Path(config_file) if config_file else Path("approval_config.json")
+        )
         self.workflow: ApprovalWorkflow | None = None
 
         # Default configuration
@@ -31,19 +33,33 @@ class ApprovalConfigManager:
                 "default_timeout": 300,
                 "max_pending_requests": 100,
                 "cache_duration": 3600,
-                "enable_approval_logs": True
+                "enable_approval_logs": True,
             },
             "user_roles": {},
             "action_policies": {},
             "role_permissions": {
-                "owner": ["file_write", "file_delete", "shell_command", "external_api_call",
-                         "computer_control", "code_execution", "payment_transaction", "config_change"],
-                "admin": ["file_write", "file_delete", "shell_command", "external_api_call",
-                         "code_execution", "config_change"],
+                "owner": [
+                    "file_write",
+                    "file_delete",
+                    "shell_command",
+                    "external_api_call",
+                    "computer_control",
+                    "code_execution",
+                    "payment_transaction",
+                    "config_change",
+                ],
+                "admin": [
+                    "file_write",
+                    "file_delete",
+                    "shell_command",
+                    "external_api_call",
+                    "code_execution",
+                    "config_change",
+                ],
                 "user": ["file_write", "external_api_call", "config_change"],
                 "guest": [],
-                "subordinate_agent": []
-            }
+                "subordinate_agent": [],
+            },
         }
 
     def set_workflow(self, workflow: ApprovalWorkflow) -> None:
@@ -67,7 +83,7 @@ class ApprovalConfigManager:
         """Save configuration to file."""
         try:
             self.config_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.config_file, 'w') as f:
+            with open(self.config_file, "w") as f:
                 json.dump(config, f, indent=2)
             return True
         except Exception as e:
@@ -86,7 +102,9 @@ class ApprovalConfigManager:
             # Apply global settings
             global_settings = config.get("global_settings", {})
             self.workflow.global_timeout = global_settings.get("default_timeout", 300)
-            self.workflow.max_pending_requests = global_settings.get("max_pending_requests", 100)
+            self.workflow.max_pending_requests = global_settings.get(
+                "max_pending_requests", 100
+            )
             self.workflow.cache_duration = global_settings.get("cache_duration", 3600)
 
             # Apply user roles
@@ -105,20 +123,28 @@ class ApprovalConfigManager:
                     try:
                         if "approval_policy" in policy_config:
                             policy = ApprovalPolicy(policy_config["approval_policy"])
-                            self.workflow.configure_action(action_type, approval_policy=policy)
+                            self.workflow.configure_action(
+                                action_type, approval_policy=policy
+                            )
 
                         if "timeout_seconds" in policy_config:
                             self.workflow.configure_action(
                                 action_type,
-                                timeout_seconds=policy_config["timeout_seconds"]
+                                timeout_seconds=policy_config["timeout_seconds"],
                             )
 
                         if "required_roles" in policy_config:
-                            roles = [UserRole(r) for r in policy_config["required_roles"]]
-                            self.workflow.configure_action(action_type, required_roles=roles)
+                            roles = [
+                                UserRole(r) for r in policy_config["required_roles"]
+                            ]
+                            self.workflow.configure_action(
+                                action_type, required_roles=roles
+                            )
 
                     except (ValueError, KeyError) as e:
-                        print(f"Warning: Invalid policy config for action {action_type}: {e}")
+                        print(
+                            f"Warning: Invalid policy config for action {action_type}: {e}"
+                        )
 
             return True
 
@@ -136,14 +162,14 @@ class ApprovalConfigManager:
                 "default_timeout": self.workflow.global_timeout,
                 "max_pending_requests": self.workflow.max_pending_requests,
                 "cache_duration": self.workflow.cache_duration,
-                "enable_approval_logs": True
+                "enable_approval_logs": True,
             },
             "user_roles": {
                 user_id: role.value
                 for user_id, role in self.workflow.user_roles.items()
             },
             "action_policies": {},
-            "role_permissions": self.default_config["role_permissions"].copy()
+            "role_permissions": self.default_config["role_permissions"].copy(),
         }
 
         # Export action definitions
@@ -153,7 +179,7 @@ class ApprovalConfigManager:
                 "approval_policy": action_def.approval_policy.value,
                 "timeout_seconds": action_def.timeout_seconds,
                 "required_roles": [role.value for role in action_def.required_roles],
-                "description": action_def.description
+                "description": action_def.description,
             }
 
         return config
@@ -185,7 +211,9 @@ class ApprovalConfigManager:
                     valid_updates["approval_policy"] = policy
 
                 if "timeout_seconds" in policy_updates:
-                    valid_updates["timeout_seconds"] = int(policy_updates["timeout_seconds"])
+                    valid_updates["timeout_seconds"] = int(
+                        policy_updates["timeout_seconds"]
+                    )
 
                 if "required_roles" in policy_updates:
                     roles = [UserRole(r) for r in policy_updates["required_roles"]]
@@ -212,9 +240,13 @@ class ApprovalConfigManager:
                 action_type=action_definition["action_type"],
                 risk_level=RiskLevel(action_definition["risk_level"]),
                 description=action_definition["description"],
-                required_roles=[UserRole(r) for r in action_definition["required_roles"]],
-                approval_policy=ApprovalPolicy(action_definition.get("approval_policy", "always_ask")),
-                timeout_seconds=action_definition.get("timeout_seconds", 300)
+                required_roles=[
+                    UserRole(r) for r in action_definition["required_roles"]
+                ],
+                approval_policy=ApprovalPolicy(
+                    action_definition.get("approval_policy", "always_ask")
+                ),
+                timeout_seconds=action_definition.get("timeout_seconds", 300),
             )
 
             if self.workflow:
@@ -227,7 +259,7 @@ class ApprovalConfigManager:
                 "approval_policy": action_def.approval_policy.value,
                 "timeout_seconds": action_def.timeout_seconds,
                 "required_roles": [role.value for role in action_def.required_roles],
-                "description": action_def.description
+                "description": action_def.description,
             }
 
             return self.save_config(config)
@@ -282,7 +314,9 @@ class ApprovalConfigManager:
                     try:
                         UserRole(role_name)
                     except ValueError:
-                        errors.append(f"Invalid required role '{role_name}' for action {action_type}")
+                        errors.append(
+                            f"Invalid required role '{role_name}' for action {action_type}"
+                        )
 
         return errors
 
@@ -293,51 +327,62 @@ class ApprovalConfigManager:
                 "default_timeout": 300,
                 "max_pending_requests": 100,
                 "cache_duration": 3600,
-                "enable_approval_logs": True
+                "enable_approval_logs": True,
             },
             "user_roles": {
                 "admin_user": "admin",
                 "regular_user": "user",
-                "guest_user": "guest"
+                "guest_user": "guest",
             },
             "action_policies": {
                 "file_write": {
                     "approval_policy": "ask_once",
                     "timeout_seconds": 120,
-                    "required_roles": ["owner", "admin", "user"]
+                    "required_roles": ["owner", "admin", "user"],
                 },
                 "file_delete": {
                     "approval_policy": "always_ask",
                     "timeout_seconds": 300,
-                    "required_roles": ["owner", "admin"]
+                    "required_roles": ["owner", "admin"],
                 },
                 "shell_command": {
                     "approval_policy": "always_ask",
                     "timeout_seconds": 180,
-                    "required_roles": ["owner", "admin"]
-                }
+                    "required_roles": ["owner", "admin"],
+                },
             },
             "_comments": {
-                "approval_policies": ["always_ask", "ask_once", "never_ask", "role_based"],
+                "approval_policies": [
+                    "always_ask",
+                    "ask_once",
+                    "never_ask",
+                    "role_based",
+                ],
                 "risk_levels": ["low", "medium", "high", "critical"],
-                "user_roles": ["owner", "admin", "user", "guest", "subordinate_agent"]
-            }
+                "user_roles": ["owner", "admin", "user", "guest", "subordinate_agent"],
+            },
         }
 
         try:
-            with open(file_path, 'w') as f:
+            with open(file_path, "w") as f:
                 json.dump(template, f, indent=2)
             return True
         except Exception as e:
             print(f"Error exporting template: {e}")
             return False
 
-    def _merge_config(self, default: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
+    def _merge_config(
+        self, default: dict[str, Any], override: dict[str, Any]
+    ) -> dict[str, Any]:
         """Merge configuration dictionaries."""
         merged = default.copy()
 
         for key, value in override.items():
-            if key in merged and isinstance(merged[key], dict) and isinstance(value, dict):
+            if (
+                key in merged
+                and isinstance(merged[key], dict)
+                and isinstance(value, dict)
+            ):
                 merged[key] = self._merge_config(merged[key], value)
             else:
                 merged[key] = value
@@ -358,14 +403,14 @@ def get_config_manager(config_file: str | None = None) -> ApprovalConfigManager:
 
 
 def setup_approval_workflow_from_config(
-    config_file: str | None = None,
-    workflow: ApprovalWorkflow | None = None
+    config_file: str | None = None, workflow: ApprovalWorkflow | None = None
 ) -> ApprovalWorkflow:
     """Setup and configure an approval workflow from configuration file."""
     config_manager = get_config_manager(config_file)
 
     if workflow is None:
         from .audit_logger import AuditLogger
+
         workflow = ApprovalWorkflow(AuditLogger())
 
     config_manager.set_workflow(workflow)

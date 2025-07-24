@@ -62,6 +62,7 @@ class TestFastAPIApp:
         data = response.json()
         assert "detail" in data
 
+
 class TestWebSocketEndpoint:
     """Test cases for WebSocket functionality."""
 
@@ -77,6 +78,7 @@ class TestWebSocketEndpoint:
             assert "status" in data
             assert "response" in data
             assert "timestamp" in data
+
 
 class TestPydanticModels:
     """Test Pydantic models for request/response validation."""
@@ -96,9 +98,7 @@ class TestPydanticModels:
 
         # Valid message
         valid_message = MessageRequest(
-            message="Test message",
-            agent_id="test-agent",
-            context={"key": "value"}
+            message="Test message", agent_id="test-agent", context={"key": "value"}
         )
         assert valid_message.message == "Test message"
 
@@ -111,9 +111,7 @@ class TestPydanticModels:
         from main import MessageResponse
 
         response = MessageResponse(
-            status="success",
-            response="Test response",
-            agent_id="test-agent"
+            status="success", response="Test response", agent_id="test-agent"
         )
         assert response.status == "success"
         assert response.response == "Test response"

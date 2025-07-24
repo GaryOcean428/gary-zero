@@ -3,7 +3,7 @@ Unified logging system that consolidates different logging approaches.
 
 This module creates a centralized event logging system that integrates:
 - framework.security.audit_logger
-- framework.performance.monitor  
+- framework.performance.monitor
 - framework.helpers.log
 """
 
@@ -23,6 +23,7 @@ from ..security.audit_logger import AuditEvent, AuditEventType, AuditLevel, Audi
 
 class LogLevel(Enum):
     """Unified log levels."""
+
     DEBUG = "debug"
     INFO = "info"
     WARNING = "warning"
@@ -32,6 +33,7 @@ class LogLevel(Enum):
 
 class EventType(Enum):
     """Types of events in the unified logging system."""
+
     # User interactions
     USER_INPUT = "user_input"
     USER_ACTION = "user_action"
@@ -68,6 +70,7 @@ class EventType(Enum):
 @dataclass
 class LogEvent:
     """Unified log event structure."""
+
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     timestamp: float = field(default_factory=time.time)
     event_type: EventType = EventType.SYSTEM_EVENT
@@ -102,9 +105,9 @@ class LogEvent:
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary with proper serialization."""
         data = asdict(self)
-        data['event_type'] = self.event_type.value
-        data['level'] = self.level.value
-        data['timestamp_iso'] = datetime.fromtimestamp(
+        data["event_type"] = self.event_type.value
+        data["level"] = self.level.value
+        data["timestamp_iso"] = datetime.fromtimestamp(
             self.timestamp, tz=UTC
         ).isoformat()
         return data
@@ -117,15 +120,17 @@ class LogEvent:
 class UnifiedLogger:
     """
     Unified logging system that consolidates different logging approaches.
-    
+
     Integrates with existing audit logger, performance monitor, and log helpers
     while providing a centralized interface and enhanced capabilities.
     """
 
-    def __init__(self,
-                 storage_path: str | None = None,
-                 max_buffer_size: int = 10000,
-                 enable_performance_tracking: bool = True):
+    def __init__(
+        self,
+        storage_path: str | None = None,
+        max_buffer_size: int = 10000,
+        enable_performance_tracking: bool = True,
+    ):
         self.storage_path = Path(storage_path) if storage_path else None
         self.max_buffer_size = max_buffer_size
         self.enable_performance_tracking = enable_performance_tracking
@@ -173,15 +178,17 @@ class UnifiedLogger:
         await self._forward_to_audit_logger(event)
         self._forward_to_performance_monitor(event)
 
-    async def log_tool_execution(self,
-                                tool_name: str,
-                                parameters: dict[str, Any],
-                                success: bool,
-                                duration_ms: float | None = None,
-                                user_id: str | None = None,
-                                agent_id: str | None = None,
-                                output_data: dict[str, Any] | None = None,
-                                error_message: str | None = None) -> str:
+    async def log_tool_execution(
+        self,
+        tool_name: str,
+        parameters: dict[str, Any],
+        success: bool,
+        duration_ms: float | None = None,
+        user_id: str | None = None,
+        agent_id: str | None = None,
+        output_data: dict[str, Any] | None = None,
+        error_message: str | None = None,
+    ) -> str:
         """Log tool execution with standardized format."""
         event = LogEvent(
             event_type=EventType.TOOL_EXECUTION,
@@ -193,24 +200,28 @@ class UnifiedLogger:
             input_data={"parameters": parameters, "success": success},
             output_data=output_data,
             duration_ms=duration_ms,
-            error_message=error_message
+            error_message=error_message,
         )
 
         await self.log_event(event)
         return event.event_id
 
-    async def log_code_execution(self,
-                               code_snippet: str,
-                               language: str,
-                               success: bool,
-                               duration_ms: float | None = None,
-                               output: str | None = None,
-                               error_message: str | None = None,
-                               user_id: str | None = None,
-                               agent_id: str | None = None) -> str:
+    async def log_code_execution(
+        self,
+        code_snippet: str,
+        language: str,
+        success: bool,
+        duration_ms: float | None = None,
+        output: str | None = None,
+        error_message: str | None = None,
+        user_id: str | None = None,
+        agent_id: str | None = None,
+    ) -> str:
         """Log code execution event."""
         # Truncate code for logging (security)
-        code_preview = code_snippet[:200] + "..." if len(code_snippet) > 200 else code_snippet
+        code_preview = (
+            code_snippet[:200] + "..." if len(code_snippet) > 200 else code_snippet
+        )
 
         event = LogEvent(
             event_type=EventType.CODE_EXECUTION,
@@ -221,25 +232,29 @@ class UnifiedLogger:
             input_data={
                 "language": language,
                 "code_preview": code_preview,
-                "success": success
+                "success": success,
             },
-            output_data={"output": output[:500] if output else None},  # Limit output size
+            output_data={
+                "output": output[:500] if output else None
+            },  # Limit output size
             duration_ms=duration_ms,
-            error_message=error_message
+            error_message=error_message,
         )
 
         await self.log_event(event)
         return event.event_id
 
-    async def log_gui_action(self,
-                           action_type: str,
-                           element: str,
-                           success: bool,
-                           duration_ms: float | None = None,
-                           page_url: str | None = None,
-                           error_message: str | None = None,
-                           user_id: str | None = None,
-                           agent_id: str | None = None) -> str:
+    async def log_gui_action(
+        self,
+        action_type: str,
+        element: str,
+        success: bool,
+        duration_ms: float | None = None,
+        page_url: str | None = None,
+        error_message: str | None = None,
+        user_id: str | None = None,
+        agent_id: str | None = None,
+    ) -> str:
         """Log GUI/browser action."""
         event = LogEvent(
             event_type=EventType.GUI_ACTION,
@@ -251,22 +266,24 @@ class UnifiedLogger:
                 "action_type": action_type,
                 "element": element,
                 "page_url": page_url,
-                "success": success
+                "success": success,
             },
             duration_ms=duration_ms,
-            error_message=error_message
+            error_message=error_message,
         )
 
         await self.log_event(event)
         return event.event_id
 
-    async def log_knowledge_retrieval(self,
-                                    query: str,
-                                    results_count: int,
-                                    duration_ms: float | None = None,
-                                    source: str | None = None,
-                                    user_id: str | None = None,
-                                    agent_id: str | None = None) -> str:
+    async def log_knowledge_retrieval(
+        self,
+        query: str,
+        results_count: int,
+        duration_ms: float | None = None,
+        source: str | None = None,
+        user_id: str | None = None,
+        agent_id: str | None = None,
+    ) -> str:
         """Log knowledge retrieval operation."""
         event = LogEvent(
             event_type=EventType.KNOWLEDGE_RETRIEVAL,
@@ -277,22 +294,24 @@ class UnifiedLogger:
             input_data={
                 "query_preview": query[:100] + "..." if len(query) > 100 else query,
                 "results_count": results_count,
-                "source": source
+                "source": source,
             },
-            duration_ms=duration_ms
+            duration_ms=duration_ms,
         )
 
         await self.log_event(event)
         return event.event_id
 
-    async def log_memory_operation(self,
-                                 operation_type: str,
-                                 entity_count: int,
-                                 success: bool,
-                                 duration_ms: float | None = None,
-                                 error_message: str | None = None,
-                                 user_id: str | None = None,
-                                 agent_id: str | None = None) -> str:
+    async def log_memory_operation(
+        self,
+        operation_type: str,
+        entity_count: int,
+        success: bool,
+        duration_ms: float | None = None,
+        error_message: str | None = None,
+        user_id: str | None = None,
+        agent_id: str | None = None,
+    ) -> str:
         """Log memory/graph operation."""
         event = LogEvent(
             event_type=EventType.MEMORY_OPERATION,
@@ -303,21 +322,23 @@ class UnifiedLogger:
             input_data={
                 "operation_type": operation_type,
                 "entity_count": entity_count,
-                "success": success
+                "success": success,
             },
             duration_ms=duration_ms,
-            error_message=error_message
+            error_message=error_message,
         )
 
         await self.log_event(event)
         return event.event_id
 
-    async def get_execution_timeline(self,
-                                   agent_id: str | None = None,
-                                   session_id: str | None = None,
-                                   user_id: str | None = None,
-                                   start_time: float | None = None,
-                                   end_time: float | None = None) -> list[LogEvent]:
+    async def get_execution_timeline(
+        self,
+        agent_id: str | None = None,
+        session_id: str | None = None,
+        user_id: str | None = None,
+        start_time: float | None = None,
+        end_time: float | None = None,
+    ) -> list[LogEvent]:
         """Get a complete execution timeline for reconstruction."""
         execution_types = {
             EventType.TOOL_EXECUTION,
@@ -325,7 +346,7 @@ class UnifiedLogger:
             EventType.GUI_ACTION,
             EventType.KNOWLEDGE_RETRIEVAL,
             EventType.MEMORY_OPERATION,
-            EventType.AGENT_DECISION
+            EventType.AGENT_DECISION,
         }
 
         async with self.buffer_lock:
@@ -351,14 +372,16 @@ class UnifiedLogger:
         events.sort(key=lambda e: e.timestamp)
         return events
 
-    async def get_events(self,
-                        event_type: EventType | None = None,
-                        level: LogLevel | None = None,
-                        user_id: str | None = None,
-                        agent_id: str | None = None,
-                        start_time: float | None = None,
-                        end_time: float | None = None,
-                        limit: int = 100) -> list[LogEvent]:
+    async def get_events(
+        self,
+        event_type: EventType | None = None,
+        level: LogLevel | None = None,
+        user_id: str | None = None,
+        agent_id: str | None = None,
+        start_time: float | None = None,
+        end_time: float | None = None,
+        limit: int = 100,
+    ) -> list[LogEvent]:
         """Retrieve events with filtering."""
         async with self.buffer_lock:
             events = list(self.event_buffer)
@@ -393,15 +416,23 @@ class UnifiedLogger:
             "events_in_buffer": len(self.event_buffer),
             "events_by_type": self.events_by_type.copy(),
             "events_by_level": self.events_by_level.copy(),
-            "buffer_utilization": len(self.event_buffer) / self.max_buffer_size
+            "buffer_utilization": len(self.event_buffer) / self.max_buffer_size,
         }
 
     def _sanitize_event(self, event: LogEvent) -> LogEvent:
         """Sanitize event data to remove sensitive information."""
         # Keywords that indicate sensitive data
         sensitive_keywords = {
-            'password', 'token', 'key', 'secret', 'auth', 'credential',
-            'api_key', 'access_token', 'private_key', 'ssh_key'
+            "password",
+            "token",
+            "key",
+            "secret",
+            "auth",
+            "credential",
+            "api_key",
+            "access_token",
+            "private_key",
+            "ssh_key",
         }
 
         def sanitize_dict(data: dict[str, Any]) -> dict[str, Any]:
@@ -444,7 +475,7 @@ class UnifiedLogger:
             EventType.AUTHORIZATION,
             EventType.SECURITY_VIOLATION,
             EventType.RATE_LIMIT,
-            EventType.CONFIG_CHANGE
+            EventType.CONFIG_CHANGE,
         }
 
         if event.event_type in security_events:
@@ -466,7 +497,7 @@ class UnifiedLogger:
                     f"tool_duration_{event.tool_name}",
                     event.duration_ms,
                     tags={"event_type": event.event_type.value},
-                    unit="ms"
+                    unit="ms",
                 )
         except Exception as e:
             # Log error but don't fail
@@ -505,7 +536,7 @@ class UnifiedLogger:
             input_data=event.input_data,
             output_data=event.output_data,
             error_details=event.error_message,
-            metadata=event.metadata
+            metadata=event.metadata,
         )
 
 
@@ -518,7 +549,6 @@ def get_unified_logger() -> UnifiedLogger:
     global _unified_logger
     if _unified_logger is None:
         _unified_logger = UnifiedLogger(
-            storage_path="./logs",
-            enable_performance_tracking=True
+            storage_path="./logs", enable_performance_tracking=True
         )
     return _unified_logger

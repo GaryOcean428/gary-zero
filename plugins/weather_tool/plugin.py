@@ -3,6 +3,7 @@
 from datetime import datetime
 
 from framework.helpers.tool import Response, Tool
+
 BaseClass = Tool
 
 
@@ -23,7 +24,7 @@ class WeatherTool(BaseClass):
         else:
             return Response(
                 message=f"Unknown weather action: {action}. Available: current, forecast, alerts",
-                break_loop=False
+                break_loop=False,
             )
 
     async def _get_current_weather(self) -> Response:
@@ -39,7 +40,7 @@ class WeatherTool(BaseClass):
             "wind": "15 km/h NW",
             "pressure": "1013 hPa",
             "visibility": "10 km",
-            "updated": datetime.now().strftime("%H:%M")
+            "updated": datetime.now().strftime("%H:%M"),
         }
 
         response = f"🌤️ Current Weather for {location}:\n"
@@ -60,11 +61,41 @@ class WeatherTool(BaseClass):
 
         # Mock forecast data
         forecast_days = [
-            {"day": "Today", "high": "25°C", "low": "18°C", "condition": "Sunny", "icon": "☀️"},
-            {"day": "Tomorrow", "high": "23°C", "low": "16°C", "condition": "Cloudy", "icon": "☁️"},
-            {"day": "Day 3", "high": "20°C", "low": "14°C", "condition": "Rainy", "icon": "🌧️"},
-            {"day": "Day 4", "high": "22°C", "low": "15°C", "condition": "Partly Cloudy", "icon": "⛅"},
-            {"day": "Day 5", "high": "24°C", "low": "17°C", "condition": "Sunny", "icon": "☀️"}
+            {
+                "day": "Today",
+                "high": "25°C",
+                "low": "18°C",
+                "condition": "Sunny",
+                "icon": "☀️",
+            },
+            {
+                "day": "Tomorrow",
+                "high": "23°C",
+                "low": "16°C",
+                "condition": "Cloudy",
+                "icon": "☁️",
+            },
+            {
+                "day": "Day 3",
+                "high": "20°C",
+                "low": "14°C",
+                "condition": "Rainy",
+                "icon": "🌧️",
+            },
+            {
+                "day": "Day 4",
+                "high": "22°C",
+                "low": "15°C",
+                "condition": "Partly Cloudy",
+                "icon": "⛅",
+            },
+            {
+                "day": "Day 5",
+                "high": "24°C",
+                "low": "17°C",
+                "condition": "Sunny",
+                "icon": "☀️",
+            },
         ]
 
         response = f"📅 {days}-Day Forecast for {location}:\n\n"
@@ -86,14 +117,13 @@ class WeatherTool(BaseClass):
                 "title": "High Wind Advisory",
                 "description": "Winds up to 50 km/h expected",
                 "severity": "Minor",
-                "icon": "💨"
+                "icon": "💨",
             }
         ]
 
         if not alerts:
             return Response(
-                message=f"🟢 No weather alerts for {location}",
-                break_loop=False
+                message=f"🟢 No weather alerts for {location}", break_loop=False
             )
 
         response = f"⚠️ Weather Alerts for {location}:\n\n"

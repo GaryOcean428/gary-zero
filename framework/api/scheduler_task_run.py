@@ -5,7 +5,6 @@ from framework.helpers.task_scheduler import TaskScheduler, TaskState
 
 
 class SchedulerTaskRun(ApiHandler):
-
     _printer: PrintStyle = PrintStyle(italic=True, font_color="green", padding=False)
 
     async def process(self, input: Input, request: Request) -> Output:
@@ -48,7 +47,9 @@ class SchedulerTaskRun(ApiHandler):
         # Run the task, which now includes atomic state checks and updates
         try:
             await scheduler.run_task_by_uuid(task_id)
-            self._printer.print(f"SchedulerTaskRun: Task '{task_id}' started successfully")
+            self._printer.print(
+                f"SchedulerTaskRun: Task '{task_id}' started successfully"
+            )
             # Get updated task after run starts
             serialized_task = scheduler.serialize_task(task_id)
             if serialized_task:
@@ -63,8 +64,12 @@ class SchedulerTaskRun(ApiHandler):
                     "message": f"Task '{task_id}' started successfully",
                 }
         except ValueError as e:
-            self._printer.error(f"SchedulerTaskRun: Task '{task_id}' failed to start: {str(e)}")
+            self._printer.error(
+                f"SchedulerTaskRun: Task '{task_id}' failed to start: {str(e)}"
+            )
             return {"error": str(e)}
         except Exception as e:
-            self._printer.error(f"SchedulerTaskRun: Task '{task_id}' failed to start: {str(e)}")
+            self._printer.error(
+                f"SchedulerTaskRun: Task '{task_id}' failed to start: {str(e)}"
+            )
             return {"error": f"Failed to run task '{task_id}': {str(e)}"}

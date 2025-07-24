@@ -14,8 +14,8 @@ def test_health_endpoint():
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
         # Test the enhanced health check function
-        required_keys = {'status', 'timestamp', 'version'}
-        optional_keys = {'memory_percent', 'uptime_seconds', 'server', 'error'}
+        required_keys = {"status", "timestamp", "version"}
+        optional_keys = {"memory_percent", "uptime_seconds", "server", "error"}
 
         # Simulate the enhanced health check function
         def health_check():
@@ -27,7 +27,7 @@ def test_health_endpoint():
                     "version": "1.0.0",
                     "memory_percent": 45.2,
                     "uptime_seconds": 120.5,
-                    "server": "gunicorn"
+                    "server": "gunicorn",
                 }
             except Exception as e:
                 # Simulate fallback
@@ -35,7 +35,7 @@ def test_health_endpoint():
                     "status": "healthy",
                     "timestamp": time.time(),
                     "version": "1.0.0",
-                    "error": str(e)
+                    "error": str(e),
                 }
 
         result = health_check()
@@ -46,11 +46,15 @@ def test_health_endpoint():
             return False
 
         if not all(key in result for key in required_keys):
-            print(f"❌ Health check missing required keys. Expected: {required_keys}, Got: {set(result.keys())}")
+            print(
+                f"❌ Health check missing required keys. Expected: {required_keys}, Got: {set(result.keys())}"
+            )
             return False
 
-        if result['status'] != 'healthy':
-            print(f"❌ Health check status should be 'healthy', got: {result['status']}")
+        if result["status"] != "healthy":
+            print(
+                f"❌ Health check status should be 'healthy', got: {result['status']}"
+            )
             return False
 
         # Validate optional fields if present
@@ -67,17 +71,18 @@ def test_health_endpoint():
         print(f"❌ Health endpoint test failed: {e}")
         return False
 
+
 def test_dockerfile_command():
     """Test that the Dockerfile CMD is properly formatted for Gunicorn."""
     try:
-        with open('Dockerfile') as f:
+        with open("Dockerfile") as f:
             content = f.read()
 
         # Look for the CMD line
-        lines = content.split('\n')
+        lines = content.split("\n")
         cmd_line = None
         for line in lines:
-            if line.strip().startswith('CMD') and 'gunicorn' in line:
+            if line.strip().startswith("CMD") and "gunicorn" in line:
                 cmd_line = line.strip()
                 break
 
@@ -86,7 +91,13 @@ def test_dockerfile_command():
             return False
 
         # Check for required Gunicorn parameters
-        required_params = ['--bind', '0.0.0.0', '--workers', '--timeout', 'wsgi:application']
+        required_params = [
+            "--bind",
+            "0.0.0.0",
+            "--workers",
+            "--timeout",
+            "wsgi:application",
+        ]
 
         for param in required_params:
             if param not in cmd_line:
@@ -102,18 +113,19 @@ def test_dockerfile_command():
         print(f"❌ Dockerfile validation failed: {e}")
         return False
 
+
 def test_readiness_endpoint():
     """Test that the readiness endpoint exists and returns expected format."""
     try:
         # Check that readiness endpoint exists in code
-        with open('run_ui.py') as f:
+        with open("run_ui.py") as f:
             content = f.read()
 
         if '@webapp.route("/ready"' not in content:
             print("❌ Readiness endpoint route not found")
             return False
 
-        if 'def readiness_check():' not in content:
+        if "def readiness_check():" not in content:
             print("❌ Readiness check function not found")
             return False
 
@@ -124,22 +136,28 @@ def test_readiness_endpoint():
         result = readiness_check()
 
         # Validate response format
-        expected_keys = {'status', 'service', 'timestamp'}
+        expected_keys = {"status", "service", "timestamp"}
 
         if not isinstance(result, dict):
             print("❌ Readiness check should return a dictionary")
             return False
 
         if not all(key in result for key in expected_keys):
-            print(f"❌ Readiness check missing required keys. Expected: {expected_keys}, Got: {set(result.keys())}")
+            print(
+                f"❌ Readiness check missing required keys. Expected: {expected_keys}, Got: {set(result.keys())}"
+            )
             return False
 
-        if result['status'] != 'ready':
-            print(f"❌ Readiness check status should be 'ready', got: {result['status']}")
+        if result["status"] != "ready":
+            print(
+                f"❌ Readiness check status should be 'ready', got: {result['status']}"
+            )
             return False
 
-        if result['service'] != 'gary-zero':
-            print(f"❌ Readiness check service should be 'gary-zero', got: {result['service']}")
+        if result["service"] != "gary-zero":
+            print(
+                f"❌ Readiness check service should be 'gary-zero', got: {result['service']}"
+            )
             return False
 
         print("✅ Readiness endpoint validation passed")
@@ -154,7 +172,7 @@ def test_readiness_endpoint():
 def test_railway_config():
     """Test that railway.toml has consistent configuration."""
     try:
-        with open('railway.toml') as f:
+        with open("railway.toml") as f:
             content = f.read()
 
         # Check for health check configuration
@@ -163,11 +181,11 @@ def test_railway_config():
             return False
 
         # Check for gunicorn start command
-        if 'gunicorn' not in content:
+        if "gunicorn" not in content:
             print("❌ railway.toml should use gunicorn start command")
             return False
 
-        if 'wsgi:application' not in content:
+        if "wsgi:application" not in content:
             print("❌ railway.toml should reference wsgi:application")
             return False
 
@@ -179,7 +197,7 @@ def test_railway_config():
         return False
     """Test that railway.toml has consistent configuration."""
     try:
-        with open('railway.toml') as f:
+        with open("railway.toml") as f:
             content = f.read()
 
         # Check for health check configuration
@@ -188,11 +206,11 @@ def test_railway_config():
             return False
 
         # Check for gunicorn start command
-        if 'gunicorn' not in content:
+        if "gunicorn" not in content:
             print("❌ railway.toml should use gunicorn start command")
             return False
 
-        if 'wsgi:application' not in content:
+        if "wsgi:application" not in content:
             print("❌ railway.toml should reference wsgi:application")
             return False
 
@@ -202,6 +220,7 @@ def test_railway_config():
     except Exception as e:
         print(f"❌ Railway configuration validation failed: {e}")
         return False
+
 
 if __name__ == "__main__":
     print("🧪 Running deployment configuration tests...\n")

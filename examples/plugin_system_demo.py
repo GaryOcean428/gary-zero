@@ -20,6 +20,7 @@ from framework.security import AuditLogger, InputValidator
 @dataclass
 class PluginMetadata:
     """Plugin metadata for registration and discovery."""
+
     name: str
     version: str
     description: str
@@ -101,7 +102,7 @@ class PluginManager(BaseService):
             if missing_deps:
                 self.audit_logger.log_security_violation(
                     "missing_plugin_dependencies",
-                    {"plugin": metadata.name, "missing": missing_deps}
+                    {"plugin": metadata.name, "missing": missing_deps},
                 )
                 return False
 
@@ -137,9 +138,7 @@ class PluginManager(BaseService):
             del self.plugins[plugin_name]
             del self.plugin_metadata[plugin_name]
 
-            self.audit_logger.log_tool_execution(
-                "unload_plugin", {"name": plugin_name}
-            )
+            self.audit_logger.log_tool_execution("unload_plugin", {"name": plugin_name})
 
             return True
 
@@ -159,7 +158,7 @@ class PluginManager(BaseService):
                 "description": metadata.description,
                 "author": metadata.author,
                 "dependencies": metadata.dependencies,
-                "loaded": True
+                "loaded": True,
             }
             for metadata in self.plugin_metadata.values()
         ]
@@ -171,6 +170,7 @@ class PluginManager(BaseService):
 
 # Example Plugin Implementations
 
+
 class LoggingPlugin(Plugin):
     """Example logging plugin."""
 
@@ -180,7 +180,7 @@ class LoggingPlugin(Plugin):
             name="logging_plugin",
             version="1.0.0",
             description="Enhanced logging capabilities",
-            author="Framework Team"
+            author="Framework Team",
         )
 
     async def initialize(self, container) -> None:
@@ -202,14 +202,16 @@ class LoggingPlugin(Plugin):
         )
 
     @timer()
-    def log_with_context(self, level: str, message: str, context: dict[str, Any] = None):
+    def log_with_context(
+        self, level: str, message: str, context: dict[str, Any] = None
+    ):
         """Enhanced logging with context."""
         log_entry = {
             "timestamp": datetime.now().isoformat(),
             "level": level,
             "message": message,
             "context": context or {},
-            "plugin": "logging_plugin"
+            "plugin": "logging_plugin",
         }
 
         self.audit_logger.log_tool_execution("enhanced_log", log_entry)
@@ -225,7 +227,7 @@ class CachePlugin(Plugin):
             name="cache_plugin",
             version="1.0.0",
             description="Advanced caching with analytics",
-            author="Framework Team"
+            author="Framework Team",
         )
 
     async def initialize(self, container) -> None:
@@ -248,6 +250,7 @@ class CachePlugin(Plugin):
         with self.monitor.timing_context("cache_get"):
             # Simulate cache lookup
             import random
+
             hit = random.random() > 0.3  # 70% hit rate
 
             if hit:
@@ -255,14 +258,14 @@ class CachePlugin(Plugin):
                 return {
                     "value": f"cached_value_{key}",
                     "hit": True,
-                    "analytics": self.get_cache_analytics()
+                    "analytics": self.get_cache_analytics(),
                 }
             else:
                 self.cache_misses += 1
                 return {
                     "value": None,
                     "hit": False,
-                    "analytics": self.get_cache_analytics()
+                    "analytics": self.get_cache_analytics(),
                 }
 
     def get_cache_analytics(self) -> dict[str, Any]:
@@ -274,7 +277,7 @@ class CachePlugin(Plugin):
             "hits": self.cache_hits,
             "misses": self.cache_misses,
             "hit_rate": hit_rate,
-            "total_requests": total
+            "total_requests": total,
         }
 
 
@@ -288,7 +291,7 @@ class MonitoringPlugin(Plugin):
             version="1.0.0",
             description="System monitoring and alerting",
             author="Framework Team",
-            dependencies=["logging_plugin"]  # Depends on logging plugin
+            dependencies=["logging_plugin"],  # Depends on logging plugin
         )
 
     async def initialize(self, container) -> None:
@@ -308,7 +311,7 @@ class MonitoringPlugin(Plugin):
 
     async def shutdown(self) -> None:
         """Shutdown monitoring plugin."""
-        if hasattr(self, '_monitoring_task'):
+        if hasattr(self, "_monitoring_task"):
             self._monitoring_task.cancel()
             try:
                 await self._monitoring_task
@@ -350,7 +353,9 @@ class MonitoringPlugin(Plugin):
             if isinstance(value, (int, float)) and value > 100:  # Example threshold
                 if self.logger:
                     self.logger.log_with_context(
-                        "WARN", f"High {metric_name}", {"value": value, "threshold": 100}
+                        "WARN",
+                        f"High {metric_name}",
+                        {"value": value, "threshold": 100},
                     )
 
     def get_current_metrics(self) -> dict[str, Any]:
@@ -359,6 +364,7 @@ class MonitoringPlugin(Plugin):
 
 
 # Plugin System Demo
+
 
 async def demonstrate_plugin_system():
     """Demonstrate the plugin system in action."""
@@ -375,23 +381,25 @@ async def demonstrate_plugin_system():
 
     # Load plugins in dependency order
     plugins_to_load = [
-        LoggingPlugin,    # No dependencies
-        CachePlugin,      # No dependencies
-        MonitoringPlugin  # Depends on logging_plugin
+        LoggingPlugin,  # No dependencies
+        CachePlugin,  # No dependencies
+        MonitoringPlugin,  # Depends on logging_plugin
     ]
 
     print("\n🔄 Loading plugins...")
     for plugin_class in plugins_to_load:
         plugin_instance = plugin_class()
         success = await plugin_manager.load_plugin(plugin_class)
-        print(f"  {'✅' if success else '❌'} {plugin_instance.metadata.name} v{plugin_instance.metadata.version}")
+        print(
+            f"  {'✅' if success else '❌'} {plugin_instance.metadata.name} v{plugin_instance.metadata.version}"
+        )
 
     # List loaded plugins
     print("\n📋 Loaded plugins:")
     plugins = plugin_manager.list_plugins()
     for plugin in plugins:
         print(f"  • {plugin['name']} v{plugin['version']} - {plugin['description']}")
-        if plugin['dependencies']:
+        if plugin["dependencies"]:
             print(f"    Dependencies: {', '.join(plugin['dependencies'])}")
 
     print("\n🧪 Testing plugin functionality...")
@@ -399,7 +407,9 @@ async def demonstrate_plugin_system():
     # Test logging plugin
     logger = container.get("enhanced_logger")
     if logger:
-        log_entry = logger.log_with_context("INFO", "Testing enhanced logging", {"test": True})
+        log_entry = logger.log_with_context(
+            "INFO", "Testing enhanced logging", {"test": True}
+        )
         print(f"  ✅ Enhanced logging: {log_entry['message']}")
 
     # Test cache plugin
@@ -408,7 +418,9 @@ async def demonstrate_plugin_system():
         result1 = cache.get_with_analytics("test_key")
         result2 = cache.get_with_analytics("test_key")
         analytics = cache.get_cache_analytics()
-        print(f"  ✅ Advanced cache: {analytics['total_requests']} requests, {analytics['hit_rate']:.2f} hit rate")
+        print(
+            f"  ✅ Advanced cache: {analytics['total_requests']} requests, {analytics['hit_rate']:.2f} hit rate"
+        )
 
     # Test monitoring plugin
     monitor = container.get("system_monitor")
@@ -431,7 +443,7 @@ async def demonstrate_plugin_system():
     # Unload plugins
     print("\n🔄 Unloading plugins...")
     for plugin in plugins:
-        success = await plugin_manager.unload_plugin(plugin['name'])
+        success = await plugin_manager.unload_plugin(plugin["name"])
         print(f"  {'✅' if success else '❌'} {plugin['name']} unloaded")
 
     # Shutdown
@@ -448,4 +460,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ Demo failed with error: {e}")
         import traceback
+
         traceback.print_exc()

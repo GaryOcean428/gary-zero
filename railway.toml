@@ -1,0 +1,28 @@
+# This file has been migrated to railpack.json for Railway deployment
+# The railpack.json format provides better validation and CI integration
+# This file is kept for reference and potential future use
+
+[build]
+builder = "NIXPACKS"
+buildCommand = "bash scripts/build.sh"
+
+[deploy]
+startCommand = "bash scripts/start.sh"
+healthcheckPath = "/healthz"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+[environment]
+PORT = { default = "8000" }
+WEB_UI_HOST = { default = "0.0.0.0" }
+PYTHONUNBUFFERED = { default = "1" }
+TOKENIZERS_PARALLELISM = { default = "false" }
+
+# Railway reference variables for inter-service communication
+# Replace localhost URLs with these patterns:
+# http://localhost:4000 -> http://${{api.RAILWAY_PRIVATE_DOMAIN}}:${{api.PORT}}
+# https://my-api.example.com -> https://${{api.RAILWAY_PUBLIC_DOMAIN}}
+
+[services.web]
+source = "."

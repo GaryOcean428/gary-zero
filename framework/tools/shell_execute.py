@@ -9,7 +9,10 @@ import os
 import time
 from typing import Any
 
-from framework.helpers.kali_executor import get_kali_executor, is_kali_execution_available
+from framework.helpers.kali_executor import (
+    get_kali_executor,
+    is_kali_execution_available,
+)
 from framework.security import RiskLevel, require_approval
 from framework.tools.code_execution_tool import CodeExecutionTool
 
@@ -17,7 +20,7 @@ from framework.tools.code_execution_tool import CodeExecutionTool
 class ShellExecuteTool(CodeExecutionTool):
     """
     Tool for executing commands in the Kali Linux shell environment.
-    
+
     Extends the base CodeExecutionTool to provide specialized shell execution
     capabilities with UI integration, security tool access, and approval workflows.
     """
@@ -81,33 +84,35 @@ Dictionary with execution results:
 - `execution_time`: Time taken in seconds
 """
 
-    @require_approval("shell_command", RiskLevel.HIGH, "Execute shell command in Kali environment")
+    @require_approval(
+        "shell_command", RiskLevel.HIGH, "Execute shell command in Kali environment"
+    )
     async def call(self, agent=None, **kwargs) -> dict[str, Any]:
         """
         Execute a command in the Kali shell environment with approval workflow.
-        
+
         Args:
             agent: Agent instance (for UI integration)
             **kwargs: Command parameters
-            
+
         Returns:
             Dict containing execution results and UI information
         """
         # Extract user_id for approval system
-        user_id = kwargs.get('user_id', getattr(agent, 'user_id', 'system'))
+        user_id = kwargs.get("user_id", getattr(agent, "user_id", "system"))
 
-        command = kwargs.get('command', '')
-        description = kwargs.get('description', 'Shell command execution')
-        timeout = int(kwargs.get('timeout', 30))
-        session_id = kwargs.get('session_id', 'default')
-        show_ui = kwargs.get('show_ui', True)
+        command = kwargs.get("command", "")
+        description = kwargs.get("description", "Shell command execution")
+        timeout = int(kwargs.get("timeout", 30))
+        session_id = kwargs.get("session_id", "default")
+        show_ui = kwargs.get("show_ui", True)
 
         if not command:
             return {
                 "success": False,
                 "error": "No command provided",
                 "stdout": "",
-                "stderr": "Command parameter is required"
+                "stderr": "Command parameter is required",
             }
 
         # Check if Kali service is available
@@ -117,13 +122,15 @@ Dictionary with execution results:
                 "error": "Kali shell service not available",
                 "stdout": "",
                 "stderr": "Kali service not configured or unavailable. Check KALI_SHELL_URL environment variable.",
-                "fallback_suggestion": "Consider using code_execution_tool for general command execution"
+                "fallback_suggestion": "Consider using code_execution_tool for general command execution",
             }
 
         try:
             # Notify UI about shell operation start
             if show_ui and agent:
-                await self._notify_ui_shell_start(agent, command, description, session_id)
+                await self._notify_ui_shell_start(
+                    agent, command, description, session_id
+                )
 
             # Execute command in Kali environment
             result = await self.executor.execute_command(command, timeout)
@@ -136,7 +143,7 @@ Dictionary with execution results:
                 "description": description,
                 "session_id": session_id,
                 "ui_url": self._get_shell_ui_url(session_id),
-                "execution_time": result.get('execution_time', 0)
+                "execution_time": result.get("execution_time", 0),
             }
 
             # Notify UI about completion
@@ -152,7 +159,7 @@ Dictionary with execution results:
                 "stdout": "",
                 "stderr": str(e),
                 "command": command,
-                "description": description
+                "description": description,
             }
 
             if show_ui and agent:
@@ -160,64 +167,70 @@ Dictionary with execution results:
 
             return error_result
 
-    async def _notify_ui_shell_start(self, agent, command: str, description: str, session_id: str):
+    async def _notify_ui_shell_start(
+        self, agent, command: str, description: str, session_id: str
+    ):
         """Notify UI that shell operation is starting."""
         event_data = {
-            'type': 'shell_start',
-            'command': command,
-            'description': description,
-            'session_id': session_id,
-            'ui_url': self._get_shell_ui_url(session_id),
-            'timestamp': self._get_timestamp()
+            "type": "shell_start",
+            "command": command,
+            "description": description,
+            "session_id": session_id,
+            "ui_url": self._get_shell_ui_url(session_id),
+            "timestamp": self._get_timestamp(),
         }
 
-        await self._emit_ui_event(agent, 'shell_operation_start', event_data)
+        await self._emit_ui_event(agent, "shell_operation_start", event_data)
 
     async def _notify_ui_shell_complete(self, agent, result: dict[str, Any]):
         """Notify UI that shell operation completed."""
         event_data = {
-            'type': 'shell_complete',
-            'success': result.get('success', False),
-            'command': result.get('command', ''),
-            'session_id': result.get('session_id', 'default'),
-            'ui_url': result.get('ui_url', ''),
-            'execution_time': result.get('execution_time', 0),
-            'timestamp': self._get_timestamp()
+            "type": "shell_complete",
+            "success": result.get("success", False),
+            "command": result.get("command", ""),
+            "session_id": result.get("session_id", "default"),
+            "ui_url": result.get("ui_url", ""),
+            "execution_time": result.get("execution_time", 0),
+            "timestamp": self._get_timestamp(),
         }
 
-        await self._emit_ui_event(agent, 'shell_operation_complete', event_data)
+        await self._emit_ui_event(agent, "shell_operation_complete", event_data)
 
     async def _notify_ui_shell_error(self, agent, error_result: dict[str, Any]):
         """Notify UI about shell operation error."""
         event_data = {
-            'type': 'shell_error',
-            'error': error_result.get('error', 'Unknown error'),
-            'command': error_result.get('command', ''),
-            'timestamp': self._get_timestamp()
+            "type": "shell_error",
+            "error": error_result.get("error", "Unknown error"),
+            "command": error_result.get("command", ""),
+            "timestamp": self._get_timestamp(),
         }
 
-        await self._emit_ui_event(agent, 'shell_operation_error', event_data)
+        await self._emit_ui_event(agent, "shell_operation_error", event_data)
 
     async def _emit_ui_event(self, agent, event_type: str, data: dict[str, Any]):
         """Emit UI event for shell operations."""
         try:
             # Store event for later retrieval
-            self.ui_events.append({
-                'event_type': event_type,
-                'data': data,
-                'timestamp': self._get_timestamp()
-            })
+            self.ui_events.append(
+                {
+                    "event_type": event_type,
+                    "data": data,
+                    "timestamp": self._get_timestamp(),
+                }
+            )
 
             # Try to emit via agent if available
-            if hasattr(agent, 'emit_ui_event'):
+            if hasattr(agent, "emit_ui_event"):
                 await agent.emit_ui_event(event_type, data)
-            elif hasattr(agent, 'ui_state'):
+            elif hasattr(agent, "ui_state"):
                 # Store in agent UI state as fallback
                 if not agent.ui_state:
                     agent.ui_state = {}
-                agent.ui_state['shell_events'] = self.ui_events[-5:]  # Keep last 5 events
-                agent.ui_state['shell_active'] = (event_type == 'shell_operation_start')
-                agent.ui_state['shell_url'] = data.get('ui_url', '')
+                agent.ui_state["shell_events"] = self.ui_events[
+                    -5:
+                ]  # Keep last 5 events
+                agent.ui_state["shell_active"] = event_type == "shell_operation_start"
+                agent.ui_state["shell_url"] = data.get("ui_url", "")
 
         except Exception as e:
             # Log error but don't fail the main operation
@@ -225,12 +238,15 @@ Dictionary with execution results:
 
     def _get_shell_ui_url(self, session_id: str) -> str:
         """Get the UI URL for shell visualization."""
-        base_url = os.getenv('KALI_PUBLIC_URL', 'https://kali-linux-docker.up.railway.app')
+        base_url = os.getenv(
+            "KALI_PUBLIC_URL", "https://kali-linux-docker.up.railway.app"
+        )
         return f"{base_url}/terminal/{session_id}"
 
     def _get_timestamp(self) -> float:
         """Get current timestamp."""
         import time
+
         return time.time()
 
 
@@ -244,79 +260,72 @@ class ShellSessionTool(CodeExecutionTool):
 
     async def call(self, agent=None, **kwargs) -> dict[str, Any]:
         """Start or manage a shell session."""
-        action = kwargs.get('action', 'start')  # start, stop, list
-        session_id = kwargs.get('session_id', f"session_{int(time.time())}")
-        session_type = kwargs.get('session_type', 'interactive')
-        purpose = kwargs.get('purpose', 'Interactive shell session')
+        action = kwargs.get("action", "start")  # start, stop, list
+        session_id = kwargs.get("session_id", f"session_{int(time.time())}")
+        session_type = kwargs.get("session_type", "interactive")
+        purpose = kwargs.get("purpose", "Interactive shell session")
 
-        if action == 'start':
+        if action == "start":
             return await self._start_session(session_id, session_type, purpose, agent)
-        elif action == 'stop':
+        elif action == "stop":
             return await self._stop_session(session_id, agent)
-        elif action == 'list':
+        elif action == "list":
             return self._list_sessions()
         else:
             return {
                 "success": False,
                 "error": f"Unknown action: {action}",
-                "available_actions": ["start", "stop", "list"]
+                "available_actions": ["start", "stop", "list"],
             }
 
-    async def _start_session(self, session_id: str, session_type: str, purpose: str, agent) -> dict[str, Any]:
+    async def _start_session(
+        self, session_id: str, session_type: str, purpose: str, agent
+    ) -> dict[str, Any]:
         """Start a new shell session."""
         if not is_kali_execution_available():
-            return {
-                "success": False,
-                "error": "Kali shell service not available"
-            }
+            return {"success": False, "error": "Kali shell service not available"}
 
         try:
             # Initialize session
             session_info = {
-                'id': session_id,
-                'type': session_type,
-                'purpose': purpose,
-                'started_at': self._get_timestamp(),
-                'ui_url': f"{os.getenv('KALI_PUBLIC_URL', '')}/terminal/{session_id}"
+                "id": session_id,
+                "type": session_type,
+                "purpose": purpose,
+                "started_at": self._get_timestamp(),
+                "ui_url": f"{os.getenv('KALI_PUBLIC_URL', '')}/terminal/{session_id}",
             }
 
             self.active_sessions[session_id] = session_info
 
             # Notify UI
             if agent:
-                await self._emit_session_event(agent, 'session_start', session_info)
+                await self._emit_session_event(agent, "session_start", session_info)
 
             return {
                 "success": True,
                 "session_id": session_id,
                 "session_info": session_info,
-                "message": f"Shell session '{session_id}' started successfully"
+                "message": f"Shell session '{session_id}' started successfully",
             }
 
         except Exception as e:
-            return {
-                "success": False,
-                "error": f"Failed to start session: {str(e)}"
-            }
+            return {"success": False, "error": f"Failed to start session: {str(e)}"}
 
     async def _stop_session(self, session_id: str, agent) -> dict[str, Any]:
         """Stop a shell session."""
         if session_id not in self.active_sessions:
-            return {
-                "success": False,
-                "error": f"Session '{session_id}' not found"
-            }
+            return {"success": False, "error": f"Session '{session_id}' not found"}
 
         session_info = self.active_sessions.pop(session_id)
 
         # Notify UI
         if agent:
-            await self._emit_session_event(agent, 'session_stop', session_info)
+            await self._emit_session_event(agent, "session_stop", session_info)
 
         return {
             "success": True,
             "session_id": session_id,
-            "message": f"Session '{session_id}' stopped successfully"
+            "message": f"Session '{session_id}' stopped successfully",
         }
 
     def _list_sessions(self) -> dict[str, Any]:
@@ -325,19 +334,22 @@ class ShellSessionTool(CodeExecutionTool):
             "success": True,
             "active_sessions": list(self.active_sessions.keys()),
             "session_details": self.active_sessions,
-            "total_sessions": len(self.active_sessions)
+            "total_sessions": len(self.active_sessions),
         }
 
-    async def _emit_session_event(self, agent, event_type: str, session_info: dict[str, Any]):
+    async def _emit_session_event(
+        self, agent, event_type: str, session_info: dict[str, Any]
+    ):
         """Emit session management events."""
         try:
-            if hasattr(agent, 'emit_ui_event'):
-                await agent.emit_ui_event(f'shell_{event_type}', session_info)
+            if hasattr(agent, "emit_ui_event"):
+                await agent.emit_ui_event(f"shell_{event_type}", session_info)
         except Exception as e:
             print(f"Warning: Failed to emit session event: {e}")
 
     def _get_timestamp(self) -> float:
         import time
+
         return time.time()
 
 
@@ -351,8 +363,8 @@ SHELL_EXECUTE_TOOL = {
         "description": "Purpose/description for logging and UI display",
         "timeout": "Maximum execution time in seconds (default: 30)",
         "session_id": "Optional session identifier for stateful operations",
-        "show_ui": "Whether to show shell iframe to user (default: True)"
-    }
+        "show_ui": "Whether to show shell iframe to user (default: True)",
+    },
 }
 
 SHELL_SESSION_TOOL = {
@@ -363,6 +375,6 @@ SHELL_SESSION_TOOL = {
         "action": "Action to perform (start, stop, list)",
         "session_id": "Session identifier",
         "session_type": "Type of session (interactive, batch)",
-        "purpose": "Purpose description for the session"
-    }
+        "purpose": "Purpose description for the session",
+    },
 }

@@ -28,6 +28,7 @@ class TestClaudeCode:
         """Clean up test fixtures."""
         # Clean up temp directory
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_tool_creation(self):
@@ -37,7 +38,7 @@ class TestClaudeCode:
             name="claude_code",
             method="file",
             args={"operation_type": "file", "operation": "read", "path": "test.py"},
-            message="Read file"
+            message="Read file",
         )
 
         assert tool.name == "claude_code"
@@ -53,7 +54,7 @@ class TestClaudeCode:
             name="claude_code",
             method="file",
             args={"operation_type": "file", "operation": "read", "path": "test.py"},
-            message="Read file"
+            message="Read file",
         )
 
         # Tool should be disabled by default
@@ -67,7 +68,7 @@ class TestClaudeCode:
         # Create test file
         test_file = os.path.join(self.temp_dir, "test.py")
         test_content = "print('Hello, World!')"
-        with open(test_file, 'w') as f:
+        with open(test_file, "w") as f:
             f.write(test_content)
 
         tool = ClaudeCode(
@@ -75,7 +76,7 @@ class TestClaudeCode:
             name="claude_code",
             method="file",
             args={"operation_type": "file", "operation": "read", "path": test_file},
-            message="Read file"
+            message="Read file",
         )
 
         # Enable the tool and set workspace
@@ -96,7 +97,7 @@ class TestClaudeCode:
         original_content = "print('Original')"
         new_content = "print('Modified')"
 
-        with open(test_file, 'w') as f:
+        with open(test_file, "w") as f:
             f.write(original_content)
 
         tool = ClaudeCode(
@@ -107,9 +108,9 @@ class TestClaudeCode:
                 "operation_type": "file",
                 "operation": "write",
                 "path": test_file,
-                "content": new_content
+                "content": new_content,
             },
-            message="Write file"
+            message="Write file",
         )
 
         # Enable the tool and set workspace
@@ -145,9 +146,9 @@ class TestClaudeCode:
                 "operation_type": "file",
                 "operation": "create",
                 "path": test_file,
-                "content": test_content
+                "content": test_content,
             },
-            message="Create file"
+            message="Create file",
         )
 
         # Enable the tool and set workspace
@@ -171,7 +172,7 @@ class TestClaudeCode:
         for file_path in test_files:
             full_path = os.path.join(self.temp_dir, file_path)
             os.makedirs(os.path.dirname(full_path), exist_ok=True)
-            with open(full_path, 'w') as f:
+            with open(full_path, "w") as f:
                 f.write("test content")
 
         tool = ClaudeCode(
@@ -179,7 +180,7 @@ class TestClaudeCode:
             name="claude_code",
             method="file",
             args={"operation_type": "file", "operation": "list", "path": self.temp_dir},
-            message="List directory"
+            message="List directory",
         )
 
         # Enable the tool and set workspace
@@ -194,7 +195,7 @@ class TestClaudeCode:
         assert "file2.txt" in response.message
 
     @pytest.mark.asyncio
-    @patch('framework.tools.claude_code.asyncio.create_subprocess_exec')
+    @patch("framework.tools.claude_code.asyncio.create_subprocess_exec")
     async def test_git_status_operation(self, mock_subprocess):
         """Test Git status operation."""
         # Mock successful git status
@@ -208,7 +209,7 @@ class TestClaudeCode:
             name="claude_code",
             method="git",
             args={"operation_type": "git", "operation": "status"},
-            message="Git status"
+            message="Git status",
         )
 
         # Enable the tool
@@ -222,7 +223,7 @@ class TestClaudeCode:
         assert "untracked_file.py" in response.message
 
     @pytest.mark.asyncio
-    @patch('framework.tools.claude_code.asyncio.create_subprocess_shell')
+    @patch("framework.tools.claude_code.asyncio.create_subprocess_shell")
     async def test_terminal_operation(self, mock_subprocess):
         """Test terminal command execution."""
         # Mock successful command execution
@@ -235,8 +236,11 @@ class TestClaudeCode:
             agent=self.mock_agent,
             name="claude_code",
             method="terminal",
-            args={"operation_type": "terminal", "command": "echo 'Hello from terminal'"},
-            message="Run terminal command"
+            args={
+                "operation_type": "terminal",
+                "command": "echo 'Hello from terminal'",
+            },
+            message="Run terminal command",
         )
 
         # Enable the tool
@@ -257,7 +261,7 @@ class TestClaudeCode:
             name="claude_code",
             method="workspace",
             args={"operation_type": "workspace", "operation": "info"},
-            message="Get workspace info"
+            message="Get workspace info",
         )
 
         # Enable the tool
@@ -278,8 +282,12 @@ class TestClaudeCode:
             agent=self.mock_agent,
             name="claude_code",
             method="file",
-            args={"operation_type": "file", "operation": "read", "path": "../etc/passwd"},
-            message="Read restricted file"
+            args={
+                "operation_type": "file",
+                "operation": "read",
+                "path": "../etc/passwd",
+            },
+            message="Read restricted file",
         )
 
         # Enable the tool
@@ -296,7 +304,7 @@ class TestClaudeCode:
         """Test that disallowed file extensions are blocked."""
         # Create test file with disallowed extension
         test_file = os.path.join(self.temp_dir, "test.exe")
-        with open(test_file, 'wb') as f:
+        with open(test_file, "wb") as f:
             f.write(b"binary content")
 
         tool = ClaudeCode(
@@ -304,7 +312,7 @@ class TestClaudeCode:
             name="claude_code",
             method="file",
             args={"operation_type": "file", "operation": "read", "path": test_file},
-            message="Read binary file"
+            message="Read binary file",
         )
 
         # Enable the tool
@@ -324,7 +332,7 @@ class TestClaudeCode:
             name="claude_code",
             method="git",
             args={"operation_type": "git", "operation": "status"},
-            message="Git status"
+            message="Git status",
         )
 
         # Enable the tool but disable git operations
@@ -344,7 +352,7 @@ class TestClaudeCode:
             name="claude_code",
             method="terminal",
             args={"operation_type": "terminal", "command": "ls"},
-            message="List files"
+            message="List files",
         )
 
         # Enable the tool but disable terminal operations
@@ -361,7 +369,7 @@ class TestClaudeCode:
         """Test file size limit enforcement."""
         # Create large test file
         test_file = os.path.join(self.temp_dir, "large_file.txt")
-        with open(test_file, 'w') as f:
+        with open(test_file, "w") as f:
             f.write("x" * 2048)  # 2KB file
 
         tool = ClaudeCode(
@@ -369,7 +377,7 @@ class TestClaudeCode:
             name="claude_code",
             method="file",
             args={"operation_type": "file", "operation": "read", "path": test_file},
-            message="Read large file"
+            message="Read large file",
         )
 
         # Enable the tool with small file size limit
@@ -388,7 +396,7 @@ class TestClaudeCode:
             enabled=True,
             max_file_size=2097152,  # 2MB
             enable_git_ops=False,
-            enable_terminal=False
+            enable_terminal=False,
         )
 
         assert config.enabled is True
@@ -404,7 +412,7 @@ class TestClaudeCode:
             name="claude_code",
             method="unknown",
             args={"operation_type": "unknown_type"},
-            message="Unknown operation"
+            message="Unknown operation",
         )
 
         # Enable the tool

@@ -31,13 +31,19 @@ class AIActionVisualizationSystem:
     def _load_config(self) -> dict[str, Any]:
         """Load configuration from environment variables."""
         return {
-            "auto_start_interception": os.getenv("AI_VISUALIZATION_AUTO_START", "true").lower() == "true",
-            "auto_start_streaming": os.getenv("AI_STREAMING_AUTO_START", "true").lower() == "true",
+            "auto_start_interception": os.getenv(
+                "AI_VISUALIZATION_AUTO_START", "true"
+            ).lower()
+            == "true",
+            "auto_start_streaming": os.getenv("AI_STREAMING_AUTO_START", "true").lower()
+            == "true",
             "streaming_host": os.getenv("AI_STREAMING_HOST", "localhost"),
             "streaming_port": int(os.getenv("AI_STREAMING_PORT", "8765")),
             "max_action_history": int(os.getenv("AI_MAX_ACTION_HISTORY", "1000")),
-            "websocket_enabled": os.getenv("AI_WEBSOCKET_ENABLED", "true").lower() == "true",
-            "debug_mode": os.getenv("AI_VISUALIZATION_DEBUG", "false").lower() == "true"
+            "websocket_enabled": os.getenv("AI_WEBSOCKET_ENABLED", "true").lower()
+            == "true",
+            "debug_mode": os.getenv("AI_VISUALIZATION_DEBUG", "false").lower()
+            == "true",
         }
 
     async def initialize(self):
@@ -75,7 +81,9 @@ class AIActionVisualizationSystem:
             await self._log_system_status()
 
         except Exception as e:
-            Log.log().error(f"🚨 Failed to initialize AI Action Visualization System: {e}")
+            Log.log().error(
+                f"🚨 Failed to initialize AI Action Visualization System: {e}"
+            )
             raise
 
     async def _start_interception(self):
@@ -122,10 +130,18 @@ class AIActionVisualizationSystem:
     async def _log_system_status(self):
         """Log current system status."""
         status = {
-            "interception_active": self.action_manager.active if self.action_manager else False,
-            "streaming_active": self.streaming_service.running if self.streaming_service else False,
-            "intercepted_providers": len(self.action_manager.interceptors) if self.action_manager else 0,
-            "streaming_url": f"ws://{self.config['streaming_host']}:{self.config['streaming_port']}" if self.config["websocket_enabled"] else "disabled"
+            "interception_active": self.action_manager.active
+            if self.action_manager
+            else False,
+            "streaming_active": self.streaming_service.running
+            if self.streaming_service
+            else False,
+            "intercepted_providers": len(self.action_manager.interceptors)
+            if self.action_manager
+            else 0,
+            "streaming_url": f"ws://{self.config['streaming_host']}:{self.config['streaming_port']}"
+            if self.config["websocket_enabled"]
+            else "disabled",
         }
 
         Log.log().info(f"📊 AI Visualization Status: {status}")
@@ -164,15 +180,25 @@ class AIActionVisualizationSystem:
             "config": self.config,
             "interception": {
                 "active": self.action_manager.active if self.action_manager else False,
-                "providers": list(self.action_manager.interceptors.keys()) if self.action_manager else [],
-                "action_count": len(self.action_manager.action_history) if self.action_manager else 0
+                "providers": list(self.action_manager.interceptors.keys())
+                if self.action_manager
+                else [],
+                "action_count": len(self.action_manager.action_history)
+                if self.action_manager
+                else 0,
             },
             "streaming": {
-                "active": self.streaming_service.running if self.streaming_service else False,
+                "active": self.streaming_service.running
+                if self.streaming_service
+                else False,
                 "url": f"ws://{self.config['streaming_host']}:{self.config['streaming_port']}",
-                "client_count": len(self.streaming_service.clients) if self.streaming_service else 0,
-                "stats": self.streaming_service.get_server_stats() if self.streaming_service else {}
-            }
+                "client_count": len(self.streaming_service.clients)
+                if self.streaming_service
+                else 0,
+                "stats": self.streaming_service.get_server_stats()
+                if self.streaming_service
+                else {},
+            },
         }
 
 
@@ -204,9 +230,7 @@ def register_ui_integration():
     """Register UI integration for the visualization system."""
     # This function will be called by the main UI to ensure
     # the JavaScript components are loaded
-    ui_scripts = [
-        "/js/ai-action-visualization.js"
-    ]
+    ui_scripts = ["/js/ai-action-visualization.js"]
 
     return {
         "scripts": ui_scripts,
@@ -215,8 +239,8 @@ def register_ui_integration():
             "real_time_streaming",
             "multi_provider_support",
             "action_interception",
-            "morphism_visualization"
-        ]
+            "morphism_visualization",
+        ],
     }
 
 
@@ -251,7 +275,7 @@ def get_visualization_tools():
         AI_ACTION_VISUALIZATION_TOOL,
         AI_ACTION_UPDATE_TOOL,
         AI_ACTION_STREAMING_TOOL,
-        AI_ACTION_INTERCEPTION_TOOL
+        AI_ACTION_INTERCEPTION_TOOL,
     ]
 
 

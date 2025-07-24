@@ -88,7 +88,6 @@ class LogItem:
 
 
 class Log:
-
     def __init__(self):
         self.guid: str = str(uuid.uuid4())
         self.updates: list[int] = []
@@ -116,7 +115,9 @@ class Log:
             heading=heading or "",
             content=content or "",
             kvps=OrderedDict({**(kvps or {}), **(kwargs or {})}),
-            update_progress=(update_progress if update_progress is not None else "persistent"),
+            update_progress=(
+                update_progress if update_progress is not None else "persistent"
+            ),
             temp=temp if temp is not None else False,
             id=id,  # Pass id to LogItem
         )
@@ -192,7 +193,11 @@ class Log:
         self.set_initial_progress()
 
     def _update_progress_from_item(self, item: LogItem):
-        if item.heading and item.update_progress != "none" and item.no >= self.progress_no:
+        if (
+            item.heading
+            and item.update_progress != "none"
+            and item.no >= self.progress_no
+        ):
             self.set_progress(
                 item.heading,
                 (item.no if item.update_progress == "persistent" else -1),

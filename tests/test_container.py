@@ -1,6 +1,5 @@
 """Tests for the dependency injection container and interfaces."""
 
-
 import pytest
 
 from framework.container import Container, get_container, reset_container
@@ -62,6 +61,7 @@ class TestContainer:
 
     def test_register_and_get_factory(self):
         """Test factory registration and retrieval."""
+
         def create_service():
             return MockService()
 

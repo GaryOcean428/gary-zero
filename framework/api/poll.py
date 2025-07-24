@@ -6,13 +6,14 @@ from framework.helpers.task_scheduler import TaskScheduler
 
 
 class Poll(ApiHandler):
-
     async def process(self, input: Input, request: Request) -> Output:
         ctxid = input.get("context", None)
         from_no = input.get("log_from", 0)
 
         # Get timezone from input (default to dotenv default or UTC if not provided)
-        timezone = input.get("timezone", get_dotenv_value("DEFAULT_USER_TIMEZONE", "UTC"))
+        timezone = input.get(
+            "timezone", get_dotenv_value("DEFAULT_USER_TIMEZONE", "UTC")
+        )
         Localization.get().set_timezone(timezone)
 
         # context instance - get or create

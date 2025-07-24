@@ -309,11 +309,11 @@ DEFAULT_PARAMETERS = {
 
 def get_model_parameters(provider: str, model_name: str) -> dict[str, Any]:
     """Get parameters for a specific model.
-    
+
     Args:
         provider: The model provider (e.g., 'ANTHROPIC', 'OPENAI')
         model_name: The name of the model
-        
+
     Returns:
         Dictionary containing model parameters (ctx_length, vision, rate limits)
     """
@@ -329,7 +329,7 @@ def get_model_parameters(provider: str, model_name: str) -> dict[str, Any]:
 
 def get_all_provider_models() -> dict[str, dict[str, dict[str, Any]]]:
     """Get all model parameters for all providers.
-    
+
     Returns:
         Complete model parameters database
     """
@@ -338,20 +338,22 @@ def get_all_provider_models() -> dict[str, dict[str, dict[str, Any]]]:
 
 def has_model_parameters(provider: str, model_name: str) -> bool:
     """Check if we have specific parameters for a model.
-    
+
     Args:
         provider: The model provider
         model_name: The name of the model
-        
+
     Returns:
         True if we have specific parameters for this model
     """
     return provider in MODEL_PARAMETERS and model_name in MODEL_PARAMETERS[provider]
 
 
-def update_model_parameters(provider: str, model_name: str, parameters: dict[str, Any]) -> None:
+def update_model_parameters(
+    provider: str, model_name: str, parameters: dict[str, Any]
+) -> None:
     """Update parameters for a specific model.
-    
+
     Args:
         provider: The model provider
         model_name: The name of the model

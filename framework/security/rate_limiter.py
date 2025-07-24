@@ -9,6 +9,7 @@ from enum import Enum
 
 class RateLimitStrategy(Enum):
     """Rate limiting strategies."""
+
     FIXED_WINDOW = "fixed_window"
     SLIDING_WINDOW = "sliding_window"
     TOKEN_BUCKET = "token_bucket"
@@ -25,6 +26,7 @@ class RateLimitExceeded(Exception):
 @dataclass
 class RateLimitConfig:
     """Configuration for rate limiting."""
+
     max_requests: int
     window_size: int  # seconds
     strategy: RateLimitStrategy = RateLimitStrategy.SLIDING_WINDOW
@@ -109,33 +111,45 @@ class RateLimiter:
     def configure_global_limits(self) -> None:
         """Configure default rate limits for common endpoints."""
         # User input rate limiting
-        self.configure_limit("user_input", RateLimitConfig(
-            max_requests=100,
-            window_size=60,
-            strategy=RateLimitStrategy.SLIDING_WINDOW
-        ))
+        self.configure_limit(
+            "user_input",
+            RateLimitConfig(
+                max_requests=100,
+                window_size=60,
+                strategy=RateLimitStrategy.SLIDING_WINDOW,
+            ),
+        )
 
         # Tool execution rate limiting
-        self.configure_limit("tool_execution", RateLimitConfig(
-            max_requests=50,
-            window_size=60,
-            strategy=RateLimitStrategy.TOKEN_BUCKET,
-            burst_allowance=10
-        ))
+        self.configure_limit(
+            "tool_execution",
+            RateLimitConfig(
+                max_requests=50,
+                window_size=60,
+                strategy=RateLimitStrategy.TOKEN_BUCKET,
+                burst_allowance=10,
+            ),
+        )
 
         # API endpoint rate limiting
-        self.configure_limit("api_call", RateLimitConfig(
-            max_requests=1000,
-            window_size=3600,  # 1 hour
-            strategy=RateLimitStrategy.SLIDING_WINDOW
-        ))
+        self.configure_limit(
+            "api_call",
+            RateLimitConfig(
+                max_requests=1000,
+                window_size=3600,  # 1 hour
+                strategy=RateLimitStrategy.SLIDING_WINDOW,
+            ),
+        )
 
         # Configuration changes
-        self.configure_limit("config_change", RateLimitConfig(
-            max_requests=20,
-            window_size=300,  # 5 minutes
-            strategy=RateLimitStrategy.FIXED_WINDOW
-        ))
+        self.configure_limit(
+            "config_change",
+            RateLimitConfig(
+                max_requests=20,
+                window_size=300,  # 5 minutes
+                strategy=RateLimitStrategy.FIXED_WINDOW,
+            ),
+        )
 
     async def check_limit(self, endpoint: str, identifier: str) -> None:
         """Check if request is within rate limit."""
@@ -151,11 +165,14 @@ class RateLimiter:
         elif config.strategy == RateLimitStrategy.FIXED_WINDOW:
             await self._check_fixed_window(endpoint, identifier, config)
 
-    async def _check_sliding_window(self, endpoint: str, identifier: str,
-                                  config: RateLimitConfig) -> None:
+    async def _check_sliding_window(
+        self, endpoint: str, identifier: str, config: RateLimitConfig
+    ) -> None:
         """Check sliding window rate limit."""
         if identifier not in self.counters[endpoint]:
-            self.counters[endpoint][identifier] = SlidingWindowCounter(config.window_size)
+            self.counters[endpoint][identifier] = SlidingWindowCounter(
+                config.window_size
+            )
 
         counter = self.counters[endpoint][identifier]
         current_count = await counter.add_request()
@@ -164,11 +181,12 @@ class RateLimiter:
             raise RateLimitExceeded(
                 f"Rate limit exceeded for {endpoint}: {current_count}/{config.max_requests} "
                 f"requests in {config.window_size}s",
-                retry_after=config.window_size
+                retry_after=config.window_size,
             )
 
-    async def _check_token_bucket(self, endpoint: str, identifier: str,
-                                config: RateLimitConfig) -> None:
+    async def _check_token_bucket(
+        self, endpoint: str, identifier: str, config: RateLimitConfig
+    ) -> None:
         """Check token bucket rate limit."""
         if identifier not in self.buckets[endpoint]:
             refill_rate = config.max_requests / config.window_size
@@ -180,11 +198,12 @@ class RateLimiter:
             wait_time = bucket.get_wait_time()
             raise RateLimitExceeded(
                 f"Rate limit exceeded for {endpoint}: token bucket empty",
-                retry_after=wait_time
+                retry_after=wait_time,
             )
 
-    async def _check_fixed_window(self, endpoint: str, identifier: str,
-                                config: RateLimitConfig) -> None:
+    async def _check_fixed_window(
+        self, endpoint: str, identifier: str, config: RateLimitConfig
+    ) -> None:
         """Check fixed window rate limit."""
         now = time.time()
         window_start = int(now // config.window_size) * config.window_size
@@ -207,7 +226,7 @@ class RateLimiter:
             raise RateLimitExceeded(
                 f"Rate limit exceeded for {endpoint}: {count}/{config.max_requests} "
                 f"requests in current window",
-                retry_after=retry_after
+                retry_after=retry_after,
             )
 
     async def get_limit_status(self, endpoint: str, identifier: str) -> dict[str, any]:
@@ -227,7 +246,7 @@ class RateLimiter:
                     "current_requests": current_count,
                     "max_requests": config.max_requests,
                     "window_size": config.window_size,
-                    "remaining": max(0, config.max_requests - current_count)
+                    "remaining": max(0, config.max_requests - current_count),
                 }
 
         elif config.strategy == RateLimitStrategy.TOKEN_BUCKET:
@@ -238,7 +257,7 @@ class RateLimiter:
                     "strategy": "token_bucket",
                     "tokens_available": int(bucket.tokens),
                     "capacity": bucket.capacity,
-                    "refill_rate": bucket.refill_rate
+                    "refill_rate": bucket.refill_rate,
                 }
 
         elif config.strategy == RateLimitStrategy.FIXED_WINDOW:
@@ -257,18 +276,19 @@ class RateLimiter:
                     "max_requests": config.max_requests,
                     "window_size": config.window_size,
                     "remaining": max(0, config.max_requests - count),
-                    "window_reset": current_window + config.window_size
+                    "window_reset": current_window + config.window_size,
                 }
 
         return {
             "status": "configured",
             "strategy": config.strategy.value,
             "max_requests": config.max_requests,
-            "window_size": config.window_size
+            "window_size": config.window_size,
         }
 
-    def reset_limits(self, endpoint: str | None = None,
-                    identifier: str | None = None) -> None:
+    def reset_limits(
+        self, endpoint: str | None = None, identifier: str | None = None
+    ) -> None:
         """Reset rate limits for endpoint/identifier."""
         if endpoint is None:
             # Reset all limits
@@ -289,5 +309,8 @@ class RateLimiter:
                 del self.counters[endpoint][identifier]
             if endpoint in self.buckets and identifier in self.buckets[endpoint]:
                 del self.buckets[endpoint][identifier]
-            if endpoint in self.fixed_windows and identifier in self.fixed_windows[endpoint]:
+            if (
+                endpoint in self.fixed_windows
+                and identifier in self.fixed_windows[endpoint]
+            ):
                 del self.fixed_windows[endpoint][identifier]

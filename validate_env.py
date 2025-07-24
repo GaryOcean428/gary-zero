@@ -14,10 +14,12 @@ sys.path.insert(0, project_root)
 
 try:
     from framework.helpers import dotenv
+
     dotenv.load_dotenv()
 except ImportError:
     print("⚠️  Warning: Could not import dotenv helper, using os.environ directly")
     dotenv = None
+
 
 class EnvironmentValidator:
     """Validates environment configuration for production deployment"""
@@ -38,9 +40,13 @@ class EnvironmentValidator:
         stream_usage = self.get_env_value("LANGCHAIN_ANTHROPIC_STREAM_USAGE", "true")
 
         if stream_usage.lower() == "false":
-            self.info.append("✅ LangChain Anthropic streaming disabled (production hotfix active)")
+            self.info.append(
+                "✅ LangChain Anthropic streaming disabled (production hotfix active)"
+            )
         else:
-            self.warnings.append("⚠️  LangChain Anthropic streaming enabled - may cause TypeError in production")
+            self.warnings.append(
+                "⚠️  LangChain Anthropic streaming enabled - may cause TypeError in production"
+            )
 
         # Check for Anthropic API key
         anthropic_key = self.get_env_value("ANTHROPIC_API_KEY")
@@ -53,21 +59,31 @@ class EnvironmentValidator:
 
     def validate_feature_flags(self) -> None:
         """Validate development feature flags"""
-        dev_features = self.get_env_value("ENABLE_DEV_FEATURES", "true").lower() == "true"
-        vscode_integration = self.get_env_value("VSCODE_INTEGRATION_ENABLED", "true").lower() == "true"
-        chat_auto_resize = self.get_env_value("CHAT_AUTO_RESIZE_ENABLED", "true").lower() == "true"
+        dev_features = (
+            self.get_env_value("ENABLE_DEV_FEATURES", "true").lower() == "true"
+        )
+        vscode_integration = (
+            self.get_env_value("VSCODE_INTEGRATION_ENABLED", "true").lower() == "true"
+        )
+        chat_auto_resize = (
+            self.get_env_value("CHAT_AUTO_RESIZE_ENABLED", "true").lower() == "true"
+        )
         node_env = self.get_env_value("NODE_ENV", "development")
 
         if node_env == "production":
             if not dev_features:
                 self.info.append("✅ Development features disabled in production")
             else:
-                self.warnings.append("⚠️  Development features enabled in production environment")
+                self.warnings.append(
+                    "⚠️  Development features enabled in production environment"
+                )
 
             if not vscode_integration:
                 self.info.append("✅ VS Code integration disabled in production")
             else:
-                self.warnings.append("⚠️  VS Code integration enabled in production (may impact performance)")
+                self.warnings.append(
+                    "⚠️  VS Code integration enabled in production (may impact performance)"
+                )
 
         if chat_auto_resize:
             self.info.append("✅ Chat input auto-resize enabled")
@@ -91,7 +107,9 @@ class EnvironmentValidator:
             if 1024 <= port_num <= 65535:
                 self.info.append(f"✅ Web UI port {port_num} configured")
             else:
-                self.warnings.append(f"⚠️  Web UI port {port_num} outside recommended range")
+                self.warnings.append(
+                    f"⚠️  Web UI port {port_num} outside recommended range"
+                )
         except ValueError:
             self.errors.append(f"❌ Invalid Web UI port: {port}")
 
@@ -108,7 +126,9 @@ class EnvironmentValidator:
         if railway_port:
             self.info.append(f"✅ Railway PORT configured: {railway_port}")
         else:
-            self.warnings.append("⚠️  Railway PORT not set (may cause deployment issues)")
+            self.warnings.append(
+                "⚠️  Railway PORT not set (may cause deployment issues)"
+            )
 
         if railway_env:
             self.info.append(f"✅ Railway environment: {railway_env}")
@@ -163,19 +183,26 @@ class EnvironmentValidator:
         # Summary
         total_issues = len(self.errors) + len(self.warnings)
         if self.errors:
-            print(f"❌ Validation FAILED: {len(self.errors)} errors, {len(self.warnings)} warnings")
+            print(
+                f"❌ Validation FAILED: {len(self.errors)} errors, {len(self.warnings)} warnings"
+            )
         elif self.warnings:
             print(f"⚠️  Validation PASSED with warnings: {len(self.warnings)} warnings")
         else:
             print("✅ Validation PASSED: All configurations look good!")
 
         return {
-            "status": "failed" if self.errors else "warning" if self.warnings else "passed",
+            "status": "failed"
+            if self.errors
+            else "warning"
+            if self.warnings
+            else "passed",
             "errors": self.errors,
             "warnings": self.warnings,
             "info": self.info,
-            "total_issues": total_issues
+            "total_issues": total_issues,
         }
+
 
 def main():
     """Main validation function"""
@@ -189,6 +216,7 @@ def main():
         sys.exit(2)  # Non-critical warnings
     else:
         sys.exit(0)  # Success
+
 
 if __name__ == "__main__":
     main()

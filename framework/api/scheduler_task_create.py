@@ -141,6 +141,8 @@ class SchedulerTaskCreate(ApiHandler):
 
         # Debug log the serialized task
         if task_dict and task_dict.get("type") == "adhoc":
-            printer.print(f"Serialized adhoc task, token in response: '{task_dict.get('token')}'")
+            printer.print(
+                f"Serialized adhoc task, token in response: '{task_dict.get('token')}'"
+            )
 
         return {"task": task_dict}

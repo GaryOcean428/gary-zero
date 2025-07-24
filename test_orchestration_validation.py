@@ -7,11 +7,14 @@ import sys
 import time
 import uuid
 
-sys.path.append('/home/runner/work/gary-zero/gary-zero')
+sys.path.append("/home/runner/work/gary-zero/gary-zero")
 
 from framework.helpers.async_orchestrator import AsyncTaskOrchestrator
 from framework.helpers.enhanced_scheduler import EnhancedTaskScheduler
-from framework.helpers.orchestration_config import OrchestrationConfig, get_config_manager
+from framework.helpers.orchestration_config import (
+    OrchestrationConfig,
+    get_config_manager,
+)
 from framework.helpers.task_manager import Task as ManagedTask
 from framework.helpers.task_manager import TaskCategory, TaskStatus
 
@@ -23,7 +26,7 @@ async def test_basic_orchestration():
     # Create orchestrator
     orchestrator = AsyncTaskOrchestrator(
         max_concurrent_tasks=5,
-        enable_performance_monitoring=False  # Disable for testing
+        enable_performance_monitoring=False,  # Disable for testing
     )
 
     await orchestrator.start()
@@ -35,7 +38,7 @@ async def test_basic_orchestration():
             title="Test Task",
             description="Testing basic orchestration",
             category=TaskCategory.OTHER,
-            status=TaskStatus.PENDING
+            status=TaskStatus.PENDING,
         )
 
         # Mock the execution method to avoid dependencies
@@ -56,10 +59,12 @@ async def test_basic_orchestration():
 
         # Check metrics
         metrics = await orchestrator.get_orchestration_metrics()
-        print(f"✓ Metrics: {metrics['total_tasks']} total, {metrics['completed_tasks']} completed")
+        print(
+            f"✓ Metrics: {metrics['total_tasks']} total, {metrics['completed_tasks']} completed"
+        )
 
-        assert metrics['total_tasks'] >= 1
-        assert metrics['completed_tasks'] >= 1
+        assert metrics["total_tasks"] >= 1
+        assert metrics["completed_tasks"] >= 1
 
     finally:
         await orchestrator.stop()
@@ -72,8 +77,7 @@ async def test_concurrent_execution():
     print("Testing concurrent task execution...")
 
     orchestrator = AsyncTaskOrchestrator(
-        max_concurrent_tasks=5,
-        enable_performance_monitoring=False
+        max_concurrent_tasks=5, enable_performance_monitoring=False
     )
 
     await orchestrator.start()
@@ -87,7 +91,7 @@ async def test_concurrent_execution():
                 title=f"Concurrent Task {i}",
                 description=f"Testing concurrent execution {i}",
                 category=TaskCategory.OTHER,
-                status=TaskStatus.PENDING
+                status=TaskStatus.PENDING,
             )
             tasks.append(task)
 
@@ -107,15 +111,14 @@ async def test_concurrent_execution():
             task_ids.append(task_id)
 
         # Wait for all tasks to complete
-        results = await asyncio.gather(*[
-            orchestrator.wait_for_task(task_id, timeout=5.0)
-            for task_id in task_ids
-        ])
+        results = await asyncio.gather(
+            *[orchestrator.wait_for_task(task_id, timeout=5.0) for task_id in task_ids]
+        )
 
         execution_time = time.time() - start_time
 
         print(f"✓ {len(results)} tasks completed in {execution_time:.2f} seconds")
-        print(f"✓ Average time per task: {execution_time/len(results):.2f} seconds")
+        print(f"✓ Average time per task: {execution_time / len(results):.2f} seconds")
 
         # Concurrent execution should be faster than sequential (5 * 0.2 = 1.0s)
         assert execution_time < 0.5, f"Execution too slow: {execution_time:.2f}s"
@@ -123,7 +126,9 @@ async def test_concurrent_execution():
 
         # Check final metrics
         metrics = await orchestrator.get_orchestration_metrics()
-        print(f"✓ Final metrics: {metrics['total_tasks']} total, {metrics['completed_tasks']} completed")
+        print(
+            f"✓ Final metrics: {metrics['total_tasks']} total, {metrics['completed_tasks']} completed"
+        )
 
     finally:
         await orchestrator.stop()
@@ -136,8 +141,7 @@ async def test_dependency_management():
     print("Testing dependency management...")
 
     orchestrator = AsyncTaskOrchestrator(
-        max_concurrent_tasks=5,
-        enable_performance_monitoring=False
+        max_concurrent_tasks=5, enable_performance_monitoring=False
     )
 
     await orchestrator.start()
@@ -149,7 +153,7 @@ async def test_dependency_management():
             title="Task A",
             description="Independent task",
             category=TaskCategory.OTHER,
-            status=TaskStatus.PENDING
+            status=TaskStatus.PENDING,
         )
 
         task_b = ManagedTask(
@@ -157,7 +161,7 @@ async def test_dependency_management():
             title="Task B",
             description="Depends on Task A",
             category=TaskCategory.OTHER,
-            status=TaskStatus.PENDING
+            status=TaskStatus.PENDING,
         )
 
         execution_order = []
@@ -176,13 +180,15 @@ async def test_dependency_management():
         # Wait for both to complete
         await asyncio.gather(
             orchestrator.wait_for_task("dep_task_a", timeout=5.0),
-            orchestrator.wait_for_task("dep_task_b", timeout=5.0)
+            orchestrator.wait_for_task("dep_task_b", timeout=5.0),
         )
 
         print(f"✓ Execution order: {execution_order}")
 
         # Verify A ran before B despite submission order
-        assert execution_order == ["dep_task_a", "dep_task_b"], f"Wrong order: {execution_order}"
+        assert execution_order == ["dep_task_a", "dep_task_b"], (
+            f"Wrong order: {execution_order}"
+        )
 
     finally:
         await orchestrator.stop()
@@ -224,8 +230,8 @@ async def test_enhanced_scheduler():
 
     # Test execution stats
     stats = scheduler.get_execution_stats()
-    assert 'sync_executions' in stats
-    assert 'async_executions' in stats
+    assert "sync_executions" in stats
+    assert "async_executions" in stats
 
     print("✓ Enhanced scheduler test passed")
 
@@ -259,6 +265,7 @@ async def run_all_tests():
     except Exception as e:
         print(f"❌ Test failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 

@@ -9,11 +9,11 @@ class GetVoiceModels(ApiHandler):
 
     async def process(self, input_data: Input, request: Request) -> Output:
         """Get voice-capable models.
-        
+
         Args:
             input_data: Dictionary (may contain optional provider filter)
             request: The request object
-            
+
         Returns:
             Dictionary containing the list of voice-capable models
         """
@@ -26,8 +26,4 @@ class GetVoiceModels(ApiHandler):
             # Get all voice models across all providers
             models = model_catalog.get_all_voice_models()
 
-        return {
-            "provider": provider or "all",
-            "models": models,
-            "count": len(models)
-        }
+        return {"provider": provider or "all", "models": models, "count": len(models)}

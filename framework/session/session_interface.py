@@ -14,6 +14,7 @@ from typing import Any
 
 class SessionType(Enum):
     """Types of remote sessions supported."""
+
     HTTP = "http"
     SSH = "ssh"
     GUI = "gui"
@@ -24,6 +25,7 @@ class SessionType(Enum):
 
 class SessionState(Enum):
     """Session lifecycle states."""
+
     INITIALIZING = "initializing"
     CONNECTED = "connected"
     ACTIVE = "active"
@@ -36,6 +38,7 @@ class SessionState(Enum):
 @dataclass
 class SessionMetadata:
     """Metadata about a session."""
+
     session_id: str
     session_type: SessionType
     state: SessionState = SessionState.INITIALIZING
@@ -51,6 +54,7 @@ class SessionMetadata:
 @dataclass
 class SessionMessage:
     """Standard message format for session communication."""
+
     message_id: str
     session_id: str
     message_type: str
@@ -62,6 +66,7 @@ class SessionMessage:
 @dataclass
 class SessionResponse:
     """Standard response format from session operations."""
+
     success: bool
     message: str
     data: dict[str, Any] | None = None
@@ -73,10 +78,12 @@ class SessionResponse:
 class SessionInterface(ABC):
     """Abstract interface for all session types."""
 
-    def __init__(self, session_id: str, session_type: SessionType, config: dict[str, Any]):
+    def __init__(
+        self, session_id: str, session_type: SessionType, config: dict[str, Any]
+    ):
         """
         Initialize session interface.
-        
+
         Args:
             session_id: Unique identifier for the session
             session_type: Type of session
@@ -86,8 +93,7 @@ class SessionInterface(ABC):
         self.session_type = session_type
         self.config = config
         self.metadata = SessionMetadata(
-            session_id=session_id,
-            session_type=session_type
+            session_id=session_id, session_type=session_type
         )
         self._connection_lock = asyncio.Lock()
 
@@ -95,7 +101,7 @@ class SessionInterface(ABC):
     async def connect(self) -> SessionResponse:
         """
         Establish connection to the remote service.
-        
+
         Returns:
             SessionResponse indicating success or failure
         """
@@ -105,7 +111,7 @@ class SessionInterface(ABC):
     async def disconnect(self) -> SessionResponse:
         """
         Close connection to the remote service.
-        
+
         Returns:
             SessionResponse indicating success or failure
         """
@@ -115,10 +121,10 @@ class SessionInterface(ABC):
     async def execute(self, message: SessionMessage) -> SessionResponse:
         """
         Execute a command or operation in the session.
-        
+
         Args:
             message: The message containing the operation to execute
-            
+
         Returns:
             SessionResponse with operation results
         """
@@ -128,7 +134,7 @@ class SessionInterface(ABC):
     async def health_check(self) -> SessionResponse:
         """
         Check if the session is healthy and responsive.
-        
+
         Returns:
             SessionResponse indicating session health
         """
@@ -137,16 +143,20 @@ class SessionInterface(ABC):
     async def is_connected(self) -> bool:
         """
         Check if session is currently connected.
-        
+
         Returns:
             True if connected, False otherwise
         """
-        return self.metadata.state in [SessionState.CONNECTED, SessionState.ACTIVE, SessionState.IDLE]
+        return self.metadata.state in [
+            SessionState.CONNECTED,
+            SessionState.ACTIVE,
+            SessionState.IDLE,
+        ]
 
     async def update_state(self, new_state: SessionState, error: str | None = None):
         """
         Update session state and metadata.
-        
+
         Args:
             new_state: New state to set
             error: Optional error message if state is ERROR
@@ -162,7 +172,7 @@ class SessionInterface(ABC):
     async def get_metadata(self) -> SessionMetadata:
         """
         Get current session metadata.
-        
+
         Returns:
             Current session metadata
         """
@@ -177,14 +187,16 @@ class SessionPool(ABC):
     """Abstract interface for session pooling."""
 
     @abstractmethod
-    async def get_session(self, session_type: SessionType, config: dict[str, Any]) -> SessionInterface:
+    async def get_session(
+        self, session_type: SessionType, config: dict[str, Any]
+    ) -> SessionInterface:
         """
         Get a session from the pool or create a new one.
-        
+
         Args:
             session_type: Type of session needed
             config: Configuration for the session
-            
+
         Returns:
             SessionInterface instance
         """
@@ -194,7 +206,7 @@ class SessionPool(ABC):
     async def return_session(self, session: SessionInterface):
         """
         Return a session to the pool for reuse.
-        
+
         Args:
             session: Session to return to pool
         """
@@ -204,7 +216,7 @@ class SessionPool(ABC):
     async def cleanup_sessions(self, max_idle_time: int = 300):
         """
         Clean up idle or disconnected sessions.
-        
+
         Args:
             max_idle_time: Maximum idle time in seconds before cleanup
         """

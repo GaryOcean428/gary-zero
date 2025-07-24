@@ -21,6 +21,7 @@ from .audit_logger import AuditLevel, AuditLogger
 
 class RiskLevel(Enum):
     """Risk levels for actions requiring approval."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -29,6 +30,7 @@ class RiskLevel(Enum):
 
 class ApprovalStatus(Enum):
     """Status of approval requests."""
+
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
@@ -38,6 +40,7 @@ class ApprovalStatus(Enum):
 
 class UserRole(Enum):
     """User roles for role-based access control."""
+
     OWNER = "owner"
     ADMIN = "admin"
     USER = "user"
@@ -47,6 +50,7 @@ class UserRole(Enum):
 
 class ApprovalPolicy(Enum):
     """Approval policies for different scenarios."""
+
     ALWAYS_ASK = "always_ask"
     ASK_ONCE = "ask_once"
     NEVER_ASK = "never_ask"
@@ -56,6 +60,7 @@ class ApprovalPolicy(Enum):
 @dataclass
 class ActionDefinition:
     """Definition of an action that may require approval."""
+
     action_type: str
     risk_level: RiskLevel
     description: str
@@ -68,6 +73,7 @@ class ActionDefinition:
 @dataclass
 class ApprovalRequest:
     """A request for user approval of a high-risk action."""
+
     request_id: str
     user_id: str
     action_type: str
@@ -85,16 +91,16 @@ class ApprovalRequest:
     def to_dict(self) -> dict[str, Any]:
         """Convert approval request to dictionary."""
         data = asdict(self)
-        data['risk_level'] = self.risk_level.value
-        data['status'] = self.status.value
-        data['created_at_iso'] = datetime.fromtimestamp(
+        data["risk_level"] = self.risk_level.value
+        data["status"] = self.status.value
+        data["created_at_iso"] = datetime.fromtimestamp(
             self.created_at, tz=UTC
         ).isoformat()
-        data['expires_at_iso'] = datetime.fromtimestamp(
+        data["expires_at_iso"] = datetime.fromtimestamp(
             self.expires_at, tz=UTC
         ).isoformat()
         if self.approved_at:
-            data['approved_at_iso'] = datetime.fromtimestamp(
+            data["approved_at_iso"] = datetime.fromtimestamp(
                 self.approved_at, tz=UTC
             ).isoformat()
         return data
@@ -115,7 +121,9 @@ class ApprovalWorkflow:
         self.completed_requests: dict[str, ApprovalRequest] = {}
         self.action_definitions: dict[str, ActionDefinition] = {}
         self.user_roles: dict[str, UserRole] = {}
-        self.approval_cache: dict[str, dict[str, float]] = {}  # user_id -> {action_type: timestamp}
+        self.approval_cache: dict[
+            str, dict[str, float]
+        ] = {}  # user_id -> {action_type: timestamp}
 
         # Configuration
         self.global_timeout = 300  # 5 minutes default
@@ -138,7 +146,7 @@ class ApprovalWorkflow:
                 description="Write or modify files",
                 required_roles=[UserRole.OWNER, UserRole.ADMIN, UserRole.USER],
                 approval_policy=ApprovalPolicy.ASK_ONCE,
-                timeout_seconds=120
+                timeout_seconds=120,
             ),
             ActionDefinition(
                 action_type="file_delete",
@@ -146,7 +154,7 @@ class ApprovalWorkflow:
                 description="Delete files or directories",
                 required_roles=[UserRole.OWNER, UserRole.ADMIN],
                 approval_policy=ApprovalPolicy.ALWAYS_ASK,
-                timeout_seconds=300
+                timeout_seconds=300,
             ),
             ActionDefinition(
                 action_type="shell_command",
@@ -154,7 +162,7 @@ class ApprovalWorkflow:
                 description="Execute shell commands",
                 required_roles=[UserRole.OWNER, UserRole.ADMIN],
                 approval_policy=ApprovalPolicy.ALWAYS_ASK,
-                timeout_seconds=180
+                timeout_seconds=180,
             ),
             ActionDefinition(
                 action_type="external_api_call",
@@ -162,7 +170,7 @@ class ApprovalWorkflow:
                 description="Make external API calls",
                 required_roles=[UserRole.OWNER, UserRole.ADMIN, UserRole.USER],
                 approval_policy=ApprovalPolicy.ASK_ONCE,
-                timeout_seconds=120
+                timeout_seconds=120,
             ),
             ActionDefinition(
                 action_type="computer_control",
@@ -170,7 +178,7 @@ class ApprovalWorkflow:
                 description="Control desktop/GUI automation",
                 required_roles=[UserRole.OWNER],
                 approval_policy=ApprovalPolicy.ALWAYS_ASK,
-                timeout_seconds=300
+                timeout_seconds=300,
             ),
             ActionDefinition(
                 action_type="code_execution",
@@ -178,7 +186,7 @@ class ApprovalWorkflow:
                 description="Execute code in containers or environments",
                 required_roles=[UserRole.OWNER, UserRole.ADMIN],
                 approval_policy=ApprovalPolicy.ALWAYS_ASK,
-                timeout_seconds=240
+                timeout_seconds=240,
             ),
             ActionDefinition(
                 action_type="payment_transaction",
@@ -186,7 +194,7 @@ class ApprovalWorkflow:
                 description="Process financial transactions",
                 required_roles=[UserRole.OWNER],
                 approval_policy=ApprovalPolicy.ALWAYS_ASK,
-                timeout_seconds=600
+                timeout_seconds=600,
             ),
             ActionDefinition(
                 action_type="config_change",
@@ -194,8 +202,8 @@ class ApprovalWorkflow:
                 description="Modify system configuration",
                 required_roles=[UserRole.OWNER, UserRole.ADMIN],
                 approval_policy=ApprovalPolicy.ASK_ONCE,
-                timeout_seconds=180
-            )
+                timeout_seconds=180,
+            ),
         ]
 
         for action in default_actions:
@@ -223,11 +231,15 @@ class ApprovalWorkflow:
             if hasattr(action, key):
                 setattr(action, key, value)
 
-    def set_approval_callback(self, callback: Callable[[ApprovalRequest], None]) -> None:
+    def set_approval_callback(
+        self, callback: Callable[[ApprovalRequest], None]
+    ) -> None:
         """Set callback for when approval is requested."""
         self.approval_request_callback = callback
 
-    def set_response_callback(self, callback: Callable[[ApprovalRequest, bool], None]) -> None:
+    def set_response_callback(
+        self, callback: Callable[[ApprovalRequest, bool], None]
+    ) -> None:
         """Set callback for when approval response is received."""
         self.approval_response_callback = callback
 
@@ -237,11 +249,11 @@ class ApprovalWorkflow:
         action_type: str,
         action_description: str,
         parameters: dict[str, Any],
-        timeout_override: int | None = None
+        timeout_override: int | None = None,
     ) -> bool:
         """
         Request approval for a high-risk action.
-        
+
         Returns True if approved, False if rejected, raises TimeoutError if expired.
         """
         # Check if action is registered
@@ -249,7 +261,7 @@ class ApprovalWorkflow:
             await self.audit_logger.log_security_violation(
                 f"Attempted approval request for unregistered action: {action_type}",
                 AuditLevel.WARNING,
-                user_id=user_id
+                user_id=user_id,
             )
             return False
 
@@ -261,13 +273,20 @@ class ApprovalWorkflow:
             await self.audit_logger.log_security_violation(
                 f"User {user_id} (role: {user_role.value}) not authorized for action: {action_type}",
                 AuditLevel.WARNING,
-                user_id=user_id
+                user_id=user_id,
             )
             return False
 
         # Check approval policy
         if action_def.approval_policy == ApprovalPolicy.NEVER_ASK:
-            await self._log_approval_decision(user_id, action_type, True, "system", "auto-approved", "Auto-approved by policy")
+            await self._log_approval_decision(
+                user_id,
+                action_type,
+                True,
+                "system",
+                "auto-approved",
+                "Auto-approved by policy",
+            )
             return True
 
         # Check ask_once cache
@@ -276,7 +295,14 @@ class ApprovalWorkflow:
             if cache_key in self.approval_cache:
                 last_approval = self.approval_cache[cache_key]
                 if time.time() - last_approval < self.cache_duration:
-                    await self._log_approval_decision(user_id, action_type, True, "system", "cached", "Cached approval")
+                    await self._log_approval_decision(
+                        user_id,
+                        action_type,
+                        True,
+                        "system",
+                        "cached",
+                        "Cached approval",
+                    )
                     return True
 
         # Create approval request
@@ -293,7 +319,7 @@ class ApprovalWorkflow:
             status=ApprovalStatus.PENDING,
             created_at=time.time(),
             expires_at=time.time() + timeout,
-            metadata={"timeout": timeout}
+            metadata={"timeout": timeout},
         )
 
         self.pending_requests[request_id] = request
@@ -307,7 +333,7 @@ class ApprovalWorkflow:
             action_type=action_type,
             risk_level=action_def.risk_level.value,
             request_id=request_id,
-            metadata={"timeout": timeout}
+            metadata={"timeout": timeout},
         )
 
         # Trigger callback if set
@@ -316,19 +342,14 @@ class ApprovalWorkflow:
                 self.approval_request_callback(request)
             except Exception as e:
                 await self.audit_logger.log_error(
-                    f"Approval callback error: {e}",
-                    "callback_error",
-                    user_id=user_id
+                    f"Approval callback error: {e}", "callback_error", user_id=user_id
                 )
 
         # Wait for approval or timeout
         return await self._wait_for_approval(request_id)
 
     async def approve_request(
-        self,
-        request_id: str,
-        approver_id: str,
-        approval_note: str | None = None
+        self, request_id: str, approver_id: str, approval_note: str | None = None
     ) -> bool:
         """Approve a pending request."""
         if request_id not in self.pending_requests:
@@ -366,7 +387,7 @@ class ApprovalWorkflow:
             True,
             approver_id,
             request_id,
-            approval_note
+            approval_note,
         )
 
         # Trigger callback if set
@@ -377,16 +398,13 @@ class ApprovalWorkflow:
                 await self.audit_logger.log_error(
                     f"Approval response callback error: {e}",
                     "callback_error",
-                    user_id=request.user_id
+                    user_id=request.user_id,
                 )
 
         return True
 
     async def reject_request(
-        self,
-        request_id: str,
-        rejector_id: str,
-        rejection_reason: str | None = None
+        self, request_id: str, rejector_id: str, rejection_reason: str | None = None
     ) -> bool:
         """Reject a pending request."""
         if request_id not in self.pending_requests:
@@ -410,7 +428,7 @@ class ApprovalWorkflow:
             False,
             rejector_id,
             request_id,
-            rejection_reason
+            rejection_reason,
         )
 
         # Trigger callback if set
@@ -421,7 +439,7 @@ class ApprovalWorkflow:
                 await self.audit_logger.log_error(
                     f"Approval response callback error: {e}",
                     "callback_error",
-                    user_id=request.user_id
+                    user_id=request.user_id,
                 )
 
         return True
@@ -443,7 +461,7 @@ class ApprovalWorkflow:
                     False,
                     "system",
                     request_id,
-                    "Request expired"
+                    "Request expired",
                 )
 
                 raise TimeoutError(f"Approval request {request_id} expired")
@@ -479,7 +497,7 @@ class ApprovalWorkflow:
                 False,
                 "system",
                 request_id,
-                "Request expired during cleanup"
+                "Request expired during cleanup",
             )
 
     async def _log_approval_decision(
@@ -489,7 +507,7 @@ class ApprovalWorkflow:
         approved: bool,
         approver_id: str,
         request_id: str,
-        reason: str | None = None
+        reason: str | None = None,
     ):
         """Log approval decision to audit log."""
         await self.audit_logger.log_approval_decision(
@@ -498,7 +516,7 @@ class ApprovalWorkflow:
             approved=approved,
             approver_id=approver_id,
             request_id=request_id,
-            reason=reason
+            reason=reason,
         )
 
     def get_pending_requests(self, user_id: str | None = None) -> list[ApprovalRequest]:
@@ -510,8 +528,9 @@ class ApprovalWorkflow:
 
     def get_request_by_id(self, request_id: str) -> ApprovalRequest | None:
         """Get a specific approval request by ID."""
-        return (self.pending_requests.get(request_id) or
-                self.completed_requests.get(request_id))
+        return self.pending_requests.get(request_id) or self.completed_requests.get(
+            request_id
+        )
 
     async def cancel_request(self, request_id: str, canceller_id: str) -> bool:
         """Cancel a pending approval request."""
@@ -531,19 +550,23 @@ class ApprovalWorkflow:
             False,
             canceller_id,
             request_id,
-            "Request cancelled"
+            "Request cancelled",
         )
 
         return True
 
-    def clear_approval_cache(self, user_id: str | None = None, action_type: str | None = None):
+    def clear_approval_cache(
+        self, user_id: str | None = None, action_type: str | None = None
+    ):
         """Clear approval cache entries."""
         if user_id and action_type:
             cache_key = f"{user_id}:{action_type}"
             self.approval_cache.pop(cache_key, None)
         elif user_id:
             # Clear all entries for user
-            keys_to_remove = [k for k in self.approval_cache.keys() if k.startswith(f"{user_id}:")]
+            keys_to_remove = [
+                k for k in self.approval_cache.keys() if k.startswith(f"{user_id}:")
+            ]
             for key in keys_to_remove:
                 del self.approval_cache[key]
         else:
@@ -559,19 +582,29 @@ class ApprovalWorkflow:
             "total_requests": len(completed) + len(pending),
             "pending_requests": len(pending),
             "completed_requests": len(completed),
-            "approved_requests": len([r for r in completed if r.status == ApprovalStatus.APPROVED]),
-            "rejected_requests": len([r for r in completed if r.status == ApprovalStatus.REJECTED]),
-            "expired_requests": len([r for r in completed if r.status == ApprovalStatus.EXPIRED]),
-            "cancelled_requests": len([r for r in completed if r.status == ApprovalStatus.CANCELLED]),
+            "approved_requests": len(
+                [r for r in completed if r.status == ApprovalStatus.APPROVED]
+            ),
+            "rejected_requests": len(
+                [r for r in completed if r.status == ApprovalStatus.REJECTED]
+            ),
+            "expired_requests": len(
+                [r for r in completed if r.status == ApprovalStatus.EXPIRED]
+            ),
+            "cancelled_requests": len(
+                [r for r in completed if r.status == ApprovalStatus.CANCELLED]
+            ),
             "approval_rate": 0.0,
             "average_response_time": 0.0,
             "requests_by_action_type": {},
-            "requests_by_risk_level": {}
+            "requests_by_risk_level": {},
         }
 
         # Calculate approval rate
         approved = stats["approved_requests"]
-        total_decided = approved + stats["rejected_requests"] + stats["expired_requests"]
+        total_decided = (
+            approved + stats["rejected_requests"] + stats["expired_requests"]
+        )
         if total_decided > 0:
             stats["approval_rate"] = approved / total_decided
 

@@ -90,7 +90,9 @@ class SchedulerTaskList(BaseModel):
                 self.tasks = []
                 self.save()
             except Exception as e:
-                PrintStyle(font_color="red", padding=True).print(f"Error loading tasks: {str(e)}")
+                PrintStyle(font_color="red", padding=True).print(
+                    f"Error loading tasks: {str(e)}"
+                )
                 self.tasks = []
 
     def add_task(self, task: ScheduledTask | AdHocTask | PlannedTask) -> None:
@@ -111,7 +113,9 @@ class SchedulerTaskList(BaseModel):
                 serialized_tasks = serialize_tasks(self.tasks)
                 write_file(tasks_file, json.dumps(serialized_tasks, indent=2))
             except Exception as e:
-                PrintStyle(font_color="red", padding=True).print(f"Error saving tasks: {str(e)}")
+                PrintStyle(font_color="red", padding=True).print(
+                    f"Error saving tasks: {str(e)}"
+                )
 
     def update_task_by_uuid(
         self,
@@ -174,7 +178,9 @@ class SchedulerTaskList(BaseModel):
                     return task
             return None
 
-    def get_task_by_name(self, name: str) -> ScheduledTask | AdHocTask | PlannedTask | None:
+    def get_task_by_name(
+        self, name: str
+    ) -> ScheduledTask | AdHocTask | PlannedTask | None:
         """Get the first task with the given name."""
         with self._lock:
             for task in self.tasks:
@@ -182,7 +188,9 @@ class SchedulerTaskList(BaseModel):
                     return task
             return None
 
-    def find_task_by_name(self, name: str) -> list[ScheduledTask | AdHocTask | PlannedTask]:
+    def find_task_by_name(
+        self, name: str
+    ) -> list[ScheduledTask | AdHocTask | PlannedTask]:
         """Find all tasks with the given name."""
         with self._lock:
             return [task for task in self.tasks if task.name == name]
@@ -261,11 +269,15 @@ class TaskScheduler:
         """Get a task by UUID."""
         return self._tasks.get_task_by_uuid(task_uuid)
 
-    def get_task_by_name(self, name: str) -> ScheduledTask | AdHocTask | PlannedTask | None:
+    def get_task_by_name(
+        self, name: str
+    ) -> ScheduledTask | AdHocTask | PlannedTask | None:
         """Get the first task with the given name."""
         return self._tasks.get_task_by_name(name)
 
-    def find_task_by_name(self, name: str) -> list[ScheduledTask | AdHocTask | PlannedTask]:
+    def find_task_by_name(
+        self, name: str
+    ) -> list[ScheduledTask | AdHocTask | PlannedTask]:
         """Find all tasks with the given name."""
         return self._tasks.find_task_by_name(name)
 
@@ -337,7 +349,9 @@ class TaskScheduler:
         """Update a task by UUID with the provided parameters."""
         return self.update_task_checked(task_uuid, **update_params)
 
-    def __new_context(self, task: ScheduledTask | AdHocTask | PlannedTask) -> AgentContext:
+    def __new_context(
+        self, task: ScheduledTask | AdHocTask | PlannedTask
+    ) -> AgentContext:
         """Create a new agent context for task execution."""
         from initialize import initialize_agent
 
@@ -351,7 +365,9 @@ class TaskScheduler:
 
         return context
 
-    def _get_chat_context(self, task: ScheduledTask | AdHocTask | PlannedTask) -> AgentContext:
+    def _get_chat_context(
+        self, task: ScheduledTask | AdHocTask | PlannedTask
+    ) -> AgentContext:
         """Get or create chat context for the task."""
         try:
             from initialize import initialize_agent
@@ -405,7 +421,9 @@ class TaskScheduler:
             if task_context:
                 message_content = f"{task_context}\n\n{message_content}"
 
-            user_message = UserMessage(content=message_content, attachments=task.attachments)
+            user_message = UserMessage(
+                content=message_content, attachments=task.attachments
+            )
 
             # Execute task
             response = await context.agent.message_loop_async(user_message, context)
@@ -441,7 +459,9 @@ class TaskScheduler:
             # Call finish hook
             await task.on_finish()
 
-    def _run_task_wrapper(self, task_uuid: str, task_context: str | None = None) -> None:
+    def _run_task_wrapper(
+        self, task_uuid: str, task_context: str | None = None
+    ) -> None:
         """Wrapper to run task in asyncio event loop."""
         task = self.get_task_by_uuid(task_uuid)
         if not task:

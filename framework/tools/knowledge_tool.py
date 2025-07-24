@@ -39,15 +39,21 @@ class Knowledge(Tool):
             memory=memory_result,
         )
 
-        await self.agent.handle_intervention(msg)  # wait for intervention and handle it, if paused
+        await self.agent.handle_intervention(
+            msg
+        )  # wait for intervention and handle it, if paused
 
         return Response(message=msg, break_loop=False)
 
     async def perplexity_search(self, question):
         if dotenv.get_dotenv_value("API_KEY_PERPLEXITY"):
-            return await asyncio.to_thread(perplexity_search.perplexity_search, question)
+            return await asyncio.to_thread(
+                perplexity_search.perplexity_search, question
+            )
         else:
-            PrintStyle.hint("No API key provided for Perplexity. Skipping Perplexity search.")
+            PrintStyle.hint(
+                "No API key provided for Perplexity. Skipping Perplexity search."
+            )
             self.agent.context.log.log(
                 type="hint",
                 content="No API key provided for Perplexity. Skipping Perplexity search.",

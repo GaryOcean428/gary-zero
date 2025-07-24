@@ -62,13 +62,17 @@ class Localization:
                 local_datetime_obj = datetime.fromisoformat(localtime_str)
                 if local_datetime_obj.tzinfo is None:
                     # If no timezone info, assume it's in the configured timezone
-                    local_datetime_obj = pytz.timezone(self.timezone).localize(local_datetime_obj)
+                    local_datetime_obj = pytz.timezone(self.timezone).localize(
+                        local_datetime_obj
+                    )
             except ValueError:
                 # If timezone parsing fails, try without timezone
                 local_datetime_obj = datetime.fromisoformat(
                     localtime_str.split("Z")[0].split("+")[0]
                 )
-                local_datetime_obj = pytz.timezone(self.timezone).localize(local_datetime_obj)
+                local_datetime_obj = pytz.timezone(self.timezone).localize(
+                    local_datetime_obj
+                )
 
             # Convert to UTC
             return local_datetime_obj.astimezone(pytz.utc)

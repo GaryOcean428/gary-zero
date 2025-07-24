@@ -85,7 +85,9 @@ class SchedulerTaskUpdate(ApiHandler):
         updated_task = await scheduler.update_task(task_id, **update_params)
 
         if not updated_task:
-            return {"error": f"Task with ID {task_id} not found or could not be updated"}
+            return {
+                "error": f"Task with ID {task_id} not found or could not be updated"
+            }
 
         # Return the updated task using our standardized serialization function
         task_dict = serialize_task(updated_task)

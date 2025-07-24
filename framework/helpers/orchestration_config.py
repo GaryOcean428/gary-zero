@@ -76,24 +76,48 @@ class OrchestrationConfigManager:
     def _load_from_environment(self):
         """Load configuration from environment variables."""
         # Core settings
-        self._config.enabled = self._get_env_bool('ORCHESTRATION_ENABLED', self._config.enabled)
-        self._config.max_concurrent_tasks = self._get_env_int('ORCHESTRATION_MAX_CONCURRENT', self._config.max_concurrent_tasks)
-        self._config.default_task_timeout_seconds = self._get_env_float('ORCHESTRATION_DEFAULT_TIMEOUT', self._config.default_task_timeout_seconds)
+        self._config.enabled = self._get_env_bool(
+            "ORCHESTRATION_ENABLED", self._config.enabled
+        )
+        self._config.max_concurrent_tasks = self._get_env_int(
+            "ORCHESTRATION_MAX_CONCURRENT", self._config.max_concurrent_tasks
+        )
+        self._config.default_task_timeout_seconds = self._get_env_float(
+            "ORCHESTRATION_DEFAULT_TIMEOUT", self._config.default_task_timeout_seconds
+        )
 
         # Performance settings
-        self._config.enable_performance_monitoring = self._get_env_bool('ORCHESTRATION_PERFORMANCE_MONITORING', self._config.enable_performance_monitoring)
-        self._config.adaptive_scheduling_enabled = self._get_env_bool('ORCHESTRATION_ADAPTIVE_SCHEDULING', self._config.adaptive_scheduling_enabled)
+        self._config.enable_performance_monitoring = self._get_env_bool(
+            "ORCHESTRATION_PERFORMANCE_MONITORING",
+            self._config.enable_performance_monitoring,
+        )
+        self._config.adaptive_scheduling_enabled = self._get_env_bool(
+            "ORCHESTRATION_ADAPTIVE_SCHEDULING",
+            self._config.adaptive_scheduling_enabled,
+        )
 
         # Resource limits
-        self._config.default_agent_max_concurrent_tasks = self._get_env_int('AGENT_MAX_CONCURRENT_TASKS', self._config.default_agent_max_concurrent_tasks)
-        self._config.default_agent_max_requests_per_minute = self._get_env_int('AGENT_MAX_REQUESTS_PER_MINUTE', self._config.default_agent_max_requests_per_minute)
+        self._config.default_agent_max_concurrent_tasks = self._get_env_int(
+            "AGENT_MAX_CONCURRENT_TASKS",
+            self._config.default_agent_max_concurrent_tasks,
+        )
+        self._config.default_agent_max_requests_per_minute = self._get_env_int(
+            "AGENT_MAX_REQUESTS_PER_MINUTE",
+            self._config.default_agent_max_requests_per_minute,
+        )
 
         # Compatibility
-        self._config.sync_mode_override = self._get_env_bool('ORCHESTRATION_SYNC_MODE', self._config.sync_mode_override)
-        self._config.fallback_to_sync_on_error = self._get_env_bool('ORCHESTRATION_FALLBACK_SYNC', self._config.fallback_to_sync_on_error)
+        self._config.sync_mode_override = self._get_env_bool(
+            "ORCHESTRATION_SYNC_MODE", self._config.sync_mode_override
+        )
+        self._config.fallback_to_sync_on_error = self._get_env_bool(
+            "ORCHESTRATION_FALLBACK_SYNC", self._config.fallback_to_sync_on_error
+        )
 
         # Logging
-        self._config.enable_detailed_logging = self._get_env_bool('ORCHESTRATION_DETAILED_LOGGING', self._config.enable_detailed_logging)
+        self._config.enable_detailed_logging = self._get_env_bool(
+            "ORCHESTRATION_DETAILED_LOGGING", self._config.enable_detailed_logging
+        )
 
         logger.info("Orchestration configuration loaded from environment")
 
@@ -137,7 +161,7 @@ class OrchestrationConfigManager:
                     # Convert complex types to string representation
                     config_dict[key] = str(value)
 
-            with open(target_path, 'w') as f:
+            with open(target_path, "w") as f:
                 json.dump(config_dict, f, indent=2)
 
             self._config_file_path = target_path
@@ -163,9 +187,9 @@ class OrchestrationConfigManager:
     def get_agent_config(self, agent_id: str) -> dict[str, Any]:
         """Get agent-specific configuration."""
         agent_config = {
-            'max_concurrent_tasks': self._config.default_agent_max_concurrent_tasks,
-            'max_requests_per_minute': self._config.default_agent_max_requests_per_minute,
-            'max_memory_mb': self._config.default_agent_max_memory_mb,
+            "max_concurrent_tasks": self._config.default_agent_max_concurrent_tasks,
+            "max_requests_per_minute": self._config.default_agent_max_requests_per_minute,
+            "max_memory_mb": self._config.default_agent_max_memory_mb,
         }
 
         # Override with agent-specific settings if available
@@ -198,7 +222,7 @@ class OrchestrationConfigManager:
         value = os.getenv(key)
         if value is None:
             return default
-        return value.lower() in ('true', '1', 'yes', 'on')
+        return value.lower() in ("true", "1", "yes", "on")
 
     def _get_env_int(self, key: str, default: int) -> int:
         """Get integer value from environment variable."""
@@ -208,7 +232,9 @@ class OrchestrationConfigManager:
         try:
             return int(value)
         except ValueError:
-            logger.warning(f"Invalid integer value for {key}: {value}, using default {default}")
+            logger.warning(
+                f"Invalid integer value for {key}: {value}, using default {default}"
+            )
             return default
 
     def _get_env_float(self, key: str, default: float) -> float:
@@ -219,12 +245,15 @@ class OrchestrationConfigManager:
         try:
             return float(value)
         except ValueError:
-            logger.warning(f"Invalid float value for {key}: {value}, using default {default}")
+            logger.warning(
+                f"Invalid float value for {key}: {value}, using default {default}"
+            )
             return default
 
 
 # Global configuration manager
 _config_manager: OrchestrationConfigManager | None = None
+
 
 def get_config_manager() -> OrchestrationConfigManager:
     """Get the global configuration manager."""
@@ -233,17 +262,21 @@ def get_config_manager() -> OrchestrationConfigManager:
         _config_manager = OrchestrationConfigManager()
     return _config_manager
 
+
 def get_orchestration_config() -> OrchestrationConfig:
     """Get the current orchestration configuration."""
     return get_config_manager().get_config()
+
 
 def update_orchestration_config(**kwargs):
     """Update orchestration configuration."""
     get_config_manager().update_config(**kwargs)
 
+
 def is_orchestration_enabled() -> bool:
     """Check if async orchestration is enabled."""
     return get_config_manager().is_orchestration_enabled()
+
 
 def should_use_sync_fallback() -> bool:
     """Check if sync fallback should be used."""

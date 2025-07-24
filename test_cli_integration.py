@@ -91,11 +91,11 @@ async def test_codex_cli_status():
             name="openai_codex_cli",
             method=None,
             args={"action": "status"},
-            message="Test status"
+            message="Test status",
         )
 
         # Mock the CLI availability check to avoid actual subprocess calls
-        with patch('subprocess.run') as mock_run:
+        with patch("subprocess.run") as mock_run:
             mock_run.side_effect = FileNotFoundError("CLI not found")
 
             # Execute the tool
@@ -131,11 +131,11 @@ async def test_gemini_cli_status():
             name="google_gemini_cli",
             method=None,
             args={"action": "status"},
-            message="Test status"
+            message="Test status",
         )
 
         # Mock the CLI availability check
-        with patch('subprocess.run') as mock_run:
+        with patch("subprocess.run") as mock_run:
             mock_run.side_effect = FileNotFoundError("CLI not found")
 
             # Execute the tool
@@ -167,14 +167,14 @@ def test_settings_integration():
             "codex_cli_enabled",
             "codex_cli_path",
             "codex_cli_approval_mode",
-            "codex_cli_auto_install"
+            "codex_cli_auto_install",
         ]
 
         gemini_settings = [
             "gemini_cli_enabled",
             "gemini_cli_path",
             "gemini_cli_approval_mode",
-            "gemini_cli_auto_install"
+            "gemini_cli_auto_install",
         ]
 
         missing_settings = []
@@ -206,12 +206,12 @@ def test_instruments():
     # Check if instrument files exist
     codex_files = [
         "instruments/default/openai_codex/README.md",
-        "instruments/default/openai_codex/install.sh"
+        "instruments/default/openai_codex/install.sh",
     ]
 
     gemini_files = [
         "instruments/default/google_gemini/README.md",
-        "instruments/default/google_gemini/install.sh"
+        "instruments/default/google_gemini/install.sh",
     ]
 
     missing_files = []
@@ -229,7 +229,7 @@ def test_instruments():
     # Check if install scripts are executable
     install_scripts = [
         "instruments/default/openai_codex/install.sh",
-        "instruments/default/google_gemini/install.sh"
+        "instruments/default/google_gemini/install.sh",
     ]
 
     for script in install_scripts:
@@ -247,7 +247,7 @@ def test_prompts():
 
     prompt_files = [
         "prompts/default/fw.codex_cli.usage.md",
-        "prompts/default/fw.gemini_cli.usage.md"
+        "prompts/default/fw.gemini_cli.usage.md",
     ]
 
     missing_files = []

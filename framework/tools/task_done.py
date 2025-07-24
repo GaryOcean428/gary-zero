@@ -2,7 +2,6 @@ from framework.helpers.tool import Response, Tool
 
 
 class TaskDone(Tool):
-
     async def execute(self, **kwargs):
         self.agent.set_data("timeout", 0)
         return Response(message=self.args["text"], break_loop=True)

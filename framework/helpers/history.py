@@ -137,7 +137,9 @@ class Topic(Record):
         else:
             return sum(msg.get_tokens() for msg in self.messages)
 
-    def add_message(self, ai: bool, content: MessageContent, tokens: int = 0) -> Message:
+    def add_message(
+        self, ai: bool, content: MessageContent, tokens: int = 0
+    ) -> Message:
         msg = Message(ai=ai, content=content, tokens=tokens)
         self.messages.append(msg)
         return msg
@@ -161,9 +163,11 @@ class Topic(Record):
             ctx_history = float(set["chat_model_ctx_history"])
         except (ValueError, TypeError) as e:
             # Use default values if conversion fails
-            print(f"Warning: Error converting context settings to numbers: {e}. Using defaults.")
+            print(
+                f"Warning: Error converting context settings to numbers: {e}. Using defaults."
+            )
             ctx_length = 128000  # Default context length
-            ctx_history = 0.5   # Default history ratio
+            ctx_history = 0.5  # Default history ratio
 
         msg_max_size = (
             ctx_length
@@ -185,7 +189,9 @@ class Topic(Record):
             trim_to_chars = leng * (msg_max_size / tok)
             # raw messages will be replaced as a whole, they would become invalid when truncated
             if _is_raw_message(out[0]["content"]):
-                msg.set_summary("Message content replaced to save space in context window")
+                msg.set_summary(
+                    "Message content replaced to save space in context window"
+                )
 
             # regular messages will be truncated
             else:
@@ -207,12 +213,13 @@ class Topic(Record):
         return compress
 
     async def compress_attention(self) -> bool:
-
         if len(self.messages) > 2:
             cnt_to_sum = math.ceil((len(self.messages) - 2) * TOPIC_COMPRESS_RATIO)
             msg_to_sum = self.messages[1 : cnt_to_sum + 1]
             summary = await self.summarize_messages(msg_to_sum)
-            sum_msg_content = self.history.agent.parse_prompt("fw.msg_summary.md", summary=summary)
+            sum_msg_content = self.history.agent.parse_prompt(
+                "fw.msg_summary.md", summary=summary
+            )
             sum_msg = Message(False, sum_msg_content)
             self.messages[1 : cnt_to_sum + 1] = [sum_msg]
             return True
@@ -223,7 +230,9 @@ class Topic(Record):
         msg_txt = [m.output_text() for m in messages]
         summary = await self.history.agent.call_utility_model(
             system=self.history.agent.read_prompt("fw.topic_summary.sys.md"),
-            message=self.history.agent.read_prompt("fw.topic_summary.msg.md", content=msg_txt),
+            message=self.history.agent.read_prompt(
+                "fw.topic_summary.msg.md", content=msg_txt
+            ),
         )
         return summary
 
@@ -238,7 +247,9 @@ class Topic(Record):
     def from_dict(data: dict, history: "History"):
         topic = Topic(history=history)
         topic.summary = data.get("summary", "")
-        topic.messages = [Message.from_dict(m, history=history) for m in data.get("messages", [])]
+        topic.messages = [
+            Message.from_dict(m, history=history) for m in data.get("messages", [])
+        ]
         return topic
 
 
@@ -254,7 +265,9 @@ class Bulk(Record):
         else:
             return sum([r.get_tokens() for r in self.records])
 
-    def output(self, human_label: str = "user", ai_label: str = "ai") -> list[OutputMessage]:
+    def output(
+        self, human_label: str = "user", ai_label: str = "ai"
+    ) -> list[OutputMessage]:
         if self.summary:
             return [OutputMessage(ai=False, content=self.summary)]
         else:
@@ -299,7 +312,11 @@ class History(Record):
         self.agent: Agent = agent
 
     def get_tokens(self) -> int:
-        return self.get_bulks_tokens() + self.get_topics_tokens() + self.get_current_topic_tokens()
+        return (
+            self.get_bulks_tokens()
+            + self.get_topics_tokens()
+            + self.get_current_topic_tokens()
+        )
 
     def is_over_limit(self):
         limit = _get_ctx_size_for_history()
@@ -315,7 +332,9 @@ class History(Record):
     def get_current_topic_tokens(self) -> int:
         return self.current.get_tokens()
 
-    def add_message(self, ai: bool, content: MessageContent, tokens: int = 0) -> Message:
+    def add_message(
+        self, ai: bool, content: MessageContent, tokens: int = 0
+    ) -> Message:
         return self.current.add_message(ai, content=content, tokens=tokens)
 
     def new_topic(self):
@@ -418,7 +437,10 @@ class History(Record):
             return False
         # merge bulks in groups of count, even if there are fewer than count
         bulks = await asyncio.gather(
-            *[self.merge_bulks(self.bulks[i : i + count]) for i in range(0, len(self.bulks), count)]
+            *[
+                self.merge_bulks(self.bulks[i : i + count])
+                for i in range(0, len(self.bulks), count)
+            ]
         )
         self.bulks = bulks
         return True
@@ -447,12 +469,14 @@ def _get_ctx_size_for_history() -> int:
         return int(ctx_length * ctx_history)
     except (ValueError, TypeError, KeyError) as e:
         # Use default values if conversion fails or keys are missing
-        print(f"Warning: Error converting context settings to numbers: {e}. Using default values.")
+        print(
+            f"Warning: Error converting context settings to numbers: {e}. Using default values."
+        )
         return int(128000 * 0.5)  # Default: 128k tokens * 50% for history
 
 
 def _stringify_output(output: OutputMessage, ai_label="ai", human_label="human"):
-    return f'{ai_label if output["ai"] else human_label}: {_stringify_content(output["content"])}'
+    return f"{ai_label if output['ai'] else human_label}: {_stringify_content(output['content'])}"
 
 
 def _stringify_content(content: MessageContent) -> str:
@@ -503,7 +527,9 @@ def group_messages_abab(messages: list[BaseMessage]) -> list[BaseMessage]:
     for msg in messages:
         if result and isinstance(result[-1], type(msg)):
             # create new instance of the same type with merged content
-            result[-1] = type(result[-1])(content=_merge_outputs(result[-1].content, msg.content))  # type: ignore
+            result[-1] = type(result[-1])(
+                content=_merge_outputs(result[-1].content, msg.content)
+            )  # type: ignore
         else:
             result.append(msg)
     return result

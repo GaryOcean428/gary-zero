@@ -13,7 +13,7 @@ import random
 import sys
 import time
 
-sys.path.append('/home/runner/work/gary-zero/gary-zero')
+sys.path.append("/home/runner/work/gary-zero/gary-zero")
 
 from framework.helpers.async_orchestrator import AsyncTaskOrchestrator
 
@@ -33,11 +33,11 @@ class DemoTask:
 async def simulate_task_work(task: DemoTask):
     """Simulate different types of task work with realistic timing."""
     base_times = {
-        'coding': 0.3,
-        'research': 0.2,
-        'analysis': 0.25,
-        'communication': 0.1,
-        'system': 0.4
+        "coding": 0.3,
+        "research": 0.2,
+        "analysis": 0.25,
+        "communication": 0.1,
+        "system": 0.4,
     }
 
     base_time = base_times.get(task.task_type, 0.2)
@@ -87,8 +87,7 @@ async def demo_sequential_vs_concurrent():
     # Concurrent execution with orchestrator
     print("\n⚡ Concurrent Execution with Orchestrator:")
     orchestrator = AsyncTaskOrchestrator(
-        max_concurrent_tasks=6,
-        enable_performance_monitoring=False
+        max_concurrent_tasks=6, enable_performance_monitoring=False
     )
 
     await orchestrator.start()
@@ -106,10 +105,9 @@ async def demo_sequential_vs_concurrent():
             task_ids.append(task_id)
 
         # Wait for all completions
-        concurrent_results = await asyncio.gather(*[
-            orchestrator.wait_for_task(task_id, timeout=10.0)
-            for task_id in task_ids
-        ])
+        concurrent_results = await asyncio.gather(
+            *[orchestrator.wait_for_task(task_id, timeout=10.0) for task_id in task_ids]
+        )
 
         concurrent_time = time.time() - concurrent_start
 
@@ -143,31 +141,31 @@ async def demo_dependency_graph():
 
     # Create a realistic software development workflow
     tasks = {
-        'requirements': DemoTask("req", "Gather requirements", "research", 1.0),
-        'design': DemoTask("design", "System design", "analysis", 1.2),
-        'api_spec': DemoTask("api_spec", "API specification", "coding", 0.8),
-        'database': DemoTask("db", "Database schema", "coding", 1.0),
-        'auth_service': DemoTask("auth", "Authentication service", "coding", 1.5),
-        'user_service': DemoTask("user", "User management service", "coding", 1.3),
-        'api_gateway': DemoTask("gateway", "API Gateway", "coding", 1.1),
-        'frontend': DemoTask("frontend", "Frontend application", "coding", 2.0),
-        'tests': DemoTask("tests", "Integration tests", "system", 1.0),
-        'deployment': DemoTask("deploy", "Deployment configuration", "system", 0.8),
-        'documentation': DemoTask("docs", "Documentation", "communication", 0.6),
+        "requirements": DemoTask("req", "Gather requirements", "research", 1.0),
+        "design": DemoTask("design", "System design", "analysis", 1.2),
+        "api_spec": DemoTask("api_spec", "API specification", "coding", 0.8),
+        "database": DemoTask("db", "Database schema", "coding", 1.0),
+        "auth_service": DemoTask("auth", "Authentication service", "coding", 1.5),
+        "user_service": DemoTask("user", "User management service", "coding", 1.3),
+        "api_gateway": DemoTask("gateway", "API Gateway", "coding", 1.1),
+        "frontend": DemoTask("frontend", "Frontend application", "coding", 2.0),
+        "tests": DemoTask("tests", "Integration tests", "system", 1.0),
+        "deployment": DemoTask("deploy", "Deployment configuration", "system", 0.8),
+        "documentation": DemoTask("docs", "Documentation", "communication", 0.6),
     }
 
     # Define dependencies (realistic development workflow)
     dependencies = {
-        'design': ['requirements'],
-        'api_spec': ['design'],
-        'database': ['design'],
-        'auth_service': ['api_spec', 'database'],
-        'user_service': ['api_spec', 'database', 'auth_service'],
-        'api_gateway': ['auth_service', 'user_service'],
-        'frontend': ['api_spec', 'auth_service'],
-        'tests': ['api_gateway', 'frontend'],
-        'deployment': ['tests'],
-        'documentation': ['api_gateway', 'frontend'],
+        "design": ["requirements"],
+        "api_spec": ["design"],
+        "database": ["design"],
+        "auth_service": ["api_spec", "database"],
+        "user_service": ["api_spec", "database", "auth_service"],
+        "api_gateway": ["auth_service", "user_service"],
+        "frontend": ["api_spec", "auth_service"],
+        "tests": ["api_gateway", "frontend"],
+        "deployment": ["tests"],
+        "documentation": ["api_gateway", "frontend"],
     }
 
     print("Dependency Graph:")
@@ -177,8 +175,7 @@ async def demo_dependency_graph():
         print(f"  {task_name} <- {dep_names}")
 
     orchestrator = AsyncTaskOrchestrator(
-        max_concurrent_tasks=5,
-        enable_performance_monitoring=False
+        max_concurrent_tasks=5, enable_performance_monitoring=False
     )
 
     await orchestrator.start()
@@ -191,6 +188,7 @@ async def demo_dependency_graph():
 
         # Track execution order
         original_execute = orchestrator._execute_managed_task
+
         async def tracked_execute(task):
             execution_order.append(task.title)
             return await original_execute(task)
@@ -212,7 +210,9 @@ async def demo_dependency_graph():
 
             # Now submit this task
             task = tasks[task_id]
-            orchestration_task_id = await orchestrator.submit_task(task, dependencies=deps)
+            orchestration_task_id = await orchestrator.submit_task(
+                task, dependencies=deps
+            )
             submitted_tasks[task_id] = orchestration_task_id
             return orchestration_task_id
 
@@ -221,10 +221,12 @@ async def demo_dependency_graph():
             await submit_task_with_deps(task_id)
 
         # Wait for all to complete
-        results = await asyncio.gather(*[
-            orchestrator.wait_for_task(task_id, timeout=15.0)
-            for task_id in submitted_tasks.values()
-        ])
+        results = await asyncio.gather(
+            *[
+                orchestrator.wait_for_task(task_id, timeout=15.0)
+                for task_id in submitted_tasks.values()
+            ]
+        )
 
         execution_time = time.time() - start_time
 
@@ -249,7 +251,9 @@ async def demo_dependency_graph():
                 dep_pos = task_positions[dep_name]
 
                 if dep_pos >= task_pos:
-                    print(f"  ❌ Violation: {task_name} ran before dependency {dep_name}")
+                    print(
+                        f"  ❌ Violation: {task_name} ran before dependency {dep_name}"
+                    )
                     violations += 1
 
         if violations == 0:
@@ -267,42 +271,41 @@ async def demo_resource_management():
     print("=" * 60)
 
     orchestrator = AsyncTaskOrchestrator(
-        max_concurrent_tasks=10,
-        enable_performance_monitoring=False
+        max_concurrent_tasks=10, enable_performance_monitoring=False
     )
 
     # Configure stricter limits for demo
     orchestrator.default_agent_limits = {
-        'max_concurrent_tasks': 2,
-        'max_requests_per_minute': 10,
-        'max_memory_mb': 512.0
+        "max_concurrent_tasks": 2,
+        "max_requests_per_minute": 10,
+        "max_memory_mb": 512.0,
     }
 
     await orchestrator.start()
 
     try:
         # Create tasks for different agents
-        agents = ['coding_agent', 'research_agent', 'analysis_agent']
+        agents = ["coding_agent", "research_agent", "analysis_agent"]
 
         tasks_by_agent = {
-            'coding_agent': [
+            "coding_agent": [
                 DemoTask("code_1", "Implement feature A", "coding", 1.2),
                 DemoTask("code_2", "Implement feature B", "coding", 1.0),
                 DemoTask("code_3", "Implement feature C", "coding", 1.5),
                 DemoTask("code_4", "Fix bug X", "coding", 0.8),
                 DemoTask("code_5", "Refactor module Y", "coding", 1.3),
             ],
-            'research_agent': [
+            "research_agent": [
                 DemoTask("research_1", "Market analysis", "research", 1.0),
                 DemoTask("research_2", "Technology survey", "research", 1.2),
                 DemoTask("research_3", "Competitor analysis", "research", 0.9),
             ],
-            'analysis_agent': [
+            "analysis_agent": [
                 DemoTask("analysis_1", "Performance metrics", "analysis", 1.1),
                 DemoTask("analysis_2", "User behavior", "analysis", 1.0),
                 DemoTask("analysis_3", "Cost optimization", "analysis", 1.4),
                 DemoTask("analysis_4", "Risk assessment", "analysis", 1.2),
-            ]
+            ],
         }
 
         orchestrator._execute_managed_task = simulate_task_work
@@ -326,23 +329,27 @@ async def demo_resource_management():
                 await asyncio.sleep(0.5)
                 metrics = await orchestrator.get_orchestration_metrics()
 
-                print(f"\nResource usage snapshot {i+1}:")
-                agent_util = metrics.get('agent_utilization', {})
+                print(f"\nResource usage snapshot {i + 1}:")
+                agent_util = metrics.get("agent_utilization", {})
                 for agent_id, util in agent_util.items():
-                    print(f"  {agent_id}: {util['current_tasks']}/{util['max_tasks']} tasks "
-                          f"({util['utilization_percent']:.0f}% utilized)")
+                    print(
+                        f"  {agent_id}: {util['current_tasks']}/{util['max_tasks']} tasks "
+                        f"({util['utilization_percent']:.0f}% utilized)"
+                    )
 
-                running_tasks = metrics.get('running_tasks', 0)
+                running_tasks = metrics.get("running_tasks", 0)
                 print(f"  Total running: {running_tasks}")
 
         # Start monitoring
         monitor_task = asyncio.create_task(monitor_resources())
 
         # Wait for all tasks
-        results = await asyncio.gather(*[
-            orchestrator.wait_for_task(task_id, timeout=15.0)
-            for task_id in all_task_ids
-        ])
+        results = await asyncio.gather(
+            *[
+                orchestrator.wait_for_task(task_id, timeout=15.0)
+                for task_id in all_task_ids
+            ]
+        )
 
         # Cancel monitoring
         monitor_task.cancel()
@@ -355,7 +362,9 @@ async def demo_resource_management():
 
         # Final metrics
         final_metrics = await orchestrator.get_orchestration_metrics()
-        constraints_hit = final_metrics['orchestration_metrics']['resource_constraints_hit']
+        constraints_hit = final_metrics["orchestration_metrics"][
+            "resource_constraints_hit"
+        ]
         print(f"  Resource constraints enforced: {constraints_hit} times")
 
     finally:
@@ -387,7 +396,9 @@ async def main():
         print("\n🎉 ALL DEMONSTRATIONS COMPLETED SUCCESSFULLY!")
         print("=" * 60)
         print("Key Results:")
-        print(f"  ✅ Performance improvement: {improvement:.1f}% faster with concurrency")
+        print(
+            f"  ✅ Performance improvement: {improvement:.1f}% faster with concurrency"
+        )
         print("  ✅ Complex dependency graphs handled correctly")
         print("  ✅ Resource constraints enforced automatically")
         print("  ✅ Multi-agent coordination working")
@@ -401,6 +412,7 @@ async def main():
     except Exception as e:
         print(f"\n❌ Demo failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 

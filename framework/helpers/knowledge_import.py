@@ -39,7 +39,6 @@ def load_knowledge(
     metadata: dict[str, Any] = None,
     filename_pattern: str = "**/*",
 ) -> dict[str, KnowledgeImport]:
-
     # from framework.helpers.memory import Memory
 
     # Mapping file extensions to corresponding loader classes
@@ -98,7 +97,11 @@ def load_knowledge(
                 loader_cls = file_types_loaders[ext]
                 loader = loader_cls(
                     file_path,
-                    **(text_loader_kwargs if ext in ["txt", "csv", "html", "md"] else {}),
+                    **(
+                        text_loader_kwargs
+                        if ext in ["txt", "csv", "html", "md"]
+                        else {}
+                    ),
                 )
                 file_data["documents"] = loader.load_and_split()
                 for doc in file_data["documents"]:
@@ -117,5 +120,7 @@ def load_knowledge(
 
     PrintStyle.standard(f"Processed {cnt_docs} documents from {cnt_files} files.")
     if log_item:
-        log_item.stream(progress=f"\nProcessed {cnt_docs} documents from {cnt_files} files.")
+        log_item.stream(
+            progress=f"\nProcessed {cnt_docs} documents from {cnt_files} files."
+        )
     return index

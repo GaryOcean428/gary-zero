@@ -4,7 +4,10 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from framework.tools.anthropic_computer_use import AnthropicComputerUse, ComputerUseConfig
+from framework.tools.anthropic_computer_use import (
+    AnthropicComputerUse,
+    ComputerUseConfig,
+)
 
 
 class TestAnthropicComputerUse:
@@ -26,7 +29,7 @@ class TestAnthropicComputerUse:
             name="computer_use",
             method="screenshot",
             args={"action": "screenshot"},
-            message="Take a screenshot"
+            message="Take a screenshot",
         )
 
         assert tool.name == "computer_use"
@@ -43,14 +46,16 @@ class TestAnthropicComputerUse:
             name="computer_use",
             method="screenshot",
             args={"action": "screenshot"},
-            message="Take a screenshot"
+            message="Take a screenshot",
         )
 
         # Tool should be disabled by default or show GUI unavailable
         response = await tool.execute()
         # Should either be disabled or show GUI unavailable
-        assert ("disabled" in response.message.lower() or
-                "gui environment" in response.message.lower())
+        assert (
+            "disabled" in response.message.lower()
+            or "gui environment" in response.message.lower()
+        )
         assert response.break_loop is False
 
     @pytest.mark.asyncio
@@ -61,18 +66,20 @@ class TestAnthropicComputerUse:
             name="computer_use",
             method="screenshot",
             args={"action": "screenshot"},
-            message="Take a screenshot"
+            message="Take a screenshot",
         )
 
         response = await tool.execute()
         # Should either be disabled or show GUI unavailable
-        assert ("Computer Use tool is disabled" in response.message or
-                "GUI environment" in response.message)
+        assert (
+            "Computer Use tool is disabled" in response.message
+            or "GUI environment" in response.message
+        )
 
     @pytest.mark.skipif(True, reason="Requires GUI environment")
     @pytest.mark.asyncio
-    @patch('framework.tools.anthropic_computer_use.ImageGrab')
-    @patch('framework.tools.anthropic_computer_use.os.makedirs')
+    @patch("framework.tools.anthropic_computer_use.ImageGrab")
+    @patch("framework.tools.anthropic_computer_use.os.makedirs")
     async def test_screenshot_action_enabled(self, mock_makedirs, mock_imagegrab):
         """Test screenshot action when tool is enabled."""
         # Mock PIL ImageGrab
@@ -86,7 +93,7 @@ class TestAnthropicComputerUse:
             name="computer_use",
             method="screenshot",
             args={"action": "screenshot"},
-            message="Take a screenshot"
+            message="Take a screenshot",
         )
 
         # Enable the tool
@@ -102,7 +109,7 @@ class TestAnthropicComputerUse:
 
     @pytest.mark.skipif(True, reason="Requires GUI environment")
     @pytest.mark.asyncio
-    @patch('framework.tools.anthropic_computer_use.pyautogui')
+    @patch("framework.tools.anthropic_computer_use.pyautogui")
     async def test_click_action_enabled(self, mock_pyautogui):
         """Test click action when tool is enabled."""
         mock_pyautogui.size.return_value = (1920, 1080)
@@ -113,7 +120,7 @@ class TestAnthropicComputerUse:
             name="computer_use",
             method="click",
             args={"action": "click", "x": 100, "y": 200, "button": "left"},
-            message="Click at coordinates"
+            message="Click at coordinates",
         )
 
         # Enable the tool but disable approval for testing
@@ -128,7 +135,7 @@ class TestAnthropicComputerUse:
 
     @pytest.mark.skipif(True, reason="Requires GUI environment")
     @pytest.mark.asyncio
-    @patch('framework.tools.anthropic_computer_use.pyautogui')
+    @patch("framework.tools.anthropic_computer_use.pyautogui")
     async def test_type_action_enabled(self, mock_pyautogui):
         """Test type action when tool is enabled."""
         mock_pyautogui.typewrite = Mock()
@@ -138,7 +145,7 @@ class TestAnthropicComputerUse:
             name="computer_use",
             method="type",
             args={"action": "type", "text": "Hello World"},
-            message="Type text"
+            message="Type text",
         )
 
         # Enable the tool but disable approval for testing
@@ -159,7 +166,7 @@ class TestAnthropicComputerUse:
             name="computer_use",
             method="click",
             args={"action": "click", "x": -100, "y": 200},
-            message="Click at invalid coordinates"
+            message="Click at invalid coordinates",
         )
 
         # Enable the tool
@@ -168,8 +175,10 @@ class TestAnthropicComputerUse:
         response = await tool.execute()
 
         # Should either handle invalid coordinates or show GUI unavailable
-        assert ("Invalid coordinates" in response.message or
-                "GUI environment" in response.message)
+        assert (
+            "Invalid coordinates" in response.message
+            or "GUI environment" in response.message
+        )
 
     @pytest.mark.asyncio
     async def test_action_limit(self):
@@ -179,7 +188,7 @@ class TestAnthropicComputerUse:
             name="computer_use",
             method="screenshot",
             args={"action": "screenshot"},
-            message="Take a screenshot"
+            message="Take a screenshot",
         )
 
         # Enable the tool and set low action limit
@@ -190,8 +199,10 @@ class TestAnthropicComputerUse:
         response = await tool.execute()
 
         # Should either be blocked by action limit or show GUI unavailable
-        assert ("Maximum actions per session" in response.message or
-                "GUI environment" in response.message)
+        assert (
+            "Maximum actions per session" in response.message
+            or "GUI environment" in response.message
+        )
 
     def test_config_validation(self):
         """Test configuration validation."""
@@ -199,7 +210,7 @@ class TestAnthropicComputerUse:
             enabled=True,
             require_approval=False,
             screenshot_interval=0.5,
-            max_actions_per_session=100
+            max_actions_per_session=100,
         )
 
         assert config.enabled is True
@@ -215,7 +226,7 @@ class TestAnthropicComputerUse:
             name="computer_use",
             method="unknown",
             args={"action": "unknown_action"},
-            message="Unknown action"
+            message="Unknown action",
         )
 
         # Enable the tool
@@ -224,5 +235,7 @@ class TestAnthropicComputerUse:
         response = await tool.execute()
 
         # Should either handle unknown action gracefully or show GUI unavailable
-        assert ("Unknown action type" in response.message or
-                "GUI environment" in response.message)
+        assert (
+            "Unknown action type" in response.message
+            or "GUI environment" in response.message
+        )

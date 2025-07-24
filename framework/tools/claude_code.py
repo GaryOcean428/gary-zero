@@ -1,7 +1,7 @@
 """
 Claude Code Tool for Advanced Code Editing and Terminal Operations.
 
-This tool integrates Claude Code capabilities for context-aware 
+This tool integrates Claude Code capabilities for context-aware
 multi-file editing, Git operations, terminal commands, and includes
 approval workflows for security.
 """
@@ -19,15 +19,30 @@ from framework.security import RiskLevel, require_approval
 
 class ClaudeCodeConfig(BaseModel):
     """Configuration for Claude Code tool."""
+
     enabled: bool = Field(default=False, description="Enable Claude Code functionality")
-    max_file_size: int = Field(default=1024*1024, description="Maximum file size to process (bytes)")
+    max_file_size: int = Field(
+        default=1024 * 1024, description="Maximum file size to process (bytes)"
+    )
     allowed_extensions: list[str] = Field(
-        default=[".py", ".js", ".ts", ".html", ".css", ".json", ".md", ".txt", ".yml", ".yaml", ".toml"],
-        description="Allowed file extensions for editing"
+        default=[
+            ".py",
+            ".js",
+            ".ts",
+            ".html",
+            ".css",
+            ".json",
+            ".md",
+            ".txt",
+            ".yml",
+            ".yaml",
+            ".toml",
+        ],
+        description="Allowed file extensions for editing",
     )
     restricted_paths: list[str] = Field(
         default=[".git", "node_modules", "__pycache__", ".venv", "venv"],
-        description="Restricted directories"
+        description="Restricted directories",
     )
     enable_git_ops: bool = Field(default=True, description="Enable Git operations")
     enable_terminal: bool = Field(default=True, description="Enable terminal commands")
@@ -35,21 +50,30 @@ class ClaudeCodeConfig(BaseModel):
 
 class FileOperation(BaseModel):
     """File operation model."""
-    operation: str = Field(description="Operation type: read, write, create, delete, list")
+
+    operation: str = Field(
+        description="Operation type: read, write, create, delete, list"
+    )
     path: str = Field(description="File or directory path")
-    content: str | None = Field(default=None, description="File content for write/create")
+    content: str | None = Field(
+        default=None, description="File content for write/create"
+    )
     encoding: str = Field(default="utf-8", description="File encoding")
 
 
 class GitOperation(BaseModel):
     """Git operation model."""
-    operation: str = Field(description="Git operation: status, add, commit, push, pull, branch, log")
+
+    operation: str = Field(
+        description="Git operation: status, add, commit, push, pull, branch, log"
+    )
     args: list[str] = Field(default=[], description="Additional arguments")
     message: str | None = Field(default=None, description="Commit message")
 
 
 class TerminalOperation(BaseModel):
     """Terminal operation model."""
+
     command: str = Field(description="Terminal command to execute")
     cwd: str | None = Field(default=None, description="Working directory")
     timeout: int = Field(default=30, description="Command timeout in seconds")
@@ -63,18 +87,22 @@ class ClaudeCode(Tool):
         self.config = ClaudeCodeConfig()
         self.workspace_root = os.getcwd()
 
-    @require_approval("code_execution", RiskLevel.HIGH, "Execute code operations with file system access")
+    @require_approval(
+        "code_execution",
+        RiskLevel.HIGH,
+        "Execute code operations with file system access",
+    )
     async def execute(self, **kwargs) -> Response:
         """Execute Claude Code operation with approval workflow."""
         try:
             # Extract user_id for approval system
-            user_id = kwargs.get('user_id', 'system')
+            user_id = kwargs.get("user_id", "system")
 
             # Check if tool is enabled
             if not self.config.enabled:
                 return Response(
                     message="Claude Code tool is disabled. Enable it in settings to use code editing features.",
-                    break_loop=False
+                    break_loop=False,
                 )
 
             operation_type = self.args.get("operation_type", "file")
@@ -84,7 +112,7 @@ class ClaudeCode(Tool):
             elif operation_type == "git":
                 result = await self.handle_git_operation()
             elif operation_type == "terminal":
-                user_id = kwargs.get('user_id', 'system')
+                user_id = kwargs.get("user_id", "system")
                 result = await self.handle_terminal_operation(user_id)
             elif operation_type == "workspace":
                 result = await self.handle_workspace_operation()
@@ -243,7 +271,7 @@ class ClaudeCode(Tool):
             if ext and ext.lower() not in self.config.allowed_extensions:
                 return f"File type not allowed: {ext}"
 
-            with open(path, encoding='utf-8') as f:
+            with open(path, encoding="utf-8") as f:
                 content = f.read()
 
             return f"File content of {path}:\n```\n{content}\n```"
@@ -268,13 +296,13 @@ class ClaudeCode(Tool):
             # Create backup
             backup_path = f"{path}.backup"
             if os.path.exists(path):
-                with open(path, encoding='utf-8') as f:
+                with open(path, encoding="utf-8") as f:
                     backup_content = f.read()
-                with open(backup_path, 'w', encoding='utf-8') as f:
+                with open(backup_path, "w", encoding="utf-8") as f:
                     f.write(backup_content)
 
             # Write new content
-            with open(path, 'w', encoding='utf-8') as f:
+            with open(path, "w", encoding="utf-8") as f:
                 f.write(content)
 
             return f"Successfully wrote {len(content)} characters to {path}"
@@ -297,7 +325,7 @@ class ClaudeCode(Tool):
             os.makedirs(os.path.dirname(path), exist_ok=True)
 
             # Create file
-            with open(path, 'w', encoding='utf-8') as f:
+            with open(path, "w", encoding="utf-8") as f:
                 f.write(content)
 
             return f"Successfully created file: {path}"
@@ -413,38 +441,36 @@ class ClaudeCode(Tool):
         """Run Git command."""
         try:
             process = await asyncio.create_subprocess_exec(
-                "git", *args,
+                "git",
+                *args,
                 cwd=self.workspace_root,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
             stdout, stderr = await process.communicate()
 
             return {
                 "returncode": process.returncode,
-                "stdout": stdout.decode('utf-8').strip(),
-                "stderr": stderr.decode('utf-8').strip()
+                "stdout": stdout.decode("utf-8").strip(),
+                "stderr": stderr.decode("utf-8").strip(),
             }
         except Exception as e:
-            return {
-                "returncode": -1,
-                "stdout": "",
-                "stderr": str(e)
-            }
+            return {"returncode": -1, "stdout": "", "stderr": str(e)}
 
-    async def execute_terminal_command(self, command: str, cwd: str, timeout: int) -> str:
+    async def execute_terminal_command(
+        self, command: str, cwd: str, timeout: int
+    ) -> str:
         """Execute terminal command."""
         try:
             process = await asyncio.create_subprocess_shell(
                 command,
                 cwd=cwd,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
 
             stdout, stderr = await asyncio.wait_for(
-                process.communicate(),
-                timeout=timeout
+                process.communicate(), timeout=timeout
             )
 
             result = f"Command: {command}\n"
@@ -507,7 +533,9 @@ class ClaudeCode(Tool):
 
                 for file in files:
                     if pattern.lower() in file.lower():
-                        rel_path = os.path.relpath(os.path.join(root, file), self.workspace_root)
+                        rel_path = os.path.relpath(
+                            os.path.join(root, file), self.workspace_root
+                        )
                         matches.append(rel_path)
 
             if matches:
@@ -521,6 +549,7 @@ class ClaudeCode(Tool):
     async def get_directory_tree(self, max_depth: int = 3) -> str:
         """Get directory tree structure."""
         try:
+
             def build_tree(path: str, prefix: str = "", depth: int = 0) -> list[str]:
                 if depth >= max_depth:
                     return []
@@ -528,7 +557,9 @@ class ClaudeCode(Tool):
                 items = []
                 try:
                     entries = sorted(os.listdir(path))
-                    entries = [e for e in entries if e not in self.config.restricted_paths]
+                    entries = [
+                        e for e in entries if e not in self.config.restricted_paths
+                    ]
 
                     for i, entry in enumerate(entries):
                         entry_path = os.path.join(path, entry)

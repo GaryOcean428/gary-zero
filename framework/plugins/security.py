@@ -12,12 +12,28 @@ class PluginSecurityManager:
     def __init__(self):
         self.trusted_authors: set[str] = {"gary-zero-official", "system"}
         self.allowed_dependencies: set[str] = {
-            "os", "sys", "json", "re", "datetime", "typing", "pathlib",
-            "requests", "httpx", "aiohttp", "asyncio", "sqlite3",
-            "framework.helpers.tool", "framework.helpers.response"
+            "os",
+            "sys",
+            "json",
+            "re",
+            "datetime",
+            "typing",
+            "pathlib",
+            "requests",
+            "httpx",
+            "aiohttp",
+            "asyncio",
+            "sqlite3",
+            "framework.helpers.tool",
+            "framework.helpers.response",
         }
         self.restricted_imports: set[str] = {
-            "subprocess", "eval", "exec", "compile", "globals", "__import__"
+            "subprocess",
+            "eval",
+            "exec",
+            "compile",
+            "globals",
+            "__import__",
         }
 
     def validate_plugin(self, metadata: PluginMetadata, plugin_path: str) -> bool:
@@ -53,7 +69,7 @@ class PluginSecurityManager:
             return False
 
         # Check name format (alphanumeric + underscore/dash)
-        if not metadata.name.replace('_', '').replace('-', '').isalnum():
+        if not metadata.name.replace("_", "").replace("-", "").isalnum():
             print(f"Plugin name contains invalid characters: {metadata.name}")
             return False
 
@@ -66,7 +82,7 @@ class PluginSecurityManager:
 
     def _is_valid_version(self, version: str) -> bool:
         """Check if version follows semver format."""
-        parts = version.split('.')
+        parts = version.split(".")
         if len(parts) != 3:
             return False
 
@@ -132,7 +148,7 @@ class PluginSecurityManager:
 
             hasher = hashlib.sha256()
 
-            with open(entry_file, 'rb') as f:
+            with open(entry_file, "rb") as f:
                 hasher.update(f.read())
 
             return hasher.hexdigest()

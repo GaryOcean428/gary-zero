@@ -7,6 +7,7 @@ from dataclasses import dataclass
 @dataclass
 class Response:
     """Simple response class for plugins."""
+
     message: str
     break_loop: bool = False
 
@@ -14,7 +15,9 @@ class Response:
 class PluginTool:
     """Simplified base class for plugin tools."""
 
-    def __init__(self, agent, name: str, method: str | None, args: dict, message: str, **kwargs):
+    def __init__(
+        self, agent, name: str, method: str | None, args: dict, message: str, **kwargs
+    ):
         self.agent = agent
         self.name = name
         self.method = method

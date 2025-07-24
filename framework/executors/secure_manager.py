@@ -2,6 +2,7 @@
 Secure Code Execution Manager for Gary Zero agent.
 Intelligently chooses between E2B, Docker, and fallback execution.
 """
+
 import os
 from typing import Any
 
@@ -25,17 +26,20 @@ class SecureCodeExecutionManager:
             return
 
         # If both fail, we'll use the existing local execution as fallback
-        print("⚠️  Warning: No secure executor available. Using fallback to existing local execution.")
+        print(
+            "⚠️  Warning: No secure executor available. Using fallback to existing local execution."
+        )
         self.executor_type = "fallback"
 
     def _try_e2b(self) -> bool:
         """Try to initialize E2B executor."""
         try:
-            if not os.getenv('E2B_API_KEY'):
+            if not os.getenv("E2B_API_KEY"):
                 print("💡 E2B_API_KEY not found - skipping E2B executor")
                 return False
 
             from .e2b_executor import E2BCodeExecutor
+
             self.executor = E2BCodeExecutor()
             self.executor_type = "e2b"
             print("✅ Using E2B secure execution environment")
@@ -48,6 +52,7 @@ class SecureCodeExecutionManager:
         """Try to initialize Docker executor."""
         try:
             from .docker_executor import DockerCodeExecutor
+
             self.executor = DockerCodeExecutor()
             self.executor_type = "docker"
             print("✅ Using Docker secure execution environment")
@@ -68,8 +73,8 @@ class SecureCodeExecutionManager:
             "description": {
                 "e2b": "E2B Cloud Sandbox - Enterprise-grade isolation",
                 "docker": "Docker Container - Local secure execution",
-                "fallback": "Local execution - No isolation (security risk)"
-            }.get(self.executor_type, "Unknown")
+                "fallback": "Local execution - No isolation (security risk)",
+            }.get(self.executor_type, "Unknown"),
         }
 
     def create_session(self, session_id: str | None = None) -> str:
@@ -79,9 +84,12 @@ class SecureCodeExecutionManager:
         else:
             # Fallback - generate session ID but no actual session
             import uuid
+
             return str(uuid.uuid4()) if session_id is None else session_id
 
-    def execute_code(self, session_id: str, code: str, language: str = "python") -> dict[str, Any]:
+    def execute_code(
+        self, session_id: str, code: str, language: str = "python"
+    ) -> dict[str, Any]:
         """Execute code in the specified session."""
         if self.executor:
             result = self.executor.execute_code(session_id, code, language)
@@ -94,7 +102,7 @@ class SecureCodeExecutionManager:
                 "success": False,
                 "error": "Secure execution not available - would use local execution (not implemented in this secure version)",
                 "executor_type": "fallback",
-                "security_warning": "This would execute code directly on the host system without isolation"
+                "security_warning": "This would execute code directly on the host system without isolation",
             }
 
     def install_package(self, session_id: str, package: str) -> dict[str, Any]:
@@ -107,7 +115,7 @@ class SecureCodeExecutionManager:
             return {
                 "success": False,
                 "error": "Secure execution not available for package installation",
-                "executor_type": "fallback"
+                "executor_type": "fallback",
             }
 
     def get_session_info(self, session_id: str) -> dict[str, Any]:
@@ -117,10 +125,7 @@ class SecureCodeExecutionManager:
             info["executor_type"] = self.executor_type
             return info
         else:
-            return {
-                "error": "Session not available",
-                "executor_type": "fallback"
-            }
+            return {"error": "Session not available", "executor_type": "fallback"}
 
     def close_session(self, session_id: str):
         """Close and cleanup session."""
@@ -133,32 +138,34 @@ class SecureCodeExecutionManager:
             self.executor.cleanup_all()
 
     # E2B-specific methods (only available if using E2B)
-    def upload_file(self, session_id: str, file_path: str, content: bytes) -> dict[str, Any]:
+    def upload_file(
+        self, session_id: str, file_path: str, content: bytes
+    ) -> dict[str, Any]:
         """Upload a file to the execution environment (E2B only)."""
-        if self.executor_type == "e2b" and hasattr(self.executor, 'upload_file'):
+        if self.executor_type == "e2b" and hasattr(self.executor, "upload_file"):
             return self.executor.upload_file(session_id, file_path, content)
         else:
             return {
                 "success": False,
-                "error": f"File upload not supported in {self.executor_type} executor"
+                "error": f"File upload not supported in {self.executor_type} executor",
             }
 
     def download_file(self, session_id: str, file_path: str) -> dict[str, Any]:
         """Download a file from the execution environment (E2B only)."""
-        if self.executor_type == "e2b" and hasattr(self.executor, 'download_file'):
+        if self.executor_type == "e2b" and hasattr(self.executor, "download_file"):
             return self.executor.download_file(session_id, file_path)
         else:
             return {
                 "success": False,
-                "error": f"File download not supported in {self.executor_type} executor"
+                "error": f"File download not supported in {self.executor_type} executor",
             }
 
     def list_files(self, session_id: str, directory: str = ".") -> dict[str, Any]:
         """List files in the execution environment (E2B only)."""
-        if self.executor_type == "e2b" and hasattr(self.executor, 'list_files'):
+        if self.executor_type == "e2b" and hasattr(self.executor, "list_files"):
             return self.executor.list_files(session_id, directory)
         else:
             return {
                 "success": False,
-                "error": f"File listing not supported in {self.executor_type} executor"
+                "error": f"File listing not supported in {self.executor_type} executor",
             }

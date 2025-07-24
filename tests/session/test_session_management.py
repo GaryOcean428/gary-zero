@@ -32,10 +32,18 @@ class TestSessionManager:
             session = Mock()
             session.session_id = str(uuid.uuid4())
             session.session_type = SessionType.CLI
-            session.connect = AsyncMock(return_value=SessionResponse(success=True, message="Connected"))
-            session.disconnect = AsyncMock(return_value=SessionResponse(success=True, message="Disconnected"))
-            session.execute = AsyncMock(return_value=SessionResponse(success=True, message="Executed"))
-            session.health_check = AsyncMock(return_value=SessionResponse(success=True, message="Healthy"))
+            session.connect = AsyncMock(
+                return_value=SessionResponse(success=True, message="Connected")
+            )
+            session.disconnect = AsyncMock(
+                return_value=SessionResponse(success=True, message="Disconnected")
+            )
+            session.execute = AsyncMock(
+                return_value=SessionResponse(success=True, message="Executed")
+            )
+            session.health_check = AsyncMock(
+                return_value=SessionResponse(success=True, message="Healthy")
+            )
             session.is_connected = AsyncMock(return_value=True)
             session.get_metadata = AsyncMock(return_value=Mock())
             session.update_state = AsyncMock()
@@ -60,13 +68,10 @@ class TestSessionManager:
     async def test_execute_with_session(self, session_manager):
         """Test executing messages with sessions."""
         message = session_manager.create_message(
-            message_type="test",
-            payload={"action": "test"}
+            message_type="test", payload={"action": "test"}
         )
 
-        response = await session_manager.execute_with_session(
-            SessionType.CLI, message
-        )
+        response = await session_manager.execute_with_session(SessionType.CLI, message)
 
         assert response.success
         assert response.message == "Executed"
@@ -76,10 +81,10 @@ class TestSessionManager:
         """Test getting session manager statistics."""
         stats = await session_manager.get_manager_stats()
 
-        assert 'running' in stats
-        assert 'config' in stats
-        assert 'registered_factories' in stats
-        assert stats['running'] is True
+        assert "running" in stats
+        assert "config" in stats
+        assert "registered_factories" in stats
+        assert stats["running"] is True
 
 
 class TestConnectionPool:
@@ -112,9 +117,15 @@ class TestConnectionPool:
             session = Mock()
             session.session_id = str(uuid.uuid4())
             session.session_type = SessionType.CLI
-            session.connect = AsyncMock(return_value=SessionResponse(success=True, message="Connected"))
-            session.disconnect = AsyncMock(return_value=SessionResponse(success=True, message="Disconnected"))
-            session.health_check = AsyncMock(return_value=SessionResponse(success=True, message="Healthy"))
+            session.connect = AsyncMock(
+                return_value=SessionResponse(success=True, message="Connected")
+            )
+            session.disconnect = AsyncMock(
+                return_value=SessionResponse(success=True, message="Disconnected")
+            )
+            session.health_check = AsyncMock(
+                return_value=SessionResponse(success=True, message="Healthy")
+            )
             session.is_connected = AsyncMock(return_value=True)
             session.update_state = AsyncMock()
             return session
@@ -140,30 +151,33 @@ class TestSessionConfig:
 
     def test_config_from_environment(self):
         """Test configuration loading from environment."""
-        with patch.dict('os.environ', {
-            'SESSION_MAX_PER_TYPE': '15',
-            'SESSION_TIMEOUT': '600',
-            'GEMINI_CLI_ENABLED': 'true',
-            'KALI_SERVICE_ENABLED': 'true'
-        }):
+        with patch.dict(
+            "os.environ",
+            {
+                "SESSION_MAX_PER_TYPE": "15",
+                "SESSION_TIMEOUT": "600",
+                "GEMINI_CLI_ENABLED": "true",
+                "KALI_SERVICE_ENABLED": "true",
+            },
+        ):
             config = SessionConfig.from_environment()
 
             assert config.max_sessions_per_type == 15
             assert config.session_timeout == 600
-            assert config.is_tool_enabled('gemini_cli')
-            assert config.is_tool_enabled('kali_service')
+            assert config.is_tool_enabled("gemini_cli")
+            assert config.is_tool_enabled("kali_service")
 
     def test_tool_configuration(self):
         """Test tool-specific configuration."""
         config = SessionConfig.from_environment()
 
-        gemini_config = config.get_tool_config('gemini_cli')
-        assert 'enabled' in gemini_config
-        assert 'cli_path' in gemini_config
+        gemini_config = config.get_tool_config("gemini_cli")
+        assert "enabled" in gemini_config
+        assert "cli_path" in gemini_config
 
-        kali_config = config.get_tool_config('kali_service')
-        assert 'enabled' in kali_config
-        assert 'base_url' in kali_config
+        kali_config = config.get_tool_config("kali_service")
+        assert "enabled" in kali_config
+        assert "base_url" in kali_config
 
     def test_approval_requirements(self):
         """Test approval requirement logic."""
@@ -211,16 +225,19 @@ class TestWorkflows:
     @pytest.mark.asyncio
     async def test_workflow_execution(self):
         """Test that workflows can be instantiated and configured."""
-        from examples.session_workflows import CodeGenerationWorkflow, SecurityAuditWorkflow
+        from examples.session_workflows import (
+            CodeGenerationWorkflow,
+            SecurityAuditWorkflow,
+        )
 
         # Create mock session manager
         mock_manager = Mock()
         mock_manager.create_message = Mock(return_value=Mock())
-        mock_manager.execute_with_session = AsyncMock(return_value=SessionResponse(
-            success=True,
-            message="Mock response",
-            data={'result': 'mock result'}
-        ))
+        mock_manager.execute_with_session = AsyncMock(
+            return_value=SessionResponse(
+                success=True, message="Mock response", data={"result": "mock result"}
+            )
+        )
 
         # Test code generation workflow
         code_workflow = CodeGenerationWorkflow(mock_manager)
@@ -232,8 +249,8 @@ class TestWorkflows:
 
         # Test workflow execution (mocked)
         results = await code_workflow.run()
-        assert 'workflow' in results
-        assert 'steps' in results
+        assert "workflow" in results
+        assert "steps" in results
 
 
 # Integration test for the complete system
@@ -255,14 +272,20 @@ class TestSystemIntegration:
             session = Mock()
             session.session_id = str(uuid.uuid4())
             session.session_type = SessionType.CLI
-            session.connect = AsyncMock(return_value=SessionResponse(success=True, message="Connected"))
-            session.disconnect = AsyncMock(return_value=SessionResponse(success=True, message="Disconnected"))
-            session.execute = AsyncMock(return_value=SessionResponse(
-                success=True,
-                message="Executed",
-                data={'result': 'test output'}
-            ))
-            session.health_check = AsyncMock(return_value=SessionResponse(success=True, message="Healthy"))
+            session.connect = AsyncMock(
+                return_value=SessionResponse(success=True, message="Connected")
+            )
+            session.disconnect = AsyncMock(
+                return_value=SessionResponse(success=True, message="Disconnected")
+            )
+            session.execute = AsyncMock(
+                return_value=SessionResponse(
+                    success=True, message="Executed", data={"result": "test output"}
+                )
+            )
+            session.health_check = AsyncMock(
+                return_value=SessionResponse(success=True, message="Healthy")
+            )
             session.is_connected = AsyncMock(return_value=True)
             session.get_metadata = AsyncMock(return_value=Mock())
             session.update_state = AsyncMock()
@@ -275,8 +298,7 @@ class TestSystemIntegration:
 
             # Create a test message
             message = manager.create_message(
-                message_type="test",
-                payload={"action": "test", "data": "test_data"}
+                message_type="test", payload={"action": "test", "data": "test_data"}
             )
 
             # Execute with session
@@ -287,7 +309,7 @@ class TestSystemIntegration:
 
             # Get stats
             stats = await manager.get_manager_stats()
-            assert stats['running']
+            assert stats["running"]
 
         finally:
             await manager.stop()

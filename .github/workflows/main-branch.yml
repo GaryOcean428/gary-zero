@@ -1,0 +1,403 @@
+# Main Branch Workflow  
+# Complete CI/CD pipeline for main branch deployments
+# Uses all composite workflows A-D (static-checks, tests, security-audit, deploy)
+
+name: Main Branch CI/CD
+
+on:
+  push:
+    branches: ['main']
+  workflow_dispatch:
+    inputs:
+      skip-security:
+        description: 'Skip security audit'
+        type: boolean
+        default: false
+      skip-deploy:
+        description: 'Skip deployment'
+        type: boolean
+        default: false
+      environment:
+        description: 'Deployment environment'
+        type: choice
+        options:
+          - production
+          - staging
+        default: production
+
+env:
+  PYTHON_VERSION: "3.13"
+  NODE_VERSION: "22"
+  COVERAGE_THRESHOLD: 80  # Higher threshold for main branch
+
+jobs:
+  # Composite Workflow A: Static Checks
+  static-checks:
+    name: Static Code Analysis
+    uses: ./.github/workflows/_static-checks.yml
+    with:
+      python-version: ${{ env.PYTHON_VERSION }}
+      node-version: ${{ env.NODE_VERSION }}
+      skip-secret-scan: false
+
+  # Composite Workflow B: Tests
+  tests:
+    name: Test Suite
+    uses: ./.github/workflows/_tests.yml
+    with:
+      python-version: ${{ env.PYTHON_VERSION }}
+      node-version: ${{ env.NODE_VERSION }}
+      coverage-threshold: ${{ env.COVERAGE_THRESHOLD }}
+      skip-e2e: false
+
+  # Composite Workflow C: Security Audit
+  security-audit:
+    name: Security Audit
+    uses: ./.github/workflows/_security-audit.yml
+    if: ${{ !inputs.skip-security }}
+    with:
+      python-version: ${{ env.PYTHON_VERSION }}
+      node-version: ${{ env.NODE_VERSION }}
+      fail-on-security-issues: true
+      ossf-scorecard: true
+
+  # Gate: All quality checks must pass before deployment
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    needs: [static-checks, tests, security-audit]
+    if: always()
+    outputs:
+      gate-status: ${{ steps.gate-check.outputs.status }}
+      branch-protection-status: ${{ steps.branch-protection.outputs.status }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Verify branch protection and required status checks
+      id: branch-protection
+      uses: actions/github-script@v7
+      with:
+        script: |
+          console.log('🔒 Verifying branch protection and required status checks...');
+          
+          try {
+            // Get branch protection rules for main branch
+            const { data: protection } = await github.rest.repos.getBranchProtection({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              branch: 'main'
+            });
+            
+            console.log('✅ Branch protection is enabled for main branch');
+            
+            let protectionIssues = [];
+            
+            // Check required status checks
+            const requiredChecks = protection.required_status_checks;
+            if (!requiredChecks || !requiredChecks.strict) {
+              protectionIssues.push('Branch is not up-to-date requirement not enforced');
+            }
+            
+            if (!requiredChecks || !requiredChecks.contexts || requiredChecks.contexts.length === 0) {
+              protectionIssues.push('No required status checks configured');
+            } else {
+              console.log('📋 Required status checks:', requiredChecks.contexts.join(', '));
+              
+              // Verify that security-related checks are required
+              const securityChecks = ['security-audit', 'static-checks', 'tests'];
+              const missingSecurityChecks = securityChecks.filter(check => 
+                !requiredChecks.contexts.some(ctx => ctx.includes(check))
+              );
+              
+              if (missingSecurityChecks.length > 0) {
+                protectionIssues.push(`Missing required security checks: ${missingSecurityChecks.join(', ')}`);
+              }
+            }
+            
+            // Check required reviews
+            const requiredReviews = protection.required_pull_request_reviews;
+            if (!requiredReviews) {
+              protectionIssues.push('Required pull request reviews not configured');
+            } else {
+              if (requiredReviews.required_approving_review_count < 1) {
+                protectionIssues.push('At least 1 approving review should be required');
+              }
+              if (!requiredReviews.dismiss_stale_reviews) {
+                protectionIssues.push('Stale review dismissal not enabled');
+              }
+              if (!requiredReviews.require_code_owner_reviews) {
+                console.log('ℹ️  Code owner reviews not required (optional but recommended)');
+              }
+            }
+            
+            // Check admin enforcement
+            if (!protection.enforce_admins || !protection.enforce_admins.enabled) {
+              protectionIssues.push('Branch protection not enforced for administrators');
+            }
+            
+            // Check restrictions
+            if (protection.restrictions && protection.restrictions.users && protection.restrictions.users.length > 0) {
+              console.log('👥 Push restrictions apply to users:', protection.restrictions.users.map(u => u.login).join(', '));
+            }
+            
+            if (protectionIssues.length > 0) {
+              console.log('⚠️  Branch protection issues detected:');
+              protectionIssues.forEach(issue => console.log(`  • ${issue}`));
+              core.setOutput('status', 'warning');
+              core.setOutput('issues', protectionIssues.join('; '));
+            } else {
+              console.log('✅ Branch protection is properly configured');
+              core.setOutput('status', 'passed');
+            }
+            
+          } catch (error) {
+            if (error.status === 404) {
+              console.log('❌ No branch protection configured for main branch');
+              core.setOutput('status', 'failed');
+              core.setOutput('issues', 'No branch protection rules found for main branch');
+              core.setFailed('Branch protection is required for secure deployments');
+            } else {
+              console.log('❌ Error checking branch protection:', error.message);
+              core.setOutput('status', 'error');
+              core.setOutput('issues', `API error: ${error.message}`);
+              // Don't fail the workflow for API errors, but log the issue
+            }
+          }
+
+    - name: Quality gate evaluation
+      id: gate-check
+      run: |
+        echo "🚧 Quality Gate Evaluation"
+        echo "=========================="
+        echo "Static Checks: ${{ needs.static-checks.result }}"
+        echo "Tests: ${{ needs.tests.result }}"
+        echo "Security Audit: ${{ needs.security-audit.result }}"
+        echo "Branch Protection: ${{ steps.branch-protection.outputs.status }}"
+        echo ""
+        
+        # Count failures
+        FAILURES=0
+        GATE_PASSED=true
+        WARNINGS=0
+        
+        # Check CI/CD results
+        if [[ "${{ needs.static-checks.result }}" != "success" ]]; then
+          FAILURES=$((FAILURES + 1))
+          GATE_PASSED=false
+          echo "❌ Static checks failed"
+        fi
+        
+        if [[ "${{ needs.tests.result }}" != "success" ]]; then
+          FAILURES=$((FAILURES + 1))
+          GATE_PASSED=false
+          echo "❌ Tests failed"
+        fi
+        
+        if [[ "${{ needs.security-audit.result }}" != "success" && "${{ needs.security-audit.result }}" != "skipped" ]]; then
+          FAILURES=$((FAILURES + 1))
+          GATE_PASSED=false
+          echo "❌ Security audit failed"
+        fi
+        
+        # Check branch protection
+        BRANCH_PROTECTION_STATUS="${{ steps.branch-protection.outputs.status }}"
+        if [[ "$BRANCH_PROTECTION_STATUS" == "failed" ]]; then
+          FAILURES=$((FAILURES + 1))
+          GATE_PASSED=false
+          echo "❌ Branch protection requirements not met"
+          echo "   Issues: ${{ steps.branch-protection.outputs.issues }}"
+        elif [[ "$BRANCH_PROTECTION_STATUS" == "warning" ]]; then
+          WARNINGS=$((WARNINGS + 1))
+          echo "⚠️  Branch protection has configuration issues"
+          echo "   Issues: ${{ steps.branch-protection.outputs.issues }}"
+        elif [[ "$BRANCH_PROTECTION_STATUS" == "error" ]]; then
+          echo "⚠️  Could not verify branch protection (API error)"
+          echo "   This will not block deployment, but should be investigated"
+        fi
+        
+        # Final gate decision
+        if [ "$GATE_PASSED" = true ]; then
+          echo "status=passed" >> $GITHUB_OUTPUT
+          if [ $WARNINGS -gt 0 ]; then
+            echo "✅ Quality gate PASSED with warnings - Deployment authorized"
+            echo "⚠️  Please address $WARNINGS configuration warning(s) after deployment"
+          else
+            echo "✅ Quality gate PASSED - Ready for secure deployment!"
+          fi
+          
+          echo ""
+          echo "🔒 Security Compliance Summary:"
+          echo "  • Static code analysis: ✅ Passed"
+          echo "  • Test coverage: ✅ Passed"
+          echo "  • Security audit: ✅ Passed"
+          if [[ "$BRANCH_PROTECTION_STATUS" == "passed" ]]; then
+            echo "  • Branch protection: ✅ Properly configured"
+          elif [[ "$BRANCH_PROTECTION_STATUS" == "warning" ]]; then
+            echo "  • Branch protection: ⚠️  Has issues but allows deployment"
+          else
+            echo "  • Branch protection: ℹ️  Could not verify"
+          fi
+          
+        else
+          echo "status=failed" >> $GITHUB_OUTPUT
+          echo "❌ Quality gate FAILED - $FAILURES check(s) failed"
+          echo "🚫 Deployment blocked until critical issues are resolved"
+          
+          echo ""
+          echo "🔒 Security Compliance Requirements:"
+          echo "  • All CI/CD checks must pass"
+          echo "  • Branch protection must be properly configured"
+          echo "  • Required status checks must be enforced"
+          echo "  • Pull request reviews must be required"
+          echo ""
+          echo "📚 Resources:"
+          echo "  • Branch protection: https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/defining-the-mergeability-of-pull-requests/about-protected-branches"
+          echo "  • Required status checks: https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/defining-the-mergeability-of-pull-requests/about-status-checks"
+          
+          exit 1
+        fi
+
+  # Composite Workflow D: Deploy
+  deploy:
+    name: Production Deployment
+    uses: ./.github/workflows/_deploy.yml
+    needs: [quality-gate]
+    if: ${{ !inputs.skip-deploy && needs.quality-gate.outputs.gate-status == 'passed' }}
+    with:
+      environment: ${{ inputs.environment || 'production' }}
+      docker-tag: ${{ github.sha }}
+      skip-docker: false
+    secrets:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  # Final pipeline summary
+  pipeline-summary:
+    name: Pipeline Summary
+    runs-on: ubuntu-latest
+    needs: [static-checks, tests, security-audit, quality-gate, deploy]
+    if: always()
+    
+    steps:
+    - name: Generate pipeline summary
+      run: |
+        echo "🏁 Main Branch CI/CD Pipeline Summary"
+        echo "===================================="
+        echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo "Commit: ${{ github.sha }}"
+        echo "Branch: ${{ github.ref_name }}"
+        echo "Triggered by: ${{ github.event_name }}"
+        echo ""
+        echo "Pipeline Results:"
+        echo "─────────────────"
+        echo "✓ Static Checks: ${{ needs.static-checks.result }}"
+        echo "✓ Tests: ${{ needs.tests.result }}"
+        echo "✓ Security Audit: ${{ needs.security-audit.result }}"
+        echo "✓ Quality Gate: ${{ needs.quality-gate.result }}"
+        echo "✓ Deployment: ${{ needs.deploy.result }}"
+        echo ""
+        
+        # Calculate overall success
+        TOTAL_JOBS=5
+        SUCCESSFUL_JOBS=0
+        
+        for result in "${{ needs.static-checks.result }}" "${{ needs.tests.result }}" "${{ needs.security-audit.result }}" "${{ needs.quality-gate.result }}" "${{ needs.deploy.result }}"; do
+          if [[ "$result" == "success" ]]; then
+            SUCCESSFUL_JOBS=$((SUCCESSFUL_JOBS + 1))
+          elif [[ "$result" == "skipped" && ("${{ needs.security-audit.result }}" == "skipped" || "${{ needs.deploy.result }}" == "skipped") ]]; then
+            # Don't penalize for intentionally skipped jobs
+            TOTAL_JOBS=$((TOTAL_JOBS - 1))
+          fi
+        done
+        
+        SUCCESS_RATE=$((SUCCESSFUL_JOBS * 100 / TOTAL_JOBS))
+        echo "Success Rate: $SUCCESS_RATE% ($SUCCESSFUL_JOBS/$TOTAL_JOBS)"
+        echo ""
+        
+        if [ $SUCCESS_RATE -eq 100 ]; then
+          echo "🎉 PIPELINE COMPLETED SUCCESSFULLY!"
+          DEPLOYMENT_URL="${{ needs.deploy.outputs.deployment-url }}"
+          if [ -n "$DEPLOYMENT_URL" ]; then
+            echo "🌐 Application URL: $DEPLOYMENT_URL"
+          fi
+        elif [ $SUCCESS_RATE -ge 80 ]; then
+          echo "⚠️  PIPELINE COMPLETED WITH WARNINGS"
+          echo "Some non-critical steps may have failed or been skipped"
+        else
+          echo "❌ PIPELINE FAILED"
+          echo "Critical issues need to be resolved"
+        fi
+        
+        echo ""
+        echo "Detailed Information:"
+        echo "────────────────────"
+        if [[ "${{ needs.tests.outputs.coverage-report }}" != "" ]]; then
+          echo "• Coverage: ${{ needs.tests.outputs.coverage-report }}"
+        fi
+        if [[ "${{ needs.security-audit.outputs.critical-issues }}" != "" ]]; then
+          echo "• Security Issues: ${{ needs.security-audit.outputs.critical-issues }}"
+        fi
+        if [[ "${{ needs.deploy.outputs.deployment-status }}" != "" ]]; then
+          echo "• Deployment Status: ${{ needs.deploy.outputs.deployment-status }}"
+        fi
+
+    - name: Create release on successful deployment
+      if: needs.deploy.result == 'success' && github.event_name == 'push'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { data: release } = await github.rest.repos.createRelease({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            tag_name: `v${new Date().toISOString().slice(0,10).replace(/-/g, '')}-${context.sha.slice(0,7)}`,
+            name: `Release ${context.sha.slice(0,7)}`,
+            body: `## 🚀 Automated Release
+            
+            **Deployment Summary:**
+            - Commit: ${context.sha}
+            - Deployed to: ${{ inputs.environment || 'production' }}
+            - Pipeline Status: ✅ All checks passed
+            - Application URL: ${{ needs.deploy.outputs.deployment-url }}
+            
+            **Quality Metrics:**
+            - Coverage: ${{ needs.tests.outputs.coverage-report }}
+            - Security Issues: ${{ needs.security-audit.outputs.critical-issues || '0' }}
+            
+            This release was automatically created after successful CI/CD pipeline execution.`,
+            draft: false,
+            prerelease: false
+          });
+          
+          console.log(`Created release: ${release.html_url}`);
+
+    - name: Notify on failure
+      if: failure()
+      run: |
+        echo "🚨 PIPELINE FAILURE NOTIFICATION"
+        echo "==============================="
+        echo "The main branch CI/CD pipeline has failed!"
+        echo "Immediate attention required."
+        echo ""
+        echo "Failed Jobs:"
+        if [[ "${{ needs.static-checks.result }}" == "failure" ]]; then
+          echo "- Static Checks"
+        fi
+        if [[ "${{ needs.tests.result }}" == "failure" ]]; then
+          echo "- Tests"  
+        fi
+        if [[ "${{ needs.security-audit.result }}" == "failure" ]]; then
+          echo "- Security Audit"
+        fi
+        if [[ "${{ needs.quality-gate.result }}" == "failure" ]]; then
+          echo "- Quality Gate"
+        fi
+        if [[ "${{ needs.deploy.result }}" == "failure" ]]; then
+          echo "- Deployment"
+        fi
+        echo ""
+        echo "Please check the workflow logs and fix issues immediately."

@@ -19,7 +19,10 @@ from framework.helpers.execution_mode import (
     get_execution_info,
     should_use_kali_service,
 )
-from framework.helpers.kali_executor import KaliCodeExecutor, is_kali_execution_available
+from framework.helpers.kali_executor import (
+    KaliCodeExecutor,
+    is_kali_execution_available,
+)
 from framework.helpers.kali_service import get_kali_service, is_kali_service_available
 
 
@@ -38,15 +41,15 @@ def print_section(title: str):
 
 def print_result(result: dict, show_output: bool = True):
     """Print execution result in a formatted way."""
-    if result.get('success'):
+    if result.get("success"):
         print("✅ Command executed successfully")
-        if show_output and result.get('stdout'):
+        if show_output and result.get("stdout"):
             print(f"Output:\n{result['stdout']}")
     else:
         print("❌ Command failed")
-        if result.get('error'):
+        if result.get("error"):
             print(f"Error: {result['error']}")
-        if result.get('stderr'):
+        if result.get("stderr"):
             print(f"Stderr: {result['stderr']}")
 
 
@@ -62,8 +65,8 @@ async def demo_service_discovery():
     print("\nExecution configuration:")
     config = get_execution_config()
     for key, value in config.items():
-        if key == 'password':
-            value = '*' * len(str(value)) if value else 'not set'
+        if key == "password":
+            value = "*" * len(str(value)) if value else "not set"
         print(f"  {key}: {value}")
 
     print(f"\nExecution info: {get_execution_info()}")
@@ -84,7 +87,7 @@ async def demo_basic_connectivity():
 
         print("\n📊 Getting service information...")
         info = kali.get_service_info()
-        if info.get('error'):
+        if info.get("error"):
             print(f"Service info error: {info['error']}")
         else:
             print("Service info:")
@@ -114,7 +117,7 @@ async def demo_command_execution():
         ("Current User", "whoami"),
         ("Working Directory", "pwd"),
         ("Network Config", "ip addr show | head -10"),
-        ("Available Tools", "ls /usr/bin/ | grep -E '(nmap|nikto|sqlmap)' | head -5")
+        ("Available Tools", "ls /usr/bin/ | grep -E '(nmap|nikto|sqlmap)' | head -5"),
     ]
 
     for description, command in commands:
@@ -145,7 +148,9 @@ async def demo_security_tools():
 
     # Nmap localhost scan (safe)
     print("\n1. Nmap localhost scan:")
-    nmap_result = await executor.execute_command("nmap -sT localhost -p 80,443,8080", timeout=30)
+    nmap_result = await executor.execute_command(
+        "nmap -sT localhost -p 80,443,8080", timeout=30
+    )
     print_result(nmap_result)
 
     # Check SSL certificate for a public site (safe)
@@ -158,12 +163,12 @@ async def demo_security_tools():
     version_commands = [
         "nmap --version | head -2",
         "nikto -Version 2>/dev/null || echo 'Nikto version check failed'",
-        "openssl version"
+        "openssl version",
     ]
 
     for cmd in version_commands:
         result = await executor.execute_command(cmd, timeout=10)
-        if result.get('success'):
+        if result.get("success"):
             print(f"  {result['stdout'].strip()}")
 
     executor.close()
@@ -193,6 +198,7 @@ async def demo_integration_patterns():
     print("\n3. Convenience function pattern:")
     try:
         from framework.helpers.kali_executor import execute_in_kali
+
         result = await execute_in_kali("echo 'Convenience function working'")
         print_result(result)
     except ImportError:
@@ -212,7 +218,10 @@ async def demo_error_handling():
     error_tests = [
         ("Invalid command", "this_command_does_not_exist"),
         ("Command with error exit code", "ls /nonexistent_directory"),
-        ("Long running command (timeout test)", "sleep 5"),  # Short timeout to trigger timeout
+        (
+            "Long running command (timeout test)",
+            "sleep 5",
+        ),  # Short timeout to trigger timeout
     ]
 
     for description, command in error_tests:
@@ -231,16 +240,16 @@ async def main():
     print(f"Demo started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
     # Check if demo environment is set up
-    if not os.getenv('KALI_SHELL_URL'):
+    if not os.getenv("KALI_SHELL_URL"):
         print("\n⚠️  Setting up demo environment...")
         demo_env = {
-            'CODE_EXECUTION_MODE': 'kali',
-            'KALI_SHELL_URL': 'http://kali-linux-docker.railway.internal:8080',
-            'KALI_SHELL_HOST': 'kali-linux-docker.railway.internal',
-            'KALI_SHELL_PORT': '8080',
-            'KALI_USERNAME': 'GaryOcean',
-            'KALI_PASSWORD': 'I.Am.Dev.1',
-            'KALI_PUBLIC_URL': 'https://kali-linux-docker.up.railway.app'
+            "CODE_EXECUTION_MODE": "kali",
+            "KALI_SHELL_URL": "http://kali-linux-docker.railway.internal:8080",
+            "KALI_SHELL_HOST": "kali-linux-docker.railway.internal",
+            "KALI_SHELL_PORT": "8080",
+            "KALI_USERNAME": "GaryOcean",
+            "KALI_PASSWORD": "I.Am.Dev.1",
+            "KALI_PUBLIC_URL": "https://kali-linux-docker.up.railway.app",
         }
 
         for key, value in demo_env.items():
@@ -253,7 +262,7 @@ async def main():
         await demo_service_discovery()
 
         # Only proceed with connection tests if service is configured
-        if os.getenv('KALI_SHELL_URL'):
+        if os.getenv("KALI_SHELL_URL"):
             connectivity_ok = await demo_basic_connectivity()
 
             if connectivity_ok:
@@ -262,8 +271,12 @@ async def main():
                 await demo_integration_patterns()
                 await demo_error_handling()
             else:
-                print("\n⚠️  Skipping connection-dependent demos due to connectivity issues")
-                print("    (This is expected if the Kali service is not actually running)")
+                print(
+                    "\n⚠️  Skipping connection-dependent demos due to connectivity issues"
+                )
+                print(
+                    "    (This is expected if the Kali service is not actually running)"
+                )
 
         print_header("Demo Summary")
         print("✅ Demo completed successfully!")
@@ -283,6 +296,7 @@ async def main():
     except Exception as e:
         print(f"\n\n❌ Demo failed with error: {e}")
         import traceback
+
         traceback.print_exc()
 
 

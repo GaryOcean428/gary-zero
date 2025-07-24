@@ -3,7 +3,17 @@
 # `Gary-Zero`
 
 
-[![Gary-Zero Website](https://img.shields.io/badge/Website-agent--zero.ai-0A192F?style=for-the-badge&logo=vercel&logoColor=white)](https://gary-zero.ai) [![Thanks to Sponsors](https://img.shields.io/badge/GitHub%20Sponsors-Thanks%20to%20Sponsors-FF69B4?style=for-the-badge&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/frdel) [![Follow on X](https://img.shields.io/badge/X-Follow-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/Agent0ai) [![Join our Discord](https://img.shields.io/badge/Discord-Join%20our%20server-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/B8KZKNsPpj) [![Subscribe on YouTube](https://img.shields.io/badge/YouTube-Subscribe-red?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@AgentZeroFW) [![Connect on LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/jan-tomasek/) [![Follow on Warpcast](https://img.shields.io/badge/Warpcast-Follow-5A32F3?style=for-the-badge)](https://warpcast.com/gary-zero)
+[![CI](https://img.shields.io/github/actions/workflow/status/GaryOcean428/gary-zero/ci.yml?style=for-the-badge)](https://github.com/GaryOcean428/gary-zero/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/codecov/c/github/GaryOcean428/gary-zero?style=for-the-badge)](https://codecov.io/gh/GaryOcean428/gary-zero)
+[![Scorecard](https://img.shields.io/badge/Security-OSSF_Scorecard-0A192F?style=for-the-badge)](https://github.com/ossf/scorecard)
+
+[![Gary-Zero Website](https://img.shields.io/badge/Website-agent--zero.ai-0A192F?style=for-the-badge&logo=vercel&logoColor=white)](https://gary-zero.ai)
+[![Thanks to Sponsors](https://img.shields.io/badge/GitHub%20Sponsors-Thanks%20to%20Sponsors-FF69B4?style=for-the-badge&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/frdel)
+[![Follow on X](https://img.shields.io/badge/X-Follow-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/Agent0ai)
+[![Join our Discord](https://img.shields.io/badge/Discord-Join%20our%20server-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/B8KZKNsPpj)
+[![Subscribe on YouTube](https://img.shields.io/badge/YouTube-Subscribe-red?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@AgentZeroFW)
+[![Connect on LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/jan-tomasek/)
+[![Follow on Warpcast](https://img.shields.io/badge/Warpcast-Follow-5A32F3?style=for-the-badge)](https://warpcast.com/gary-zero)
 
 [Introduction](#a-personal-organic-agentic-framework-that-grows-and-learns-with-you) •
 [Installation](./docs/installation.md) •
@@ -144,6 +154,44 @@ docker run -p 50001:80 frdel/gary-zero-run
 - The whole framework is guided by the **prompts/** folder. Agent guidelines, tool instructions, messages, utility AI functions, it's all there.
 
 
+## 🚀 CI/CD Architecture
+
+Gary-Zero features a modern, modular CI/CD pipeline built around 4 reusable composite workflows:
+
+### 🧩 Composite Workflows
+
+| Workflow | Purpose | Components |
+|----------|---------|------------|
+| **A. Static Checks** | Code quality & consistency | Ruff, Black, MyPy, ESLint, Prettier, TypeScript, Secret scanning |
+| **B. Tests** | Comprehensive testing | Unit, Integration, E2E, Performance, Coverage reporting |
+| **C. Security Audit** | Multi-layer security scanning | Bandit, Safety, npm audit, Trivy, OSSF Scorecard |
+| **D. Deploy** | Production deployment | Railway validation, Docker build, CLI deployment |
+
+### 🔄 Usage Patterns
+
+- **Feature Branches**: Uses workflows A + B (static checks + tests)
+- **Main Branch**: Uses full pipeline A + B + C + D (complete CI/CD)
+- **Quality Gate**: All checks must pass before deployment
+- **Railway Integration**: Automated deployment with health verification
+
+```mermaid
+graph LR
+    A[Static Checks] --> B[Tests]
+    B --> C[Security Audit]
+    C --> D[Quality Gate]
+    D --> E[Deploy to Railway]
+    
+    classDef workflowNode fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+    classDef gateNode fill:#fff3e0,stroke:#e65100,stroke-width:3px
+    classDef deployNode fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+    
+    class A,B,C workflowNode
+    class D gateNode
+    class E deployNode
+```
+
+📖 **[View Complete CI/CD Architecture Documentation](./docs/ci-cd-architecture.md)**
+
 ## 📚 Read the Documentation
 
 | Page | Description |
@@ -151,6 +199,7 @@ docker run -p 50001:80 frdel/gary-zero-run
 | [Installation](./docs/installation.md) | Installation, setup and configuration |
 | [Usage](./docs/usage.md) | Basic and advanced usage |
 | [Architecture](./docs/architecture.md) | System design and components |
+| [CI/CD Architecture](./docs/ci-cd-architecture.md) | Complete CI/CD pipeline documentation |
 | [Contributing](./docs/contribution.md) | How to contribute |
 | [Troubleshooting](./docs/troubleshooting.md) | Common issues and their solutions |
 

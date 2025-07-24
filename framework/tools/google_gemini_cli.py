@@ -10,6 +10,7 @@ from framework.helpers.tool import Response, Tool
 @dataclass
 class GeminiCLIState:
     """State for Google Gemini CLI operations."""
+
     initialized: bool = False
     cli_available: bool = False
     last_approval: str | None = None
@@ -19,7 +20,9 @@ class GoogleGeminiCLI(Tool):
     """Google Gemini CLI integration tool for local model interaction and code assistance."""
 
     async def execute(self, **kwargs):
-        await self.agent.handle_intervention()  # Wait for intervention and handle it, if paused
+        await (
+            self.agent.handle_intervention()
+        )  # Wait for intervention and handle it, if paused
 
         # Get tool state
         self.state = self.agent.get_data("_gemini_cli_state") or GeminiCLIState()
@@ -28,7 +31,7 @@ class GoogleGeminiCLI(Tool):
         if not self.agent.config.gemini_cli_enabled:
             return Response(
                 message="❌ Google Gemini CLI is disabled. Enable it in settings to use this tool.",
-                break_loop=False
+                break_loop=False,
             )
 
         # Initialize CLI if needed
@@ -38,7 +41,7 @@ class GoogleGeminiCLI(Tool):
         if not self.state.cli_available:
             return Response(
                 message="❌ Google Gemini CLI is not available. Please install it first.",
-                break_loop=False
+                break_loop=False,
             )
 
         action = self.args.get("action", "").lower().strip()
@@ -59,9 +62,9 @@ class GoogleGeminiCLI(Tool):
             return Response(
                 message=self.agent.read_prompt(
                     "fw.gemini_cli.usage.md",
-                    available_actions="chat, code, generate, config, status, install"
+                    available_actions="chat, code, generate, config, status, install",
                 ),
-                break_loop=False
+                break_loop=False,
             )
 
     async def _initialize_cli(self):
@@ -72,12 +75,14 @@ class GoogleGeminiCLI(Tool):
                 [self.agent.config.gemini_cli_path, "--version"],
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=10,
             )
 
             if result.returncode == 0:
                 self.state.cli_available = True
-                PrintStyle(font_color="#85C1E9").print(f"✅ Google Gemini CLI found: {result.stdout.strip()}")
+                PrintStyle(font_color="#85C1E9").print(
+                    f"✅ Google Gemini CLI found: {result.stdout.strip()}"
+                )
             else:
                 self.state.cli_available = False
                 PrintStyle.warning("⚠️ Google Gemini CLI not found or not working")
@@ -96,8 +101,7 @@ class GoogleGeminiCLI(Tool):
 
         if not message:
             return Response(
-                message="❌ 'message' is required for chat action.",
-                break_loop=False
+                message="❌ 'message' is required for chat action.", break_loop=False
             )
 
         try:
@@ -109,36 +113,32 @@ class GoogleGeminiCLI(Tool):
                 )
                 if not approval:
                     return Response(
-                        message="❌ Chat action cancelled by user.",
-                        break_loop=False
+                        message="❌ Chat action cancelled by user.", break_loop=False
                     )
 
             # Execute Gemini CLI chat command
             cmd = [
                 self.agent.config.gemini_cli_path,
                 "chat",
-                "--model", model,
-                "--message", message
+                "--model",
+                model,
+                "--message",
+                message,
             ]
 
             result = await self._run_secure_command(cmd)
 
             if result["success"]:
                 return Response(
-                    message=f"✅ Gemini response:\n{result['output']}",
-                    break_loop=False
+                    message=f"✅ Gemini response:\n{result['output']}", break_loop=False
                 )
             else:
                 return Response(
-                    message=f"❌ Chat failed: {result['error']}",
-                    break_loop=False
+                    message=f"❌ Chat failed: {result['error']}", break_loop=False
                 )
 
         except Exception as e:
-            return Response(
-                message=f"❌ Error during chat: {str(e)}",
-                break_loop=False
-            )
+            return Response(message=f"❌ Error during chat: {str(e)}", break_loop=False)
 
     async def _handle_code_action(self):
         """Handle code generation/analysis with Gemini CLI."""
@@ -148,8 +148,7 @@ class GoogleGeminiCLI(Tool):
 
         if not task:
             return Response(
-                message="❌ 'task' is required for code action.",
-                break_loop=False
+                message="❌ 'task' is required for code action.", break_loop=False
             )
 
         try:
@@ -157,22 +156,17 @@ class GoogleGeminiCLI(Tool):
             approval_mode = self.agent.config.gemini_cli_approval_mode
             if approval_mode == "suggest":
                 approval = await self._request_approval(
-                    f"Code task with Gemini: {task}" +
-                    (f" (Language: {language})" if language else "") +
-                    (f" (File: {file_path})" if file_path else "")
+                    f"Code task with Gemini: {task}"
+                    + (f" (Language: {language})" if language else "")
+                    + (f" (File: {file_path})" if file_path else "")
                 )
                 if not approval:
                     return Response(
-                        message="❌ Code action cancelled by user.",
-                        break_loop=False
+                        message="❌ Code action cancelled by user.", break_loop=False
                     )
 
             # Execute Gemini CLI code command
-            cmd = [
-                self.agent.config.gemini_cli_path,
-                "code",
-                "--task", task
-            ]
+            cmd = [self.agent.config.gemini_cli_path, "code", "--task", task]
 
             if language:
                 cmd.extend(["--language", language])
@@ -184,18 +178,16 @@ class GoogleGeminiCLI(Tool):
             if result["success"]:
                 return Response(
                     message=f"✅ Code task completed:\n{result['output']}",
-                    break_loop=False
+                    break_loop=False,
                 )
             else:
                 return Response(
-                    message=f"❌ Code task failed: {result['error']}",
-                    break_loop=False
+                    message=f"❌ Code task failed: {result['error']}", break_loop=False
                 )
 
         except Exception as e:
             return Response(
-                message=f"❌ Error during code task: {str(e)}",
-                break_loop=False
+                message=f"❌ Error during code task: {str(e)}", break_loop=False
             )
 
     async def _handle_generate_action(self):
@@ -206,8 +198,7 @@ class GoogleGeminiCLI(Tool):
 
         if not prompt:
             return Response(
-                message="❌ 'prompt' is required for generate action.",
-                break_loop=False
+                message="❌ 'prompt' is required for generate action.", break_loop=False
             )
 
         try:
@@ -215,21 +206,23 @@ class GoogleGeminiCLI(Tool):
             approval_mode = self.agent.config.gemini_cli_approval_mode
             if approval_mode == "suggest":
                 approval = await self._request_approval(
-                    f"Generate content with Gemini: {prompt[:100]}..." +
-                    (f" (Output: {output_file})" if output_file else "")
+                    f"Generate content with Gemini: {prompt[:100]}..."
+                    + (f" (Output: {output_file})" if output_file else "")
                 )
                 if not approval:
                     return Response(
                         message="❌ Generate action cancelled by user.",
-                        break_loop=False
+                        break_loop=False,
                     )
 
             # Execute Gemini CLI generate command
             cmd = [
                 self.agent.config.gemini_cli_path,
                 "generate",
-                "--prompt", prompt,
-                "--format", format_type
+                "--prompt",
+                prompt,
+                "--format",
+                format_type,
             ]
 
             if output_file:
@@ -240,18 +233,16 @@ class GoogleGeminiCLI(Tool):
             if result["success"]:
                 return Response(
                     message=f"✅ Content generated successfully:\n{result['output']}",
-                    break_loop=False
+                    break_loop=False,
                 )
             else:
                 return Response(
-                    message=f"❌ Generate failed: {result['error']}",
-                    break_loop=False
+                    message=f"❌ Generate failed: {result['error']}", break_loop=False
                 )
 
         except Exception as e:
             return Response(
-                message=f"❌ Error during generation: {str(e)}",
-                break_loop=False
+                message=f"❌ Error during generation: {str(e)}", break_loop=False
             )
 
     async def _handle_config_action(self):
@@ -274,18 +265,19 @@ class GoogleGeminiCLI(Tool):
                     if not approval:
                         return Response(
                             message="❌ Config action cancelled by user.",
-                            break_loop=False
+                            break_loop=False,
                         )
 
                 cmd = [
                     self.agent.config.gemini_cli_path,
                     "config",
-                    "--set", f"{config_key}={config_value}"
+                    "--set",
+                    f"{config_key}={config_value}",
                 ]
             else:
                 return Response(
                     message="❌ Either use 'list=true' or provide both 'key' and 'value' for config action.",
-                    break_loop=False
+                    break_loop=False,
                 )
 
             result = await self._run_secure_command(cmd)
@@ -293,18 +285,17 @@ class GoogleGeminiCLI(Tool):
             if result["success"]:
                 return Response(
                     message=f"✅ Config operation completed:\n{result['output']}",
-                    break_loop=False
+                    break_loop=False,
                 )
             else:
                 return Response(
                     message=f"❌ Config operation failed: {result['error']}",
-                    break_loop=False
+                    break_loop=False,
                 )
 
         except Exception as e:
             return Response(
-                message=f"❌ Error during config operation: {str(e)}",
-                break_loop=False
+                message=f"❌ Error during config operation: {str(e)}", break_loop=False
             )
 
     async def _get_status(self):
@@ -315,7 +306,7 @@ class GoogleGeminiCLI(Tool):
                 "cli_available": self.state.cli_available,
                 "cli_path": self.agent.config.gemini_cli_path,
                 "approval_mode": self.agent.config.gemini_cli_approval_mode,
-                "auto_install": self.agent.config.gemini_cli_auto_install
+                "auto_install": self.agent.config.gemini_cli_auto_install,
             }
 
             # Get CLI version if available
@@ -325,7 +316,7 @@ class GoogleGeminiCLI(Tool):
                         [self.agent.config.gemini_cli_path, "--version"],
                         capture_output=True,
                         text=True,
-                        timeout=5
+                        timeout=5,
                     )
                     if result.returncode == 0:
                         status_info["version"] = result.stdout.strip()
@@ -334,13 +325,12 @@ class GoogleGeminiCLI(Tool):
 
             return Response(
                 message=f"📊 Google Gemini CLI Status:\n{json.dumps(status_info, indent=2)}",
-                break_loop=False
+                break_loop=False,
             )
 
         except Exception as e:
             return Response(
-                message=f"❌ Error getting status: {str(e)}",
-                break_loop=False
+                message=f"❌ Error getting status: {str(e)}", break_loop=False
             )
 
     async def _install_cli(self):
@@ -348,7 +338,7 @@ class GoogleGeminiCLI(Tool):
         if not self.agent.config.gemini_cli_auto_install:
             return Response(
                 message="❌ Auto-install is disabled. Please install Google Gemini CLI manually: pip install google-generativeai[cli]",
-                break_loop=False
+                break_loop=False,
             )
 
         try:
@@ -356,7 +346,9 @@ class GoogleGeminiCLI(Tool):
 
             # Install via pip
             cmd = ["pip", "install", "google-generativeai[cli]"]
-            result = await self._run_secure_command(cmd, timeout=300)  # 5 minute timeout
+            result = await self._run_secure_command(
+                cmd, timeout=300
+            )  # 5 minute timeout
 
             if result["success"]:
                 # Re-initialize after installation
@@ -365,18 +357,17 @@ class GoogleGeminiCLI(Tool):
 
                 return Response(
                     message=f"✅ Google Gemini CLI installed successfully:\n{result['output']}",
-                    break_loop=False
+                    break_loop=False,
                 )
             else:
                 return Response(
                     message=f"❌ Installation failed: {result['error']}",
-                    break_loop=False
+                    break_loop=False,
                 )
 
         except Exception as e:
             return Response(
-                message=f"❌ Error during installation: {str(e)}",
-                break_loop=False
+                message=f"❌ Error during installation: {str(e)}", break_loop=False
             )
 
     async def _run_secure_command(self, cmd: list[str], timeout: int = 60):
@@ -387,20 +378,19 @@ class GoogleGeminiCLI(Tool):
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
-                cwd=None  # Use current working directory
+                cwd=None,  # Use current working directory
             )
 
             try:
                 stdout, stderr = await asyncio.wait_for(
-                    process.communicate(),
-                    timeout=timeout
+                    process.communicate(), timeout=timeout
                 )
 
                 return {
                     "success": process.returncode == 0,
                     "output": stdout.decode() if stdout else "",
                     "error": stderr.decode() if stderr else "",
-                    "returncode": process.returncode
+                    "returncode": process.returncode,
                 }
 
             except TimeoutError:
@@ -410,16 +400,11 @@ class GoogleGeminiCLI(Tool):
                     "success": False,
                     "output": "",
                     "error": f"Command timed out after {timeout} seconds",
-                    "returncode": -1
+                    "returncode": -1,
                 }
 
         except Exception as e:
-            return {
-                "success": False,
-                "output": "",
-                "error": str(e),
-                "returncode": -1
-            }
+            return {"success": False, "output": "", "error": str(e), "returncode": -1}
 
     async def _request_approval(self, action_description: str) -> bool:
         """Request user approval for an action."""

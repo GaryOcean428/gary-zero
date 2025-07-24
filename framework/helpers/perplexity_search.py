@@ -10,19 +10,19 @@ def perplexity_search(
     base_url="https://api.perplexity.ai",
 ):
     """Search using Perplexity's Sonar models.
-    
+
     Args:
         query: The search query
         model_name: The model to use (default: sonar-reasoning-pro - modern model)
         api_key: Perplexity API key (optional, will use env var if not provided)
         base_url: Perplexity API base URL
-        
+
     Returns:
         str: The search result content
-        
+
     Note:
-        Default model updated to 'sonar-reasoning-pro' (released Feb 2025) 
-        instead of legacy 'llama-3.1-sonar-large-128k-online' for better 
+        Default model updated to 'sonar-reasoning-pro' (released Feb 2025)
+        instead of legacy 'llama-3.1-sonar-large-128k-online' for better
         performance and modern capabilities.
     """
     api_key = api_key or models.get_api_key("perplexity")

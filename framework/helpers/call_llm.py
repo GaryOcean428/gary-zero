@@ -22,7 +22,6 @@ async def call_llm(
     examples: list[Example] = None,
     callback: Callable[[str], None] | None = None,
 ):
-
     if examples is None:
         examples = []
     example_prompt = ChatPromptTemplate.from_messages(

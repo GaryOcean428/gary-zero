@@ -52,6 +52,7 @@ class TestMultiAgentIntegration:
         data = response.json()
         assert data["websocket"] == "/ws"
 
+
 @pytest.mark.asyncio
 class TestSecurityIntegration:
     """Integration tests for security features."""

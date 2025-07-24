@@ -22,7 +22,7 @@ class CalendarIntegration(Tool):
         else:
             return Response(
                 message=f"Unknown calendar action: {action}. Available actions: create_event, list_events, find_free_time",
-                break_loop=False
+                break_loop=False,
             )
 
     async def _create_event(self) -> Response:
@@ -39,12 +39,12 @@ class CalendarIntegration(Tool):
             "start_time": start_time,
             "duration": duration,
             "description": description,
-            "created_at": datetime.now().isoformat()
+            "created_at": datetime.now().isoformat(),
         }
 
         return Response(
             message=f"✅ Calendar event created: '{title}' at {start_time} for {duration} minutes\nEvent ID: {event['id']}",
-            break_loop=False
+            break_loop=False,
         )
 
     async def _list_events(self) -> Response:
@@ -55,17 +55,16 @@ class CalendarIntegration(Tool):
         mock_events = [
             {"title": "Team Meeting", "time": "09:00", "duration": 60},
             {"title": "Code Review", "time": "14:30", "duration": 30},
-            {"title": "Project Planning", "time": "16:00", "duration": 90}
+            {"title": "Project Planning", "time": "16:00", "duration": 90},
         ]
 
         events_text = f"📅 Events for {date}:\n"
         for i, event in enumerate(mock_events, 1):
-            events_text += f"{i}. {event['title']} at {event['time']} ({event['duration']} min)\n"
+            events_text += (
+                f"{i}. {event['title']} at {event['time']} ({event['duration']} min)\n"
+            )
 
-        return Response(
-            message=events_text,
-            break_loop=False
-        )
+        return Response(message=events_text, break_loop=False)
 
     async def _find_free_time(self) -> Response:
         """Find free time slots."""
@@ -73,17 +72,10 @@ class CalendarIntegration(Tool):
         duration = int(self.args.get("duration", 60))  # minutes
 
         # Mock free time slots
-        free_slots = [
-            "10:00-11:00",
-            "12:00-13:00",
-            "15:00-16:00"
-        ]
+        free_slots = ["10:00-11:00", "12:00-13:00", "15:00-16:00"]
 
         slots_text = f"🆓 Available {duration}-minute slots on {date}:\n"
         for i, slot in enumerate(free_slots, 1):
             slots_text += f"{i}. {slot}\n"
 
-        return Response(
-            message=slots_text,
-            break_loop=False
-        )
+        return Response(message=slots_text, break_loop=False)

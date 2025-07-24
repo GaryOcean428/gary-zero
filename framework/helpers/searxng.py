@@ -5,7 +5,7 @@ import aiohttp
 from framework.helpers import runtime
 
 # Use Railway's internal service URL for SearXNG, fallback to localhost for development
-SEARXNG_URL = os.getenv('SEARXNG_URL', 'http://localhost:55510')
+SEARXNG_URL = os.getenv("SEARXNG_URL", "http://localhost:55510")
 URL = f"{SEARXNG_URL}/search"
 
 
@@ -16,7 +16,9 @@ async def search(query: str):
 async def _search(query: str):
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.post(URL, data={"q": query, "format": "json"}) as response:
+            async with session.post(
+                URL, data={"q": query, "format": "json"}
+            ) as response:
                 if response.status == 200:
                     return await response.json()
                 else:

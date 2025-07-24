@@ -15,7 +15,10 @@ from framework.helpers.ai_action_interceptor import (
     AIProvider,
     get_ai_action_manager,
 )
-from framework.helpers.ai_action_streaming import broadcast_action, get_streaming_service
+from framework.helpers.ai_action_streaming import (
+    broadcast_action,
+    get_streaming_service,
+)
 from framework.helpers.ai_visualization_init import initialize_ai_visualization
 from framework.helpers.log import Log
 
@@ -74,7 +77,7 @@ class AIActionVisualizationDemo:
             description="Claude taking screenshot for UI analysis",
             parameters={"action": "screenshot", "reason": "Analyzing current screen"},
             agent_name="Claude Computer Use Agent",
-            session_id="claude_session_1"
+            session_id="claude_session_1",
         )
         await self.broadcast_and_update_action(action1, "completed", 1.2)
 
@@ -83,9 +86,14 @@ class AIActionVisualizationDemo:
             provider=AIProvider.ANTHROPIC_CLAUDE,
             action_type=AIActionType.MOUSE_ACTION,
             description="Claude clicking on button element",
-            parameters={"action": "click", "x": 450, "y": 200, "element": "submit_button"},
+            parameters={
+                "action": "click",
+                "x": 450,
+                "y": 200,
+                "element": "submit_button",
+            },
             agent_name="Claude Computer Use Agent",
-            session_id="claude_session_2"
+            session_id="claude_session_2",
         )
         await self.broadcast_and_update_action(action2, "completed", 0.8)
 
@@ -96,7 +104,7 @@ class AIActionVisualizationDemo:
             description="OpenAI Operator managing application windows",
             parameters={"operation": "window_management", "target": "file_explorer"},
             agent_name="OpenAI Operator Agent",
-            session_id="operator_session_1"
+            session_id="operator_session_1",
         )
         await self.broadcast_and_update_action(action3, "completed", 2.1)
 
@@ -113,7 +121,7 @@ class AIActionVisualizationDemo:
             parameters={"url": "https://example.com", "action": "navigate"},
             agent_name="Browser Automation Agent",
             session_id="browser_session_1",
-            ui_url="https://browser-preview.service.com/session/123"
+            ui_url="https://browser-preview.service.com/session/123",
         )
         await self.broadcast_and_update_action(action1, "completed", 3.2)
 
@@ -124,7 +132,7 @@ class AIActionVisualizationDemo:
             description="Filling form with user data",
             parameters={"action": "fill_form", "fields": ["name", "email", "message"]},
             agent_name="Browser Automation Agent",
-            session_id="browser_session_2"
+            session_id="browser_session_2",
         )
         await self.broadcast_and_update_action(action2, "completed", 1.8)
 
@@ -138,9 +146,13 @@ class AIActionVisualizationDemo:
             provider=AIProvider.GOOGLE_AI,
             action_type=AIActionType.FILE_OPERATION,
             description="Google AI organizing project files",
-            parameters={"operation": "organize", "path": "/projects", "files_count": 15},
+            parameters={
+                "operation": "organize",
+                "path": "/projects",
+                "files_count": 15,
+            },
             agent_name="Google AI File Manager",
-            session_id="google_session_1"
+            session_id="google_session_1",
         )
         await self.broadcast_and_update_action(action1, "completed", 4.5)
 
@@ -152,7 +164,7 @@ class AIActionVisualizationDemo:
             parameters={"task": "accessibility_analysis", "elements_analyzed": 23},
             agent_name="Google AI Vision Agent",
             session_id="google_session_2",
-            screenshot_path="/tmp/ui_analysis_screenshot.png"
+            screenshot_path="/tmp/ui_analysis_screenshot.png",
         )
         await self.broadcast_and_update_action(action2, "completed", 6.3)
 
@@ -169,7 +181,7 @@ class AIActionVisualizationDemo:
             parameters={"command": "nmap -sV -sC target.com", "tool": "nmap"},
             agent_name="Kali Security Agent",
             session_id="kali_session_1",
-            ui_url="https://kali-linux-docker.up.railway.app/terminal/kali_session_1"
+            ui_url="https://kali-linux-docker.up.railway.app/terminal/kali_session_1",
         )
         await self.broadcast_and_update_action(action1, "completed", 15.7)
 
@@ -180,7 +192,7 @@ class AIActionVisualizationDemo:
             description="Web application vulnerability assessment",
             parameters={"command": "nikto -h https://target.com", "tool": "nikto"},
             agent_name="Kali Security Agent",
-            session_id="kali_session_2"
+            session_id="kali_session_2",
         )
         await self.broadcast_and_update_action(action2, "completed", 22.4)
 
@@ -197,18 +209,16 @@ class AIActionVisualizationDemo:
                 action_type=AIActionType.SCREENSHOT,
                 description="Initial screenshot for analysis",
                 agent_name="Claude Coordinator",
-                session_id="multi_scenario_1"
+                session_id="multi_scenario_1",
             ),
-
             # 2. Browser agent navigates
             AIAction(
                 provider=AIProvider.BROWSER_USE,
                 action_type=AIActionType.BROWSER_AUTOMATION,
                 description="Navigate to target for investigation",
                 agent_name="Browser Scout Agent",
-                session_id="multi_scenario_2"
+                session_id="multi_scenario_2",
             ),
-
             # 3. Kali runs security check
             AIAction(
                 provider=AIProvider.KALI_SHELL,
@@ -216,17 +226,16 @@ class AIActionVisualizationDemo:
                 description="Security assessment of target",
                 parameters={"command": "nmap -A target.com"},
                 agent_name="Security Analyst Agent",
-                session_id="multi_scenario_3"
+                session_id="multi_scenario_3",
             ),
-
             # 4. Google AI analyzes results
             AIAction(
                 provider=AIProvider.GOOGLE_AI,
                 action_type=AIActionType.VISUAL_COMPUTER_TASK,
                 description="Analyzing security scan results",
                 agent_name="AI Analysis Agent",
-                session_id="multi_scenario_4"
-            )
+                session_id="multi_scenario_4",
+            ),
         ]
 
         # Execute actions in sequence with proper timing
@@ -241,7 +250,9 @@ class AIActionVisualizationDemo:
             await broadcast_action(action)
             await asyncio.sleep(0.5)
 
-    async def broadcast_and_update_action(self, action: AIAction, final_status: str, execution_time: float):
+    async def broadcast_and_update_action(
+        self, action: AIAction, final_status: str, execution_time: float
+    ):
         """Broadcast an action and then update it with completion status."""
         # Broadcast start
         print(f"  🚀 {action.description}")
@@ -257,7 +268,7 @@ class AIActionVisualizationDemo:
         action.result = {
             "success": final_status == "completed",
             "processing_time": execution_time,
-            "demo_action": True
+            "demo_action": True,
         }
 
         await broadcast_action(action)
@@ -272,13 +283,17 @@ class AIActionVisualizationDemo:
 
         # Get action manager status
         action_manager = get_ai_action_manager()
-        print(f"Action Interception: {'🟢 Active' if action_manager.active else '🔴 Inactive'}")
+        print(
+            f"Action Interception: {'🟢 Active' if action_manager.active else '🔴 Inactive'}"
+        )
         print(f"Intercepted Providers: {len(action_manager.interceptors)}")
         print(f"Total Actions Captured: {len(action_manager.action_history)}")
 
         # Get streaming service status
         streaming_service = get_streaming_service()
-        print(f"Streaming Service: {'🟢 Active' if streaming_service.running else '🔴 Inactive'}")
+        print(
+            f"Streaming Service: {'🟢 Active' if streaming_service.running else '🔴 Inactive'}"
+        )
         print(f"Connected Clients: {len(streaming_service.clients)}")
         print(f"Messages Sent: {streaming_service.stats['messages_sent']}")
 

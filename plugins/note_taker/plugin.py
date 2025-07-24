@@ -3,6 +3,7 @@
 from datetime import datetime
 
 from framework.helpers.tool import Response, Tool
+
 BaseClass = Tool
 
 
@@ -19,7 +20,7 @@ class NoteTaker(BaseClass):
                 "content": "This is a sample note to demonstrate the note taker.",
                 "tags": ["sample", "demo"],
                 "created": "2025-01-01T12:00:00",
-                "modified": "2025-01-01T12:00:00"
+                "modified": "2025-01-01T12:00:00",
             }
         }
         self._next_id = 2
@@ -44,7 +45,7 @@ class NoteTaker(BaseClass):
         else:
             return Response(
                 message=f"Unknown note action: {action}. Available: create, list, read, update, delete, search",
-                break_loop=False
+                break_loop=False,
             )
 
     async def _create_note(self) -> Response:
@@ -63,7 +64,7 @@ class NoteTaker(BaseClass):
             "content": content,
             "tags": tags,
             "created": datetime.now().isoformat(),
-            "modified": datetime.now().isoformat()
+            "modified": datetime.now().isoformat(),
         }
 
         self._notes[note_id] = note
@@ -80,16 +81,17 @@ class NoteTaker(BaseClass):
         """List all notes."""
         if not self._notes:
             return Response(
-                message="📝 No notes found. Create your first note!",
-                break_loop=False
+                message="📝 No notes found. Create your first note!", break_loop=False
             )
 
         response = f"📚 Your Notes ({len(self._notes)} total):\n\n"
 
-        for note in sorted(self._notes.values(), key=lambda x: x['modified'], reverse=True):
+        for note in sorted(
+            self._notes.values(), key=lambda x: x["modified"], reverse=True
+        ):
             response += f"🗒️ #{note['id']}: {note['title']}\n"
             response += f"   Modified: {note['modified'][:19].replace('T', ' ')}\n"
-            if note['tags']:
+            if note["tags"]:
                 response += f"   Tags: {', '.join(note['tags'])}\n"
             response += f"   Content: {note['content'][:50]}{'...' if len(note['content']) > 50 else ''}\n\n"
 
@@ -102,21 +104,20 @@ class NoteTaker(BaseClass):
         if not note_id:
             return Response(
                 message="❌ Note ID is required. Use: read with id parameter",
-                break_loop=False
+                break_loop=False,
             )
 
         note = self._notes.get(note_id)
         if not note:
             return Response(
-                message=f"❌ Note with ID '{note_id}' not found",
-                break_loop=False
+                message=f"❌ Note with ID '{note_id}' not found", break_loop=False
             )
 
         response = f"📖 Note #{note['id']}: {note['title']}\n\n"
         response += f"📅 Created: {note['created'][:19].replace('T', ' ')}\n"
         response += f"📅 Modified: {note['modified'][:19].replace('T', ' ')}\n"
 
-        if note['tags']:
+        if note["tags"]:
             response += f"🏷️ Tags: {', '.join(note['tags'])}\n"
 
         response += f"\n📄 Content:\n{note['content']}"
@@ -130,28 +131,27 @@ class NoteTaker(BaseClass):
         if not note_id:
             return Response(
                 message="❌ Note ID is required. Use: update with id parameter",
-                break_loop=False
+                break_loop=False,
             )
 
         note = self._notes.get(note_id)
         if not note:
             return Response(
-                message=f"❌ Note with ID '{note_id}' not found",
-                break_loop=False
+                message=f"❌ Note with ID '{note_id}' not found", break_loop=False
             )
 
         # Update fields if provided
         if "title" in self.args:
-            note['title'] = self.args['title']
+            note["title"] = self.args["title"]
 
         if "content" in self.args:
-            note['content'] = self.args['content']
+            note["content"] = self.args["content"]
 
         if "tags" in self.args:
-            tags = self.args['tags'].split(",") if self.args['tags'] else []
-            note['tags'] = [tag.strip() for tag in tags if tag.strip()]
+            tags = self.args["tags"].split(",") if self.args["tags"] else []
+            note["tags"] = [tag.strip() for tag in tags if tag.strip()]
 
-        note['modified'] = datetime.now().isoformat()
+        note["modified"] = datetime.now().isoformat()
 
         response = f"✅ Note #{note_id} updated successfully!\n"
         response += f"Title: {note['title']}\n"
@@ -166,22 +166,21 @@ class NoteTaker(BaseClass):
         if not note_id:
             return Response(
                 message="❌ Note ID is required. Use: delete with id parameter",
-                break_loop=False
+                break_loop=False,
             )
 
         note = self._notes.get(note_id)
         if not note:
             return Response(
-                message=f"❌ Note with ID '{note_id}' not found",
-                break_loop=False
+                message=f"❌ Note with ID '{note_id}' not found", break_loop=False
             )
 
-        title = note['title']
+        title = note["title"]
         del self._notes[note_id]
 
         return Response(
             message=f"🗑️ Note #{note_id} '{title}' deleted successfully",
-            break_loop=False
+            break_loop=False,
         )
 
     async def _search_notes(self) -> Response:
@@ -191,30 +190,31 @@ class NoteTaker(BaseClass):
         if not query:
             return Response(
                 message="❌ Search query is required. Use: search with query parameter",
-                break_loop=False
+                break_loop=False,
             )
 
         matches = []
 
         for note in self._notes.values():
             # Search in title, content, and tags
-            if (query in note['title'].lower() or
-                query in note['content'].lower() or
-                any(query in tag.lower() for tag in note['tags'])):
+            if (
+                query in note["title"].lower()
+                or query in note["content"].lower()
+                or any(query in tag.lower() for tag in note["tags"])
+            ):
                 matches.append(note)
 
         if not matches:
             return Response(
-                message=f"🔍 No notes found matching '{query}'",
-                break_loop=False
+                message=f"🔍 No notes found matching '{query}'", break_loop=False
             )
 
         response = f"🔍 Search results for '{query}' ({len(matches)} found):\n\n"
 
-        for note in sorted(matches, key=lambda x: x['modified'], reverse=True):
+        for note in sorted(matches, key=lambda x: x["modified"], reverse=True):
             response += f"🗒️ #{note['id']}: {note['title']}\n"
             response += f"   Modified: {note['modified'][:19].replace('T', ' ')}\n"
-            if note['tags']:
+            if note["tags"]:
                 response += f"   Tags: {', '.join(note['tags'])}\n"
             response += f"   Preview: {note['content'][:50]}{'...' if len(note['content']) > 50 else ''}\n\n"
 

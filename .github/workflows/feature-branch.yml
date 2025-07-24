@@ -1,0 +1,141 @@
+# Feature Branch Workflow
+# Runs static checks and tests for feature branches and pull requests
+# Uses composite workflows A (static-checks) and B (tests)
+
+name: Feature Branch CI
+
+on:
+  push:
+    branches-ignore: ['main']
+  pull_request:
+    branches: ['main', 'develop']
+
+env:
+  PYTHON_VERSION: "3.13"
+  NODE_VERSION: "22"
+  COVERAGE_THRESHOLD: 75
+
+jobs:
+  # Composite Workflow A: Static Checks
+  static-checks:
+    name: Static Code Analysis
+    uses: ./.github/workflows/_static-checks.yml
+    with:
+      python-version: ${{ env.PYTHON_VERSION }}
+      node-version: ${{ env.NODE_VERSION }}
+      skip-secret-scan: false
+
+  # Composite Workflow B: Tests  
+  tests:
+    name: Test Suite
+    uses: ./.github/workflows/_tests.yml
+    with:
+      python-version: ${{ env.PYTHON_VERSION }}
+      node-version: ${{ env.NODE_VERSION }}
+      coverage-threshold: ${{ env.COVERAGE_THRESHOLD }}
+      skip-e2e: false
+
+  # Railpack validation
+  railpack-validation:
+    name: Railpack Configuration
+    uses: ./.github/workflows/railpack-validation.yml
+
+  # Feature branch validation summary
+  feature-branch-summary:
+    name: Feature Branch Validation
+    runs-on: ubuntu-latest
+    needs: [static-checks, tests, railpack-validation]
+    if: always()
+    
+    steps:
+    - name: Feature branch validation summary
+      run: |
+        echo "🔍 Feature Branch Validation Summary"
+        echo "==================================="
+        echo "Static Checks: ${{ needs.static-checks.result }}"
+        echo "Tests: ${{ needs.tests.result }}"
+        echo "Railpack Config: ${{ needs.railpack-validation.result }}"
+        echo ""
+        
+        # Check results
+        if [[ "${{ needs.static-checks.result }}" == "success" && "${{ needs.tests.result }}" == "success" && "${{ needs.railpack-validation.result }}" == "success" ]]; then
+          echo "✅ All feature branch validations passed!"
+          echo "🚀 This branch is ready for review and merge"
+        else
+          echo "❌ Feature branch validation failed"
+          echo ""
+          if [[ "${{ needs.static-checks.result }}" != "success" ]]; then
+            echo "  - Static checks failed"
+          fi
+          if [[ "${{ needs.tests.result }}" != "success" ]]; then
+            echo "  - Tests failed"
+          fi
+          if [[ "${{ needs.railpack-validation.result }}" != "success" ]]; then
+            echo "  - Railpack configuration validation failed"
+          fi
+          echo ""
+          echo "Please fix the issues before requesting review"
+          exit 1
+        fi
+
+    - name: PR comment with results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+          
+          // Find existing bot comment
+          const botComment = comments.find(comment => 
+            comment.user.type === 'Bot' && 
+            comment.body.includes('🔍 Feature Branch Validation')
+          );
+          
+          const staticChecks = '${{ needs.static-checks.result }}';
+          const tests = '${{ needs.tests.result }}';
+          const railpackValidation = '${{ needs.railpack-validation.result }}';
+          
+          const allPassed = staticChecks === 'success' && tests === 'success' && railpackValidation === 'success';
+          
+          const body = `## 🔍 Feature Branch Validation Results
+          
+          | Check | Status |
+          |-------|--------|
+          | Static Checks | ${staticChecks === 'success' ? '✅ Passed' : '❌ Failed'} |
+          | Tests | ${tests === 'success' ? '✅ Passed' : '❌ Failed'} |
+          | Railpack Config | ${railpackValidation === 'success' ? '✅ Passed' : '❌ Failed'} |
+          
+          ${allPassed
+            ? '🚀 **All checks passed!** This PR is ready for review.' 
+            : '⚠️ **Some checks failed.** Please review the workflow logs and fix any issues.'
+          }
+          
+          <details>
+          <summary>View detailed results</summary>
+          
+          - **Python Lint Status**: ${{ needs.static-checks.outputs.python-lint-status }}
+          - **Node.js Lint Status**: ${{ needs.static-checks.outputs.node-lint-status }}
+          - **Test Results**: ${{ needs.tests.outputs.test-results }}
+          - **Coverage Report**: ${{ needs.tests.outputs.coverage-report }}
+          
+          </details>`;
+          
+          if (botComment) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: botComment.id,
+              body: body
+            });
+          } else {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+          }

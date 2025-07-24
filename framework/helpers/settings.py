@@ -1,6 +1,5 @@
 import base64
 import hashlib
-import os
 import json
 import os
 import re
@@ -72,16 +71,17 @@ def convert_out(settings: Settings) -> SettingsOutput:
     # Create provider options with fallback
     try:
         from models import ModelProvider
-        provider_options = [{"value": p.name, "label": p.value} for p in ModelProvider]
+
+        provider_options = [FieldOption(value=p.name, label=p.value) for p in ModelProvider]
     except ImportError:
         # Fallback provider options if models not available
         provider_options = [
-            {"value": "ANTHROPIC", "label": "Anthropic"},
-            {"value": "OPENAI", "label": "OpenAI"},
-            {"value": "GOOGLE", "label": "Google"},
-            {"value": "GROQ", "label": "Groq"},
-            {"value": "MISTRALAI", "label": "Mistral AI"},
-            {"value": "OTHER", "label": "Other"},
+            FieldOption(value="ANTHROPIC", label="Anthropic"),
+            FieldOption(value="OPENAI", label="OpenAI"),
+            FieldOption(value="GOOGLE", label="Google"),
+            FieldOption(value="GROQ", label="Groq"),
+            FieldOption(value="MISTRALAI", label="Mistral AI"),
+            FieldOption(value="OTHER", label="Other"),
         ]
 
     # main model section
@@ -110,7 +110,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "description": "Select model from the chosen provider",
             "type": "select",
             "value": settings["chat_model_name"],
-            "options": provider_models,
+            "options": [FieldOption(value=model["value"], label=model["label"]) for model in provider_models],
         }
     )
 
@@ -240,7 +240,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "description": "Select model from the chosen provider",
             "type": "select",
             "value": settings["util_model_name"],
-            "options": util_provider_models,
+            "options": [FieldOption(value=model["value"], label=model["label"]) for model in util_provider_models],
         }
     )
 
@@ -332,7 +332,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "description": "Select model from the chosen provider",
             "type": "select",
             "value": settings["embed_model_name"],
-            "options": embed_provider_models,
+            "options": [FieldOption(value=model["value"], label=model["label"]) for model in embed_provider_models],
         }
     )
 
@@ -409,7 +409,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "description": "Select model from the chosen provider",
             "type": "select",
             "value": settings["browser_model_name"],
-            "options": browser_provider_models,
+            "options": [FieldOption(value=model["value"], label=model["label"]) for model in browser_provider_models],
         }
     )
 
@@ -477,7 +477,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "description": "Select model for coding agent from the chosen provider",
             "type": "select",
             "value": settings.get("coding_agent_name", "claude-3-5-sonnet-20241022"),
-            "options": coding_provider_models,
+            "options": [FieldOption(value=model["value"], label=model["label"]) for model in coding_provider_models],
         }
     )
 
@@ -555,7 +555,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "description": "Select model for supervisor agent from the chosen provider",
             "type": "select",
             "value": settings.get("supervisor_agent_name", "claude-3-5-sonnet-20241022"),
-            "options": supervisor_provider_models,
+            "options": [FieldOption(value=model["value"], label=model["label"]) for model in supervisor_provider_models],
         }
     )
 
@@ -742,6 +742,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
     api_keys_fields.append(_get_api_key_field(settings, "mistralai", "MistralAI API Key"))
     api_keys_fields.append(_get_api_key_field(settings, "openrouter", "OpenRouter API Key"))
     api_keys_fields.append(_get_api_key_field(settings, "perplexity", "Perplexity API Key"))
+    api_keys_fields.append(_get_api_key_field(settings, "qwen", "Qwen API Key"))
     api_keys_fields.append(_get_api_key_field(settings, "sambanova", "Sambanova API Key"))
     api_keys_fields.append(_get_api_key_field(settings, "xai", "xAI API Key"))
     api_keys_fields.append(_get_api_key_field(settings, "github", "GitHub API Key"))
@@ -767,7 +768,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "type": "select",
             "value": settings["agent_prompts_subdir"],
             "options": [
-                {"value": subdir, "label": subdir} for subdir in files.get_subdirectories("prompts")
+                FieldOption(value=subdir, label=subdir) for subdir in files.get_subdirectories("prompts")
             ],
         }
     )
@@ -800,7 +801,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "type": "select",
             "value": settings["agent_knowledge_subdir"],
             "options": [
-                {"value": subdir, "label": subdir}
+                FieldOption(value=subdir, label=subdir)
                 for subdir in files.get_subdirectories("knowledge", exclude="default")
             ],
         }
@@ -1008,12 +1009,12 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "type": "select",
             "value": settings["stt_model_size"],
             "options": [
-                {"value": "tiny", "label": "Tiny (39M, English)"},
-                {"value": "base", "label": "Base (74M, English)"},
-                {"value": "small", "label": "Small (244M, English)"},
-                {"value": "medium", "label": "Medium (769M, English)"},
-                {"value": "large", "label": "Large (1.5B, Multilingual)"},
-                {"value": "turbo", "label": "Turbo (Multilingual)"},
+                FieldOption(value="tiny", label="Tiny (39M, English)"),
+                FieldOption(value="base", label="Base (74M, English)"),
+                FieldOption(value="small", label="Small (244M, English)"),
+                FieldOption(value="medium", label="Medium (769M, English)"),
+                FieldOption(value="large", label="Large (1.5B, Multilingual)"),
+                FieldOption(value="turbo", label="Turbo (Multilingual)"),
             ],
         }
     )
@@ -1202,9 +1203,9 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "type": "select",
             "value": settings.get("codex_cli_approval_mode", "suggest"),
             "options": [
-                {"value": "suggest", "label": "Suggest (Ask for approval)"},
-                {"value": "auto", "label": "Auto (Automatic execution)"},
-                {"value": "block", "label": "Block (Block all operations)"},
+                FieldOption(value="suggest", label="Suggest (Ask for approval)"),
+                FieldOption(value="auto", label="Auto (Automatic execution)"),
+                FieldOption(value="block", label="Block (Block all operations)"),
             ],
         }
     )
@@ -1254,9 +1255,9 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "type": "select",
             "value": settings.get("gemini_cli_approval_mode", "suggest"),
             "options": [
-                {"value": "suggest", "label": "Suggest (Ask for approval)"},
-                {"value": "auto", "label": "Auto (Automatic execution)"},
-                {"value": "block", "label": "Block (Block all operations)"},
+                FieldOption(value="suggest", label="Suggest (Ask for approval)"),
+                FieldOption(value="auto", label="Auto (Automatic execution)"),
+                FieldOption(value="block", label="Block (Block all operations)"),
             ],
         }
     )
@@ -1458,8 +1459,12 @@ def get_default_settings() -> Settings:
             "agent_knowledge_subdir": "knowledge",
             "api_keys": {},
             "auth_login": os.getenv("DEFAULT_AUTH_LOGIN", "admin"),
-            "auth_password": hashlib.sha256(os.getenv("DEFAULT_AUTH_PASSWORD", "admin").encode()).hexdigest(),
-            "root_password": hashlib.sha256(os.getenv("DEFAULT_ROOT_PASSWORD", "").encode()).hexdigest(),
+            "auth_password": hashlib.sha256(
+                os.getenv("DEFAULT_AUTH_PASSWORD", "admin").encode()
+            ).hexdigest(),
+            "root_password": hashlib.sha256(
+                os.getenv("DEFAULT_ROOT_PASSWORD", "").encode()
+            ).hexdigest(),
             "rfc_auto_docker": True,
             "rfc_url": "http://localhost:8000",
             "rfc_password": "",

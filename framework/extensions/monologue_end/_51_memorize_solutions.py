@@ -8,7 +8,6 @@ from framework.helpers.memory import Memory
 
 
 class MemorizeSolutions(Extension):
-
     REPLACE_THRESHOLD = 0.9
 
     async def execute(self, loop_data: LoopData = LoopData(), **kwargs):
@@ -80,7 +79,9 @@ class MemorizeSolutions(Extension):
             log_item.update(heading="No successful solutions to memorize.")
             return
         else:
-            log_item.update(heading=f"{len(solutions)} successful solutions to memorize.")
+            log_item.update(
+                heading=f"{len(solutions)} successful solutions to memorize."
+            )
 
         # save chat history
         db = await Memory.get(self.agent)
@@ -110,7 +111,9 @@ class MemorizeSolutions(Extension):
                     log_item.update(replaced=rem_txt)
 
             # insert new solution
-            await db.insert_text(text=txt, metadata={"area": Memory.Area.SOLUTIONS.value})
+            await db.insert_text(
+                text=txt, metadata={"area": Memory.Area.SOLUTIONS.value}
+            )
 
         solutions_txt = solutions_txt.strip()
         log_item.update(solutions=solutions_txt)

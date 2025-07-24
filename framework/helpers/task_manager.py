@@ -15,6 +15,7 @@ from framework.helpers import settings
 
 class TaskStatus(Enum):
     """Task status enumeration."""
+
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -25,6 +26,7 @@ class TaskStatus(Enum):
 
 class TaskPriority(Enum):
     """Task priority levels."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -33,6 +35,7 @@ class TaskPriority(Enum):
 
 class TaskCategory(Enum):
     """Task category types."""
+
     CODING = "coding"
     RESEARCH = "research"
     ANALYSIS = "analysis"
@@ -45,6 +48,7 @@ class TaskCategory(Enum):
 @dataclass
 class Task:
     """Individual task representation."""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     title: str = ""
     description: str = ""
@@ -68,6 +72,7 @@ class Task:
 @dataclass
 class TaskUpdate:
     """Task update event."""
+
     task_id: str
     timestamp: datetime
     status: TaskStatus
@@ -79,7 +84,7 @@ class TaskUpdate:
 class TaskManager:
     """Central task management system."""
 
-    _instance: Optional['TaskManager'] = None
+    _instance: Optional["TaskManager"] = None
 
     def __init__(self):
         self.tasks: dict[str, Task] = {}
@@ -101,6 +106,7 @@ class TaskManager:
         if self._db is None:
             try:
                 from framework.helpers.task_persistence import get_task_database
+
                 self._db = get_task_database()
             except ImportError:
                 self.persistence_enabled = False
@@ -123,13 +129,15 @@ class TaskManager:
                         title=task.title,
                         description=task.description,
                         status=TaskStatus(task.status.value),
-                        category=TaskCategory(task.category.value) if task.category else TaskCategory.OTHER,
+                        category=TaskCategory(task.category.value)
+                        if task.category
+                        else TaskCategory.OTHER,
                         created_at=task.created_at or datetime.now(UTC),
                         started_at=task.started_at,
                         completed_at=task.completed_at,
                         assigned_agent=task.agent_id,
                         context=task.metadata or {},
-                        progress=task.progress
+                        progress=task.progress,
                     )
 
                     self.tasks[current_task.id] = current_task
@@ -159,7 +167,9 @@ class TaskManager:
                 from framework.helpers.task_persistence import (
                     TaskCategory as PersistenceTaskCategory,
                 )
-                from framework.helpers.task_persistence import TaskStatus as PersistenceTaskStatus
+                from framework.helpers.task_persistence import (
+                    TaskStatus as PersistenceTaskStatus,
+                )
 
                 persistence_task = PersistenceTask(
                     id=task.id,
@@ -175,7 +185,7 @@ class TaskManager:
                     agent_id=task.assigned_agent,
                     parent_id=task.parent_id,
                     subtask_ids=list(task.subtask_ids),
-                    metadata=task.context
+                    metadata=task.context,
                 )
 
                 db.save_task(persistence_task)
@@ -195,7 +205,7 @@ class TaskManager:
             print(f"Error saving task update to database: {e}")
 
     @classmethod
-    def get_instance(cls) -> 'TaskManager':
+    def get_instance(cls) -> "TaskManager":
         """Get the singleton task manager instance."""
         if cls._instance is None:
             cls._instance = cls()
@@ -208,7 +218,7 @@ class TaskManager:
         priority: TaskPriority = TaskPriority.MEDIUM,
         category: TaskCategory = TaskCategory.OTHER,
         parent_id: str | None = None,
-        context: dict[str, Any] | None = None
+        context: dict[str, Any] | None = None,
     ) -> Task:
         """Create a new task."""
         task = Task(
@@ -217,7 +227,7 @@ class TaskManager:
             priority=priority,
             category=category,
             parent_id=parent_id,
-            context=context or {}
+            context=context or {},
         )
 
         self.tasks[task.id] = task
@@ -232,7 +242,9 @@ class TaskManager:
         self._log_task_event(task.id, "Task created", TaskStatus.PENDING)
         return task
 
-    def decompose_task(self, task_id: str, subtasks: list[dict[str, Any]]) -> list[Task]:
+    def decompose_task(
+        self, task_id: str, subtasks: list[dict[str, Any]]
+    ) -> list[Task]:
         """Decompose a task into subtasks."""
         if task_id not in self.tasks:
             raise ValueError(f"Task {task_id} not found")
@@ -242,14 +254,22 @@ class TaskManager:
             subtask = self.create_task(
                 title=subtask_data.get("title", ""),
                 description=subtask_data.get("description", ""),
-                priority=TaskPriority(subtask_data.get("priority", TaskPriority.MEDIUM.value)),
-                category=TaskCategory(subtask_data.get("category", TaskCategory.OTHER.value)),
+                priority=TaskPriority(
+                    subtask_data.get("priority", TaskPriority.MEDIUM.value)
+                ),
+                category=TaskCategory(
+                    subtask_data.get("category", TaskCategory.OTHER.value)
+                ),
                 parent_id=task_id,
-                context=subtask_data.get("context", {})
+                context=subtask_data.get("context", {}),
             )
             created_subtasks.append(subtask)
 
-        self._log_task_event(task_id, f"Task decomposed into {len(created_subtasks)} subtasks", self.tasks[task_id].status)
+        self._log_task_event(
+            task_id,
+            f"Task decomposed into {len(created_subtasks)} subtasks",
+            self.tasks[task_id].status,
+        )
         return created_subtasks
 
     def start_task(self, task_id: str, agent_id: str | None = None) -> None:
@@ -270,7 +290,9 @@ class TaskManager:
 
         self._log_task_event(task_id, "Task started", TaskStatus.IN_PROGRESS, agent_id)
 
-    def update_task_progress(self, task_id: str, progress: float, message: str = "") -> None:
+    def update_task_progress(
+        self, task_id: str, progress: float, message: str = ""
+    ) -> None:
         """Update task progress."""
         if task_id not in self.tasks:
             raise ValueError(f"Task {task_id} not found")
@@ -282,7 +304,9 @@ class TaskManager:
         # Save to database
         self._save_to_database(task)
 
-        self._log_task_event(task_id, message or f"Progress updated to {progress:.1%}", task.status)
+        self._log_task_event(
+            task_id, message or f"Progress updated to {progress:.1%}", task.status
+        )
 
     def complete_task(self, task_id: str, result: str | None = None) -> None:
         """Complete a task."""
@@ -370,7 +394,11 @@ class TaskManager:
 
     def get_active_tasks(self) -> list[Task]:
         """Get all currently active tasks."""
-        return [self.tasks[task_id] for task_id in self.active_tasks if task_id in self.tasks]
+        return [
+            self.tasks[task_id]
+            for task_id in self.active_tasks
+            if task_id in self.tasks
+        ]
 
     def get_long_running_tasks(self) -> list[Task]:
         """Get tasks that have been running longer than the threshold."""
@@ -392,15 +420,37 @@ class TaskManager:
         # Simple keyword-based categorization
         description_lower = description.lower()
 
-        if any(keyword in description_lower for keyword in ["code", "debug", "implement", "function", "class", "program"]):
+        if any(
+            keyword in description_lower
+            for keyword in [
+                "code",
+                "debug",
+                "implement",
+                "function",
+                "class",
+                "program",
+            ]
+        ):
             return TaskCategory.CODING
-        elif any(keyword in description_lower for keyword in ["research", "investigate", "find", "search", "study"]):
+        elif any(
+            keyword in description_lower
+            for keyword in ["research", "investigate", "find", "search", "study"]
+        ):
             return TaskCategory.RESEARCH
-        elif any(keyword in description_lower for keyword in ["analyze", "review", "examine", "evaluate"]):
+        elif any(
+            keyword in description_lower
+            for keyword in ["analyze", "review", "examine", "evaluate"]
+        ):
             return TaskCategory.ANALYSIS
-        elif any(keyword in description_lower for keyword in ["write", "create", "design", "generate"]):
+        elif any(
+            keyword in description_lower
+            for keyword in ["write", "create", "design", "generate"]
+        ):
             return TaskCategory.CREATIVE
-        elif any(keyword in description_lower for keyword in ["system", "configure", "setup", "install"]):
+        elif any(
+            keyword in description_lower
+            for keyword in ["system", "configure", "setup", "install"]
+        ):
             return TaskCategory.SYSTEM
         else:
             return TaskCategory.OTHER
@@ -411,17 +461,27 @@ class TaskManager:
             return
 
         parent_task = self.tasks[parent_id]
-        subtasks = [self.tasks[sid] for sid in parent_task.subtask_ids if sid in self.tasks]
+        subtasks = [
+            self.tasks[sid] for sid in parent_task.subtask_ids if sid in self.tasks
+        ]
 
         if not subtasks:
             return
 
         # Check if all subtasks are completed
-        all_completed = all(subtask.status == TaskStatus.COMPLETED for subtask in subtasks)
+        all_completed = all(
+            subtask.status == TaskStatus.COMPLETED for subtask in subtasks
+        )
         if all_completed and parent_task.status != TaskStatus.COMPLETED:
             self.complete_task(parent_id, "All subtasks completed")
 
-    def _log_task_event(self, task_id: str, message: str, status: TaskStatus, agent_id: str | None = None) -> None:
+    def _log_task_event(
+        self,
+        task_id: str,
+        message: str,
+        status: TaskStatus,
+        agent_id: str | None = None,
+    ) -> None:
         """Log a task event."""
         update = TaskUpdate(
             task_id=task_id,
@@ -429,7 +489,7 @@ class TaskManager:
             status=status,
             progress=self.tasks[task_id].progress if task_id in self.tasks else 0.0,
             message=message,
-            agent_id=agent_id
+            agent_id=agent_id,
         )
         self.task_updates.append(update)
 
@@ -439,7 +499,10 @@ class TaskManager:
         # Print to console for debugging (lazy import to avoid circular dependencies)
         try:
             from framework.helpers.print_style import PrintStyle
-            PrintStyle(font_color="cyan", padding=True).print(f"[TaskManager] {message} (Task: {task_id[:8]})")
+
+            PrintStyle(font_color="cyan", padding=True).print(
+                f"[TaskManager] {message} (Task: {task_id[:8]})"
+            )
         except ImportError:
             print(f"[TaskManager] {message} (Task: {task_id[:8]})")
 
@@ -449,10 +512,7 @@ class TaskManager:
             return {}
 
         task = self.tasks[task_id]
-        result = {
-            "task": task,
-            "subtasks": []
-        }
+        result = {"task": task, "subtasks": []}
 
         for subtask_id in task.subtask_ids:
             if subtask_id in self.tasks:
@@ -484,7 +544,7 @@ class TaskManager:
             "failed_tasks": failed_tasks,
             "category_distribution": category_counts,
             "status_distribution": status_counts,
-            "long_running_tasks": len(self.get_long_running_tasks())
+            "long_running_tasks": len(self.get_long_running_tasks()),
         }
 
 

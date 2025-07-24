@@ -5,7 +5,6 @@ from agent import Agent
 
 
 class Extension:
-
     def __init__(self, agent: Agent, *args, **kwargs):
         self.agent = agent
         self.kwargs = kwargs

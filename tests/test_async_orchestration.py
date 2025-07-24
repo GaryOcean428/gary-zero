@@ -20,11 +20,17 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-sys.path.append('/home/runner/work/gary-zero/gary-zero')
+sys.path.append("/home/runner/work/gary-zero/gary-zero")
 
-from framework.helpers.async_orchestrator import AsyncTaskOrchestrator, OrchestrationStatus
+from framework.helpers.async_orchestrator import (
+    AsyncTaskOrchestrator,
+    OrchestrationStatus,
+)
 from framework.helpers.enhanced_scheduler import EnhancedTaskScheduler
-from framework.helpers.orchestration_config import OrchestrationConfig, OrchestrationConfigManager
+from framework.helpers.orchestration_config import (
+    OrchestrationConfig,
+    OrchestrationConfigManager,
+)
 from framework.helpers.task_manager import Task as ManagedTask
 from framework.helpers.task_manager import TaskCategory, TaskStatus
 
@@ -38,7 +44,7 @@ class TestAsyncOrchestrator:
         orchestrator = AsyncTaskOrchestrator(
             max_concurrent_tasks=5,
             default_task_timeout=10.0,
-            enable_performance_monitoring=False  # Disable for testing
+            enable_performance_monitoring=False,  # Disable for testing
         )
         await orchestrator.start()
         yield orchestrator
@@ -52,7 +58,7 @@ class TestAsyncOrchestrator:
             title="Test Task",
             description="A test task for orchestration",
             category=TaskCategory.OTHER,
-            status=TaskStatus.PENDING
+            status=TaskStatus.PENDING,
         )
 
     async def test_orchestrator_lifecycle(self):
@@ -76,12 +82,17 @@ class TestAsyncOrchestrator:
 
         orchestration_task = orchestrator.tasks[task_id]
         assert orchestration_task.managed_task == sample_task
-        assert orchestration_task.status in (OrchestrationStatus.PENDING, OrchestrationStatus.READY)
+        assert orchestration_task.status in (
+            OrchestrationStatus.PENDING,
+            OrchestrationStatus.READY,
+        )
 
     async def test_task_execution(self, orchestrator, sample_task):
         """Test task execution with result."""
         # Mock the task execution
-        with patch.object(orchestrator, '_execute_managed_task', new_callable=AsyncMock) as mock_execute:
+        with patch.object(
+            orchestrator, "_execute_managed_task", new_callable=AsyncMock
+        ) as mock_execute:
             mock_execute.return_value = "Task completed successfully"
 
             task_id = await orchestrator.submit_task(sample_task)
@@ -99,7 +110,7 @@ class TestAsyncOrchestrator:
                 title=f"Concurrent Task {i}",
                 description=f"Concurrent test task {i}",
                 category=TaskCategory.OTHER,
-                status=TaskStatus.PENDING
+                status=TaskStatus.PENDING,
             )
             for i in range(5)
         ]
@@ -109,7 +120,9 @@ class TestAsyncOrchestrator:
             await asyncio.sleep(0.1)  # Simulate work
             return f"Result for {task.id}"
 
-        with patch.object(orchestrator, '_execute_managed_task', new_callable=AsyncMock) as mock_execute_method:
+        with patch.object(
+            orchestrator, "_execute_managed_task", new_callable=AsyncMock
+        ) as mock_execute_method:
             mock_execute_method.side_effect = mock_execute
 
             start_time = time.time()
@@ -121,10 +134,12 @@ class TestAsyncOrchestrator:
                 task_ids.append(task_id)
 
             # Wait for all tasks
-            results = await asyncio.gather(*[
-                orchestrator.wait_for_task(task_id, timeout=5.0)
-                for task_id in task_ids
-            ])
+            results = await asyncio.gather(
+                *[
+                    orchestrator.wait_for_task(task_id, timeout=5.0)
+                    for task_id in task_ids
+                ]
+            )
 
             execution_time = time.time() - start_time
 
@@ -145,7 +160,7 @@ class TestAsyncOrchestrator:
             title="Task A",
             description="Independent task",
             category=TaskCategory.OTHER,
-            status=TaskStatus.PENDING
+            status=TaskStatus.PENDING,
         )
 
         task_b = ManagedTask(
@@ -153,7 +168,7 @@ class TestAsyncOrchestrator:
             title="Task B",
             description="Depends on Task A",
             category=TaskCategory.OTHER,
-            status=TaskStatus.PENDING
+            status=TaskStatus.PENDING,
         )
 
         task_c = ManagedTask(
@@ -161,7 +176,7 @@ class TestAsyncOrchestrator:
             title="Task C",
             description="Depends on Task B",
             category=TaskCategory.OTHER,
-            status=TaskStatus.PENDING
+            status=TaskStatus.PENDING,
         )
 
         execution_order = []
@@ -171,7 +186,9 @@ class TestAsyncOrchestrator:
             await asyncio.sleep(0.1)
             return f"Result for {task.id}"
 
-        with patch.object(orchestrator, '_execute_managed_task', new_callable=AsyncMock) as mock_execute_method:
+        with patch.object(
+            orchestrator, "_execute_managed_task", new_callable=AsyncMock
+        ) as mock_execute_method:
             mock_execute_method.side_effect = mock_execute
 
             # Submit tasks in reverse dependency order
@@ -183,7 +200,7 @@ class TestAsyncOrchestrator:
             await asyncio.gather(
                 orchestrator.wait_for_task("task_a", timeout=5.0),
                 orchestrator.wait_for_task("task_b", timeout=5.0),
-                orchestrator.wait_for_task("task_c", timeout=5.0)
+                orchestrator.wait_for_task("task_c", timeout=5.0),
             )
 
             # Verify execution order respects dependencies
@@ -191,8 +208,12 @@ class TestAsyncOrchestrator:
 
     async def test_cycle_detection(self, orchestrator):
         """Test dependency cycle detection."""
-        task_a = ManagedTask(id="task_a", title="Task A", description="Test", category=TaskCategory.OTHER)
-        task_b = ManagedTask(id="task_b", title="Task B", description="Test", category=TaskCategory.OTHER)
+        task_a = ManagedTask(
+            id="task_a", title="Task A", description="Test", category=TaskCategory.OTHER
+        )
+        task_b = ManagedTask(
+            id="task_b", title="Task B", description="Test", category=TaskCategory.OTHER
+        )
 
         # Submit first task
         await orchestrator.submit_task(task_a, dependencies=["task_b"])
@@ -203,11 +224,14 @@ class TestAsyncOrchestrator:
 
     async def test_task_timeout(self, orchestrator, sample_task):
         """Test task timeout handling."""
+
         async def slow_task(task):
             await asyncio.sleep(2.0)  # Longer than timeout
             return "Should not complete"
 
-        with patch.object(orchestrator, '_execute_managed_task', new_callable=AsyncMock) as mock_execute:
+        with patch.object(
+            orchestrator, "_execute_managed_task", new_callable=AsyncMock
+        ) as mock_execute:
             mock_execute.side_effect = slow_task
 
             # Submit with short timeout
@@ -223,11 +247,14 @@ class TestAsyncOrchestrator:
 
     async def test_task_cancellation(self, orchestrator, sample_task):
         """Test task cancellation."""
+
         async def long_running_task(task):
             await asyncio.sleep(10.0)
             return "Should be cancelled"
 
-        with patch.object(orchestrator, '_execute_managed_task', new_callable=AsyncMock) as mock_execute:
+        with patch.object(
+            orchestrator, "_execute_managed_task", new_callable=AsyncMock
+        ) as mock_execute:
             mock_execute.side_effect = long_running_task
 
             task_id = await orchestrator.submit_task(sample_task)
@@ -246,7 +273,7 @@ class TestAsyncOrchestrator:
     async def test_agent_resource_limits(self, orchestrator):
         """Test agent resource limit enforcement."""
         # Configure tight limits for testing
-        orchestrator.default_agent_limits['max_concurrent_tasks'] = 2
+        orchestrator.default_agent_limits["max_concurrent_tasks"] = 2
 
         tasks = [
             ManagedTask(
@@ -254,7 +281,7 @@ class TestAsyncOrchestrator:
                 title=f"Agent Task {i}",
                 description="Test task for agent limits",
                 category=TaskCategory.OTHER,
-                status=TaskStatus.PENDING
+                status=TaskStatus.PENDING,
             )
             for i in range(4)
         ]
@@ -263,7 +290,9 @@ class TestAsyncOrchestrator:
             await asyncio.sleep(0.5)
             return f"Result for {task.id}"
 
-        with patch.object(orchestrator, '_execute_managed_task', new_callable=AsyncMock) as mock_execute:
+        with patch.object(
+            orchestrator, "_execute_managed_task", new_callable=AsyncMock
+        ) as mock_execute:
             mock_execute.side_effect = slow_task
 
             # Submit all tasks to same agent
@@ -274,7 +303,7 @@ class TestAsyncOrchestrator:
             await asyncio.sleep(0.2)  # Let some tasks start
 
             metrics = await orchestrator.get_orchestration_metrics()
-            assert metrics['orchestration_metrics']['resource_constraints_hit'] > 0
+            assert metrics["orchestration_metrics"]["resource_constraints_hit"] > 0
 
     async def test_retry_logic(self, orchestrator, sample_task):
         """Test task retry on failure."""
@@ -287,7 +316,9 @@ class TestAsyncOrchestrator:
                 raise Exception(f"Attempt {call_count} failed")
             return "Success on retry"
 
-        with patch.object(orchestrator, '_execute_managed_task', new_callable=AsyncMock) as mock_execute:
+        with patch.object(
+            orchestrator, "_execute_managed_task", new_callable=AsyncMock
+        ) as mock_execute:
             mock_execute.side_effect = failing_task
 
             task_id = await orchestrator.submit_task(sample_task)
@@ -298,7 +329,9 @@ class TestAsyncOrchestrator:
 
     async def test_metrics_collection(self, orchestrator, sample_task):
         """Test metrics collection."""
-        with patch.object(orchestrator, '_execute_managed_task', new_callable=AsyncMock) as mock_execute:
+        with patch.object(
+            orchestrator, "_execute_managed_task", new_callable=AsyncMock
+        ) as mock_execute:
             mock_execute.return_value = "Test result"
 
             # Submit and complete a task
@@ -307,10 +340,10 @@ class TestAsyncOrchestrator:
 
             metrics = await orchestrator.get_orchestration_metrics()
 
-            assert metrics['total_tasks'] >= 1
-            assert metrics['completed_tasks'] >= 1
-            assert metrics['orchestration_metrics']['tasks_submitted'] >= 1
-            assert metrics['orchestration_metrics']['tasks_completed'] >= 1
+            assert metrics["total_tasks"] >= 1
+            assert metrics["completed_tasks"] >= 1
+            assert metrics["orchestration_metrics"]["tasks_submitted"] >= 1
+            assert metrics["orchestration_metrics"]["tasks_completed"] >= 1
 
 
 class TestOrchestrationConfig:
@@ -341,18 +374,18 @@ class TestOrchestrationConfig:
         manager = OrchestrationConfigManager()
 
         # Set agent config
-        agent_config = {
-            'max_concurrent_tasks': 5,
-            'max_requests_per_minute': 120
-        }
-        manager.set_agent_config('test_agent', agent_config)
+        agent_config = {"max_concurrent_tasks": 5, "max_requests_per_minute": 120}
+        manager.set_agent_config("test_agent", agent_config)
 
         # Get agent config
-        retrieved_config = manager.get_agent_config('test_agent')
-        assert retrieved_config['max_concurrent_tasks'] == 5
-        assert retrieved_config['max_requests_per_minute'] == 120
+        retrieved_config = manager.get_agent_config("test_agent")
+        assert retrieved_config["max_concurrent_tasks"] == 5
+        assert retrieved_config["max_requests_per_minute"] == 120
 
-    @patch.dict('os.environ', {'ORCHESTRATION_ENABLED': 'false', 'ORCHESTRATION_MAX_CONCURRENT': '15'})
+    @patch.dict(
+        "os.environ",
+        {"ORCHESTRATION_ENABLED": "false", "ORCHESTRATION_MAX_CONCURRENT": "15"},
+    )
     def test_environment_variables(self):
         """Test loading configuration from environment variables."""
         manager = OrchestrationConfigManager()
@@ -374,12 +407,17 @@ class TestEnhancedScheduler:
         """Test scheduler initialization."""
         assert scheduler is not None
         assert scheduler._async_enabled is False
-        assert scheduler._execution_stats['sync_executions'] == 0
+        assert scheduler._execution_stats["sync_executions"] == 0
 
     async def test_async_mode_initialization(self, scheduler):
         """Test async mode initialization."""
-        with patch('framework.helpers.enhanced_scheduler.is_orchestration_enabled', return_value=True):
-            with patch('framework.helpers.enhanced_scheduler.get_orchestrator') as mock_get_orchestrator:
+        with patch(
+            "framework.helpers.enhanced_scheduler.is_orchestration_enabled",
+            return_value=True,
+        ):
+            with patch(
+                "framework.helpers.enhanced_scheduler.get_orchestrator"
+            ) as mock_get_orchestrator:
                 mock_orchestrator = AsyncMock()
                 mock_get_orchestrator.return_value = mock_orchestrator
 
@@ -390,34 +428,49 @@ class TestEnhancedScheduler:
 
     async def test_enhanced_tick_sync_mode(self, scheduler):
         """Test enhanced tick in sync mode."""
-        with patch('framework.helpers.enhanced_scheduler.is_orchestration_enabled', return_value=False):
-            with patch.object(scheduler, '_sync_tick', new_callable=AsyncMock) as mock_sync_tick:
+        with patch(
+            "framework.helpers.enhanced_scheduler.is_orchestration_enabled",
+            return_value=False,
+        ):
+            with patch.object(
+                scheduler, "_sync_tick", new_callable=AsyncMock
+            ) as mock_sync_tick:
                 mock_sync_tick.return_value = {
-                    'mode': 'sync',
-                    'tasks_processed': 1,
-                    'concurrent_tasks': 0,
-                    'errors': [],
-                    'execution_time': 0.1
+                    "mode": "sync",
+                    "tasks_processed": 1,
+                    "concurrent_tasks": 0,
+                    "errors": [],
+                    "execution_time": 0.1,
                 }
 
                 result = await scheduler.enhanced_tick()
 
-                assert result['mode'] == 'sync'
-                assert result['tasks_processed'] == 1
+                assert result["mode"] == "sync"
+                assert result["tasks_processed"] == 1
                 mock_sync_tick.assert_called_once()
 
     async def test_enhanced_tick_async_mode(self, scheduler):
         """Test enhanced tick in async mode."""
-        with patch('framework.helpers.enhanced_scheduler.is_orchestration_enabled', return_value=True):
-            with patch('framework.helpers.enhanced_scheduler.should_use_sync_fallback', return_value=False):
-                with patch.object(scheduler, 'initialize_async_mode', new_callable=AsyncMock):
-                    with patch.object(scheduler, '_async_tick', new_callable=AsyncMock) as mock_async_tick:
+        with patch(
+            "framework.helpers.enhanced_scheduler.is_orchestration_enabled",
+            return_value=True,
+        ):
+            with patch(
+                "framework.helpers.enhanced_scheduler.should_use_sync_fallback",
+                return_value=False,
+            ):
+                with patch.object(
+                    scheduler, "initialize_async_mode", new_callable=AsyncMock
+                ):
+                    with patch.object(
+                        scheduler, "_async_tick", new_callable=AsyncMock
+                    ) as mock_async_tick:
                         mock_async_tick.return_value = {
-                            'mode': 'async',
-                            'tasks_processed': 3,
-                            'concurrent_tasks': 3,
-                            'errors': [],
-                            'execution_time': 0.05
+                            "mode": "async",
+                            "tasks_processed": 3,
+                            "concurrent_tasks": 3,
+                            "errors": [],
+                            "execution_time": 0.05,
                         }
 
                         scheduler._async_enabled = True
@@ -425,25 +478,35 @@ class TestEnhancedScheduler:
 
                         result = await scheduler.enhanced_tick()
 
-                        assert result['mode'] == 'async'
-                        assert result['tasks_processed'] == 3
-                        assert result['concurrent_tasks'] == 3
+                        assert result["mode"] == "async"
+                        assert result["tasks_processed"] == 3
+                        assert result["concurrent_tasks"] == 3
                         mock_async_tick.assert_called_once()
 
     async def test_fallback_to_sync(self, scheduler):
         """Test fallback to sync mode on error."""
-        with patch('framework.helpers.enhanced_scheduler.is_orchestration_enabled', return_value=True):
-            with patch('framework.helpers.enhanced_scheduler.should_use_sync_fallback', return_value=True):
-                with patch.object(scheduler, '_async_tick', new_callable=AsyncMock) as mock_async_tick:
-                    with patch.object(scheduler, '_sync_tick', new_callable=AsyncMock) as mock_sync_tick:
+        with patch(
+            "framework.helpers.enhanced_scheduler.is_orchestration_enabled",
+            return_value=True,
+        ):
+            with patch(
+                "framework.helpers.enhanced_scheduler.should_use_sync_fallback",
+                return_value=True,
+            ):
+                with patch.object(
+                    scheduler, "_async_tick", new_callable=AsyncMock
+                ) as mock_async_tick:
+                    with patch.object(
+                        scheduler, "_sync_tick", new_callable=AsyncMock
+                    ) as mock_sync_tick:
                         # Async tick fails
                         mock_async_tick.side_effect = Exception("Async failed")
                         mock_sync_tick.return_value = {
-                            'mode': 'sync',
-                            'tasks_processed': 1,
-                            'concurrent_tasks': 0,
-                            'errors': [],
-                            'execution_time': 0.1
+                            "mode": "sync",
+                            "tasks_processed": 1,
+                            "concurrent_tasks": 0,
+                            "errors": [],
+                            "execution_time": 0.1,
                         }
 
                         scheduler._async_enabled = True
@@ -451,8 +514,8 @@ class TestEnhancedScheduler:
 
                         result = await scheduler.enhanced_tick()
 
-                        assert result['mode'] == 'sync'
-                        assert scheduler._execution_stats['fallbacks_to_sync'] > 0
+                        assert result["mode"] == "sync"
+                        assert scheduler._execution_stats["fallbacks_to_sync"] > 0
 
 
 class TestPerformanceIntegration:
@@ -461,8 +524,7 @@ class TestPerformanceIntegration:
     async def test_concurrent_performance_improvement(self):
         """Test that concurrent execution shows performance improvement."""
         orchestrator = AsyncTaskOrchestrator(
-            max_concurrent_tasks=5,
-            enable_performance_monitoring=False
+            max_concurrent_tasks=5, enable_performance_monitoring=False
         )
         await orchestrator.start()
 
@@ -475,7 +537,7 @@ class TestPerformanceIntegration:
                     title=f"Performance Task {i}",
                     description="Performance test task",
                     category=TaskCategory.OTHER,
-                    status=TaskStatus.PENDING
+                    status=TaskStatus.PENDING,
                 )
                 tasks.append(task)
 
@@ -484,7 +546,9 @@ class TestPerformanceIntegration:
                 await asyncio.sleep(0.2)
                 return f"Result for {task.id}"
 
-            with patch.object(orchestrator, '_execute_managed_task', new_callable=AsyncMock) as mock_execute_method:
+            with patch.object(
+                orchestrator, "_execute_managed_task", new_callable=AsyncMock
+            ) as mock_execute_method:
                 mock_execute_method.side_effect = mock_execute
 
                 # Test concurrent execution
@@ -497,10 +561,12 @@ class TestPerformanceIntegration:
                     task_ids.append(task_id)
 
                 # Wait for completion
-                await asyncio.gather(*[
-                    orchestrator.wait_for_task(task_id, timeout=5.0)
-                    for task_id in task_ids
-                ])
+                await asyncio.gather(
+                    *[
+                        orchestrator.wait_for_task(task_id, timeout=5.0)
+                        for task_id in task_ids
+                    ]
+                )
 
                 concurrent_time = time.time() - start_time
 
@@ -511,8 +577,8 @@ class TestPerformanceIntegration:
 
                 # Get metrics
                 metrics = await orchestrator.get_orchestration_metrics()
-                assert metrics['total_tasks'] == 5
-                assert metrics['completed_tasks'] == 5
+                assert metrics["total_tasks"] == 5
+                assert metrics["completed_tasks"] == 5
 
         finally:
             await orchestrator.stop()
@@ -533,11 +599,12 @@ if __name__ == "__main__":
             title="Basic Test Task",
             description="Testing basic functionality",
             category=TaskCategory.OTHER,
-            status=TaskStatus.PENDING
+            status=TaskStatus.PENDING,
         )
 
         # Mock execution
         original_execute = orchestrator._execute_managed_task
+
         async def mock_execute(managed_task):
             await asyncio.sleep(0.1)
             return f"Completed: {managed_task.title}"
@@ -551,7 +618,9 @@ if __name__ == "__main__":
 
         # Test metrics
         metrics = await orchestrator.get_orchestration_metrics()
-        print(f"✓ Orchestration metrics: {metrics['total_tasks']} total, {metrics['completed_tasks']} completed")
+        print(
+            f"✓ Orchestration metrics: {metrics['total_tasks']} total, {metrics['completed_tasks']} completed"
+        )
 
         await orchestrator.stop()
         print("✓ Basic tests completed successfully")

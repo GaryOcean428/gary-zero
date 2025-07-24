@@ -22,10 +22,10 @@ R = TypeVar("R")
 
 def _parse_port_arg(value: str) -> int | None:
     """Parse port argument, handling Railway's literal '$PORT' string case.
-    
+
     Args:
         value: The port argument value (could be number or '$PORT' string)
-        
+
     Returns:
         Parsed integer port or None if parsing fails
     """
@@ -63,7 +63,9 @@ class RuntimeState:
 
     def _initialize_parser(self) -> None:
         """Initialize the argument parser with all supported arguments."""
-        self._parser.add_argument("--port", type=_parse_port_arg, default=None, help="Web UI port")
+        self._parser.add_argument(
+            "--port", type=_parse_port_arg, default=None, help="Web UI port"
+        )
         self._parser.add_argument("--host", type=str, default=None, help="Web UI host")
         self._parser.add_argument(
             "--cloudflare_tunnel",
@@ -159,7 +161,9 @@ async def call_development_function(
 
 
 @overload
-async def call_development_function(func: Callable[..., T], *args: Any, **kwargs: Any) -> T: ...
+async def call_development_function(
+    func: Callable[..., T], *args: Any, **kwargs: Any
+) -> T: ...
 
 
 async def call_development_function(
@@ -216,7 +220,11 @@ def _get_rfc_url() -> str:
     # Only add port if not already in URL
     if not parsed.port:
         # Rebuild URL with port if not present
-        netloc = f"{parsed.hostname}:{settings_dict['rfc_port_http']}" if parsed.hostname else ""
+        netloc = (
+            f"{parsed.hostname}:{settings_dict['rfc_port_http']}"
+            if parsed.hostname
+            else ""
+        )
         parsed = parsed._replace(netloc=netloc)
 
     # Rebuild URL and ensure /rfc path
@@ -260,5 +268,9 @@ def get_web_ui_port() -> int:
 
 def get_tunnel_api_port() -> int:
     """Get the tunnel API port from args or environment."""
-    port = get_arg("tunnel_api_port") or int(dotenv.get_dotenv_value("TUNNEL_API_PORT", 0)) or 55520
+    port = (
+        get_arg("tunnel_api_port")
+        or int(dotenv.get_dotenv_value("TUNNEL_API_PORT", 0))
+        or 55520
+    )
     return int(port)

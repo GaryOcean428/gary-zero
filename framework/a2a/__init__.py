@@ -9,9 +9,4 @@ from .agent_card import AgentCard, get_agent_card
 from .discovery import DiscoveryService
 from .negotiation import NegotiationService
 
-__all__ = [
-    'AgentCard',
-    'get_agent_card',
-    'DiscoveryService',
-    'NegotiationService'
-]
+__all__ = ["AgentCard", "get_agent_card", "DiscoveryService", "NegotiationService"]

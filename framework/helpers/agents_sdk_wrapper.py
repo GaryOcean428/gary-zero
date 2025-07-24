@@ -38,6 +38,7 @@ if TYPE_CHECKING:
 @dataclass
 class SDKAgentConfig:
     """Configuration for SDK-wrapped agents."""
+
     name: str
     model_provider: str = "openai"
     model_name: str = "o3"  # Updated to modern o3 model
@@ -71,15 +72,14 @@ class GaryZeroSDKAgent:
         if self.config.model_provider.lower() == "openai":
             provider = OpenAIProvider()
             model = OpenAIChatCompletionsModel(
-                name=self.config.model_name,
-                provider=provider
+                name=self.config.model_name, provider=provider
             )
         else:
             # Fallback to default
             provider = OpenAIProvider()
             model = OpenAIChatCompletionsModel(
                 name="o3",  # Updated to modern o3 model
-                provider=provider
+                provider=provider,
             )
 
         # Create SDK agent with configuration
@@ -87,7 +87,7 @@ class GaryZeroSDKAgent:
             name=self.config.name,
             model=model,
             instructions=self.config.instructions or self._get_default_instructions(),
-            max_turns=self.config.max_turns
+            max_turns=self.config.max_turns,
         )
 
         return agent
@@ -120,8 +120,7 @@ class GaryZeroSDKAgent:
 
             # Create run configuration
             run_config = RunConfig(
-                max_turns=self.config.max_turns,
-                enable_parallel_tool_calls=True
+                max_turns=self.config.max_turns, enable_parallel_tool_calls=True
             )
 
             # Execute with SDK
@@ -133,7 +132,7 @@ class GaryZeroSDKAgent:
                 return {
                     "status": "completed",
                     "result": result.value,
-                    "trace_id": trace.trace_id if self.config.enable_tracing else None
+                    "trace_id": trace.trace_id if self.config.enable_tracing else None,
                 }
             else:
                 error_msg = str(result.error) if result.error else "Unknown error"
@@ -141,16 +140,15 @@ class GaryZeroSDKAgent:
                 return {
                     "status": "failed",
                     "error": error_msg,
-                    "trace_id": trace.trace_id if self.config.enable_tracing else None
+                    "trace_id": trace.trace_id if self.config.enable_tracing else None,
                 }
 
         except Exception as e:
             self.task_manager.fail_task(task_id, str(e))
-            PrintStyle(font_color="red", padding=True).print(f"SDK Agent execution failed: {e}")
-            return {
-                "status": "error",
-                "error": str(e)
-            }
+            PrintStyle(font_color="red", padding=True).print(
+                f"SDK Agent execution failed: {e}"
+            )
+            return {"status": "error", "error": str(e)}
 
     async def _run_sdk_agent(self, message: str, config: RunConfig) -> RunResult:
         """Run the SDK agent with the given message."""
@@ -162,7 +160,7 @@ class GaryZeroSDKAgent:
         result = await self.sdk_agent.run(
             messages=[{"role": "user", "content": message}],
             session=self.session,
-            config=config
+            config=config,
         )
 
         # Apply output guardrails if enabled
@@ -176,6 +174,7 @@ class GaryZeroSDKAgent:
         # Import guardrails (will be created in next phase)
         try:
             from framework.helpers.guardrails import InputValidator
+
             validator = InputValidator()
             return await validator.validate_and_sanitize(message)
         except ImportError:
@@ -197,6 +196,7 @@ class GaryZeroSDKAgent:
         """Apply output guardrails to validate response."""
         try:
             from framework.helpers.guardrails import OutputValidator
+
             validator = OutputValidator()
             validated_result = await validator.validate_output(result)
             return validated_result
@@ -218,10 +218,7 @@ class GaryZeroSDKAgent:
         """Handle agent handoff using SDK primitives."""
         try:
             # Create handoff object
-            handoff = Handoff(
-                agent_name=to_agent,
-                context=context
-            )
+            handoff = Handoff(agent_name=to_agent, context=context)
 
             # Execute handoff through SDK
             # This would typically be handled by the SDK's session management
@@ -243,10 +240,12 @@ class GaryZeroSDKAgent:
     def get_session_data(self) -> dict[str, Any]:
         """Get current session data."""
         return {
-            "session_id": self.session.session_id if hasattr(self.session, 'session_id') else None,
+            "session_id": self.session.session_id
+            if hasattr(self.session, "session_id")
+            else None,
             "agent_name": self.config.name,
             "current_run_id": self._current_run_id,
-            "context": self._sdk_context
+            "context": self._sdk_context,
         }
 
 
@@ -268,7 +267,7 @@ class SDKTaskWrapper:
             "status": self.gary_task.status.value,
             "progress": self.gary_task.progress,
             "created_at": self.gary_task.created_at.isoformat(),
-            "context": self.gary_task.context
+            "context": self.gary_task.context,
         }
 
     def to_sdk_format(self) -> dict[str, Any]:
@@ -277,7 +276,7 @@ class SDKTaskWrapper:
             "task_id": self.gary_task.id,
             "instructions": self.gary_task.description,
             "metadata": self.sdk_metadata,
-            "context": self.gary_task.context
+            "context": self.gary_task.context,
         }
 
 
@@ -301,7 +300,9 @@ class SDKAgentOrchestrator:
 
         return agent_id
 
-    async def execute_with_agent(self, agent_id: str, task_id: str, message: str) -> dict[str, Any]:
+    async def execute_with_agent(
+        self, agent_id: str, task_id: str, message: str
+    ) -> dict[str, Any]:
         """Execute a task with a specific SDK agent."""
         if agent_id not in self.agents:
             raise ValueError(f"Agent {agent_id} not found")
@@ -309,8 +310,9 @@ class SDKAgentOrchestrator:
         agent = self.agents[agent_id]
         return await agent.execute_task(task_id, message)
 
-    async def coordinate_handoff(self, from_agent_id: str, to_agent_id: str,
-                                context: dict[str, Any]) -> bool:
+    async def coordinate_handoff(
+        self, from_agent_id: str, to_agent_id: str, context: dict[str, Any]
+    ) -> bool:
         """Coordinate handoff between SDK agents."""
         if from_agent_id not in self.agents or to_agent_id not in self.agents:
             return False
@@ -338,15 +340,12 @@ class SDKAgentOrchestrator:
             "agent_id": agent_id,
             "name": agent.config.name,
             "session_data": agent.get_session_data(),
-            "is_active": True  # Simplified for now
+            "is_active": True,  # Simplified for now
         }
 
     def get_all_agents_status(self) -> dict[str, dict[str, Any]]:
         """Get status of all registered agents."""
-        return {
-            agent_id: self.get_agent_status(agent_id)
-            for agent_id in self.agents
-        }
+        return {agent_id: self.get_agent_status(agent_id) for agent_id in self.agents}
 
 
 # Global orchestrator instance
@@ -373,12 +372,13 @@ def initialize_sdk_integration(enable_tracing: bool = True) -> None:
 
 
 # Backward compatibility functions
-def wrap_gary_agent_with_sdk(gary_agent: "Agent",
-                            name: str | None = None) -> GaryZeroSDKAgent:
+def wrap_gary_agent_with_sdk(
+    gary_agent: "Agent", name: str | None = None
+) -> GaryZeroSDKAgent:
     """Convenience function to wrap a Gary-Zero agent with SDK."""
     config = SDKAgentConfig(
         name=name or gary_agent.agent_name,
-        instructions=f"You are {gary_agent.agent_name} in the Gary-Zero framework."
+        instructions=f"You are {gary_agent.agent_name} in the Gary-Zero framework.",
     )
 
     return GaryZeroSDKAgent(gary_agent, config)

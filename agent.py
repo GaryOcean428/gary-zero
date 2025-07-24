@@ -18,8 +18,15 @@ from langchain_core.prompts import ChatPromptTemplate
 
 # Local application imports
 import models
-from framework.helpers import dirty_json, errors, extract_tools, files, history, tokens
-from framework.helpers import log as Log
+from framework.helpers import (
+    dirty_json,
+    errors,
+    extract_tools,
+    files,
+    history,
+    log,
+    tokens,
+)
 from framework.helpers.defer import DeferredTask
 from framework.helpers.localization import Localization
 from framework.helpers.print_style import PrintStyle
@@ -35,7 +42,6 @@ class AgentContextType(Enum):
 
 
 class AgentContext:
-
     _contexts: dict[str, "AgentContext"] = {}
     _counter: int = 0
 
@@ -45,7 +51,7 @@ class AgentContext:
         id: str | None = None,
         name: str | None = None,
         agent0: "Agent|None" = None,
-        log: Log.Log | None = None,
+        log: log.Log | None = None,
         paused: bool = False,
         streaming_agent: "Agent|None" = None,
         created_at: datetime | None = None,
@@ -56,7 +62,7 @@ class AgentContext:
         self.id = id or str(uuid.uuid4())
         self.name = name
         self.config = config
-        self.log = log or Log.Log()
+        self.log = log or log.Log()
         self.agent0 = agent0 or Agent(0, self.config, self)
         self.paused = paused
         self.streaming_agent = streaming_agent
@@ -118,19 +124,21 @@ class AgentContext:
 
     @staticmethod
     def log_to_all(
-        type: Log.Type,
+        type: log.Type,
         heading: str | None = None,
         content: str | None = None,
         kvps: dict | None = None,
         temp: bool | None = None,
-        update_progress: Log.ProgressUpdate | None = None,
+        update_progress: log.ProgressUpdate | None = None,
         id: str | None = None,  # Add id parameter
         **kwargs,
-    ) -> list[Log.LogItem]:
-        items: list[Log.LogItem] = []
+    ) -> list[log.LogItem]:
+        items: list[log.LogItem] = []
         for context in AgentContext.all():
             items.append(
-                context.log.log(type, heading, content, kvps, temp, update_progress, id, **kwargs)
+                context.log.log(
+                    type, heading, content, kvps, temp, update_progress, id, **kwargs
+                )
             )
         return items
 
@@ -169,13 +177,17 @@ class AgentContext:
             while intervention_agent and broadcast_level != 0:
                 intervention_agent.intervention = msg
                 broadcast_level -= 1
-                intervention_agent = intervention_agent.data.get(Agent.DATA_NAME_SUPERIOR, None)
+                intervention_agent = intervention_agent.data.get(
+                    Agent.DATA_NAME_SUPERIOR, None
+                )
         else:
             self.task = self.run_task(self._process_chain, current_agent, msg)
 
         return self.task
 
-    def run_task(self, func: Callable[..., Coroutine[Any, Any, Any]], *args: Any, **kwargs: Any):
+    def run_task(
+        self, func: Callable[..., Coroutine[Any, Any, Any]], *args: Any, **kwargs: Any
+    ):
         if not self.task:
             self.task = DeferredTask(
                 thread_name=self.__class__.__name__,
@@ -191,7 +203,8 @@ class AgentContext:
                 agent.hist_add_user_message(msg)  # type: ignore
             else:
                 agent.hist_add_tool_result(
-                    tool_name="call_subordinate", tool_result=msg  # type: ignore
+                    tool_name="call_subordinate",
+                    tool_result=msg,  # type: ignore
                 )
             response = await agent.monologue()  # type: ignore
             superior = agent.data.get(Agent.DATA_NAME_SUPERIOR, None)
@@ -287,7 +300,8 @@ class InterventionError(Exception):
     pass
 
 
-# killer exception class - not forwarded to LLM, cannot be fixed on its own, ends message loop
+# killer exception class - not forwarded to LLM, cannot be fixed on its own,
+# ends message loop
 class RepairableError(Exception):
     pass
 
@@ -297,13 +311,13 @@ class HandledError(Exception):
 
 
 class Agent:
-
     DATA_NAME_SUPERIOR = "_superior"
     DATA_NAME_SUBORDINATE = "_subordinate"
     DATA_NAME_CTX_WINDOW = "ctx_window"
 
-    def __init__(self, number: int, config: AgentConfig, context: AgentContext | None = None):
-
+    def __init__(
+        self, number: int, config: AgentConfig, context: AgentContext | None = None
+    ):
         # agent config
         self.config = config
 
@@ -331,12 +345,13 @@ class Agent:
 
                 # let the agent run message loop until he stops it with a response tool
                 while True:
-
                     self.context.streaming_agent = self  # mark self as current streamer
                     self.loop_data.iteration += 1
 
                     # call message_loop_start extensions
-                    await self.call_extensions("message_loop_start", loop_data=self.loop_data)
+                    await self.call_extensions(
+                        "message_loop_start", loop_data=self.loop_data
+                    )
 
                     try:
                         # prepare LLM chain (model, system, history)
@@ -353,7 +368,9 @@ class Agent:
                             type="agent", heading=f"{self.agent_name}: Generating"
                         )
 
-                        async def stream_callback(chunk: str, full: str, printer=printer, log=log):
+                        async def stream_callback(
+                            chunk: str, full: str, printer=printer, log=log
+                        ):
                             # output the agent response stream
                             if chunk:
                                 printer.stream(chunk)
@@ -367,14 +384,17 @@ class Agent:
 
                         if (
                             self.loop_data.last_response == agent_response
-                        ):  # if assistant_response is the same as last message in history,
+                        ):  # if assistant_response is the same as
+                            # last message in history,
                             # let him know
                             # Append the assistant's response to the history
                             self.hist_add_ai_response(agent_response)
                             # Append warning message to the history
                             warning_msg = self.read_prompt("fw.msg_repeat.md")
                             self.hist_add_warning(message=warning_msg)
-                            PrintStyle(font_color="orange", padding=True).print(warning_msg)
+                            PrintStyle(font_color="orange", padding=True).print(
+                                warning_msg
+                            )
                             self.context.log.log(type="warning", content=warning_msg)
 
                         else:  # otherwise proceed with tool
@@ -383,11 +403,14 @@ class Agent:
                             # process tools requested in agent message
                             tools_result = await self.process_tools(agent_response)
                             if tools_result:  # final response of message loop available
-                                return tools_result  # break the execution if the task is done
+                                # break the execution if the task is done
+                                return tools_result
 
                     # exceptions inside message loop:
                     except InterventionError:
-                        pass  # intervention message has been handled in handle_intervention(),
+                        # intervention message has been handled in
+                        # handle_intervention(), proceed with conversation loop
+                        pass
                         # proceed with conversation loop
                     except RepairableError as e:
                         # Forward repairable errors to the LLM, maybe it can fix them
@@ -401,7 +424,9 @@ class Agent:
 
                     finally:
                         # call message_loop_end extensions
-                        await self.call_extensions("message_loop_end", loop_data=self.loop_data)
+                        await self.call_extensions(
+                            "message_loop_end", loop_data=self.loop_data
+                        )
 
             # exceptions outside message loop:
             except InterventionError:
@@ -533,7 +558,9 @@ class Agent:
     def set_data(self, field: str, value):
         self.data[field] = value
 
-    def hist_add_message(self, ai: bool, content: history.MessageContent, tokens: int = 0):
+    def hist_add_message(
+        self, ai: bool, content: history.MessageContent, tokens: int = 0
+    ):
         self.last_message = datetime.now(UTC)
         return self.history.add_message(ai=ai, content=content, tokens=tokens)
 
@@ -564,7 +591,10 @@ class Agent:
                 task_id = task_manager.create_task(
                     title=f"User Request: {message.message[:50]}...",
                     description=message.message,
-                    context={"context_id": self.context.id, "agent_id": self.agent_name}
+                    context={
+                        "context_id": self.context.id,
+                        "agent_id": self.agent_name,
+                    },
                 )
 
                 # Start tracing for this interaction
@@ -574,16 +604,18 @@ class Agent:
                 try:
                     guardrails = get_guardrails_manager()
                     # Note: This should be made async in future, for now we skip async guardrails here
-                    validated_message = message.message  # Placeholder - full integration requires async refactor
+                    validated_message = (
+                        message.message
+                    )  # Placeholder - full integration requires async refactor
                     if validated_message != message.message:
                         self.context.log.log(
                             type="info",
-                            content="Message processed through input guardrails"
+                            content="Message processed through input guardrails",
                         )
                 except Exception as guard_error:
                     self.context.log.log(
                         type="warning",
-                        content=f"Guardrails processing failed: {guard_error}"
+                        content=f"Guardrails processing failed: {guard_error}",
                     )
                     validated_message = message.message
 
@@ -597,22 +629,23 @@ class Agent:
 
                 self.context.log.log(
                     type="info",
-                    content=f"Created task {task_id[:8]} with SDK integration (trace: {trace_id[:8]})"
+                    content=f"Created task {task_id[:8]} with SDK integration (trace: {trace_id[:8]})",
                 )
 
             except Exception as e:
                 # Don't let SDK integration errors break the core functionality
                 self.context.log.log(
                     type="warning",
-                    content=f"SDK integration failed, falling back to traditional mode: {e}"
+                    content=f"SDK integration failed, falling back to traditional mode: {e}",
                 )
                 # Fall back to basic task management
                 try:
                     from framework.helpers.task_manager import get_task_manager
+
                     task_manager = get_task_manager()
                     task_id = task_manager.create_task(
                         title=f"User Request: {message.message[:50]}...",
-                        description=message.message
+                        description=message.message,
                     )
                     task_manager.start_task(task_id, self.agent_name)
                     self.set_data("current_task_id", task_id)
@@ -620,7 +653,7 @@ class Agent:
                 except Exception as e2:
                     self.context.log.log(
                         type="error",
-                        content=f"Both SDK and traditional task management failed: {e2}"
+                        content=f"Both SDK and traditional task management failed: {e2}",
                     )
 
         # load message template based on intervention
@@ -676,44 +709,66 @@ class Agent:
                         final_message = message  # Placeholder - full integration requires async refactor
 
                         # Evaluate interaction safety (synchronously for now)
-                        user_msg = self.last_user_message.content.get("message", "") if self.last_user_message else ""
+                        user_msg = (
+                            self.last_user_message.content.get("message", "")
+                            if self.last_user_message
+                            else ""
+                        )
                         # safety_eval = await guardrails.evaluate_interaction(user_msg, final_message)
-                        safety_eval = {"is_safe": True, "risk_score": 0.0}  # Placeholder
+                        safety_eval = {
+                            "is_safe": True,
+                            "risk_score": 0.0,
+                        }  # Placeholder
 
                         # End tracing
                         if trace_id:
                             tracer.end_agent_trace(
                                 trace_id,
                                 success=safety_eval.get("is_safe", True),
-                                result=final_message[:200] + "..." if len(final_message) > 200 else final_message
+                                result=final_message[:200] + "..."
+                                if len(final_message) > 200
+                                else final_message,
                             )
 
                         # Update task progress
-                        task_manager.update_task_progress(task_id, 1.0, "Agent response completed with SDK guardrails")
-                        task_manager.complete_task(task_id, final_message[:200] + "..." if len(final_message) > 200 else final_message)
+                        task_manager.update_task_progress(
+                            task_id, 1.0, "Agent response completed with SDK guardrails"
+                        )
+                        task_manager.complete_task(
+                            task_id,
+                            final_message[:200] + "..."
+                            if len(final_message) > 200
+                            else final_message,
+                        )
 
                         # Log safety evaluation results
                         if not safety_eval.get("is_safe", True):
                             self.context.log.log(
                                 type="warning",
-                                content=f"Safety evaluation flagged interaction (risk score: {safety_eval.get('risk_score', 0):.2f})"
+                                content=f"Safety evaluation flagged interaction (risk score: {safety_eval.get('risk_score', 0):.2f})",
                             )
 
                         self.context.log.log(
                             type="success",
-                            content=f"Completed task {task_id[:8]} with SDK integration (trace: {trace_id[:8] if trace_id else 'N/A'})"
+                            content=f"Completed task {task_id[:8]} with SDK integration (trace: {trace_id[:8] if trace_id else 'N/A'})",
                         )
 
                     except Exception as sdk_error:
                         # Fall back to traditional completion
                         self.context.log.log(
                             type="warning",
-                            content=f"SDK completion failed, using traditional method: {sdk_error}"
+                            content=f"SDK completion failed, using traditional method: {sdk_error}",
                         )
-                        task_manager.complete_task(task_id, message[:200] + "..." if len(message) > 200 else message)
+                        task_manager.complete_task(
+                            task_id,
+                            message[:200] + "..." if len(message) > 200 else message,
+                        )
                 else:
                     # Traditional completion
-                    task_manager.complete_task(task_id, message[:200] + "..." if len(message) > 200 else message)
+                    task_manager.complete_task(
+                        task_id,
+                        message[:200] + "..." if len(message) > 200 else message,
+                    )
 
                 # Clear the current task ID
                 self.set_data("current_task_id", None)
@@ -723,8 +778,7 @@ class Agent:
         except Exception as e:
             # Don't let task completion errors break the core functionality
             self.context.log.log(
-                type="warning",
-                content=f"Task completion integration failed: {e}"
+                type="warning", content=f"Task completion integration failed: {e}"
             )
 
         return response_msg
@@ -739,7 +793,9 @@ class Agent:
         )
         return self.hist_add_message(False, content=content)
 
-    def concat_messages(self, messages):  # TODO add param for message range, topic, history
+    def concat_messages(
+        self, messages
+    ):  # TODO add param for message range, topic, history
         return self.history.output_text(human_label="user", ai_label="assistant")
 
     def get_chat_model(self):
@@ -783,10 +839,14 @@ class Agent:
         model = self.get_utility_model()
 
         # rate limiter
-        limiter = await self.rate_limiter(self.config.utility_model, prompt.format(), background)
+        limiter = await self.rate_limiter(
+            self.config.utility_model, prompt.format(), background
+        )
 
         async for chunk in (prompt | model).astream({}):
-            await self.handle_intervention()  # wait for intervention and handle it, if paused
+            await (
+                self.handle_intervention()
+            )  # wait for intervention and handle it, if paused
 
             content = models.parse_chunk(chunk)
             limiter.add(output=tokens.approximate_tokens(content))
@@ -817,7 +877,9 @@ class Agent:
         for attempt in range(max_retries):
             try:
                 async for chunk in (prompt | model).astream({}):
-                    await self.handle_intervention()  # wait for intervention and handle it, if paused
+                    await (
+                        self.handle_intervention()
+                    )  # wait for intervention and handle it, if paused
 
                     content = models.parse_chunk(chunk)
                     limiter.add(output=tokens.approximate_tokens(content))
@@ -829,11 +891,15 @@ class Agent:
                 # If we reach here, streaming completed successfully
                 break
 
-            except (httpx.RemoteProtocolError, httpx.ConnectError, httpx.ReadError) as e:
+            except (
+                httpx.RemoteProtocolError,
+                httpx.ConnectError,
+                httpx.ReadError,
+            ) as e:
                 if attempt < max_retries - 1:  # Don't retry on last attempt
                     self.context.log.log(
                         type="warning",
-                        content=f"HTTP connection error (attempt {attempt + 1}/{max_retries}): {str(e)}. Retrying in {retry_delay}s..."
+                        content=f"HTTP connection error (attempt {attempt + 1}/{max_retries}): {str(e)}. Retrying in {retry_delay}s...",
                     )
                     await asyncio.sleep(retry_delay)
                     retry_delay *= 2  # Exponential backoff
@@ -852,7 +918,9 @@ class Agent:
 
         return response
 
-    async def rate_limiter(self, model_config: ModelConfig, input: str, background: bool = False):
+    async def rate_limiter(
+        self, model_config: ModelConfig, input: str, background: bool = False
+    ):
         # rate limiter log
         wait_log = None
 
@@ -885,7 +953,9 @@ class Agent:
     async def handle_intervention(self, progress: str = ""):
         while self.context.paused:
             await asyncio.sleep(0.1)  # wait if paused
-        if self.intervention:  # if there is an intervention message, but not yet processed
+        if (
+            self.intervention
+        ):  # if there is an intervention message, but not yet processed
             msg = self.intervention
             self.intervention = None  # reset the intervention message
             if progress.strip():
@@ -934,7 +1004,7 @@ class Agent:
                             tracer.add_trace_event(
                                 trace_id,
                                 tracer.tracing_processor.TraceEventType.TOOL_CALL,
-                                {"tool_name": tool_name, "args": tool_args}
+                                {"tool_name": tool_name, "args": tool_args},
                             )
 
                         # Execute SDK tool
@@ -945,12 +1015,18 @@ class Agent:
                         # Convert SDK result to Gary-Zero format
                         class SDKToolResult:
                             def __init__(self, sdk_result):
-                                if hasattr(sdk_result, 'error') and sdk_result.error:
+                                if hasattr(sdk_result, "error") and sdk_result.error:
                                     self.message = f"Tool error: {sdk_result.error}"
                                     self.break_loop = False
                                 else:
-                                    self.message = str(sdk_result.result) if hasattr(sdk_result, 'result') else str(sdk_result)
-                                    self.break_loop = False  # SDK tools don't break loop by default
+                                    self.message = (
+                                        str(sdk_result.result)
+                                        if hasattr(sdk_result, "result")
+                                        else str(sdk_result)
+                                    )
+                                    self.break_loop = (
+                                        False  # SDK tools don't break loop by default
+                                    )
 
                         response = SDKToolResult(sdk_result)
 
@@ -963,7 +1039,7 @@ class Agent:
             except Exception as e:
                 self.context.log.log(
                     type="warning",
-                    content=f"SDK tool execution failed, falling back to traditional tools: {e}"
+                    content=f"SDK tool execution failed, falling back to traditional tools: {e}",
                 )
                 tool = None
 
@@ -972,13 +1048,15 @@ class Agent:
                 try:
                     import framework.helpers.mcp_handler as mcp_helper
 
-                    mcp_tool_candidate = mcp_helper.MCPConfig.get_instance().get_tool(self, tool_name)
+                    mcp_tool_candidate = mcp_helper.MCPConfig.get_instance().get_tool(
+                        self, tool_name
+                    )
                     if mcp_tool_candidate:
                         tool = mcp_tool_candidate
                 except Exception as e:
-                    PrintStyle(background_color="black", font_color="red", padding=True).print(
-                        f"Failed to get MCP tool '{tool_name}': {e}"
-                    )
+                    PrintStyle(
+                        background_color="black", font_color="red", padding=True
+                    ).print(f"Failed to get MCP tool '{tool_name}': {e}")
 
             # Fallback to local get_tool if MCP tool was not found or MCP lookup failed
             if not tool:
@@ -997,10 +1075,14 @@ class Agent:
                 if response.break_loop:
                     return response.message
             else:
-                error_detail = f"Tool '{raw_tool_name}' not found or could not be initialized."
+                error_detail = (
+                    f"Tool '{raw_tool_name}' not found or could not be initialized."
+                )
                 self.hist_add_warning(error_detail)
                 PrintStyle(font_color="red", padding=True).print(error_detail)
-                self.context.log.log(type="error", content=f"{self.agent_name}: {error_detail}")
+                self.context.log.log(
+                    type="error", content=f"{self.agent_name}: {error_detail}"
+                )
         else:
             warning_msg_misformat = self.read_prompt("fw.msg_misformat.md")
             self.hist_add_warning(warning_msg_misformat)
@@ -1010,7 +1092,7 @@ class Agent:
                 content=f"{self.agent_name}: Message misformat, no valid tool request found.",
             )
 
-    def log_from_stream(self, stream: str, log_item: Log.LogItem):
+    def log_from_stream(self, stream: str, log_item: log.LogItem):
         try:
             if len(stream) < 25:
                 return  # no reason to try
@@ -1021,7 +1103,9 @@ class Agent:
         except Exception:
             pass
 
-    def get_tool(self, name: str, method: str | None, args: dict, message: str, **kwargs):
+    def get_tool(
+        self, name: str, method: str | None, args: dict, message: str, **kwargs
+    ):
         from framework.helpers.tool import Tool
         from framework.tools.unknown import Unknown
 
@@ -1030,13 +1114,20 @@ class Agent:
             plugin_tool_class = self._get_plugin_tool(name)
             if plugin_tool_class:
                 return plugin_tool_class(
-                    agent=self, name=name, method=method, args=args, message=message, **kwargs
+                    agent=self,
+                    name=name,
+                    method=method,
+                    args=args,
+                    message=message,
+                    **kwargs,
                 )
         except Exception as e:
             print(f"Failed to load plugin tool {name}: {e}")
 
         # Fallback to static tools
-        classes = extract_tools.load_classes_from_folder("framework/tools", name + ".py", Tool)
+        classes = extract_tools.load_classes_from_folder(
+            "framework/tools", name + ".py", Tool
+        )
         tool_class = classes[0] if classes else Unknown
         return tool_class(
             agent=self, name=name, method=method, args=args, message=message, **kwargs
@@ -1045,9 +1136,10 @@ class Agent:
     def _get_plugin_tool(self, name: str):
         """Get a tool from the plugin system."""
         # Initialize plugin manager if not already done
-        if not hasattr(self, '_plugin_manager'):
+        if not hasattr(self, "_plugin_manager"):
             try:
                 from framework.plugins.manager import PluginManager
+
                 self._plugin_manager = PluginManager()
             except Exception as e:
                 print(f"Failed to initialize plugin manager: {e}")

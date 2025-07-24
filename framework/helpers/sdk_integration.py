@@ -27,12 +27,13 @@ def initialize_sdk_integration(config: dict[str, Any] | None = None) -> dict[str
         "tracing": False,
         "tools": False,
         "orchestrator": False,
-        "errors": []
+        "errors": [],
     }
 
     # Initialize guardrails system
     try:
         from framework.helpers.guardrails import initialize_guardrails
+
         initialize_guardrails(strict_mode=config.get("strict_mode", False))
         initialization_results["guardrails"] = True
         PrintStyle(font_color="green", padding=True).print(
@@ -46,6 +47,7 @@ def initialize_sdk_integration(config: dict[str, Any] | None = None) -> dict[str
     # Initialize tracing system
     try:
         from framework.helpers.agent_tracing import initialize_tracing
+
         gary_logger = config.get("gary_logger")
         initialize_tracing(gary_logger)
         initialization_results["tracing"] = True
@@ -59,7 +61,10 @@ def initialize_sdk_integration(config: dict[str, Any] | None = None) -> dict[str
 
     # Initialize SDK wrapper
     try:
-        from framework.helpers.agents_sdk_wrapper import initialize_sdk_integration as init_wrapper
+        from framework.helpers.agents_sdk_wrapper import (
+            initialize_sdk_integration as init_wrapper,
+        )
+
         init_wrapper(enable_tracing=config.get("enable_tracing", True))
         initialization_results["orchestrator"] = True
         PrintStyle(font_color="green", padding=True).print(
@@ -77,7 +82,9 @@ def initialize_sdk_integration(config: dict[str, Any] | None = None) -> dict[str
     )
 
     # Summary
-    success_count = sum(1 for v in initialization_results.values() if isinstance(v, bool) and v)
+    success_count = sum(
+        1 for v in initialization_results.values() if isinstance(v, bool) and v
+    )
     total_components = 4
 
     if success_count == total_components:
@@ -96,19 +103,18 @@ def initialize_sdk_integration(config: dict[str, Any] | None = None) -> dict[str
     return initialization_results
 
 
-def initialize_agent_sdk_integration(agent: "Agent", config: dict[str, Any] | None = None) -> dict[str, Any]:
+def initialize_agent_sdk_integration(
+    agent: "Agent", config: dict[str, Any] | None = None
+) -> dict[str, Any]:
     """Initialize SDK integration for a specific agent."""
     config = config or {}
 
-    results = {
-        "tools_registered": 0,
-        "sdk_wrapper_created": False,
-        "errors": []
-    }
+    results = {"tools_registered": 0, "sdk_wrapper_created": False, "errors": []}
 
     try:
         # Initialize tools for this agent
         from framework.helpers.agent_tools_wrapper import initialize_tools
+
         registered_tools = initialize_tools(agent)
         results["tools_registered"] = len(registered_tools)
 
@@ -123,7 +129,10 @@ def initialize_agent_sdk_integration(agent: "Agent", config: dict[str, Any] | No
 
     try:
         # Create SDK wrapper for agent
-        from framework.helpers.agents_sdk_wrapper import SDKAgentConfig, get_sdk_orchestrator
+        from framework.helpers.agents_sdk_wrapper import (
+            SDKAgentConfig,
+            get_sdk_orchestrator,
+        )
 
         orchestrator = get_sdk_orchestrator()
 
@@ -133,7 +142,7 @@ def initialize_agent_sdk_integration(agent: "Agent", config: dict[str, Any] | No
             model_name=config.get("model_name", "o3"),  # Updated to modern o3 model
             instructions=config.get("instructions", ""),
             enable_tracing=config.get("enable_tracing", True),
-            enable_guardrails=config.get("enable_guardrails", True)
+            enable_guardrails=config.get("enable_guardrails", True),
         )
 
         agent_id = orchestrator.register_agent(agent, sdk_config)
@@ -160,23 +169,24 @@ def get_sdk_status() -> dict[str, Any]:
             "guardrails": {"status": "unknown", "details": {}},
             "tracing": {"status": "unknown", "details": {}},
             "tools": {"status": "unknown", "details": {}},
-            "orchestrator": {"status": "unknown", "details": {}}
+            "orchestrator": {"status": "unknown", "details": {}},
         },
-        "overall_status": "checking"
+        "overall_status": "checking",
     }
 
     # Check guardrails status
     try:
         from framework.helpers.guardrails import get_guardrails_manager
+
         manager = get_guardrails_manager()
         status["components"]["guardrails"] = {
             "status": "active",
-            "details": manager.get_status()
+            "details": manager.get_status(),
         }
     except Exception as e:
         status["components"]["guardrails"] = {
             "status": "error",
-            "details": {"error": str(e)}
+            "details": {"error": str(e)},
         }
 
     # Check tracing status
@@ -184,43 +194,47 @@ def get_sdk_status() -> dict[str, Any]:
         # This will fail if no logger provided, which is expected
         status["components"]["tracing"] = {
             "status": "available",
-            "details": {"note": "Tracing available, requires logger for full integration"}
+            "details": {
+                "note": "Tracing available, requires logger for full integration"
+            },
         }
     except Exception:
         status["components"]["tracing"] = {
             "status": "available",
-            "details": {"note": "Tracing components loaded"}
+            "details": {"note": "Tracing components loaded"},
         }
 
     # Check tools status
     try:
         from framework.helpers.agent_tools_wrapper import get_tool_registry
+
         registry = get_tool_registry()
         status["components"]["tools"] = {
             "status": "active",
             "details": {
                 "registered_tools": len(registry.registered_tools),
-                "categories": list(registry.tool_categories.keys())
-            }
+                "categories": list(registry.tool_categories.keys()),
+            },
         }
     except Exception as e:
         status["components"]["tools"] = {
             "status": "error",
-            "details": {"error": str(e)}
+            "details": {"error": str(e)},
         }
 
     # Check orchestrator status
     try:
         from framework.helpers.agents_sdk_wrapper import get_sdk_orchestrator
+
         orchestrator = get_sdk_orchestrator()
         status["components"]["orchestrator"] = {
             "status": "active",
-            "details": orchestrator.get_all_agents_status()
+            "details": orchestrator.get_all_agents_status(),
         }
     except Exception as e:
         status["components"]["orchestrator"] = {
             "status": "error",
-            "details": {"error": str(e)}
+            "details": {"error": str(e)},
         }
 
     # Determine overall status
@@ -235,8 +249,11 @@ def get_sdk_status() -> dict[str, Any]:
     return status
 
 
-def create_sdk_enabled_agent(agent_config: "AgentConfig", agent_context: "AgentContext",
-                            sdk_config: dict[str, Any] | None = None) -> "Agent":
+def create_sdk_enabled_agent(
+    agent_config: "AgentConfig",
+    agent_context: "AgentContext",
+    sdk_config: dict[str, Any] | None = None,
+) -> "Agent":
     """Create a new agent with SDK integration enabled."""
     from agent import Agent
 
@@ -253,8 +270,9 @@ def create_sdk_enabled_agent(agent_config: "AgentConfig", agent_context: "AgentC
     return agent
 
 
-def migrate_existing_agent_to_sdk(agent: "Agent",
-                                 sdk_config: dict[str, Any] | None = None) -> dict[str, Any]:
+def migrate_existing_agent_to_sdk(
+    agent: "Agent", sdk_config: dict[str, Any] | None = None
+) -> dict[str, Any]:
     """Migrate an existing agent to use SDK integration."""
     results = initialize_agent_sdk_integration(agent, sdk_config)
 
@@ -274,6 +292,7 @@ def is_sdk_available() -> bool:
     """Check if SDK integration is available."""
     try:
         import agents
+
         return True
     except ImportError:
         return False
@@ -283,7 +302,8 @@ def get_sdk_version() -> str | None:
     """Get the version of the OpenAI Agents SDK."""
     try:
         import agents
-        return getattr(agents, '__version__', 'unknown')
+
+        return getattr(agents, "__version__", "unknown")
     except ImportError:
         return None
 
@@ -291,11 +311,7 @@ def get_sdk_version() -> str | None:
 # Utility functions for debugging
 def test_sdk_integration() -> dict[str, Any]:
     """Test SDK integration components."""
-    test_results = {
-        "imports": {},
-        "initialization": {},
-        "basic_functionality": {}
-    }
+    test_results = {"imports": {}, "initialization": {}, "basic_functionality": {}}
 
     # Test imports
     modules_to_test = [
@@ -303,7 +319,7 @@ def test_sdk_integration() -> dict[str, Any]:
         ("framework.helpers.guardrails", "Guardrails system"),
         ("framework.helpers.agent_tracing", "Tracing system"),
         ("framework.helpers.agent_tools_wrapper", "Tools wrapper"),
-        ("framework.helpers.agents_sdk_wrapper", "SDK wrapper")
+        ("framework.helpers.agents_sdk_wrapper", "SDK wrapper"),
     ]
 
     for module_name, description in modules_to_test:

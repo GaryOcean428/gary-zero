@@ -8,7 +8,6 @@ SEARCH_ENGINE_RESULTS = 10
 
 class SearchEngine(Tool):
     async def execute(self, query="", **kwargs):
-
         # Try SearXNG first, fallback to DuckDuckGo if it fails
         search_result = await self.searxng_search_with_fallback(query)
 
@@ -25,9 +24,11 @@ class SearchEngine(Tool):
             results = await searxng_search(question)
 
             # Check if SearXNG returned an error
-            if isinstance(results, dict) and 'error' in results:
+            if isinstance(results, dict) and "error" in results:
                 print(f"SearXNG failed: {results['error']}, falling back to DuckDuckGo")
-                results = await duckduckgo_search(question, max_results=SEARCH_ENGINE_RESULTS)
+                results = await duckduckgo_search(
+                    question, max_results=SEARCH_ENGINE_RESULTS
+                )
                 return self.format_result_search(results, "DuckDuckGo (fallback)")
 
             return self.format_result_search(results, "SearXNG")
@@ -35,7 +36,9 @@ class SearchEngine(Tool):
         except Exception as e:
             print(f"SearXNG error: {str(e)}, falling back to DuckDuckGo")
             # Fallback to DuckDuckGo if SearXNG fails
-            results = await duckduckgo_search(question, max_results=SEARCH_ENGINE_RESULTS)
+            results = await duckduckgo_search(
+                question, max_results=SEARCH_ENGINE_RESULTS
+            )
             return self.format_result_search(results, "DuckDuckGo (fallback)")
 
     async def duckduckgo_search(self, question):
@@ -48,7 +51,7 @@ class SearchEngine(Tool):
             handle_error(result)
             return f"{source} search failed: {str(result)}"
 
-        if isinstance(result, dict) and 'error' in result:
+        if isinstance(result, dict) and "error" in result:
             return f"{source} search failed: {result['error']}"
 
         # Handle both SearXNG and DuckDuckGo result formats
@@ -58,14 +61,14 @@ class SearchEngine(Tool):
         for item in results_list:
             if isinstance(item, dict):
                 # DuckDuckGo format or properly formatted SearXNG
-                title = item.get('title', '')
-                url = item.get('url', item.get('href', ''))
-                content = item.get('content', item.get('body', ''))
+                title = item.get("title", "")
+                url = item.get("url", item.get("href", ""))
+                content = item.get("content", item.get("body", ""))
             else:
                 # Raw SearXNG format (if any)
-                title = getattr(item, 'title', str(item))
-                url = getattr(item, 'url', '')
-                content = getattr(item, 'content', '')
+                title = getattr(item, "title", str(item))
+                url = getattr(item, "url", "")
+                content = getattr(item, "content", "")
 
             outputs.append(f"{title}\n{url}\n{content}")
 

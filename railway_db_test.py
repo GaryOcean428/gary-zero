@@ -9,7 +9,6 @@ using environment variables provided by Railway.
 
 import os
 import socket
-import sys
 import time
 
 import psycopg2
@@ -25,7 +24,9 @@ def test_db_connection(connection_string, connection_name):
         conn = psycopg2.connect(connection_string)
         conn_time = time.time() - start_time
 
-        print(f"✅ Connection to {connection_name} established successfully (took {conn_time:.2f}s)")
+        print(
+            f"✅ Connection to {connection_name} established successfully (took {conn_time:.2f}s)"
+        )
 
         # Test basic query execution
         with conn.cursor() as cursor:
@@ -47,6 +48,7 @@ def test_db_connection(connection_string, connection_name):
         print(f"❌ Connection to {connection_name} failed: {str(e)}")
         return False
 
+
 def test_socket_connection(host, port, timeout=5):
     """Test if we can connect to the host:port via socket."""
     print(f"🔍 Testing socket connection to {host}:{port}")
@@ -57,13 +59,19 @@ def test_socket_connection(host, port, timeout=5):
         result = sock.connect_ex((host, port))
         duration = time.time() - start_time
         if result == 0:
-            print(f"✅ Socket connection to {host}:{port} successful (took {duration:.2f}s)")
+            print(
+                f"✅ Socket connection to {host}:{port} successful (took {duration:.2f}s)"
+            )
             return True
         else:
-            print(f"❌ Socket connection to {host}:{port} failed with error code {result} (took {duration:.2f}s)")
+            print(
+                f"❌ Socket connection to {host}:{port} failed with error code {result} (took {duration:.2f}s)"
+            )
             return False
     except socket.gaierror:
-        print(f"❌ Socket connection to {host}:{port} failed - hostname resolution failed")
+        print(
+            f"❌ Socket connection to {host}:{port} failed - hostname resolution failed"
+        )
         return False
     except Exception as e:
         print(f"❌ Socket connection to {host}:{port} failed with error: {e}")
@@ -74,6 +82,7 @@ def test_socket_connection(host, port, timeout=5):
         except:
             pass
 
+
 def main():
     """Main test function."""
     print("🚀 Railway PostgreSQL Connection Test")
@@ -83,21 +92,24 @@ def main():
     print("\n📋 Environment Variables:")
     for key, value in sorted(os.environ.items()):
         # Only print keys and hide sensitive values for security
-        if any(sensitive in key.lower() for sensitive in ['password', 'secret', 'key', 'token']):
+        if any(
+            sensitive in key.lower()
+            for sensitive in ["password", "secret", "key", "token"]
+        ):
             print(f"{key} = [REDACTED]")
         else:
             print(f"{key} = {value}")
 
     # Get database connection strings from environment
-    db_url = os.getenv('DATABASE_URL')
-    db_public_url = os.getenv('DATABASE_PUBLIC_URL')
+    db_url = os.getenv("DATABASE_URL")
+    db_public_url = os.getenv("DATABASE_PUBLIC_URL")
 
     # Get Postgres-specific connection parameters
-    pg_host = os.getenv('PGHOST')
-    pg_port = os.getenv('PGPORT')
-    pg_database = os.getenv('PGDATABASE')
-    pg_user = os.getenv('PGUSER')
-    pg_password = os.getenv('PGPASSWORD')
+    pg_host = os.getenv("PGHOST")
+    pg_port = os.getenv("PGPORT")
+    pg_database = os.getenv("PGDATABASE")
+    pg_user = os.getenv("PGUSER")
+    pg_password = os.getenv("PGPASSWORD")
 
     # Test socket connections
     print("\n📡 Testing socket connectivity...")
@@ -106,12 +118,12 @@ def main():
     if pg_host and pg_port:
         test_socket_connection(pg_host, int(pg_port))
 
-    if 'postgres.railway.internal' != pg_host:
-        test_socket_connection('postgres.railway.internal', 5432)
+    if pg_host != "postgres.railway.internal":
+        test_socket_connection("postgres.railway.internal", 5432)
 
     # TCP proxy test if available
-    tcp_proxy_domain = os.getenv('RAILWAY_TCP_PROXY_DOMAIN')
-    tcp_proxy_port = os.getenv('RAILWAY_TCP_PROXY_PORT')
+    tcp_proxy_domain = os.getenv("RAILWAY_TCP_PROXY_DOMAIN")
+    tcp_proxy_port = os.getenv("RAILWAY_TCP_PROXY_PORT")
     if tcp_proxy_domain and tcp_proxy_port:
         test_socket_connection(tcp_proxy_domain, int(tcp_proxy_port))
 
@@ -143,19 +155,23 @@ def main():
     if db_url:
         # Test with sslmode=prefer
         ssl_prefer_url = f"{db_url}?sslmode=prefer"
-        results.append(test_db_connection(ssl_prefer_url, "DATABASE_URL with sslmode=prefer"))
+        results.append(
+            test_db_connection(ssl_prefer_url, "DATABASE_URL with sslmode=prefer")
+        )
 
         # Test with sslmode=disable
         ssl_disable_url = f"{db_url}?sslmode=disable"
-        results.append(test_db_connection(ssl_disable_url, "DATABASE_URL with sslmode=disable"))
+        results.append(
+            test_db_connection(ssl_disable_url, "DATABASE_URL with sslmode=disable")
+        )
 
     # Check DNS resolution
     print("\n🔍 Testing DNS resolution...")
     hostnames = [
-        'postgres.railway.internal',
-        os.getenv('RAILWAY_PRIVATE_DOMAIN', ''),
-        os.getenv('RAILWAY_PUBLIC_DOMAIN', ''),
-        os.getenv('RAILWAY_TCP_PROXY_DOMAIN', '')
+        "postgres.railway.internal",
+        os.getenv("RAILWAY_PRIVATE_DOMAIN", ""),
+        os.getenv("RAILWAY_PUBLIC_DOMAIN", ""),
+        os.getenv("RAILWAY_TCP_PROXY_DOMAIN", ""),
     ]
 
     for hostname in hostnames:
@@ -177,8 +193,11 @@ def main():
         print("1. Check if the database service is running in Railway")
         print("2. Verify that the correct database credentials are being provided")
         print("3. Check for network restrictions or firewall issues")
-        print("4. Ensure the database service is in the same Railway project and environment")
+        print(
+            "4. Ensure the database service is in the same Railway project and environment"
+        )
         print("5. Try restarting the database service")
+
 
 if __name__ == "__main__":
     main()

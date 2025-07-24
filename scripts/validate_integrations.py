@@ -28,9 +28,9 @@ async def validate_integrations():
     validate_execution_config(issues, successes)
 
     # Print results
-    print("\n" + "="*50)
+    print("\n" + "=" * 50)
     print("VALIDATION RESULTS")
-    print("="*50)
+    print("=" * 50)
 
     if successes:
         print("\n✅ WORKING INTEGRATIONS:")
@@ -52,7 +52,7 @@ async def validate_e2b(issues, successes):
     """Validate E2B integration."""
     print("🔒 Checking E2B integration...")
 
-    e2b_api_key = os.getenv('E2B_API_KEY')
+    e2b_api_key = os.getenv("E2B_API_KEY")
     if not e2b_api_key:
         issues.append("E2B_API_KEY not configured")
         print("   ❌ E2B_API_KEY not found")
@@ -63,6 +63,7 @@ async def validate_e2b(issues, successes):
     try:
         # Try importing E2B executor
         from framework.executors.e2b_executor import E2BCodeExecutor
+
         print("   ✓ E2B executor module imported successfully")
 
         # Try initializing executor
@@ -91,7 +92,7 @@ async def validate_searchxng(issues, successes):
     """Validate SearchXNG integration."""
     print("\n🔍 Checking SearchXNG integration...")
 
-    searxng_url = os.getenv('SEARXNG_URL')
+    searxng_url = os.getenv("SEARXNG_URL")
 
     # Check if SEARXNG_URL is set
     if not searxng_url:
@@ -100,21 +101,25 @@ async def validate_searchxng(issues, successes):
         return
 
     # Check if SEARXNG_URL contains unresolved reference variables
-    if '${{' in searxng_url:
-        issues.append(f"SEARXNG_URL contains unresolved reference variables: {searxng_url}")
+    if "${{" in searxng_url:
+        issues.append(
+            f"SEARXNG_URL contains unresolved reference variables: {searxng_url}"
+        )
         print(f"   ❌ SEARXNG_URL not properly resolved: {searxng_url}")
-        print("   💡 Hint: Ensure the searchxng service has a PORT environment variable set")
+        print(
+            "   💡 Hint: Ensure the searchxng service has a PORT environment variable set"
+        )
         return
 
     print(f"   ✓ SEARXNG_URL configured: {searxng_url}")
 
     # Check Railway environment for additional context
-    railway_env = os.getenv('RAILWAY_ENVIRONMENT')
+    railway_env = os.getenv("RAILWAY_ENVIRONMENT")
     if railway_env:
         print(f"   ℹ️  Railway environment: {railway_env}")
 
         # Check if SearchXNG service URL is available in Railway
-        searchxng_service_url = os.getenv('RAILWAY_SERVICE_SEARXNG_URL')
+        searchxng_service_url = os.getenv("RAILWAY_SERVICE_SEARXNG_URL")
         if searchxng_service_url:
             print(f"   ✓ SearchXNG public URL found: {searchxng_service_url}")
 
@@ -122,15 +127,17 @@ async def validate_searchxng(issues, successes):
         async with aiohttp.ClientSession() as session:
             # Test basic connectivity
             test_url = f"{searxng_url}/search"
-            params = {'q': 'test', 'format': 'json'}
+            params = {"q": "test", "format": "json"}
 
             print("   🔗 Testing SearchXNG connectivity...")
 
             async with session.get(test_url, params=params, timeout=10) as response:
                 if response.status == 200:
                     data = await response.json()
-                    results_count = len(data.get('results', []))
-                    print(f"   ✓ SearchXNG responded successfully ({results_count} results)")
+                    results_count = len(data.get("results", []))
+                    print(
+                        f"   ✓ SearchXNG responded successfully ({results_count} results)"
+                    )
                     successes.append(f"SearchXNG integration working ({searxng_url})")
                 else:
                     issues.append(f"SearchXNG returned status {response.status}")
@@ -153,17 +160,17 @@ def validate_execution_config(issues, successes):
     """Validate execution mode configuration."""
     print("\n⚙️  Checking execution configuration...")
 
-    code_execution_mode = os.getenv('CODE_EXECUTION_MODE', 'ssh')
-    disable_ssh = os.getenv('DISABLE_SSH_EXECUTION', 'false').lower() == 'true'
-    e2b_api_key = os.getenv('E2B_API_KEY')
+    code_execution_mode = os.getenv("CODE_EXECUTION_MODE", "ssh")
+    disable_ssh = os.getenv("DISABLE_SSH_EXECUTION", "false").lower() == "true"
+    e2b_api_key = os.getenv("E2B_API_KEY")
 
     print(f"   CODE_EXECUTION_MODE: {code_execution_mode}")
     print(f"   DISABLE_SSH_EXECUTION: {disable_ssh}")
     print(f"   E2B_API_KEY: {'SET' if e2b_api_key else 'NOT SET'}")
 
     # Check for Railway environment
-    railway_env = os.getenv('RAILWAY_ENVIRONMENT')
-    railway_project = os.getenv('RAILWAY_PROJECT_NAME')
+    railway_env = os.getenv("RAILWAY_ENVIRONMENT")
+    railway_project = os.getenv("RAILWAY_PROJECT_NAME")
 
     if railway_env:
         print(f"   RAILWAY_ENVIRONMENT: {railway_env}")
@@ -172,23 +179,25 @@ def validate_execution_config(issues, successes):
         if not disable_ssh:
             issues.append("Railway deployment should have DISABLE_SSH_EXECUTION=true")
         else:
-            successes.append("Railway deployment properly configured for secure execution")
+            successes.append(
+                "Railway deployment properly configured for secure execution"
+            )
 
     # Check execution mode consistency
-    if code_execution_mode == 'direct' and not disable_ssh:
+    if code_execution_mode == "direct" and not disable_ssh:
         issues.append("CODE_EXECUTION_MODE=direct but SSH not disabled")
-    elif code_execution_mode == 'ssh' and disable_ssh:
+    elif code_execution_mode == "ssh" and disable_ssh:
         issues.append("CODE_EXECUTION_MODE=ssh but SSH execution disabled")
-    elif code_execution_mode == 'secure' and not e2b_api_key:
+    elif code_execution_mode == "secure" and not e2b_api_key:
         issues.append("CODE_EXECUTION_MODE=secure but E2B_API_KEY not set")
     else:
         successes.append(f"Execution mode configured correctly ({code_execution_mode})")
 
     # Check SearchXNG fallback configuration
-    search_provider = os.getenv('SEARCH_PROVIDER', 'duckduckgo')
+    search_provider = os.getenv("SEARCH_PROVIDER", "duckduckgo")
     print(f"   SEARCH_PROVIDER: {search_provider}")
 
-    if search_provider == 'searxng' and not os.getenv('SEARXNG_URL'):
+    if search_provider == "searxng" and not os.getenv("SEARXNG_URL"):
         issues.append("SEARCH_PROVIDER set to searxng but SEARXNG_URL not configured")
 
 

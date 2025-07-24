@@ -5,7 +5,6 @@ This script attempts to connect to the PostgreSQL database using the provided
 connection string and runs some basic queries to validate the connection.
 """
 
-import os
 import socket
 import sys
 import time
@@ -28,7 +27,10 @@ DB_PUBLIC_URL = f"postgresql://{DB_USER}:{DB_PASS_ENCODED}@{DB_HOST_PUBLIC}:{DB_
 DB_INTERNAL_URL = f"postgresql://{DB_USER}:{DB_PASS_ENCODED}@{DB_HOST_INTERNAL}:{DB_PORT_INTERNAL}/{DB_NAME}"
 
 # Try both encoded and non-encoded passwords
-DB_PUBLIC_URL_DIRECT = f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST_PUBLIC}:{DB_PORT_PUBLIC}/{DB_NAME}"
+DB_PUBLIC_URL_DIRECT = (
+    f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST_PUBLIC}:{DB_PORT_PUBLIC}/{DB_NAME}"
+)
+
 
 def test_socket_connection(host, port, timeout=5):
     """Test if we can connect to the host:port via socket."""
@@ -40,13 +42,19 @@ def test_socket_connection(host, port, timeout=5):
         result = sock.connect_ex((host, port))
         duration = time.time() - start_time
         if result == 0:
-            print(f"✅ Socket connection to {host}:{port} successful (took {duration:.2f}s)")
+            print(
+                f"✅ Socket connection to {host}:{port} successful (took {duration:.2f}s)"
+            )
             return True
         else:
-            print(f"❌ Socket connection to {host}:{port} failed with error code {result} (took {duration:.2f}s)")
+            print(
+                f"❌ Socket connection to {host}:{port} failed with error code {result} (took {duration:.2f}s)"
+            )
             return False
     except socket.gaierror:
-        print(f"❌ Socket connection to {host}:{port} failed - hostname resolution failed")
+        print(
+            f"❌ Socket connection to {host}:{port} failed - hostname resolution failed"
+        )
         return False
     except Exception as e:
         print(f"❌ Socket connection to {host}:{port} failed with error: {e}")
@@ -56,6 +64,7 @@ def test_socket_connection(host, port, timeout=5):
             sock.close()
         except:
             pass
+
 
 def test_db_connection(connection_string, connection_name):
     """Test database connection using psycopg2."""
@@ -67,7 +76,9 @@ def test_db_connection(connection_string, connection_name):
         conn = psycopg2.connect(connection_string)
         conn_time = time.time() - start_time
 
-        print(f"✅ Connection to {connection_name} established successfully (took {conn_time:.2f}s)")
+        print(
+            f"✅ Connection to {connection_name} established successfully (took {conn_time:.2f}s)"
+        )
 
         # Test basic query execution
         with conn.cursor() as cursor:
@@ -103,6 +114,7 @@ def test_db_connection(connection_string, connection_name):
         print(f"❌ Connection to {connection_name} failed: {str(e)}")
         return False
 
+
 def main():
     """Main function to test database connections."""
     print("🚀 Railway PostgreSQL Connection Test")
@@ -118,25 +130,35 @@ def main():
 
     if public_socket:
         # Try with URL-encoded password
-        results.append(test_db_connection(DB_PUBLIC_URL, "Public URL (encoded password)"))
+        results.append(
+            test_db_connection(DB_PUBLIC_URL, "Public URL (encoded password)")
+        )
 
         # Try with direct password as fallback
         if not results[-1]:
-            results.append(test_db_connection(DB_PUBLIC_URL_DIRECT, "Public URL (direct password)"))
+            results.append(
+                test_db_connection(DB_PUBLIC_URL_DIRECT, "Public URL (direct password)")
+            )
 
         # Try with sslmode disabled as another fallback
         if not results[-1]:
-            results.append(test_db_connection(
-                f"{DB_PUBLIC_URL_DIRECT}?sslmode=disable",
-                "Public URL (SSL disabled)"
-            ))
+            results.append(
+                test_db_connection(
+                    f"{DB_PUBLIC_URL_DIRECT}?sslmode=disable",
+                    "Public URL (SSL disabled)",
+                )
+            )
     else:
-        print("\n⚠️ Skipping public URL connection test due to socket connection failure")
+        print(
+            "\n⚠️ Skipping public URL connection test due to socket connection failure"
+        )
 
     if internal_socket:
         results.append(test_db_connection(DB_INTERNAL_URL, "Internal URL"))
     else:
-        print("\n⚠️ Skipping internal URL connection test due to socket connection failure")
+        print(
+            "\n⚠️ Skipping internal URL connection test due to socket connection failure"
+        )
 
     # Try some additional variations
     print("\n🔍 Testing additional connection parameters...")
@@ -149,7 +171,7 @@ def main():
             port=DB_PORT_PUBLIC,
             user=DB_USER,
             password=DB_PASS,
-            dbname=DB_NAME
+            dbname=DB_NAME,
         )
         print("✅ Direct connection successful!")
         conn.close()
@@ -166,7 +188,7 @@ def main():
             user=DB_USER,
             password=DB_PASS,
             dbname=DB_NAME,
-            sslmode="prefer"
+            sslmode="prefer",
         )
         print("✅ Connection with sslmode=prefer successful!")
         conn.close()
@@ -202,6 +224,7 @@ def main():
         print("3. Verify database credentials")
         print("4. Check if Railway's services are functioning normally")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

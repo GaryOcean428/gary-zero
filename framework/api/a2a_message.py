@@ -8,7 +8,11 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from framework.a2a.communication import A2AMessage, CommunicationRequest, CommunicationService
+from framework.a2a.communication import (
+    A2AMessage,
+    CommunicationRequest,
+    CommunicationService,
+)
 
 
 class A2aMessage:
@@ -20,11 +24,11 @@ class A2aMessage:
     async def process(self, input_data: dict[str, Any], request) -> dict[str, Any]:
         """
         Handle A2A message communication
-        
+
         Args:
             input_data: Request input containing the A2A message
             request: HTTP request object
-            
+
         Returns:
             Communication response with result or error
         """
@@ -32,18 +36,14 @@ class A2aMessage:
             # Validate required message fields
             message_data = input_data.get("message")
             if not message_data:
-                return {
-                    "success": False,
-                    "error": "message is required"
-                }
+                return {"success": False, "error": "message is required"}
 
             # Create A2A message object
             a2a_message = A2AMessage(**message_data)
 
             # Create communication request
             comm_request = CommunicationRequest(
-                message=a2a_message,
-                session_token=input_data.get("session_token")
+                message=a2a_message, session_token=input_data.get("session_token")
             )
 
             # Process the message
@@ -52,12 +52,6 @@ class A2aMessage:
             return response.dict()
 
         except ValidationError as e:
-            return {
-                "success": False,
-                "error": f"Invalid message format: {str(e)}"
-            }
+            return {"success": False, "error": f"Invalid message format: {str(e)}"}
         except Exception as e:
-            return {
-                "success": False,
-                "error": f"Message processing failed: {str(e)}"
-            }
+            return {"success": False, "error": f"Message processing failed: {str(e)}"}

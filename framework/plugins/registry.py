@@ -12,6 +12,7 @@ from framework.helpers.files import get_abs_path
 @dataclass
 class PluginMetadata:
     """Metadata for a plugin."""
+
     name: str
     version: str
     description: str
@@ -73,24 +74,27 @@ class PluginRegistry:
         """Register a plugin with the registry."""
         try:
             with sqlite3.connect(self.db_file) as conn:
-                conn.execute("""
+                conn.execute(
+                    """
                     INSERT OR REPLACE INTO plugins 
                     (name, version, description, author, capabilities, dependencies, 
                      entry_point, enabled, install_date, last_updated, signature)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    metadata.name,
-                    metadata.version,
-                    metadata.description,
-                    metadata.author,
-                    json.dumps(metadata.capabilities),
-                    json.dumps(metadata.dependencies),
-                    metadata.entry_point,
-                    metadata.enabled,
-                    metadata.install_date,
-                    metadata.last_updated,
-                    metadata.signature
-                ))
+                """,
+                    (
+                        metadata.name,
+                        metadata.version,
+                        metadata.description,
+                        metadata.author,
+                        json.dumps(metadata.capabilities),
+                        json.dumps(metadata.dependencies),
+                        metadata.entry_point,
+                        metadata.enabled,
+                        metadata.install_date,
+                        metadata.last_updated,
+                        metadata.signature,
+                    ),
+                )
                 conn.commit()
             return True
         except Exception as e:
@@ -101,24 +105,22 @@ class PluginRegistry:
         """Get plugin metadata by name."""
         with sqlite3.connect(self.db_file) as conn:
             conn.row_factory = sqlite3.Row
-            cursor = conn.execute(
-                "SELECT * FROM plugins WHERE name = ?", (name,)
-            )
+            cursor = conn.execute("SELECT * FROM plugins WHERE name = ?", (name,))
             row = cursor.fetchone()
 
             if row:
                 return PluginMetadata(
-                    name=row['name'],
-                    version=row['version'],
-                    description=row['description'],
-                    author=row['author'],
-                    capabilities=json.loads(row['capabilities']),
-                    dependencies=json.loads(row['dependencies']),
-                    entry_point=row['entry_point'],
-                    enabled=bool(row['enabled']),
-                    install_date=row['install_date'],
-                    last_updated=row['last_updated'],
-                    signature=row['signature']
+                    name=row["name"],
+                    version=row["version"],
+                    description=row["description"],
+                    author=row["author"],
+                    capabilities=json.loads(row["capabilities"]),
+                    dependencies=json.loads(row["dependencies"]),
+                    entry_point=row["entry_point"],
+                    enabled=bool(row["enabled"]),
+                    install_date=row["install_date"],
+                    last_updated=row["last_updated"],
+                    signature=row["signature"],
                 )
         return None
 
@@ -134,19 +136,21 @@ class PluginRegistry:
             cursor = conn.execute(query)
 
             for row in cursor:
-                plugins.append(PluginMetadata(
-                    name=row['name'],
-                    version=row['version'],
-                    description=row['description'],
-                    author=row['author'],
-                    capabilities=json.loads(row['capabilities']),
-                    dependencies=json.loads(row['dependencies']),
-                    entry_point=row['entry_point'],
-                    enabled=bool(row['enabled']),
-                    install_date=row['install_date'],
-                    last_updated=row['last_updated'],
-                    signature=row['signature']
-                ))
+                plugins.append(
+                    PluginMetadata(
+                        name=row["name"],
+                        version=row["version"],
+                        description=row["description"],
+                        author=row["author"],
+                        capabilities=json.loads(row["capabilities"]),
+                        dependencies=json.loads(row["dependencies"]),
+                        entry_point=row["entry_point"],
+                        enabled=bool(row["enabled"]),
+                        install_date=row["install_date"],
+                        last_updated=row["last_updated"],
+                        signature=row["signature"],
+                    )
+                )
 
         return plugins
 
@@ -154,9 +158,7 @@ class PluginRegistry:
         """Enable a plugin."""
         try:
             with sqlite3.connect(self.db_file) as conn:
-                conn.execute(
-                    "UPDATE plugins SET enabled = 1 WHERE name = ?", (name,)
-                )
+                conn.execute("UPDATE plugins SET enabled = 1 WHERE name = ?", (name,))
                 conn.commit()
                 return conn.total_changes > 0
         except Exception as e:
@@ -167,9 +169,7 @@ class PluginRegistry:
         """Disable a plugin."""
         try:
             with sqlite3.connect(self.db_file) as conn:
-                conn.execute(
-                    "UPDATE plugins SET enabled = 0 WHERE name = ?", (name,)
-                )
+                conn.execute("UPDATE plugins SET enabled = 0 WHERE name = ?", (name,))
                 conn.commit()
                 return conn.total_changes > 0
         except Exception as e:
@@ -207,7 +207,9 @@ class PluginRegistry:
                             metadata = PluginMetadata(**data)
                             discovered.append(metadata)
                     except Exception as e:
-                        print(f"Failed to load plugin metadata from {metadata_file}: {e}")
+                        print(
+                            f"Failed to load plugin metadata from {metadata_file}: {e}"
+                        )
 
         return discovered
 

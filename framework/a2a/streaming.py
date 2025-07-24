@@ -18,6 +18,7 @@ from .negotiation import NegotiationService
 
 class StreamEventType(str, Enum):
     """Stream event types"""
+
     MESSAGE = "message"
     STATUS = "status"
     HEARTBEAT = "heartbeat"
@@ -27,6 +28,7 @@ class StreamEventType(str, Enum):
 
 class StreamEvent(BaseModel):
     """Stream event model"""
+
     type: StreamEventType = Field(description="Event type")
     data: dict[str, Any] = Field(description="Event data")
     timestamp: str = Field(description="Event timestamp")
@@ -35,6 +37,7 @@ class StreamEvent(BaseModel):
 
 class StreamConnection(BaseModel):
     """Active stream connection"""
+
     connection_id: str = Field(description="Unique connection ID")
     agent_id: str = Field(description="Connected agent ID")
     session_id: str = Field(description="Session ID")
@@ -50,7 +53,9 @@ class StreamingService:
     def __init__(self):
         self.negotiation_service = NegotiationService()
         self.active_connections: dict[str, StreamConnection] = {}
-        self.agent_connections: dict[str, set[str]] = {}  # agent_id -> set of connection_ids
+        self.agent_connections: dict[
+            str, set[str]
+        ] = {}  # agent_id -> set of connection_ids
         self.heartbeat_interval = 30  # seconds
         self._running = False
 
@@ -67,25 +72,33 @@ class StreamingService:
         for connection in list(self.active_connections.values()):
             await self.disconnect(connection.connection_id)
 
-    async def connect(self, websocket, agent_id: str, session_id: str, session_token: str | None = None) -> str:
+    async def connect(
+        self,
+        websocket,
+        agent_id: str,
+        session_id: str,
+        session_token: str | None = None,
+    ) -> str:
         """
         Handle new WebSocket connection
-        
+
         Args:
             websocket: WebSocket connection object
             agent_id: ID of the connecting agent
             session_id: Session ID for the connection
             session_token: Optional session authentication token
-            
+
         Returns:
             Connection ID if successful
-            
+
         Raises:
             ValueError: If connection is not authorized
         """
         # Validate session if token provided
         if session_token:
-            if not self.negotiation_service.validate_session_token(session_id, session_token):
+            if not self.negotiation_service.validate_session_token(
+                session_id, session_token
+            ):
                 raise ValueError("Invalid session token")
 
         # Generate connection ID
@@ -98,7 +111,7 @@ class StreamingService:
             session_id=session_id,
             websocket=websocket,
             created_at=self._get_current_timestamp(),
-            last_heartbeat=self._get_current_timestamp()
+            last_heartbeat=self._get_current_timestamp(),
         )
 
         # Store connection
@@ -110,18 +123,22 @@ class StreamingService:
         self.agent_connections[agent_id].add(connection_id)
 
         # Send welcome message
-        await self._send_event(connection, StreamEventType.STATUS, {
-            "status": "connected",
-            "connection_id": connection_id,
-            "message": "WebSocket connection established"
-        })
+        await self._send_event(
+            connection,
+            StreamEventType.STATUS,
+            {
+                "status": "connected",
+                "connection_id": connection_id,
+                "message": "WebSocket connection established",
+            },
+        )
 
         return connection_id
 
     async def disconnect(self, connection_id: str) -> None:
         """
         Disconnect a WebSocket connection
-        
+
         Args:
             connection_id: ID of the connection to disconnect
         """
@@ -131,9 +148,9 @@ class StreamingService:
 
         # Send close event
         try:
-            await self._send_event(connection, StreamEventType.CLOSE, {
-                "reason": "disconnect_requested"
-            })
+            await self._send_event(
+                connection, StreamEventType.CLOSE, {"reason": "disconnect_requested"}
+            )
         except:
             pass  # Connection might already be closed
 
@@ -150,10 +167,12 @@ class StreamingService:
             if not self.agent_connections[connection.agent_id]:
                 del self.agent_connections[connection.agent_id]
 
-    async def handle_message(self, connection_id: str, message_data: dict[str, Any]) -> None:
+    async def handle_message(
+        self, connection_id: str, message_data: dict[str, Any]
+    ) -> None:
         """
         Handle incoming WebSocket message
-        
+
         Args:
             connection_id: ID of the connection
             message_data: Received message data
@@ -176,19 +195,25 @@ class StreamingService:
             elif message_type == "status_request":
                 await self._handle_status_request(connection, message_data)
             else:
-                await self._send_event(connection, StreamEventType.ERROR, {
-                    "error": f"Unknown message type: {message_type}"
-                })
+                await self._send_event(
+                    connection,
+                    StreamEventType.ERROR,
+                    {"error": f"Unknown message type: {message_type}"},
+                )
 
         except Exception as e:
-            await self._send_event(connection, StreamEventType.ERROR, {
-                "error": f"Message handling failed: {str(e)}"
-            })
+            await self._send_event(
+                connection,
+                StreamEventType.ERROR,
+                {"error": f"Message handling failed: {str(e)}"},
+            )
 
-    async def broadcast_to_agent(self, agent_id: str, event_type: StreamEventType, data: dict[str, Any]) -> None:
+    async def broadcast_to_agent(
+        self, agent_id: str, event_type: StreamEventType, data: dict[str, Any]
+    ) -> None:
         """
         Broadcast an event to all connections of a specific agent
-        
+
         Args:
             agent_id: Target agent ID
             event_type: Type of event to send
@@ -208,34 +233,41 @@ class StreamingService:
                     # Connection might be dead, remove it
                     await self.disconnect(connection_id)
 
-    async def send_a2a_message(self, recipient_agent_id: str, message: A2AMessage) -> bool:
+    async def send_a2a_message(
+        self, recipient_agent_id: str, message: A2AMessage
+    ) -> bool:
         """
         Send an A2A message via streaming to a connected agent
-        
+
         Args:
             recipient_agent_id: ID of the recipient agent
             message: A2A message to send
-            
+
         Returns:
             True if message was sent successfully
         """
         if recipient_agent_id not in self.agent_connections:
             return False
 
-        await self.broadcast_to_agent(recipient_agent_id, StreamEventType.MESSAGE, {
-            "a2a_message": message.dict()
-        })
+        await self.broadcast_to_agent(
+            recipient_agent_id, StreamEventType.MESSAGE, {"a2a_message": message.dict()}
+        )
 
         return True
 
-    async def _handle_heartbeat(self, connection: StreamConnection, message_data: dict[str, Any]) -> None:
+    async def _handle_heartbeat(
+        self, connection: StreamConnection, message_data: dict[str, Any]
+    ) -> None:
         """Handle heartbeat message"""
-        await self._send_event(connection, StreamEventType.HEARTBEAT, {
-            "response": "pong",
-            "server_time": self._get_current_timestamp()
-        })
+        await self._send_event(
+            connection,
+            StreamEventType.HEARTBEAT,
+            {"response": "pong", "server_time": self._get_current_timestamp()},
+        )
 
-    async def _handle_a2a_message(self, connection: StreamConnection, message_data: dict[str, Any]) -> None:
+    async def _handle_a2a_message(
+        self, connection: StreamConnection, message_data: dict[str, Any]
+    ) -> None:
         """Handle A2A message received via WebSocket"""
         # Extract A2A message
         a2a_message_data = message_data.get("data", {})
@@ -248,35 +280,43 @@ class StreamingService:
             comm_service = CommunicationService()
 
             request = CommunicationRequest(
-                message=a2a_message,
-                session_token=message_data.get("session_token")
+                message=a2a_message, session_token=message_data.get("session_token")
             )
 
             response = await comm_service.process_message(request)
 
             # Send response back via WebSocket
-            await self._send_event(connection, StreamEventType.MESSAGE, {
-                "response": response.dict()
-            })
+            await self._send_event(
+                connection, StreamEventType.MESSAGE, {"response": response.dict()}
+            )
 
         except Exception as e:
-            await self._send_event(connection, StreamEventType.ERROR, {
-                "error": f"A2A message processing failed: {str(e)}"
-            })
+            await self._send_event(
+                connection,
+                StreamEventType.ERROR,
+                {"error": f"A2A message processing failed: {str(e)}"},
+            )
 
-    async def _handle_status_request(self, connection: StreamConnection, message_data: dict[str, Any]) -> None:
+    async def _handle_status_request(
+        self, connection: StreamConnection, message_data: dict[str, Any]
+    ) -> None:
         """Handle status request"""
         status_data = {
             "connection_id": connection.connection_id,
             "agent_id": connection.agent_id,
             "connected_at": connection.created_at,
             "active_connections": len(self.active_connections),
-            "server_status": "healthy"
+            "server_status": "healthy",
         }
 
         await self._send_event(connection, StreamEventType.STATUS, status_data)
 
-    async def _send_event(self, connection: StreamConnection, event_type: StreamEventType, data: dict[str, Any]) -> None:
+    async def _send_event(
+        self,
+        connection: StreamConnection,
+        event_type: StreamEventType,
+        data: dict[str, Any],
+    ) -> None:
         """Send an event to a WebSocket connection"""
         connection.sequence_number += 1
 
@@ -284,7 +324,7 @@ class StreamingService:
             type=event_type,
             data=data,
             timestamp=self._get_current_timestamp(),
-            sequence=connection.sequence_number
+            sequence=connection.sequence_number,
         )
 
         try:
@@ -307,9 +347,11 @@ class StreamingService:
                 for connection in self.active_connections.values():
                     # Check if connection is still alive (simplified - in real implementation check actual timeout)
                     try:
-                        await self._send_event(connection, StreamEventType.HEARTBEAT, {
-                            "ping": current_time
-                        })
+                        await self._send_event(
+                            connection,
+                            StreamEventType.HEARTBEAT,
+                            {"ping": current_time},
+                        )
                     except:
                         dead_connections.append(connection.connection_id)
 
@@ -323,6 +365,7 @@ class StreamingService:
     def _get_current_timestamp(self) -> str:
         """Get current timestamp in ISO format"""
         from datetime import datetime
+
         return datetime.utcnow().isoformat() + "Z"
 
     def get_connection_info(self, connection_id: str) -> dict[str, Any] | None:
@@ -337,7 +380,7 @@ class StreamingService:
             "session_id": connection.session_id,
             "created_at": connection.created_at,
             "last_heartbeat": connection.last_heartbeat,
-            "sequence_number": connection.sequence_number
+            "sequence_number": connection.sequence_number,
         }
 
     def get_agent_connections(self, agent_id: str) -> list[str]:

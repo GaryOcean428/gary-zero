@@ -119,7 +119,9 @@ async def call_development_function(
 
 
 @overload
-async def call_development_function(func: Callable[..., T], *args: Any, **kwargs: Any) -> T: ...
+async def call_development_function(
+    func: Callable[..., T], *args: Any, **kwargs: Any
+) -> T: ...
 
 
 async def call_development_function(

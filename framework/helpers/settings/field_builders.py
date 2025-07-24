@@ -1,7 +1,11 @@
 from typing import Any
 
 import models
-from framework.helpers.model_catalog import get_all_models, get_models_for_provider, get_modern_models_for_provider
+from framework.helpers.model_catalog import (
+    get_all_models,
+    get_models_for_provider,
+    get_modern_models_for_provider,
+)
 from framework.helpers.settings.constants import PASSWORD_PLACEHOLDER
 from framework.helpers.settings.types import Settings, SettingsField
 
@@ -25,16 +29,38 @@ class FieldBuilder:
     def create_api_key_fields(settings: Settings) -> list[SettingsField]:
         """Create API key fields for various model providers."""
         fields: list[SettingsField] = []
-        fields.append(FieldBuilder._get_api_key_field(settings, "openai", "OpenAI API Key"))
-        fields.append(FieldBuilder._get_api_key_field(settings, "anthropic", "Anthropic API Key"))
-        fields.append(FieldBuilder._get_api_key_field(settings, "chutes", "Chutes API Key"))
-        fields.append(FieldBuilder._get_api_key_field(settings, "deepseek", "DeepSeek API Key"))
-        fields.append(FieldBuilder._get_api_key_field(settings, "google", "Google API Key"))
+        fields.append(
+            FieldBuilder._get_api_key_field(settings, "openai", "OpenAI API Key")
+        )
+        fields.append(
+            FieldBuilder._get_api_key_field(settings, "anthropic", "Anthropic API Key")
+        )
+        fields.append(
+            FieldBuilder._get_api_key_field(settings, "chutes", "Chutes API Key")
+        )
+        fields.append(
+            FieldBuilder._get_api_key_field(settings, "deepseek", "DeepSeek API Key")
+        )
+        fields.append(
+            FieldBuilder._get_api_key_field(settings, "google", "Google API Key")
+        )
         fields.append(FieldBuilder._get_api_key_field(settings, "groq", "Groq API Key"))
-        fields.append(FieldBuilder._get_api_key_field(settings, "huggingface", "HuggingFace API Key"))
-        fields.append(FieldBuilder._get_api_key_field(settings, "mistralai", "MistralAI API Key"))
-        fields.append(FieldBuilder._get_api_key_field(settings, "openrouter", "OpenRouter API Key"))
-        fields.append(FieldBuilder._get_api_key_field(settings, "sambanova", "Sambanova API Key"))
+        fields.append(
+            FieldBuilder._get_api_key_field(
+                settings, "huggingface", "HuggingFace API Key"
+            )
+        )
+        fields.append(
+            FieldBuilder._get_api_key_field(settings, "mistralai", "MistralAI API Key")
+        )
+        fields.append(
+            FieldBuilder._get_api_key_field(
+                settings, "openrouter", "OpenRouter API Key"
+            )
+        )
+        fields.append(
+            FieldBuilder._get_api_key_field(settings, "sambanova", "Sambanova API Key")
+        )
         return fields
 
     @staticmethod
@@ -45,7 +71,7 @@ class FieldBuilder:
         include_vision: bool = False,
         include_context_length: bool = False,
         include_context_history: bool = False,
-        model_params_description: str = ""
+        model_params_description: str = "",
     ) -> list[SettingsField]:
         """Create common model configuration fields."""
         fields: list[SettingsField] = []
@@ -57,7 +83,9 @@ class FieldBuilder:
                 "description": f"Select provider for {model_type} model used by the framework",
                 "type": "select",
                 "value": settings[f"{model_type}_model_provider"],
-                "options": [{"value": p.name, "label": p.value} for p in model_providers],
+                "options": [
+                    {"value": p.name, "label": p.value} for p in model_providers
+                ],
             }
         )
 
@@ -71,6 +99,14 @@ class FieldBuilder:
             # Final fallback to all models across all providers
             provider_models = get_all_models()
 
+        # Add release date tooltips to model options
+        enhanced_provider_models = []
+        for model in provider_models:
+            enhanced_model = model.copy()
+            if 'release_date' in model:
+                enhanced_model['tooltip'] = f"Released: {model['release_date']}"
+            enhanced_provider_models.append(enhanced_model)
+        
         fields.append(
             {
                 "id": f"{model_type}_model_name",
@@ -78,7 +114,7 @@ class FieldBuilder:
                 "description": "Select model from the chosen provider",
                 "type": "select",
                 "value": settings[f"{model_type}_model_name"],
-                "options": provider_models,
+                "options": enhanced_provider_models,
             }
         )
 
@@ -134,24 +170,28 @@ class FieldBuilder:
             # Only add output limit for chat/util models
             if limit_type == "output" and model_type == "embed":
                 continue
-            fields.append({
-                "id": f"{model_type}_model_rl_{limit_type}",
-                "title": f"{limit_type.capitalize()} tokens per minute limit"
-                if limit_type != "requests" else f"{limit_type.capitalize()} per minute limit",
-                "description": (
-                    f"Limits the number of {limit_type} "
-                    f"{'tokens ' if limit_type != 'requests' else ''}"
-                    f"per minute to the {model_type} model. "
-                    "Waits if the limit is exceeded. "
-                    "Set to 0 to disable rate limiting."
-                ),
-                "type": "number",
-                "value": settings[f"{model_type}_model_rl_{limit_type}"],
-            })
+            fields.append(
+                {
+                    "id": f"{model_type}_model_rl_{limit_type}",
+                    "title": f"{limit_type.capitalize()} tokens per minute limit"
+                    if limit_type != "requests"
+                    else f"{limit_type.capitalize()} per minute limit",
+                    "description": (
+                        f"Limits the number of {limit_type} "
+                        f"{'tokens ' if limit_type != 'requests' else ''}"
+                        f"per minute to the {model_type} model. "
+                        "Waits if the limit is exceeded. "
+                        "Set to 0 to disable rate limiting."
+                    ),
+                    "type": "number",
+                    "value": settings[f"{model_type}_model_rl_{limit_type}"],
+                }
+            )
 
         if model_params_description:
             # Convert kwargs dict to environment string format for display
             from framework.helpers.settings.api import _dict_to_env
+
             kwargs_value = _dict_to_env(settings[f"{model_type}_model_kwargs"])
 
             fields.append(

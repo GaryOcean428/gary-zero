@@ -5,8 +5,6 @@ This module tests the /api/error_report endpoint to ensure it properly handles
 error reports from the client and returns the expected 204 status code.
 """
 
-import json
-import logging
 from unittest.mock import patch
 
 import pytest
@@ -33,20 +31,17 @@ class TestErrorReportEndpoint:
             "error": {
                 "message": "Test error message",
                 "stack": "Error: Test error\n    at test.js:1:1",
-                "name": "TestError"
+                "name": "TestError",
             },
-            "context": {
-                "connectionStatus": True,
-                "currentContext": "test_context"
-            }
+            "context": {"connectionStatus": True, "currentContext": "test_context"},
         }
 
         # Capture logs to verify error reporting
-        with patch('api.error_report.logger') as mock_logger:
+        with patch("api.error_report.logger") as mock_logger:
             response = client.post(
                 "/api/error_report",
                 json=test_payload,
-                headers={"Content-Type": "application/json"}
+                headers={"Content-Type": "application/json"},
             )
 
             # Verify response
@@ -64,14 +59,12 @@ class TestErrorReportEndpoint:
 
     def test_error_report_minimal_payload(self):
         """Test error reporting endpoint with minimal JSON payload."""
-        test_payload = {
-            "error": {"message": "Minimal test error"}
-        }
+        test_payload = {"error": {"message": "Minimal test error"}}
 
         response = client.post(
             "/api/error_report",
             json=test_payload,
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
 
         assert response.status_code == 204
@@ -81,11 +74,11 @@ class TestErrorReportEndpoint:
         """Test error reporting endpoint with raw text payload."""
         test_data = "Raw error message"
 
-        with patch('api.error_report.logger') as mock_logger:
+        with patch("api.error_report.logger") as mock_logger:
             response = client.post(
                 "/api/error_report",
                 content=test_data,
-                headers={"Content-Type": "text/plain"}
+                headers={"Content-Type": "text/plain"},
             )
 
             assert response.status_code == 204
@@ -101,11 +94,11 @@ class TestErrorReportEndpoint:
         """Test error reporting endpoint with invalid JSON."""
         invalid_json = '{"invalid": json}'
 
-        with patch('api.error_report.logger') as mock_logger:
+        with patch("api.error_report.logger") as mock_logger:
             response = client.post(
                 "/api/error_report",
                 content=invalid_json,
-                headers={"Content-Type": "application/json"}
+                headers={"Content-Type": "application/json"},
             )
 
             # Should still return 204 even with invalid JSON
@@ -120,9 +113,7 @@ class TestErrorReportEndpoint:
     def test_error_report_empty_payload(self):
         """Test error reporting endpoint with empty payload."""
         response = client.post(
-            "/api/error_report",
-            json={},
-            headers={"Content-Type": "application/json"}
+            "/api/error_report", json={}, headers={"Content-Type": "application/json"}
         )
 
         assert response.status_code == 204
@@ -131,14 +122,14 @@ class TestErrorReportEndpoint:
     def test_error_report_wrong_method(self):
         """Test that GET requests to error_report return 404."""
         response = client.get("/api/error_report")
-        
+
         # Should return 404 for GET requests since only POST is allowed
         assert response.status_code == 404
 
     def test_error_report_options_method(self):
         """Test that OPTIONS requests work for CORS."""
         response = client.options("/api/error_report")
-        
+
         # OPTIONS should work for CORS preflight
         assert response.status_code in [200, 404]  # Depends on CORS middleware config
 
@@ -147,14 +138,14 @@ class TestErrorReportEndpoint:
         test_payload = {"error": {"message": "Test for user agent logging"}}
         custom_user_agent = "CustomTestAgent/1.0"
 
-        with patch('api.error_report.logger') as mock_logger:
+        with patch("api.error_report.logger") as mock_logger:
             response = client.post(
                 "/api/error_report",
                 json=test_payload,
                 headers={
                     "Content-Type": "application/json",
-                    "User-Agent": custom_user_agent
-                }
+                    "User-Agent": custom_user_agent,
+                },
             )
 
             assert response.status_code == 204

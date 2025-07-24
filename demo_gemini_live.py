@@ -14,7 +14,7 @@ async def demo_gemini_live():
     print("=" * 45)
 
     # Set a test API key for demo purposes
-    os.environ['GEMINI_API_KEY'] = 'demo_api_key_12345'
+    os.environ["GEMINI_API_KEY"] = "demo_api_key_12345"
 
     try:
         # Import and create the tool
@@ -29,7 +29,9 @@ async def demo_gemini_live():
         tool.args = {"action": "status"}
         response = await tool.execute()
         print("   ✅ Status check completed")
-        print(f"   📋 Response: {response.message.split('**')[1] if '**' in response.message else 'Status OK'}")
+        print(
+            f"   📋 Response: {response.message.split('**')[1] if '**' in response.message else 'Status OK'}"
+        )
 
         # Test configuration
         print("\n3. ⚙️  Testing Configuration...")
@@ -44,7 +46,7 @@ async def demo_gemini_live():
         tool.args = {
             "action": "configure",
             "voice": "Crystal",
-            "response_modalities": ["AUDIO"]
+            "response_modalities": ["AUDIO"],
         }
         response = await tool.execute()
         print("   ✅ Voice configured successfully")
@@ -62,7 +64,9 @@ async def demo_gemini_live():
         print("\n6. 🔧 Environment Configuration...")
         api_key_set = bool(os.getenv("GEMINI_API_KEY"))
         print(f"   🔑 API Key configured: {api_key_set}")
-        print(f"   🤖 Default model: {os.getenv('GEMINI_LIVE_MODEL', 'gemini-2.5-flash-preview-native-audio-dialog')}")
+        print(
+            f"   🤖 Default model: {os.getenv('GEMINI_LIVE_MODEL', 'gemini-2.5-flash-preview-native-audio-dialog')}"
+        )
         print(f"   🎵 Default voice: {os.getenv('GEMINI_LIVE_VOICE', 'Zephyr')}")
 
         print("\n✨ Demo Complete!")
@@ -89,8 +93,10 @@ async def demo_gemini_live():
     except Exception as e:
         print(f"\n❌ Demo failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
+
 
 def show_integration_summary():
     """Show a summary of the integration."""
@@ -106,7 +112,7 @@ def show_integration_summary():
         "instruments/custom/gemini_live/audio_loop.py",
         "api/gemini_live_api.py",
         "webui/components/settings/gemini-live/gemini-live-settings.html",
-        "docs/gemini-live-api.md"
+        "docs/gemini-live-api.md",
     ]
 
     for file in files:
@@ -117,7 +123,7 @@ def show_integration_summary():
         "GEMINI_API_KEY - API key for authentication",
         "GEMINI_LIVE_MODEL - Default model selection",
         "GEMINI_LIVE_VOICE - Default voice option",
-        "GEMINI_LIVE_RESPONSE_MODALITIES - Response types"
+        "GEMINI_LIVE_RESPONSE_MODALITIES - Response types",
     ]
 
     for config in configs:
@@ -130,7 +136,7 @@ def show_integration_summary():
         "POST /api/gemini-live/audio - Send audio data",
         "POST /api/gemini-live/configure - Update configuration",
         "GET /api/gemini-live/status - Get current status",
-        "GET /api/gemini-live/config - Get configuration options"
+        "GET /api/gemini-live/config - Get configuration options",
     ]
 
     for endpoint in endpoints:
@@ -142,14 +148,13 @@ def show_integration_summary():
         print(f"   🎤 {voice}")
 
     print("\n📱 Modalities:")
-    modalities = [
-        "AUDIO - ✅ Available now",
-        "VIDEO - 🔄 Coming soon"
-    ]
+    modalities = ["AUDIO - ✅ Available now", "VIDEO - 🔄 Coming soon"]
     for modality in modalities:
         print(f"   📺 {modality}")
 
+
 if __name__ == "__main__":
+
     async def main():
         success = await demo_gemini_live()
         show_integration_summary()

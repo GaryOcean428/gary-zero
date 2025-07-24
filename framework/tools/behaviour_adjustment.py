@@ -5,15 +5,15 @@ from framework.helpers.tool import Response, Tool
 
 
 class UpdateBehaviour(Tool):
-
     async def execute(self, adjustments="", **kwargs):
-
         # stringify adjustments if needed
         if not isinstance(adjustments, str):
             adjustments = str(adjustments)
 
         await update_behaviour(self.agent, self.log, adjustments)
-        return Response(message=self.agent.read_prompt("behaviour.updated.md"), break_loop=False)
+        return Response(
+            message=self.agent.read_prompt("behaviour.updated.md"), break_loop=False
+        )
 
     # async def before_execution(self, **kwargs):
     #     pass
@@ -23,7 +23,6 @@ class UpdateBehaviour(Tool):
 
 
 async def update_behaviour(agent: Agent, log_item: LogItem, adjustments: str):
-
     # get system message and current ruleset
     system = agent.read_prompt("behaviour.merge.sys.md")
     current_rules = read_rules(agent)

@@ -9,11 +9,17 @@ import asyncio
 import sys
 import time
 
-sys.path.append('/home/runner/work/gary-zero/gary-zero')
+sys.path.append("/home/runner/work/gary-zero/gary-zero")
 
 from framework.helpers.async_orchestrator import get_orchestrator
-from framework.helpers.enhanced_scheduler import get_enhanced_scheduler, run_enhanced_tick
-from framework.helpers.orchestration_config import get_config_manager, update_orchestration_config
+from framework.helpers.enhanced_scheduler import (
+    get_enhanced_scheduler,
+    run_enhanced_tick,
+)
+from framework.helpers.orchestration_config import (
+    get_config_manager,
+    update_orchestration_config,
+)
 from framework.helpers.task_manager import TaskCategory, TaskManager
 
 
@@ -33,11 +39,11 @@ class ExampleAgentTask:
 async def simulate_agent_work(task):
     """Simulate agent performing work."""
     work_times = {
-        'coding': 0.4,
-        'research': 0.3,
-        'analysis': 0.35,
-        'communication': 0.2,
-        'system': 0.5
+        "coding": 0.4,
+        "research": 0.3,
+        "analysis": 0.35,
+        "communication": 0.2,
+        "system": 0.5,
     }
 
     work_time = work_times.get(task.task_type, 0.3)
@@ -46,11 +52,11 @@ async def simulate_agent_work(task):
     await asyncio.sleep(work_time)
 
     return {
-        'task_id': task.id,
-        'title': task.title,
-        'result': f"Agent completed: {task.title}",
-        'execution_time': work_time,
-        'agent_id': task.agent_id
+        "task_id": task.id,
+        "title": task.title,
+        "result": f"Agent completed: {task.title}",
+        "execution_time": work_time,
+        "agent_id": task.agent_id,
     }
 
 
@@ -63,7 +69,7 @@ async def example_multi_agent_workflow():
     update_orchestration_config(
         max_concurrent_tasks=8,
         default_task_timeout_seconds=30.0,
-        enable_performance_monitoring=True
+        enable_performance_monitoring=True,
     )
 
     # Set agent-specific configurations
@@ -71,21 +77,21 @@ async def example_multi_agent_workflow():
 
     # Configure different agent types with appropriate limits
     agent_configs = {
-        'coding_agent': {
-            'max_concurrent_tasks': 3,
-            'max_requests_per_minute': 40,
-            'max_memory_mb': 2048.0
+        "coding_agent": {
+            "max_concurrent_tasks": 3,
+            "max_requests_per_minute": 40,
+            "max_memory_mb": 2048.0,
         },
-        'research_agent': {
-            'max_concurrent_tasks': 4,
-            'max_requests_per_minute': 60,
-            'max_memory_mb': 1024.0
+        "research_agent": {
+            "max_concurrent_tasks": 4,
+            "max_requests_per_minute": 60,
+            "max_memory_mb": 1024.0,
         },
-        'analysis_agent': {
-            'max_concurrent_tasks': 2,
-            'max_requests_per_minute': 30,
-            'max_memory_mb': 1536.0
-        }
+        "analysis_agent": {
+            "max_concurrent_tasks": 2,
+            "max_requests_per_minute": 30,
+            "max_memory_mb": 1536.0,
+        },
     }
 
     for agent_id, config in agent_configs.items():
@@ -101,26 +107,44 @@ async def example_multi_agent_workflow():
         # Create a realistic software development workflow
         workflow_tasks = [
             # Research phase
-            ExampleAgentTask("req_1", "Gather user requirements", "research", "research_agent"),
-            ExampleAgentTask("req_2", "Market research analysis", "research", "research_agent"),
-            ExampleAgentTask("req_3", "Technical feasibility study", "research", "research_agent"),
-
+            ExampleAgentTask(
+                "req_1", "Gather user requirements", "research", "research_agent"
+            ),
+            ExampleAgentTask(
+                "req_2", "Market research analysis", "research", "research_agent"
+            ),
+            ExampleAgentTask(
+                "req_3", "Technical feasibility study", "research", "research_agent"
+            ),
             # Design phase
-            ExampleAgentTask("design_1", "System architecture design", "analysis", "analysis_agent"),
-            ExampleAgentTask("design_2", "Database schema design", "analysis", "analysis_agent"),
-
+            ExampleAgentTask(
+                "design_1", "System architecture design", "analysis", "analysis_agent"
+            ),
+            ExampleAgentTask(
+                "design_2", "Database schema design", "analysis", "analysis_agent"
+            ),
             # Development phase
-            ExampleAgentTask("code_1", "Implement authentication", "coding", "coding_agent"),
-            ExampleAgentTask("code_2", "Implement user management", "coding", "coding_agent"),
-            ExampleAgentTask("code_3", "Implement API endpoints", "coding", "coding_agent"),
+            ExampleAgentTask(
+                "code_1", "Implement authentication", "coding", "coding_agent"
+            ),
+            ExampleAgentTask(
+                "code_2", "Implement user management", "coding", "coding_agent"
+            ),
+            ExampleAgentTask(
+                "code_3", "Implement API endpoints", "coding", "coding_agent"
+            ),
             ExampleAgentTask("code_4", "Frontend components", "coding", "coding_agent"),
-
             # Testing and deployment
-            ExampleAgentTask("test_1", "Integration testing", "system", "analysis_agent"),
-            ExampleAgentTask("deploy_1", "Production deployment", "system", "analysis_agent"),
-
+            ExampleAgentTask(
+                "test_1", "Integration testing", "system", "analysis_agent"
+            ),
+            ExampleAgentTask(
+                "deploy_1", "Production deployment", "system", "analysis_agent"
+            ),
             # Documentation
-            ExampleAgentTask("doc_1", "API documentation", "communication", "research_agent"),
+            ExampleAgentTask(
+                "doc_1", "API documentation", "communication", "research_agent"
+            ),
             ExampleAgentTask("doc_2", "User manual", "communication", "research_agent"),
         ]
 
@@ -146,7 +170,9 @@ async def example_multi_agent_workflow():
             submission = orchestrator.submit_task(
                 task,
                 assigned_agent=task.agent_id,
-                priority=1 if task.task_type == 'system' else 0  # Higher priority for system tasks
+                priority=1
+                if task.task_type == "system"
+                else 0,  # Higher priority for system tasks
             )
             task_submissions.append(submission)
 
@@ -156,10 +182,9 @@ async def example_multi_agent_workflow():
         print("\n⚡ Executing workflow with orchestration...")
 
         # Wait for all tasks to complete
-        results = await asyncio.gather(*[
-            orchestrator.wait_for_task(task_id, timeout=60.0)
-            for task_id in task_ids
-        ])
+        results = await asyncio.gather(
+            *[orchestrator.wait_for_task(task_id, timeout=60.0) for task_id in task_ids]
+        )
 
         execution_time = time.time() - start_time
 
@@ -167,11 +192,11 @@ async def example_multi_agent_workflow():
         print("\n📊 Workflow Results:")
         print(f"   - Total tasks: {len(results)}")
         print(f"   - Execution time: {execution_time:.2f}s")
-        print(f"   - Average time per task: {execution_time/len(results):.2f}s")
+        print(f"   - Average time per task: {execution_time / len(results):.2f}s")
 
         # Show agent utilization
         metrics = await orchestrator.get_orchestration_metrics()
-        agent_util = metrics.get('agent_utilization', {})
+        agent_util = metrics.get("agent_utilization", {})
 
         print("\n🤖 Agent Utilization:")
         for agent_id, util in agent_util.items():
@@ -181,14 +206,19 @@ async def example_multi_agent_workflow():
             print(f"     - Peak utilization: {util['utilization_percent']:.1f}%")
 
         # Performance metrics
-        orchestration_metrics = metrics['orchestration_metrics']
+        orchestration_metrics = metrics["orchestration_metrics"]
         print("\n📈 Performance Metrics:")
         print(f"   - Tasks submitted: {orchestration_metrics['tasks_submitted']}")
         print(f"   - Tasks completed: {orchestration_metrics['tasks_completed']}")
         print(f"   - Tasks failed: {orchestration_metrics['tasks_failed']}")
-        print(f"   - Resource constraints hit: {orchestration_metrics['resource_constraints_hit']}")
+        print(
+            f"   - Resource constraints hit: {orchestration_metrics['resource_constraints_hit']}"
+        )
 
-        success_rate = (orchestration_metrics['tasks_completed'] / orchestration_metrics['tasks_submitted']) * 100
+        success_rate = (
+            orchestration_metrics["tasks_completed"]
+            / orchestration_metrics["tasks_submitted"]
+        ) * 100
         print(f"   - Success rate: {success_rate:.1f}%")
 
         return execution_time, len(results), success_rate
@@ -248,10 +278,10 @@ async def example_task_manager_integration():
     tasks = []
     for i in range(3):
         task = task_manager.create_task(
-            title=f"Integration Task {i+1}",
-            description=f"Example task {i+1} for integration testing",
+            title=f"Integration Task {i + 1}",
+            description=f"Example task {i + 1} for integration testing",
             category=TaskCategory.SYSTEM,
-            context={"orchestration_example": True}
+            context={"orchestration_example": True},
         )
         tasks.append(task)
 
@@ -277,7 +307,11 @@ async def main():
 
     try:
         # Example 1: Multi-agent workflow
-        workflow_time, workflow_tasks, success_rate = await example_multi_agent_workflow()
+        (
+            workflow_time,
+            workflow_tasks,
+            success_rate,
+        ) = await example_multi_agent_workflow()
 
         # Example 2: Enhanced scheduler
         await example_enhanced_scheduler_integration()
@@ -288,7 +322,9 @@ async def main():
         print("\n🎉 INTEGRATION EXAMPLES COMPLETED!")
         print("=" * 80)
         print("🎯 Summary:")
-        print(f"   ✅ Multi-agent workflow: {workflow_tasks} tasks in {workflow_time:.2f}s")
+        print(
+            f"   ✅ Multi-agent workflow: {workflow_tasks} tasks in {workflow_time:.2f}s"
+        )
         print(f"   ✅ Success rate: {success_rate:.1f}%")
         print("   ✅ Enhanced scheduler: Integrated and functional")
         print(f"   ✅ Task manager: {task_count} tasks created and managed")
@@ -305,6 +341,7 @@ async def main():
     except Exception as e:
         print(f"\n❌ Integration example failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 

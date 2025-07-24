@@ -1,6 +1,7 @@
 """
 Docker-based secure code execution for Gary Zero agent.
 """
+
 import time
 import uuid
 from typing import Any
@@ -13,7 +14,9 @@ from .base_executor import BaseCodeExecutor
 class DockerCodeExecutor(BaseCodeExecutor):
     """Secure code execution using Docker containers."""
 
-    def __init__(self, image_name: str = "python:3.13-slim", network_name: str = "gary-zero-net"):
+    def __init__(
+        self, image_name: str = "python:3.13-slim", network_name: str = "gary-zero-net"
+    ):
         super().__init__()
         self.image_name = image_name
         self.network_name = network_name
@@ -71,20 +74,17 @@ class DockerCodeExecutor(BaseCodeExecutor):
                 name=f"gary-zero-{session_id}",
                 volumes={
                     f"gary-zero-workspace-{session_id}": {
-                        'bind': '/workspace',
-                        'mode': 'rw'
+                        "bind": "/workspace",
+                        "mode": "rw",
                     }
                 },
-                environment={
-                    'PYTHONPATH': '/workspace',
-                    'SESSION_ID': session_id
-                },
-                mem_limit='512m',
+                environment={"PYTHONPATH": "/workspace", "SESSION_ID": session_id},
+                mem_limit="512m",
                 cpu_period=100000,
                 cpu_quota=50000,  # 50% CPU limit
                 remove=False,
                 network=self.network_name,
-                working_dir='/workspace'
+                working_dir="/workspace",
             )
 
             # Wait a moment for container to start
@@ -94,7 +94,9 @@ class DockerCodeExecutor(BaseCodeExecutor):
             self._setup_container_environment(container)
 
             self.sessions[session_id] = container
-            self.session_metadata[session_id] = self._create_session_metadata(session_id)
+            self.session_metadata[session_id] = self._create_session_metadata(
+                session_id
+            )
 
             print(f"✅ Created Docker session: {session_id}")
             return session_id
@@ -110,7 +112,7 @@ class DockerCodeExecutor(BaseCodeExecutor):
             setup_commands = [
                 "apt-get update",
                 "apt-get install -y build-essential curl git vim",
-                "pip install --no-cache-dir numpy pandas matplotlib requests beautifulsoup4 ipython scikit-learn seaborn pillow"
+                "pip install --no-cache-dir numpy pandas matplotlib requests beautifulsoup4 ipython scikit-learn seaborn pillow",
             ]
 
             for cmd in setup_commands:
@@ -121,7 +123,9 @@ class DockerCodeExecutor(BaseCodeExecutor):
         except Exception as e:
             print(f"⚠️  Warning: Container setup failed: {e}")
 
-    def execute_code(self, session_id: str, code: str, language: str = "python") -> dict[str, Any]:
+    def execute_code(
+        self, session_id: str, code: str, language: str = "python"
+    ) -> dict[str, Any]:
         """Execute code in the specified session."""
         if session_id not in self.sessions:
             raise ValueError(f"Session {session_id} not found")
@@ -131,7 +135,7 @@ class DockerCodeExecutor(BaseCodeExecutor):
         try:
             # Ensure container is running
             container.reload()
-            if container.status != 'running':
+            if container.status != "running":
                 container.start()
                 time.sleep(1)  # Give container time to start
 
@@ -148,7 +152,7 @@ class DockerCodeExecutor(BaseCodeExecutor):
                 "error": str(e),
                 "stdout": "",
                 "stderr": "",
-                "execution_time": 0
+                "execution_time": 0,
             }
 
     def _execute_python(self, container, code: str) -> dict[str, Any]:
@@ -161,8 +165,12 @@ class DockerCodeExecutor(BaseCodeExecutor):
 
         # Write code to file
         exec_result = container.exec_run(
-            ["python", "-c", f"with open('{code_file}', 'w') as f: f.write({repr(code)})"],
-            user="root"
+            [
+                "python",
+                "-c",
+                f"with open('{code_file}', 'w') as f: f.write({repr(code)})",
+            ],
+            user="root",
         )
 
         if exec_result.exit_code != 0:
@@ -171,15 +179,13 @@ class DockerCodeExecutor(BaseCodeExecutor):
                 "error": f"Failed to write code: {exec_result.output.decode()}",
                 "stdout": "",
                 "stderr": "",
-                "execution_time": 0
+                "execution_time": 0,
             }
 
         # Execute the code
         start_time = time.time()
         exec_result = container.exec_run(
-            ["python", code_file],
-            user="root",
-            workdir="/workspace"
+            ["python", code_file], user="root", workdir="/workspace"
         )
         execution_time = time.time() - start_time
 
@@ -193,16 +199,14 @@ class DockerCodeExecutor(BaseCodeExecutor):
             "stdout": output,
             "stderr": "" if exec_result.exit_code == 0 else output,
             "execution_time": execution_time,
-            "exit_code": exec_result.exit_code
+            "exit_code": exec_result.exit_code,
         }
 
     def _execute_shell(self, container, command: str) -> dict[str, Any]:
         """Execute shell command in container."""
         start_time = time.time()
         exec_result = container.exec_run(
-            ["bash", "-c", command],
-            user="root",
-            workdir="/workspace"
+            ["bash", "-c", command], user="root", workdir="/workspace"
         )
         execution_time = time.time() - start_time
 
@@ -213,7 +217,7 @@ class DockerCodeExecutor(BaseCodeExecutor):
             "stdout": output,
             "stderr": "" if exec_result.exit_code == 0 else output,
             "execution_time": execution_time,
-            "exit_code": exec_result.exit_code
+            "exit_code": exec_result.exit_code,
         }
 
     def close_session(self, session_id: str):

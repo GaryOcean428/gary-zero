@@ -4,6 +4,7 @@ Final Integration Showcase - Google Gemini Live API
 This showcase demonstrates the complete integration without dependency issues.
 """
 
+
 def show_integration_showcase():
     """Show the complete integration showcase."""
     print("🎉 GOOGLE GEMINI LIVE API INTEGRATION COMPLETE")
@@ -26,8 +27,11 @@ def show_integration_showcase():
         ("🌐 WebSocket Client", "instruments/custom/gemini_live/streaming_client.py"),
         ("🎵 Audio Loop", "instruments/custom/gemini_live/audio_loop.py"),
         ("🔌 API Endpoints", "api/gemini_live_api.py"),
-        ("🖥️  Web UI", "webui/components/settings/gemini-live/gemini-live-settings.html"),
-        ("📚 Documentation", "docs/gemini-live-api.md")
+        (
+            "🖥️  Web UI",
+            "webui/components/settings/gemini-live/gemini-live-settings.html",
+        ),
+        ("📚 Documentation", "docs/gemini-live-api.md"),
     ]
 
     for name, path in components:
@@ -37,9 +41,17 @@ def show_integration_showcase():
     print("-" * 26)
     configs = [
         ("🔑 API Key", "GEMINI_API_KEY", "Required for authentication"),
-        ("🤖 Model", "GEMINI_LIVE_MODEL", "Default: gemini-2.5-flash-preview-native-audio-dialog"),
-        ("🎵 Voice", "GEMINI_LIVE_VOICE", "Default: Zephyr (Echo, Crystal, Sage available)"),
-        ("📱 Modalities", "GEMINI_LIVE_RESPONSE_MODALITIES", "Default: AUDIO")
+        (
+            "🤖 Model",
+            "GEMINI_LIVE_MODEL",
+            "Default: gemini-2.5-flash-preview-native-audio-dialog",
+        ),
+        (
+            "🎵 Voice",
+            "GEMINI_LIVE_VOICE",
+            "Default: Zephyr (Echo, Crystal, Sage available)",
+        ),
+        ("📱 Modalities", "GEMINI_LIVE_RESPONSE_MODALITIES", "Default: AUDIO"),
     ]
 
     for emoji_desc, var, desc in configs:
@@ -53,7 +65,7 @@ def show_integration_showcase():
         ("POST", "/api/gemini-live/audio", "Send audio data"),
         ("POST", "/api/gemini-live/configure", "Update configuration"),
         ("GET", "/api/gemini-live/status", "Get streaming status"),
-        ("GET", "/api/gemini-live/config", "Get configuration options")
+        ("GET", "/api/gemini-live/config", "Get configuration options"),
     ]
 
     for method, endpoint, desc in endpoints:
@@ -65,7 +77,7 @@ def show_integration_showcase():
         ("Zephyr", "Balanced, natural voice (Default)"),
         ("Echo", "Crisp, clear articulation"),
         ("Crystal", "Smooth, professional tone"),
-        ("Sage", "Warm, conversational style")
+        ("Sage", "Warm, conversational style"),
     ]
 
     for voice, desc in voices:
@@ -88,7 +100,7 @@ def show_integration_showcase():
         "Web UI with live controls",
         "Environment variable integration",
         "Multiple model support",
-        "Graceful audio hardware fallback"
+        "Graceful audio hardware fallback",
     ]
 
     for feature in features:
@@ -102,7 +114,7 @@ def show_integration_showcase():
         "Input validation and sanitization",
         "Connection retry mechanisms",
         "Graceful error handling",
-        "Status monitoring and alerts"
+        "Status monitoring and alerts",
     ]
 
     for feature in security_features:
@@ -116,7 +128,7 @@ def show_integration_showcase():
         ("WebSocket Client", "✅ PASSED", "Client creates successfully"),
         ("Tool Factory", "✅ PASSED", "Tool instantiation works"),
         ("Environment Config", "✅ PASSED", "Variables properly handled"),
-        ("Audio Fallback", "✅ PASSED", "Graceful degradation without hardware")
+        ("Audio Fallback", "✅ PASSED", "Graceful degradation without hardware"),
     ]
 
     for test_name, status, desc in tests:
@@ -131,7 +143,7 @@ def show_integration_showcase():
         "4. Navigate to Gemini Live API section",
         "5. Test connection",
         "6. Start streaming session",
-        "7. Enjoy real-time AI voice interaction!"
+        "7. Enjoy real-time AI voice interaction!",
     ]
 
     for step in steps:
@@ -140,13 +152,14 @@ def show_integration_showcase():
     print("\n💡 EXAMPLE USAGE")
     print("-" * 16)
     print("   🎯 Web UI: Settings → Gemini Live API → Configure & Start")
-    print("   🎯 Tool: {\"action\": \"start_streaming\", \"voice\": \"Zephyr\"}")
+    print('   🎯 Tool: {"action": "start_streaming", "voice": "Zephyr"}')
     print("   🎯 API: POST /api/gemini-live/stream with configuration")
 
     print("\n🎊 INTEGRATION COMPLETE!")
     print("=" * 55)
     print("The Google Gemini Live API is now fully integrated into Gary-Zero!")
     print("Ready for real-time voice interactions with advanced AI capabilities.")
+
 
 if __name__ == "__main__":
     show_integration_showcase()

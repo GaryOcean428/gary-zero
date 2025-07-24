@@ -33,7 +33,9 @@ async def call_rfc(
         args=args,
         kwargs=kwargs,
     )
-    call = RFCCall(rfc_input=json.dumps(input), hash=crypto.hash_data(json.dumps(input), password))
+    call = RFCCall(
+        rfc_input=json.dumps(input), hash=crypto.hash_data(json.dumps(input), password)
+    )
     result = await _send_json_data(url, call)
     return result
 

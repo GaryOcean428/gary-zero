@@ -26,9 +26,9 @@ class CLIApprovalInterface:
 
     def display_approval_request(self, request: ApprovalRequest) -> None:
         """Display approval request to user via CLI."""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("🔐 APPROVAL REQUIRED")
-        print("="*60)
+        print("=" * 60)
         print(f"User: {request.user_id}")
         print(f"Action: {request.action_type}")
         print(f"Risk Level: {request.risk_level.value.upper()}")
@@ -52,12 +52,14 @@ class CLIApprovalInterface:
         print(f"  approve {request.request_id}")
         print("To reject this request, run:")
         print(f"  reject {request.request_id} [reason]")
-        print("="*60)
+        print("=" * 60)
 
         # Store for reference
         self.pending_display[request.request_id] = request
 
-    def handle_approval_response(self, request: ApprovalRequest, approved: bool) -> None:
+    def handle_approval_response(
+        self, request: ApprovalRequest, approved: bool
+    ) -> None:
         """Handle approval response."""
         status = "APPROVED" if approved else "REJECTED"
         print(f"\n✅ Request {request.request_id} {status}")
@@ -139,13 +141,15 @@ class WebUIApprovalInterface:
         self.pending_requests[request.request_id] = {
             "request": request,
             "timestamp": time.time(),
-            "displayed": False
+            "displayed": False,
         }
 
         # In a real implementation, this would notify the web UI
         print(f"📱 New approval request queued for web UI: {request.request_id}")
 
-    def handle_approval_response(self, request: ApprovalRequest, approved: bool) -> None:
+    def handle_approval_response(
+        self, request: ApprovalRequest, approved: bool
+    ) -> None:
         """Handle approval response from web UI."""
         if request.request_id in self.pending_requests:
             del self.pending_requests[request.request_id]
@@ -169,13 +173,14 @@ class WebUIApprovalInterface:
                 "created_at": request.created_at,
                 "expires_at": request.expires_at,
                 "time_remaining": max(0, request.expires_at - time.time()),
-                "request_data": request.to_dict()
+                "request_data": request.to_dict(),
             }
 
         return ui_requests
 
-    async def handle_ui_response(self, request_id: str, action: str,
-                                user_id: str, reason: str | None = None) -> bool:
+    async def handle_ui_response(
+        self, request_id: str, action: str, user_id: str, reason: str | None = None
+    ) -> bool:
         """Handle approval response from web UI."""
         if action.lower() == "approve":
             return await self.workflow.approve_request(request_id, user_id, reason)
@@ -219,7 +224,7 @@ async def demo_approval_interface():
             action_type="file_delete",
             action_description="Delete important system file",
             parameters={"file": "/etc/passwd", "force": True},
-            timeout_override=30
+            timeout_override=30,
         )
 
     # Start the request
@@ -240,7 +245,9 @@ async def demo_approval_interface():
     pending = workflow.get_pending_requests()
     if pending:
         request_id = pending[0].request_id
-        result = await cli_interface.process_command(f"approve {request_id} Demo approval")
+        result = await cli_interface.process_command(
+            f"approve {request_id} Demo approval"
+        )
         print(result)
 
     # Wait for the request to complete

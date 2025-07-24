@@ -27,6 +27,7 @@ if TYPE_CHECKING:
 @dataclass
 class ToolExecutionResult:
     """Result of tool execution with SDK compatibility."""
+
     success: bool
     result: Any
     error: str | None = None
@@ -57,22 +58,24 @@ class SDKToolWrapper(SDKTool):
         super().__init__(
             name=self.tool_name,
             description=self.tool_description,
-            parameters=self.tool_parameters
+            parameters=self.tool_parameters,
         )
 
     def _get_tool_name(self) -> str:
         """Extract tool name from Gary-Zero tool class."""
         # Use class name or look for name attribute
-        if hasattr(self.gary_tool_class, 'name'):
+        if hasattr(self.gary_tool_class, "name"):
             return self.gary_tool_class.name
         else:
             # Convert class name to snake_case
             name = self.gary_tool_class.__name__
-            return ''.join(['_' + i.lower() if i.isupper() else i for i in name]).lstrip('_')
+            return "".join(
+                ["_" + i.lower() if i.isupper() else i for i in name]
+            ).lstrip("_")
 
     def _get_tool_description(self) -> str:
         """Extract tool description from Gary-Zero tool class."""
-        if hasattr(self.gary_tool_class, 'description'):
+        if hasattr(self.gary_tool_class, "description"):
             return self.gary_tool_class.description
         elif self.gary_tool_class.__doc__:
             return self.gary_tool_class.__doc__.strip()
@@ -84,10 +87,10 @@ class SDKToolWrapper(SDKTool):
         parameters = {"type": "object", "properties": {}, "required": []}
 
         # Try to extract from execute method signature
-        if hasattr(self.gary_tool_class, 'execute'):
+        if hasattr(self.gary_tool_class, "execute"):
             sig = inspect.signature(self.gary_tool_class.execute)
             for param_name, param in sig.parameters.items():
-                if param_name in ['self', 'kwargs']:
+                if param_name in ["self", "kwargs"]:
                     continue
 
                 prop = {"type": "string"}  # Default type
@@ -106,7 +109,7 @@ class SDKToolWrapper(SDKTool):
                         prop["type"] = "object"
 
                 # Add description if available
-                if hasattr(param, 'description'):
+                if hasattr(param, "description"):
                     prop["description"] = param.description
 
                 parameters["properties"][param_name] = prop
@@ -127,7 +130,7 @@ class SDKToolWrapper(SDKTool):
                     name=self.tool_name,
                     method=None,
                     args=kwargs,
-                    message=""
+                    message="",
                 )
 
             # Update args for this execution
@@ -143,20 +146,20 @@ class SDKToolWrapper(SDKTool):
             await self._tool_instance.after_execution(gary_result)
 
             # Convert Gary-Zero result to SDK format
-            if hasattr(gary_result, 'message'):
+            if hasattr(gary_result, "message"):
                 # Gary-Zero tool result format
                 result = ToolExecutionResult(
                     success=True,
                     result=gary_result.message,
                     break_loop=gary_result.break_loop,
-                    metadata={"gary_zero_tool": True}
+                    metadata={"gary_zero_tool": True},
                 )
             else:
                 # Direct result
                 result = ToolExecutionResult(
                     success=True,
                     result=str(gary_result),
-                    metadata={"gary_zero_tool": True}
+                    metadata={"gary_zero_tool": True},
                 )
 
             return result.to_sdk_result()
@@ -165,7 +168,7 @@ class SDKToolWrapper(SDKTool):
             error_result = ToolExecutionResult(
                 success=False,
                 error=str(e),
-                metadata={"gary_zero_tool": True, "error_type": type(e).__name__}
+                metadata={"gary_zero_tool": True, "error_type": type(e).__name__},
             )
             raise Exception(error_result.error)
 
@@ -202,8 +205,9 @@ class ToolRegistry:
         self.gary_tool_classes = tool_classes
         return tool_classes
 
-    def register_tool(self, gary_tool_class: type[GaryTool], agent: "Agent",
-                     category: str = "general") -> str:
+    def register_tool(
+        self, gary_tool_class: type[GaryTool], agent: "Agent", category: str = "general"
+    ) -> str:
         """Register a Gary-Zero tool as SDK-compatible tool."""
         wrapper = SDKToolWrapper(gary_tool_class, agent)
         tool_name = wrapper.tool_name
@@ -247,27 +251,36 @@ class ToolRegistry:
         module_name = tool_class.__module__.lower()
 
         # Code-related tools
-        if any(keyword in class_name for keyword in ['code', 'python', 'execute', 'script']):
+        if any(
+            keyword in class_name for keyword in ["code", "python", "execute", "script"]
+        ):
             return "coding"
 
         # Browser/web tools
-        elif any(keyword in class_name for keyword in ['browser', 'web', 'page', 'click']):
+        elif any(
+            keyword in class_name for keyword in ["browser", "web", "page", "click"]
+        ):
             return "browser"
 
         # File system tools
-        elif any(keyword in class_name for keyword in ['file', 'directory', 'read', 'write']):
+        elif any(
+            keyword in class_name for keyword in ["file", "directory", "read", "write"]
+        ):
             return "filesystem"
 
         # Communication tools
-        elif any(keyword in class_name for keyword in ['message', 'email', 'chat', 'response']):
+        elif any(
+            keyword in class_name
+            for keyword in ["message", "email", "chat", "response"]
+        ):
             return "communication"
 
         # Search tools
-        elif any(keyword in class_name for keyword in ['search', 'find', 'query']):
+        elif any(keyword in class_name for keyword in ["search", "find", "query"]):
             return "search"
 
         # Analysis tools
-        elif any(keyword in class_name for keyword in ['analyze', 'process', 'parse']):
+        elif any(keyword in class_name for keyword in ["analyze", "process", "parse"]):
             return "analysis"
 
         else:
@@ -280,7 +293,11 @@ class ToolRegistry:
     def get_tools_by_category(self, category: str) -> list[SDKToolWrapper]:
         """Get all tools in a specific category."""
         tool_names = self.tool_categories.get(category, [])
-        return [self.registered_tools[name] for name in tool_names if name in self.registered_tools]
+        return [
+            self.registered_tools[name]
+            for name in tool_names
+            if name in self.registered_tools
+        ]
 
     def get_all_tools(self) -> list[SDKToolWrapper]:
         """Get all registered tools."""
@@ -297,7 +314,7 @@ class ToolRegistry:
             "description": tool.tool_description,
             "parameters": tool.tool_parameters,
             "category": self._get_tool_category(tool_name),
-            "gary_zero_class": tool.gary_tool_class.__name__
+            "gary_zero_class": tool.gary_tool_class.__name__,
         }
 
     def _get_tool_category(self, tool_name: str) -> str:
@@ -333,8 +350,7 @@ class ToolExecutor:
         tool = self.tool_registry.get_tool(tool_name)
         if not tool:
             return ToolExecutionResult(
-                success=False,
-                error=f"Tool '{tool_name}' not found"
+                success=False, error=f"Tool '{tool_name}' not found"
             )
 
         execution_record = {
@@ -343,7 +359,7 @@ class ToolExecutor:
             "timestamp": asyncio.get_event_loop().time(),
             "success": False,
             "result": None,
-            "error": None
+            "error": None,
         }
 
         try:
@@ -351,36 +367,31 @@ class ToolExecutor:
             sdk_result = await tool.execute(**kwargs)
 
             # Convert back to our format
-            if hasattr(sdk_result, 'error') and sdk_result.error:
-                result = ToolExecutionResult(
-                    success=False,
-                    error=sdk_result.error
-                )
+            if hasattr(sdk_result, "error") and sdk_result.error:
+                result = ToolExecutionResult(success=False, error=sdk_result.error)
             else:
                 result = ToolExecutionResult(
                     success=True,
-                    result=sdk_result.result if hasattr(sdk_result, 'result') else str(sdk_result),
-                    metadata=getattr(sdk_result, 'metadata', {})
+                    result=sdk_result.result
+                    if hasattr(sdk_result, "result")
+                    else str(sdk_result),
+                    metadata=getattr(sdk_result, "metadata", {}),
                 )
 
-            execution_record.update({
-                "success": result.success,
-                "result": result.result,
-                "error": result.error
-            })
+            execution_record.update(
+                {
+                    "success": result.success,
+                    "result": result.result,
+                    "error": result.error,
+                }
+            )
 
             return result
 
         except Exception as e:
-            execution_record.update({
-                "success": False,
-                "error": str(e)
-            })
+            execution_record.update({"success": False, "error": str(e)})
 
-            return ToolExecutionResult(
-                success=False,
-                error=str(e)
-            )
+            return ToolExecutionResult(success=False, error=str(e))
 
         finally:
             self.execution_history.append(execution_record)
@@ -388,7 +399,9 @@ class ToolExecutor:
             if len(self.execution_history) > 1000:
                 self.execution_history = self.execution_history[-500:]
 
-    async def execute_tool_chain(self, tool_chain: list[dict[str, Any]]) -> list[ToolExecutionResult]:
+    async def execute_tool_chain(
+        self, tool_chain: list[dict[str, Any]]
+    ) -> list[ToolExecutionResult]:
         """Execute a chain of tools in sequence."""
         results = []
 
@@ -397,10 +410,11 @@ class ToolExecutor:
             args = step.get("args", {})
 
             if not tool_name:
-                results.append(ToolExecutionResult(
-                    success=False,
-                    error="No tool name specified in chain step"
-                ))
+                results.append(
+                    ToolExecutionResult(
+                        success=False, error="No tool name specified in chain step"
+                    )
+                )
                 continue
 
             result = await self.execute_tool(tool_name, **args)
@@ -431,7 +445,9 @@ class ToolExecutor:
             "successful_executions": successful,
             "success_rate": successful / total if total > 0 else 0,
             "tool_usage_frequency": tool_usage,
-            "most_used_tool": max(tool_usage.items(), key=lambda x: x[1])[0] if tool_usage else None
+            "most_used_tool": max(tool_usage.items(), key=lambda x: x[1])[0]
+            if tool_usage
+            else None,
         }
 
 
@@ -488,7 +504,9 @@ def wrap_gary_tool(tool_class: type[GaryTool], agent: "Agent") -> SDKToolWrapper
     return SDKToolWrapper(tool_class, agent)
 
 
-def execute_wrapped_tool(tool_name: str, agent: "Agent", **kwargs) -> ToolExecutionResult:
+def execute_wrapped_tool(
+    tool_name: str, agent: "Agent", **kwargs
+) -> ToolExecutionResult:
     """Convenience function to execute a wrapped tool."""
     executor = get_tool_executor()
     return asyncio.run(executor.execute_tool(tool_name, **kwargs))

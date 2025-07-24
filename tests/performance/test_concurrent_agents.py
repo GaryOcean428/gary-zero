@@ -59,10 +59,9 @@ class TestConcurrentPerformance:
             try:
                 with client.websocket_connect("/ws") as websocket:
                     # Send a message
-                    websocket.send_json({
-                        "message": "Performance test message",
-                        "agent_id": "perf-test"
-                    })
+                    websocket.send_json(
+                        {"message": "Performance test message", "agent_id": "perf-test"}
+                    )
 
                     # Receive response
                     response = websocket.receive_json()
@@ -82,10 +81,13 @@ class TestConcurrentPerformance:
         # Count successful connections
         successful = sum(1 for r in results if r is True)
 
-        print(f"WebSocket connections: {successful}/{len(tasks)} successful in {duration:.2f}s")
+        print(
+            f"WebSocket connections: {successful}/{len(tasks)} successful in {duration:.2f}s"
+        )
 
         # At least 80% should succeed
         assert successful >= len(tasks) * 0.8
+
 
 @pytest.mark.performance
 class TestMemoryUsage:
@@ -116,10 +118,14 @@ class TestMemoryUsage:
         final_memory = process.memory_info().rss / 1024 / 1024  # MB
         memory_increase = final_memory - initial_memory
 
-        print(f"Memory usage: {initial_memory:.2f}MB -> {final_memory:.2f}MB (+{memory_increase:.2f}MB)")
+        print(
+            f"Memory usage: {initial_memory:.2f}MB -> {final_memory:.2f}MB (+{memory_increase:.2f}MB)"
+        )
 
         # Memory increase should be reasonable (adjust threshold as needed)
-        assert memory_increase < 50, f"Memory usage increased too much: {memory_increase}MB"
+        assert memory_increase < 50, (
+            f"Memory usage increased too much: {memory_increase}MB"
+        )
 
     def test_code_validation_performance(self):
         """Test performance of code validation."""
@@ -155,10 +161,11 @@ print(f"Final result: {final_result}")
         duration = end_time - start_time
 
         avg_time = duration / 50
-        print(f"Average validation time: {avg_time*1000:.2f}ms")
+        print(f"Average validation time: {avg_time * 1000:.2f}ms")
 
         # Should validate quickly (adjust threshold as needed)
         assert avg_time < 0.1, f"Code validation too slow: {avg_time:.3f}s"
+
 
 @pytest.mark.performance
 class TestModelRegistryPerformance:
@@ -181,14 +188,16 @@ class TestModelRegistryPerformance:
             openai_models = registry.list_models(ModelProvider.OPENAI)
             assert len(openai_models) > 0
 
-            coding_models = registry.get_models_by_capability(ModelCapability.CODE_GENERATION)
+            coding_models = registry.get_models_by_capability(
+                ModelCapability.CODE_GENERATION
+            )
             assert len(coding_models) > 0
 
         end_time = time.time()
         duration = end_time - start_time
 
         avg_time = duration / 1000
-        print(f"Average lookup time: {avg_time*1000:.2f}ms")
+        print(f"Average lookup time: {avg_time * 1000:.2f}ms")
 
         # Lookups should be fast
         assert avg_time < 0.001, f"Model lookups too slow: {avg_time:.4f}s"

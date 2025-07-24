@@ -70,9 +70,13 @@ class DirtyJson:
         while self.current_char is not None:
             if self.current_char.isspace():
                 self._advance()
-            elif self.current_char == "/" and self._peek(1) == "/":  # Single-line comment
+            elif (
+                self.current_char == "/" and self._peek(1) == "/"
+            ):  # Single-line comment
                 self._skip_single_line_comment()
-            elif self.current_char == "/" and self._peek(1) == "*":  # Multi-line comment
+            elif (
+                self.current_char == "/" and self._peek(1) == "*"
+            ):  # Multi-line comment
                 self._skip_multi_line_comment()
             else:
                 break
@@ -120,7 +124,9 @@ class DirtyJson:
             if self._peek(2) == self.current_char * 2:  # type: ignore
                 return self._parse_multiline_string()
             return self._parse_string()
-        elif self.current_char and (self.current_char.isdigit() or self.current_char in ["-", "+"]):
+        elif self.current_char and (
+            self.current_char.isdigit() or self.current_char in ["-", "+"]
+        ):
             return self._parse_number()
         elif self._match("true"):
             return True
@@ -258,8 +264,8 @@ class DirtyJson:
                     # Try to collect exactly 4 hex digits
                     for _ in range(4):
                         if self.current_char is None or not self.current_char.isalnum():
-            # If we can't get 4 hex digits, treat it as a literal '\u'
-            # followed by whatever we got
+                            # If we can't get 4 hex digits, treat it as a literal '\u'
+                            # followed by whatever we got
                             return result + "\\u" + unicode_char
                         unicode_char += self.current_char
                         self._advance()
@@ -291,7 +297,8 @@ class DirtyJson:
     def _parse_number(self):
         number_str = ""
         while self.current_char is not None and (
-            self.current_char.isdigit() or self.current_char in ["-", "+", ".", "e", "E"]
+            self.current_char.isdigit()
+            or self.current_char in ["-", "+", ".", "e", "E"]
         ):
             number_str += self.current_char
             self._advance()

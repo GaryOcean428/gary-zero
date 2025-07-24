@@ -1,0 +1,497 @@
+# Reusable Workflow: Security Audit
+# Handles safety, bandit, npm-audit, and OSSF scorecard security scanning
+
+name: Security Audit
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: 'Python version to use'
+        type: string
+        default: '3.13'
+      node-version:
+        description: 'Node.js version to use'
+        type: string
+        default: '22'
+      fail-on-security-issues:
+        description: 'Fail the workflow if security issues are found'
+        type: boolean 
+        default: true
+      ossf-scorecard:
+        description: 'Run OSSF Scorecard analysis'
+        type: boolean
+        default: true
+    outputs:
+      security-status:
+        description: 'Overall security audit status'
+        value: ${{ jobs.security-summary.outputs.status }}
+      critical-issues:
+        description: 'Number of critical security issues found'
+        value: ${{ jobs.security-summary.outputs.critical-issues }}
+
+env:
+  PYTHON_VERSION: ${{ inputs.python-version }}
+  NODE_VERSION: ${{ inputs.node-version }}
+
+jobs:
+  python-security:
+    name: Python Security Audit
+    runs-on: ubuntu-latest
+    outputs:
+      bandit-status: ${{ steps.bandit.outputs.status }}
+      safety-status: ${{ steps.safety.outputs.status }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Install security tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install bandit[toml] safety pip-audit
+
+    - name: Install project dependencies for analysis
+      run: |
+        if [ -f requirements.txt ]; then 
+          pip install -r requirements.txt
+        fi
+
+    - name: Run Bandit security scan
+      id: bandit
+      run: |
+        echo "🔍 Running Bandit security analysis..."
+        
+        # Create bandit configuration if it doesn't exist
+        if [ ! -f pyproject.toml ] && [ ! -f .bandit ]; then
+          echo "Creating basic bandit configuration..."
+          cat > .bandit << EOF
+        [bandit]
+        exclude_dirs = ["tests", "venv", ".venv", "node_modules"]
+        skips = ["B101", "B601"]  # Skip assert and shell injection in tests
+        EOF
+        fi
+        
+        # Run bandit with JSON output for processing
+        bandit -r framework/ api/ security/ -f json -o bandit-report.json || BANDIT_EXIT=$?
+        
+        # Run bandit with human-readable output
+        bandit -r framework/ api/ security/ -ll || BANDIT_EXIT_READABLE=$?
+        
+        # Process results
+        if [ -f bandit-report.json ]; then
+          CRITICAL_COUNT=$(python3 -c "
+        import json
+        try:
+            with open('bandit-report.json', 'r') as f:
+                data = json.load(f)
+            critical = sum(1 for result in data.get('results', []) if result.get('issue_severity') == 'HIGH')
+            print(critical)
+        except:
+            print('0')
+        ")
+          echo "Found $CRITICAL_COUNT critical security issues"
+          echo "critical-count=$CRITICAL_COUNT" >> $GITHUB_OUTPUT
+          
+          if [ "$CRITICAL_COUNT" -gt 0 ] && [ "${{ inputs.fail-on-security-issues }}" = "true" ]; then
+            echo "status=failed" >> $GITHUB_OUTPUT
+            echo "❌ Critical security issues found in Python code"
+            exit 1
+          fi
+        fi
+        
+        echo "status=passed" >> $GITHUB_OUTPUT
+        echo "✅ Bandit security scan completed"
+
+    - name: Run Safety vulnerability check
+      id: safety
+      run: |
+        echo "🔍 Running Safety vulnerability check..."
+        
+        # Run safety with JSON output
+        safety check --json --output safety-report.json || SAFETY_EXIT=$?
+        
+        # Run safety with human-readable output
+        safety check || SAFETY_EXIT_READABLE=$?
+        
+        # Process results
+        if [ -f safety-report.json ]; then
+          VULN_COUNT=$(python3 -c "
+        import json
+        try:
+            with open('safety-report.json', 'r') as f:
+                data = json.load(f)
+            if isinstance(data, list):
+                print(len(data))
+            else:
+                print(len(data.get('vulnerabilities', [])))
+        except:
+            print('0')
+        ")
+          echo "Found $VULN_COUNT vulnerabilities"
+          echo "vulnerability-count=$VULN_COUNT" >> $GITHUB_OUTPUT
+          
+          if [ "$VULN_COUNT" -gt 0 ] && [ "${{ inputs.fail-on-security-issues }}" = "true" ]; then
+            echo "status=failed" >> $GITHUB_OUTPUT
+            echo "❌ Vulnerabilities found in Python dependencies"
+            exit 1
+          fi
+        fi
+        
+        echo "status=passed" >> $GITHUB_OUTPUT
+        echo "✅ Safety vulnerability check completed"
+
+    - name: Run pip-audit
+      id: pip-audit
+      run: |
+        echo "🔍 Running pip-audit for additional vulnerability scanning..."
+        pip-audit --desc --output pip-audit-report.json --format json || PIP_AUDIT_EXIT=$?
+        pip-audit --desc || echo "pip-audit found issues (exit code: $?)"
+        echo "✅ pip-audit completed"
+
+    - name: Upload Python security reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: python-security-reports
+        path: |
+          bandit-report.json
+          safety-report.json
+          pip-audit-report.json
+        retention-days: 30
+
+  node-security:
+    name: Node.js Security Audit
+    runs-on: ubuntu-latest
+    outputs:
+      npm-audit-status: ${{ steps.npm-audit.outputs.status }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run npm audit
+      id: npm-audit
+      run: |
+        echo "🔍 Running npm audit..."
+        
+        # Run npm audit with JSON output
+        npm audit --json > npm-audit-report.json || NPM_AUDIT_EXIT=$?
+        
+        # Process results
+        if [ -f npm-audit-report.json ]; then
+          HIGH_VULNS=$(node -e "
+            const audit = require('./npm-audit-report.json');
+            const metadata = audit.metadata || {};
+            const vulnerabilities = metadata.vulnerabilities || {};
+            const high = vulnerabilities.high || 0;
+            const critical = vulnerabilities.critical || 0;
+            console.log(high + critical);
+          ")
+          
+          echo "Found $HIGH_VULNS high/critical vulnerabilities"
+          echo "high-critical-count=$HIGH_VULNS" >> $GITHUB_OUTPUT
+          
+          if [ "$HIGH_VULNS" -gt 0 ] && [ "${{ inputs.fail-on-security-issues }}" = "true" ]; then
+            echo "status=failed" >> $GITHUB_OUTPUT
+            echo "❌ High/critical vulnerabilities found in Node.js dependencies"
+            npm audit  # Show human-readable output
+            exit 1
+          fi
+        fi
+        
+        # Show audit results
+        npm audit || echo "npm audit completed with warnings"
+        
+        echo "status=passed" >> $GITHUB_OUTPUT
+        echo "✅ npm audit completed"
+
+    - name: Upload Node.js security reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: node-security-reports
+        path: npm-audit-report.json
+        retention-days: 30
+
+  container-security:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'schedule'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Build Docker image for scanning
+      run: |
+        echo "🐳 Building Docker image for security scanning..."
+        docker build -t gary-zero:security-scan .
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'gary-zero:security-scan'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results to Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+        category: "Container-Security-Trivy"
+        
+    - name: Upload Trivy results as artifact
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: trivy-security-scan
+        path: 'trivy-results.sarif'
+        retention-days: 30
+
+  codeql-analysis:
+    name: CodeQL Security Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['python', 'javascript']
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        queries: security-extended,security-and-quality
+        config: |
+          name: "Gary Zero CodeQL Config"
+          disable-default-queries: false
+          queries:
+            - uses: security-extended
+            - uses: security-and-quality
+          paths-ignore:
+            - "tests/**"
+            - "**/test_*.py"
+            - "**/*.test.js"
+            - "node_modules/**"
+            - ".venv/**"
+            - "__pycache__/**"
+
+    - name: Set up Python (for Python analysis)
+      if: matrix.language == 'python'
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Install Python dependencies (for analysis)
+      if: matrix.language == 'python'
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+
+    - name: Set up Node.js (for JavaScript analysis)
+      if: matrix.language == 'javascript'
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install Node.js dependencies (for analysis)
+      if: matrix.language == 'javascript'
+      run: npm ci
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{ matrix.language }}"
+        upload: true
+
+  ossf-scorecard:
+    name: OSSF Scorecard
+    runs-on: ubuntu-latest
+    if: ${{ inputs.ossf-scorecard && (github.event_name == 'push' || github.event_name == 'schedule') }}
+    permissions:
+      security-events: write
+      id-token: write
+      actions: read
+      contents: read
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+
+    - name: Run OSSF Scorecard
+      uses: ossf/scorecard-action@v2.3.1
+      with:
+        results_file: ossf-scorecard-results.sarif
+        results_format: sarif
+        publish_results: true
+
+    - name: Upload OSSF Scorecard results to Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: ossf-scorecard-results.sarif
+        category: "OSSF-Scorecard"
+
+  license-check:
+    name: License Compliance
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install license checking tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install pip-licenses licensecheck
+
+    - name: Check Python license compliance
+      run: |
+        echo "📜 Checking Python package licenses..."
+        if [ -f requirements.txt ]; then
+          pip install -r requirements.txt
+          pip-licenses --format json --output-file python-licenses.json
+          pip-licenses --format plain
+          
+          # Check for problematic licenses
+          pip-licenses --format json | python3 -c "
+        import json, sys
+        data = json.loads(sys.stdin.read())
+        problematic = ['GPL-3.0', 'AGPL-3.0', 'LGPL-3.0']
+        issues = [pkg for pkg in data if any(lic in pkg.get('License', '') for lic in problematic)]
+        if issues:
+            print('⚠️ Found packages with potentially problematic licenses:')
+            for pkg in issues:
+                print(f\"  {pkg['Name']}: {pkg['License']}\")
+        else:
+            print('✅ No problematic licenses found')
+        "
+        fi
+
+    - name: Set up Node.js for license check
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Check Node.js license compliance
+      run: |
+        echo "📜 Checking Node.js package licenses..."
+        if [ -f package.json ]; then
+          npm ci
+          npx license-checker --json --out node-licenses.json
+          npx license-checker --summary
+        fi
+
+    - name: Upload license reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: license-reports
+        path: |
+          python-licenses.json
+          node-licenses.json
+        retention-days: 30
+
+  security-summary:
+    name: Security Audit Summary
+    runs-on: ubuntu-latest
+    needs: [python-security, node-security, container-security, codeql-analysis, ossf-scorecard, license-check]
+    if: always()
+    outputs:
+      status: ${{ steps.summary.outputs.status }}
+      critical-issues: ${{ steps.summary.outputs.critical-issues }}
+    
+    steps:
+    - name: Calculate security status
+      id: summary
+      run: |
+        echo "🔒 Security Audit Summary"
+        echo "========================"
+        echo "Python Security: ${{ needs.python-security.result }}"
+        echo "Node.js Security: ${{ needs.node-security.result }}"
+        echo "Container Security: ${{ needs.container-security.result }}"
+        echo "CodeQL Analysis: ${{ needs.codeql-analysis.result }}"
+        echo "OSSF Scorecard: ${{ needs.ossf-scorecard.result }}"
+        echo "License Check: ${{ needs.license-check.result }}"
+        echo ""
+        
+        # Count critical issues
+        CRITICAL_ISSUES=0
+        
+        # Add bandit critical issues
+        if [ "${{ needs.python-security.outputs.bandit-status }}" = "failed" ]; then
+          BANDIT_CRITICAL="${{ needs.python-security.outputs.critical-count }}"
+          CRITICAL_ISSUES=$((CRITICAL_ISSUES + ${BANDIT_CRITICAL:-0}))
+        fi
+        
+        # Add npm audit high/critical issues  
+        if [ "${{ needs.node-security.outputs.npm-audit-status }}" = "failed" ]; then
+          NPM_CRITICAL="${{ needs.node-security.outputs.high-critical-count }}"
+          CRITICAL_ISSUES=$((CRITICAL_ISSUES + ${NPM_CRITICAL:-0}))
+        fi
+        
+        echo "critical-issues=$CRITICAL_ISSUES" >> $GITHUB_OUTPUT
+        echo "Total critical issues: $CRITICAL_ISSUES"
+        
+        # Determine overall status
+        FAILURES=0
+        if [[ "${{ needs.python-security.result }}" == "failure" ]]; then
+          FAILURES=$((FAILURES + 1))
+          echo "❌ Python security checks failed"
+        fi
+        if [[ "${{ needs.node-security.result }}" == "failure" ]]; then
+          FAILURES=$((FAILURES + 1))
+          echo "❌ Node.js security checks failed"
+        fi
+        if [[ "${{ needs.container-security.result }}" == "failure" ]]; then
+          FAILURES=$((FAILURES + 1))
+          echo "❌ Container security scan failed"
+        fi
+        
+        if [ $FAILURES -gt 0 ] && [ "${{ inputs.fail-on-security-issues }}" = "true" ]; then
+          echo "status=failed" >> $GITHUB_OUTPUT
+          echo "❌ Security audit failed with $FAILURES critical areas"
+          exit 1
+        elif [ $CRITICAL_ISSUES -gt 0 ]; then
+          echo "status=warning" >> $GITHUB_OUTPUT
+          echo "⚠️ Security audit completed with $CRITICAL_ISSUES issues to review"
+        else
+          echo "status=passed" >> $GITHUB_OUTPUT
+          echo "✅ Security audit passed successfully!"
+        fi

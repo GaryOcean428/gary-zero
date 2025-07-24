@@ -23,7 +23,12 @@ from framework.logging.hooks import log_operation, log_tool_execution
 from framework.logging.storage import SqliteStorage
 
 # Import the new framework components
-from framework.logging.unified_logger import EventType, LogEvent, LogLevel, get_unified_logger
+from framework.logging.unified_logger import (
+    EventType,
+    LogEvent,
+    LogLevel,
+    get_unified_logger,
+)
 
 
 class GaryZeroTestExecutor(TestExecutor):
@@ -35,16 +40,18 @@ class GaryZeroTestExecutor(TestExecutor):
 
         # Log test start
         logger = get_unified_logger()
-        await logger.log_event(LogEvent(
-            event_type=EventType.TASK_CREATED,
-            level=LogLevel.INFO,
-            message=f"Starting task execution: {test_case.name}",
-            metadata={
-                "task_id": test_case.task_id,
-                "task_type": test_case.task_type.value,
-                "configuration": config
-            }
-        ))
+        await logger.log_event(
+            LogEvent(
+                event_type=EventType.TASK_CREATED,
+                level=LogLevel.INFO,
+                message=f"Starting task execution: {test_case.name}",
+                metadata={
+                    "task_id": test_case.task_id,
+                    "task_type": test_case.task_type.value,
+                    "configuration": config,
+                },
+            )
+        )
 
         try:
             # Simulate different task types
@@ -57,33 +64,34 @@ class GaryZeroTestExecutor(TestExecutor):
                 result = await self._execute_generic_task(test_case, config)
 
             # Log successful completion
-            await logger.log_event(LogEvent(
-                event_type=EventType.TASK_COMPLETED,
-                level=LogLevel.INFO,
-                message=f"Task completed successfully: {test_case.name}",
-                duration_ms=(time.time() - start_time) * 1000,
-                metadata={
-                    "task_id": test_case.task_id,
-                    "score": result.score,
-                    "configuration": config
-                }
-            ))
+            await logger.log_event(
+                LogEvent(
+                    event_type=EventType.TASK_COMPLETED,
+                    level=LogLevel.INFO,
+                    message=f"Task completed successfully: {test_case.name}",
+                    duration_ms=(time.time() - start_time) * 1000,
+                    metadata={
+                        "task_id": test_case.task_id,
+                        "score": result.score,
+                        "configuration": config,
+                    },
+                )
+            )
 
             return result
 
         except Exception as e:
             # Log failure
-            await logger.log_event(LogEvent(
-                event_type=EventType.TASK_FAILED,
-                level=LogLevel.ERROR,
-                message=f"Task failed: {test_case.name}",
-                error_message=str(e),
-                duration_ms=(time.time() - start_time) * 1000,
-                metadata={
-                    "task_id": test_case.task_id,
-                    "configuration": config
-                }
-            ))
+            await logger.log_event(
+                LogEvent(
+                    event_type=EventType.TASK_FAILED,
+                    level=LogLevel.ERROR,
+                    message=f"Task failed: {test_case.name}",
+                    error_message=str(e),
+                    duration_ms=(time.time() - start_time) * 1000,
+                    metadata={"task_id": test_case.task_id, "configuration": config},
+                )
+            )
 
             # Return failed result
             return BenchmarkResult(
@@ -93,7 +101,7 @@ class GaryZeroTestExecutor(TestExecutor):
                 status=TaskStatus.FAILED,
                 duration_seconds=time.time() - start_time,
                 error_message=str(e),
-                configuration=config
+                configuration=config,
             )
 
     async def _execute_summarization_task(self, test_case, config):
@@ -118,13 +126,10 @@ class GaryZeroTestExecutor(TestExecutor):
             scores={
                 "accuracy": base_score + 0.05,
                 "completeness": base_score,
-                "conciseness": base_score - 0.05
+                "conciseness": base_score - 0.05,
             },
-            output_data={
-                "summary": "Generated summary text...",
-                "word_count": 120
-            },
-            configuration=config
+            output_data={"summary": "Generated summary text...", "word_count": 120},
+            configuration=config,
         )
 
     async def _execute_code_generation_task(self, test_case, config):
@@ -147,14 +152,14 @@ class GaryZeroTestExecutor(TestExecutor):
             scores={
                 "correctness": base_score + 0.05,
                 "code_quality": base_score,
-                "documentation": base_score - 0.1
+                "documentation": base_score - 0.1,
             },
             output_data={
                 "code": "def quicksort(arr): ...",
                 "lines_of_code": 25,
-                "tests_included": True
+                "tests_included": True,
             },
-            configuration=config
+            configuration=config,
         )
 
     async def _execute_generic_task(self, test_case, config):
@@ -168,7 +173,7 @@ class GaryZeroTestExecutor(TestExecutor):
             status=TaskStatus.COMPLETED,
             duration_seconds=0.15,
             score=0.8,
-            configuration=config
+            configuration=config,
         )
 
 
@@ -196,20 +201,20 @@ async def setup_comprehensive_benchmark():
             "model": "gpt-4",
             "temperature": 0.3,
             "max_tokens": 2000,
-            "top_p": 0.9
+            "top_p": 0.9,
         },
         "gpt4_creative": {
             "model": "gpt-4",
             "temperature": 0.8,
             "max_tokens": 2000,
-            "top_p": 0.95
+            "top_p": 0.95,
         },
         "local_model": {
             "model": "local-model",
             "temperature": 0.5,
             "max_tokens": 1500,
-            "top_p": 0.9
-        }
+            "top_p": 0.9,
+        },
     }
 
     for config_name, config in configurations.items():
@@ -227,21 +232,21 @@ async def example_agent_function(query: str, context: dict):
     await asyncio.sleep(0.1)
 
     # Use logging hooks for sub-operations
-    async with log_operation("knowledge_search", EventType.KNOWLEDGE_RETRIEVAL, user_id="demo_user"):
+    async with log_operation(
+        "knowledge_search", EventType.KNOWLEDGE_RETRIEVAL, user_id="demo_user"
+    ):
         # Simulate knowledge retrieval
         await asyncio.sleep(0.05)
         results = ["result1", "result2", "result3"]
 
-    async with log_operation("response_generation", EventType.AGENT_DECISION, user_id="demo_user"):
+    async with log_operation(
+        "response_generation", EventType.AGENT_DECISION, user_id="demo_user"
+    ):
         # Simulate response generation
         await asyncio.sleep(0.08)
         response = f"Generated response for: {query}"
 
-    return {
-        "response": response,
-        "sources": results,
-        "processing_time": 0.13
-    }
+    return {"response": response, "sources": results, "processing_time": 0.13}
 
 
 async def demonstrate_integration():
@@ -256,7 +261,7 @@ async def demonstrate_integration():
     # Example agent operations with automatic logging
     result = await example_agent_function(
         query="What are the benefits of AI in healthcare?",
-        context={"user_session": "demo_session_123"}
+        context={"user_session": "demo_session_123"},
     )
 
     print(f"✅ Agent function result: {result['response'][:50]}...")
@@ -269,7 +274,7 @@ async def demonstrate_integration():
         duration_ms=25.5,
         output="Hello, AI!",
         user_id="demo_user",
-        agent_id="demo_agent"
+        agent_id="demo_agent",
     )
 
     await logger.log_gui_action(
@@ -279,12 +284,14 @@ async def demonstrate_integration():
         duration_ms=150.0,
         page_url="https://example.com/form",
         user_id="demo_user",
-        agent_id="demo_agent"
+        agent_id="demo_agent",
     )
 
     # Show statistics
     stats = logger.get_statistics()
-    print(f"✅ Logged {stats['total_events']} events across {len(stats['events_by_type'])} types")
+    print(
+        f"✅ Logged {stats['total_events']} events across {len(stats['events_by_type'])} types"
+    )
 
     # 2. Storage Demo
     print("\n💾 2. Persistent Storage Demo")
@@ -296,7 +303,7 @@ async def demonstrate_integration():
             event_type=EventType.PERFORMANCE_METRIC,
             level=LogLevel.DEBUG,
             message=f"Performance metric {i}",
-            metadata={"metric_name": f"test_metric_{i}", "value": i * 10}
+            metadata={"metric_name": f"test_metric_{i}", "value": i * 10},
         )
         await storage.store_event(event)
 
@@ -313,13 +320,15 @@ async def demonstrate_integration():
     test_suite = ["summarize_research_paper", "generate_sorting_algorithm"]
     config_subset = ["gpt4_optimized", "local_model"]
 
-    print(f"🏃 Running benchmark suite: {len(test_suite)} tasks × {len(config_subset)} configs")
+    print(
+        f"🏃 Running benchmark suite: {len(test_suite)} tasks × {len(config_subset)} configs"
+    )
 
     results = await harness.run_test_suite(
         task_ids=test_suite,
         config_names=config_subset,
         run_parallel=True,
-        max_concurrent=2
+        max_concurrent=2,
     )
 
     print(f"✅ Completed {len(results)} benchmark runs")
@@ -344,11 +353,13 @@ async def demonstrate_integration():
 
     # 5. API Endpoints Demo
     print("\n🌐 5. API Endpoints Demo")
-    print(f"✅ Monitoring API provides {len([r for r in router.routes if hasattr(r, 'path')])} endpoints:")
+    print(
+        f"✅ Monitoring API provides {len([r for r in router.routes if hasattr(r, 'path')])} endpoints:"
+    )
 
     for route in router.routes:
-        if hasattr(route, 'path') and hasattr(route, 'methods'):
-            methods = ', '.join(route.methods) if route.methods else 'GET'
+        if hasattr(route, "path") and hasattr(route, "methods"):
+            methods = ", ".join(route.methods) if route.methods else "GET"
             print(f"   {methods:<8} {route.path}")
 
     # Show timeline capability

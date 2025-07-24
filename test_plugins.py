@@ -51,7 +51,7 @@ def test_basic_plugin_system():
 
             # Test 5: Try to load a plugin tool
             if plugins:
-                plugin_name = plugins[0]['name']
+                plugin_name = plugins[0]["name"]
                 tool_class = manager.get_tool(plugin_name)
                 if tool_class:
                     print(f"✓ Successfully loaded plugin tool: {plugin_name}")
@@ -77,7 +77,7 @@ def test_plugin_loading():
             version="1.0.0",
             description="Test plugin",
             author="test",
-            capabilities=["test"]
+            capabilities=["test"],
         )
         print("✓ Plugin metadata creation works")
 
@@ -102,4 +102,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"❌ Test failed: {e}")
         import traceback
+
         traceback.print_exc()

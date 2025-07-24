@@ -11,18 +11,22 @@ import sys
 project_root = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, project_root)
 
+
 def test_langchain_anthropic_fix():
     """Test LangChain Anthropic streaming fix"""
     print("🔍 Testing LangChain Anthropic streaming fix...")
 
     # Set environment variable to disable streaming
-    os.environ['LANGCHAIN_ANTHROPIC_STREAM_USAGE'] = 'false'
+    os.environ["LANGCHAIN_ANTHROPIC_STREAM_USAGE"] = "false"
 
     try:
         from framework.helpers import dotenv
 
         # Test environment variable reading
-        stream_usage_disabled = dotenv.get_dotenv_value("LANGCHAIN_ANTHROPIC_STREAM_USAGE", "true").lower() == "false"
+        stream_usage_disabled = (
+            dotenv.get_dotenv_value("LANGCHAIN_ANTHROPIC_STREAM_USAGE", "true").lower()
+            == "false"
+        )
 
         if stream_usage_disabled:
             print("  ✅ Environment variable correctly disables streaming")
@@ -35,6 +39,7 @@ def test_langchain_anthropic_fix():
         print(f"  ❌ Error testing LangChain fix: {e}")
         return False
 
+
 def test_health_check_endpoint():
     """Test enhanced health check endpoint"""
     print("🔍 Testing enhanced health check...")
@@ -44,20 +49,24 @@ def test_health_check_endpoint():
         from run_ui import webapp
 
         with webapp.test_client() as client:
-            response = client.get('/health')
+            response = client.get("/health")
 
             if response.status_code == 200:
                 data = response.get_json()
 
                 # Check for required fields
-                required_fields = ['status', 'timestamp', 'version', 'environment']
-                missing_fields = [field for field in required_fields if field not in data]
+                required_fields = ["status", "timestamp", "version", "environment"]
+                missing_fields = [
+                    field for field in required_fields if field not in data
+                ]
 
                 if not missing_fields:
                     print("  ✅ Health check endpoint working correctly")
                     print(f"    - Status: {data['status']}")
                     print(f"    - Environment: {data['environment']['node_env']}")
-                    print(f"    - LangChain streaming disabled: {data['environment']['langchain_stream_disabled']}")
+                    print(
+                        f"    - LangChain streaming disabled: {data['environment']['langchain_stream_disabled']}"
+                    )
                     return True
                 else:
                     print(f"  ❌ Health check missing fields: {missing_fields}")
@@ -70,6 +79,7 @@ def test_health_check_endpoint():
         print(f"  ❌ Error testing health check: {e}")
         return False
 
+
 def test_environment_validation():
     """Test environment validation script"""
     print("🔍 Testing environment validation...")
@@ -80,7 +90,7 @@ def test_environment_validation():
         validator = EnvironmentValidator()
         result = validator.run_validation()
 
-        if result['status'] in ['passed', 'warning']:
+        if result["status"] in ["passed", "warning"]:
             print("  ✅ Environment validation working correctly")
             print(f"    - Status: {result['status']}")
             print(f"    - Errors: {len(result['errors'])}")
@@ -94,14 +104,15 @@ def test_environment_validation():
         print(f"  ❌ Error testing environment validation: {e}")
         return False
 
+
 def test_chat_input_files():
     """Test chat input auto-resize files exist"""
     print("🔍 Testing chat input auto-resize files...")
 
     files_to_check = [
-        'webui/js/chat-input-autoresize.js',
-        'webui/index.html',
-        'webui/index.css'
+        "webui/js/chat-input-autoresize.js",
+        "webui/index.html",
+        "webui/index.css",
     ]
 
     all_exist = True
@@ -115,11 +126,11 @@ def test_chat_input_files():
 
     # Check if auto-resize script is referenced in HTML
     try:
-        html_path = os.path.join(project_root, 'webui/index.html')
+        html_path = os.path.join(project_root, "webui/index.html")
         with open(html_path) as f:
             html_content = f.read()
 
-        if 'chat-input-autoresize.js' in html_content:
+        if "chat-input-autoresize.js" in html_content:
             print("  ✅ Auto-resize script referenced in HTML")
         else:
             print("  ❌ Auto-resize script not referenced in HTML")
@@ -131,12 +142,13 @@ def test_chat_input_files():
 
     return all_exist
 
+
 def test_vscode_integration_production_mode():
     """Test VS Code integration production mode detection"""
     print("🔍 Testing VS Code integration production mode...")
 
     try:
-        vscode_js_path = os.path.join(project_root, 'webui/js/vscode-integration.js')
+        vscode_js_path = os.path.join(project_root, "webui/js/vscode-integration.js")
 
         if not os.path.exists(vscode_js_path):
             print("  ❌ VS Code integration file missing")
@@ -147,10 +159,10 @@ def test_vscode_integration_production_mode():
 
         # Check for production mode detection
         production_checks = [
-            'checkProductionMode',
-            'railway.app',
-            'isProductionMode',
-            'ENABLE_DEV_FEATURES'
+            "checkProductionMode",
+            "railway.app",
+            "isProductionMode",
+            "ENABLE_DEV_FEATURES",
         ]
 
         missing_checks = [check for check in production_checks if check not in content]
@@ -159,26 +171,29 @@ def test_vscode_integration_production_mode():
             print("  ✅ VS Code integration has production mode detection")
             return True
         else:
-            print(f"  ❌ VS Code integration missing production checks: {missing_checks}")
+            print(
+                f"  ❌ VS Code integration missing production checks: {missing_checks}"
+            )
             return False
 
     except Exception as e:
         print(f"  ❌ Error testing VS Code integration: {e}")
         return False
 
+
 def test_environment_variables_in_example():
     """Test that all new environment variables are in .env.example"""
     print("🔍 Testing environment variables in .env.example...")
 
     required_vars = [
-        'LANGCHAIN_ANTHROPIC_STREAM_USAGE',
-        'ENABLE_DEV_FEATURES',
-        'VSCODE_INTEGRATION_ENABLED',
-        'CHAT_AUTO_RESIZE_ENABLED'
+        "LANGCHAIN_ANTHROPIC_STREAM_USAGE",
+        "ENABLE_DEV_FEATURES",
+        "VSCODE_INTEGRATION_ENABLED",
+        "CHAT_AUTO_RESIZE_ENABLED",
     ]
 
     try:
-        env_example_path = os.path.join(project_root, '.env.example')
+        env_example_path = os.path.join(project_root, ".env.example")
 
         if not os.path.exists(env_example_path):
             print("  ❌ .env.example file missing")
@@ -199,6 +214,7 @@ def test_environment_variables_in_example():
     except Exception as e:
         print(f"  ❌ Error checking .env.example: {e}")
         return False
+
 
 def main():
     """Run all verification tests"""
@@ -244,8 +260,11 @@ def main():
         print("🎉 All verification tests PASSED! Fixes are ready for production.")
         return 0
     else:
-        print(f"⚠️  {total - passed} verification tests FAILED. Please review and fix issues.")
+        print(
+            f"⚠️  {total - passed} verification tests FAILED. Please review and fix issues."
+        )
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

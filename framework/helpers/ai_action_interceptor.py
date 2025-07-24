@@ -21,6 +21,7 @@ from framework.helpers.log import Log
 
 class AIActionType(Enum):
     """Types of AI actions that can be intercepted."""
+
     COMPUTER_USE = "computer_use"
     BROWSER_AUTOMATION = "browser_automation"
     DESKTOP_INTERACTION = "desktop_interaction"
@@ -37,6 +38,7 @@ class AIActionType(Enum):
 
 class AIProvider(Enum):
     """AI providers that can be intercepted."""
+
     ANTHROPIC_CLAUDE = "anthropic_claude"
     OPENAI_OPERATOR = "openai_operator"
     GOOGLE_AI = "google_ai"
@@ -48,6 +50,7 @@ class AIProvider(Enum):
 @dataclass
 class AIAction:
     """Represents a single AI action for visualization."""
+
     action_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     provider: AIProvider = AIProvider.GARY_ZERO_NATIVE
@@ -111,17 +114,19 @@ class ClaudeComputerUseInterceptor(ActionInterceptor):
             from framework.tools.anthropic_computer_use import AnthropicComputerUse
 
             # Store original execute method
-            if not hasattr(AnthropicComputerUse, '_original_execute'):
+            if not hasattr(AnthropicComputerUse, "_original_execute"):
                 AnthropicComputerUse._original_execute = AnthropicComputerUse.execute
 
                 # Replace with intercepted version
                 async def intercepted_execute(self, **kwargs):
                     action = AIAction(
                         provider=AIProvider.ANTHROPIC_CLAUDE,
-                        action_type=self._map_action_type(kwargs.get('action', 'screenshot')),
+                        action_type=self._map_action_type(
+                            kwargs.get("action", "screenshot")
+                        ),
                         description=f"Claude Computer Use: {kwargs.get('action', 'screenshot')}",
                         parameters=kwargs,
-                        agent_name="Claude Computer Use Agent"
+                        agent_name="Claude Computer Use Agent",
                     )
 
                     # Notify interceptor
@@ -130,10 +135,16 @@ class ClaudeComputerUseInterceptor(ActionInterceptor):
                     # Execute original method
                     start_time = time.time()
                     try:
-                        result = await AnthropicComputerUse._original_execute(self, **kwargs)
+                        result = await AnthropicComputerUse._original_execute(
+                            self, **kwargs
+                        )
                         action.status = "completed"
                         action.execution_time = time.time() - start_time
-                        action.result = {"message": result.message if hasattr(result, 'message') else str(result)}
+                        action.result = {
+                            "message": result.message
+                            if hasattr(result, "message")
+                            else str(result)
+                        }
                     except Exception as e:
                         action.status = "error"
                         action.execution_time = time.time() - start_time
@@ -147,6 +158,7 @@ class ClaudeComputerUseInterceptor(ActionInterceptor):
 
                 # Bind the intercepted method
                 import types
+
                 AnthropicComputerUse.execute = intercepted_execute
 
         except ImportError:
@@ -155,12 +167,12 @@ class ClaudeComputerUseInterceptor(ActionInterceptor):
     def _map_action_type(self, action: str) -> AIActionType:
         """Map Claude action types to standard action types."""
         mapping = {
-            'screenshot': AIActionType.SCREENSHOT,
-            'click': AIActionType.MOUSE_ACTION,
-            'type': AIActionType.KEYBOARD_ACTION,
-            'key': AIActionType.KEYBOARD_ACTION,
-            'move': AIActionType.MOUSE_ACTION,
-            'scroll': AIActionType.MOUSE_ACTION
+            "screenshot": AIActionType.SCREENSHOT,
+            "click": AIActionType.MOUSE_ACTION,
+            "type": AIActionType.KEYBOARD_ACTION,
+            "key": AIActionType.KEYBOARD_ACTION,
+            "move": AIActionType.MOUSE_ACTION,
+            "scroll": AIActionType.MOUSE_ACTION,
         }
         return mapping.get(action, AIActionType.COMPUTER_USE)
 
@@ -202,7 +214,7 @@ class BrowserUseInterceptor(ActionInterceptor):
             from framework.tools import browser_agent, browser_do, browser_open
 
             # Hook browser_agent if available
-            if hasattr(browser_agent, 'BrowserAgentTool'):
+            if hasattr(browser_agent, "BrowserAgentTool"):
                 self._hook_browser_tool(browser_agent.BrowserAgentTool, "Browser Agent")
 
         except ImportError:
@@ -210,7 +222,7 @@ class BrowserUseInterceptor(ActionInterceptor):
 
     def _hook_browser_tool(self, tool_class, tool_name: str):
         """Hook a browser tool class."""
-        if not hasattr(tool_class, '_original_execute'):
+        if not hasattr(tool_class, "_original_execute"):
             tool_class._original_execute = tool_class.execute
 
             async def intercepted_execute(self, **kwargs):
@@ -219,7 +231,7 @@ class BrowserUseInterceptor(ActionInterceptor):
                     action_type=AIActionType.BROWSER_AUTOMATION,
                     description=f"{tool_name}: {kwargs.get('action', 'browser operation')}",
                     parameters=kwargs,
-                    agent_name=f"{tool_name} Agent"
+                    agent_name=f"{tool_name} Agent",
                 )
 
                 await self.intercept_action(action)
@@ -254,7 +266,7 @@ class KaliShellInterceptor(ActionInterceptor):
         try:
             from framework.tools.shell_execute import ShellExecuteTool
 
-            if not hasattr(ShellExecuteTool, '_original_call'):
+            if not hasattr(ShellExecuteTool, "_original_call"):
                 ShellExecuteTool._original_call = ShellExecuteTool.call
 
                 async def intercepted_call(self, agent=None, **kwargs):
@@ -264,18 +276,22 @@ class KaliShellInterceptor(ActionInterceptor):
                         description=f"Shell Command: {kwargs.get('command', 'unknown')}",
                         parameters=kwargs,
                         agent_name="Kali Shell Agent",
-                        session_id=kwargs.get('session_id', 'default')
+                        session_id=kwargs.get("session_id", "default"),
                     )
 
                     await self.intercept_action(action)
 
                     start_time = time.time()
                     try:
-                        result = await ShellExecuteTool._original_call(self, agent, **kwargs)
-                        action.status = "completed" if result.get('success') else "failed"
+                        result = await ShellExecuteTool._original_call(
+                            self, agent, **kwargs
+                        )
+                        action.status = (
+                            "completed" if result.get("success") else "failed"
+                        )
                         action.execution_time = time.time() - start_time
                         action.result = result
-                        action.ui_url = result.get('ui_url')
+                        action.ui_url = result.get("ui_url")
                     except Exception as e:
                         action.status = "error"
                         action.execution_time = time.time() - start_time
@@ -287,6 +303,7 @@ class KaliShellInterceptor(ActionInterceptor):
                     return result
 
                 import types
+
                 ShellExecuteTool.call = intercepted_call
 
         except ImportError:
@@ -313,7 +330,7 @@ class AIActionInterceptorManager:
             OpenAIOperatorInterceptor(),
             GoogleAIInterceptor(),
             BrowserUseInterceptor(),
-            KaliShellInterceptor()
+            KaliShellInterceptor(),
         ]
 
         for interceptor in interceptors:
@@ -386,12 +403,16 @@ class AIActionInterceptorManager:
         """Get recent actions."""
         return self.action_history[-limit:]
 
-    def get_actions_by_provider(self, provider: AIProvider, limit: int = 50) -> list[AIAction]:
+    def get_actions_by_provider(
+        self, provider: AIProvider, limit: int = 50
+    ) -> list[AIAction]:
         """Get actions by provider."""
         provider_actions = [a for a in self.action_history if a.provider == provider]
         return provider_actions[-limit:]
 
-    def get_actions_by_type(self, action_type: AIActionType, limit: int = 50) -> list[AIAction]:
+    def get_actions_by_type(
+        self, action_type: AIActionType, limit: int = 50
+    ) -> list[AIAction]:
         """Get actions by type."""
         type_actions = [a for a in self.action_history if a.action_type == action_type]
         return type_actions[-limit:]

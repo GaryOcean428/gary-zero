@@ -20,11 +20,11 @@ class A2aNegotiate:
     async def process(self, input_data: dict[str, Any], request) -> dict[str, Any]:
         """
         Handle A2A negotiation request
-        
+
         Args:
             input_data: Request input containing negotiation parameters
             request: HTTP request object
-            
+
         Returns:
             Negotiation response with agreed protocol and parameters
         """
@@ -34,16 +34,10 @@ class A2aNegotiate:
             session_id = input_data.get("session_id")
 
             if not requester_id:
-                return {
-                    "success": False,
-                    "error": "requester_id is required"
-                }
+                return {"success": False, "error": "requester_id is required"}
 
             if not session_id:
-                return {
-                    "success": False,
-                    "error": "session_id is required"
-                }
+                return {"success": False, "error": "session_id is required"}
 
             # Create negotiation request
             negotiation_request = NegotiationRequest(
@@ -56,7 +50,7 @@ class A2aNegotiate:
                 max_message_size=input_data.get("max_message_size"),
                 timeout_seconds=input_data.get("timeout_seconds"),
                 authentication_method=input_data.get("authentication_method"),
-                encryption_required=input_data.get("encryption_required", False)
+                encryption_required=input_data.get("encryption_required", False),
             )
 
             # Process negotiation
@@ -65,12 +59,6 @@ class A2aNegotiate:
             return response.dict()
 
         except ValidationError as e:
-            return {
-                "success": False,
-                "error": f"Invalid negotiation request: {str(e)}"
-            }
+            return {"success": False, "error": f"Invalid negotiation request: {str(e)}"}
         except Exception as e:
-            return {
-                "success": False,
-                "error": f"Negotiation failed: {str(e)}"
-            }
+            return {"success": False, "error": f"Negotiation failed: {str(e)}"}

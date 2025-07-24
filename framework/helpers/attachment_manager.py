@@ -72,7 +72,9 @@ class AttachmentManager:
             PrintStyle.error(f"Error saving file {filename}: {e}")
             return None, {}  # type: ignore
 
-    def generate_image_preview(self, image_path: str, max_size: int = 800) -> str | None:
+    def generate_image_preview(
+        self, image_path: str, max_size: int = 800
+    ) -> str | None:
         try:
             with Image.open(image_path) as img:
                 # Convert image if needed

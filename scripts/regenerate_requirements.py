@@ -14,13 +14,13 @@ def regenerate_requirements():
 
     # Check if uv is installed
     try:
-        subprocess.run(['uv', '--version'], check=True, capture_output=True)
+        subprocess.run(["uv", "--version"], check=True, capture_output=True)
     except (subprocess.CalledProcessError, FileNotFoundError):
         print("Error: 'uv' is not installed. Installing now...")
-        subprocess.run([sys.executable, '-m', 'pip', 'install', 'uv'], check=True)
+        subprocess.run([sys.executable, "-m", "pip", "install", "uv"], check=True)
 
     # Check if requirements.in exists
-    if not os.path.exists('requirements.in'):
+    if not os.path.exists("requirements.in"):
         print("Error: requirements.in not found!")
         sys.exit(1)
 
@@ -29,18 +29,18 @@ def regenerate_requirements():
     try:
         # Use uv to compile requirements
         result = subprocess.run(
-            ['uv', 'pip', 'compile', 'requirements.in', '-o', 'requirements.txt'],
+            ["uv", "pip", "compile", "requirements.in", "-o", "requirements.txt"],
             check=True,
             capture_output=True,
-            text=True
+            text=True,
         )
         print("Successfully regenerated requirements.txt")
         print(f"Output: {result.stdout}")
 
         # Verify FastAPI is included
-        with open('requirements.txt') as f:
+        with open("requirements.txt") as f:
             content = f.read()
-            if 'fastapi' not in content.lower():
+            if "fastapi" not in content.lower():
                 print("WARNING: FastAPI not found in regenerated requirements.txt!")
                 print("This may indicate an issue with dependency resolution.")
             else:
@@ -50,6 +50,7 @@ def regenerate_requirements():
         print(f"Error regenerating requirements: {e}")
         print(f"stderr: {e.stderr}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     regenerate_requirements()

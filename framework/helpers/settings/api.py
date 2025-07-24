@@ -29,10 +29,10 @@ PASSWORD_PLACEHOLDER = "****PSWD****"
 
 def _dict_to_env(data_dict):
     """Convert a dictionary to environment variable format.
-    
+
     Args:
         data_dict: Dictionary to convert
-        
+
     Returns:
         String in KEY=VALUE format
     """
@@ -48,10 +48,10 @@ def _dict_to_env(data_dict):
 
 def _env_to_dict(data: str) -> dict[str, str]:
     """Convert environment variable format to dictionary.
-    
+
     Args:
         data: String in KEY=VALUE format
-        
+
     Returns:
         Dictionary with the parsed key-value pairs
     """
@@ -146,9 +146,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
     ]
 
     # Return all sections
-    result: SettingsOutput = {
-        "sections": sections
-    }
+    result: SettingsOutput = {"sections": sections}
     return result
 
 

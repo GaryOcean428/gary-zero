@@ -14,12 +14,12 @@ from .reporting import BenchmarkReporter
 from .tasks import StandardTasks, TaskRegistry
 
 __all__ = [
-    'BenchmarkHarness',
-    'BenchmarkResult',
-    'TestCase',
-    'StandardTasks',
-    'TaskRegistry',
-    'BenchmarkAnalysis',
-    'RegressionDetector',
-    'BenchmarkReporter'
+    "BenchmarkHarness",
+    "BenchmarkResult",
+    "TestCase",
+    "StandardTasks",
+    "TaskRegistry",
+    "BenchmarkAnalysis",
+    "RegressionDetector",
+    "BenchmarkReporter",
 ]

@@ -24,7 +24,7 @@ class TestModelRegistry:
             cost_per_1k_input_tokens=0.001,
             cost_per_1k_output_tokens=0.002,
             capabilities=[ModelCapability.TEXT_GENERATION],
-            recommended_for=["testing"]
+            recommended_for=["testing"],
         )
 
         registry.register_model(test_model)
@@ -44,12 +44,16 @@ class TestModelRegistry:
 
     def test_get_models_by_capability(self, model_registry):
         """Test getting models by capability."""
-        coding_models = model_registry.get_models_by_capability(ModelCapability.CODE_GENERATION)
+        coding_models = model_registry.get_models_by_capability(
+            ModelCapability.CODE_GENERATION
+        )
         vision_models = model_registry.get_models_by_capability(ModelCapability.VISION)
 
         assert len(coding_models) > 0
         assert len(vision_models) > 0
-        assert all(ModelCapability.CODE_GENERATION in m.capabilities for m in coding_models)
+        assert all(
+            ModelCapability.CODE_GENERATION in m.capabilities for m in coding_models
+        )
         assert all(ModelCapability.VISION in m.capabilities for m in vision_models)
 
     def test_get_recommended_model(self, model_registry):
@@ -84,7 +88,7 @@ class TestModelRegistry:
             tokens_used=1000,
             response_time=2.5,
             success=True,
-            cost=0.025
+            cost=0.025,
         )
 
         stats = model_registry.get_usage_stats(model_name)
@@ -98,7 +102,9 @@ class TestModelRegistry:
     def test_model_availability(self, model_registry):
         """Test model availability checks."""
         available_models = [m for m in model_registry.list_models() if m.is_available]
-        unavailable_models = [m for m in model_registry.list_models() if not m.is_available]
+        unavailable_models = [
+            m for m in model_registry.list_models() if not m.is_available
+        ]
 
         assert len(available_models) > 0
         # Most models should be available by default
@@ -106,7 +112,8 @@ class TestModelRegistry:
     def test_rate_limits(self, model_registry):
         """Test rate limit information."""
         models_with_limits = [
-            m for m in model_registry.list_models()
+            m
+            for m in model_registry.list_models()
             if m.rate_limit_rpm is not None or m.rate_limit_tpm is not None
         ]
 

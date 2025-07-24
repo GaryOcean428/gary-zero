@@ -53,6 +53,7 @@ class PluginManager:
 
             # Copy plugin to plugins directory
             import shutil
+
             dest_path = os.path.join(self.registry.plugins_dir, metadata.name)
 
             if os.path.exists(dest_path):
@@ -84,6 +85,7 @@ class PluginManager:
 
             # Remove from filesystem
             import shutil
+
             plugin_path = self.registry.get_plugin_path(name)
             if plugin_path and os.path.exists(plugin_path):
                 shutil.rmtree(plugin_path)
@@ -127,16 +129,18 @@ class PluginManager:
 
         for plugin in plugins:
             loaded = self.loader.is_plugin_loaded(plugin.name)
-            result.append({
-                "name": plugin.name,
-                "version": plugin.version,
-                "description": plugin.description,
-                "author": plugin.author,
-                "enabled": plugin.enabled,
-                "loaded": loaded,
-                "capabilities": plugin.capabilities,
-                "install_date": plugin.install_date
-            })
+            result.append(
+                {
+                    "name": plugin.name,
+                    "version": plugin.version,
+                    "description": plugin.description,
+                    "author": plugin.author,
+                    "enabled": plugin.enabled,
+                    "loaded": loaded,
+                    "capabilities": plugin.capabilities,
+                    "install_date": plugin.install_date,
+                }
+            )
 
         return result
 
@@ -160,7 +164,7 @@ class PluginManager:
             "loaded": loaded,
             "install_date": metadata.install_date,
             "last_updated": metadata.last_updated,
-            "path": self.registry.get_plugin_path(name)
+            "path": self.registry.get_plugin_path(name),
         }
 
     def refresh_plugins(self):

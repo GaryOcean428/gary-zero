@@ -1,7 +1,7 @@
 """
 Asynchronous Task Orchestration System
 
-Provides async event-driven orchestration with dependency management, 
+Provides async event-driven orchestration with dependency management,
 concurrency controls, and adaptive scheduling capabilities.
 """
 
@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 class OrchestrationStatus(Enum):
     """Orchestration-specific task status."""
+
     PENDING = "pending"
     WAITING_DEPENDENCIES = "waiting_dependencies"
     READY = "ready"
@@ -37,6 +38,7 @@ class OrchestrationStatus(Enum):
 @dataclass
 class TaskDependency:
     """Represents a dependency relationship between tasks."""
+
     dependent_task_id: str
     dependency_task_id: str
     dependency_type: str = "completion"  # completion, data, resource
@@ -46,6 +48,7 @@ class TaskDependency:
 @dataclass
 class AgentResource:
     """Resource allocation tracking for agents."""
+
     agent_id: str
     max_concurrent_tasks: int = 3
     current_task_count: int = 0
@@ -58,6 +61,7 @@ class AgentResource:
 @dataclass
 class OrchestrationTask:
     """Enhanced task with orchestration metadata."""
+
     id: str
     managed_task: ManagedTask
     status: OrchestrationStatus = OrchestrationStatus.PENDING
@@ -84,10 +88,12 @@ class AsyncTaskOrchestrator:
     concurrency controls, and adaptive scheduling.
     """
 
-    def __init__(self,
-                 max_concurrent_tasks: int = 10,
-                 default_task_timeout: float = 300.0,
-                 enable_performance_monitoring: bool = True):
+    def __init__(
+        self,
+        max_concurrent_tasks: int = 10,
+        default_task_timeout: float = 300.0,
+        enable_performance_monitoring: bool = True,
+    ):
         self.max_concurrent_tasks = max_concurrent_tasks
         self.default_task_timeout = default_task_timeout
         self.enable_performance_monitoring = enable_performance_monitoring
@@ -106,9 +112,9 @@ class AsyncTaskOrchestrator:
         # Agent resource management
         self.agent_resources: dict[str, AgentResource] = {}
         self.default_agent_limits = {
-            'max_concurrent_tasks': 3,
-            'max_requests_per_minute': 60,
-            'max_memory_mb': 1024.0
+            "max_concurrent_tasks": 3,
+            "max_requests_per_minute": 60,
+            "max_memory_mb": 1024.0,
         }
 
         # Concurrency control
@@ -117,8 +123,12 @@ class AsyncTaskOrchestrator:
 
         # Integration components
         self.task_manager = TaskManager.get_instance()
-        self.performance_monitor = get_performance_monitor() if enable_performance_monitoring else None
-        self.background_manager = BackgroundTaskManager(max_concurrent=max_concurrent_tasks)
+        self.performance_monitor = (
+            get_performance_monitor() if enable_performance_monitoring else None
+        )
+        self.background_manager = BackgroundTaskManager(
+            max_concurrent=max_concurrent_tasks
+        )
 
         # Orchestration control
         self.is_running = False
@@ -126,12 +136,12 @@ class AsyncTaskOrchestrator:
 
         # Metrics
         self.metrics = {
-            'tasks_submitted': 0,
-            'tasks_completed': 0,
-            'tasks_failed': 0,
-            'dependency_cycles_detected': 0,
-            'timeout_violations': 0,
-            'resource_constraints_hit': 0
+            "tasks_submitted": 0,
+            "tasks_completed": 0,
+            "tasks_failed": 0,
+            "dependency_cycles_detected": 0,
+            "timeout_violations": 0,
+            "resource_constraints_hit": 0,
         }
 
         logger.info("AsyncTaskOrchestrator initialized")
@@ -179,22 +189,24 @@ class AsyncTaskOrchestrator:
 
         logger.info("AsyncTaskOrchestrator stopped")
 
-    async def submit_task(self,
-                         task: ManagedTask,
-                         dependencies: list[str] | None = None,
-                         priority: int = 0,
-                         timeout_seconds: float | None = None,
-                         assigned_agent: str | None = None) -> str:
+    async def submit_task(
+        self,
+        task: ManagedTask,
+        dependencies: list[str] | None = None,
+        priority: int = 0,
+        timeout_seconds: float | None = None,
+        assigned_agent: str | None = None,
+    ) -> str:
         """
         Submit a task for orchestrated execution.
-        
+
         Args:
             task: The managed task to execute
             dependencies: List of task IDs this task depends on
             priority: Task priority (higher = more important)
             timeout_seconds: Task timeout override
             assigned_agent: Specific agent to assign to
-            
+
         Returns:
             Task ID for tracking
         """
@@ -207,7 +219,7 @@ class AsyncTaskOrchestrator:
                 timeout_seconds=timeout_seconds or self.default_task_timeout,
                 assigned_agent=assigned_agent,
                 dependencies=set(dependencies or []),
-                future=asyncio.Future()
+                future=asyncio.Future(),
             )
 
             # Add to orchestration state
@@ -218,7 +230,7 @@ class AsyncTaskOrchestrator:
                 await self._add_dependencies(task.id, dependencies)
 
             # Update metrics
-            self.metrics['tasks_submitted'] += 1
+            self.metrics["tasks_submitted"] += 1
 
             # Check if task is ready to run
             if await self._is_task_ready(task.id):
@@ -227,7 +239,9 @@ class AsyncTaskOrchestrator:
             else:
                 orchestration_task.status = OrchestrationStatus.WAITING_DEPENDENCIES
 
-            logger.info(f"Task {task.id} submitted with {len(dependencies or [])} dependencies")
+            logger.info(
+                f"Task {task.id} submitted with {len(dependencies or [])} dependencies"
+            )
 
             return task.id
 
@@ -284,17 +298,17 @@ class AsyncTaskOrchestrator:
         orchestration_task = self.tasks[task_id]
 
         return {
-            'id': task_id,
-            'status': orchestration_task.status.value,
-            'priority': orchestration_task.priority,
-            'dependencies': list(orchestration_task.dependencies),
-            'dependents': list(orchestration_task.dependents),
-            'assigned_agent': orchestration_task.assigned_agent,
-            'start_time': orchestration_task.start_time,
-            'completion_time': orchestration_task.completion_time,
-            'retry_count': orchestration_task.retry_count,
-            'has_error': orchestration_task.error is not None,
-            'timeout_seconds': orchestration_task.timeout_seconds
+            "id": task_id,
+            "status": orchestration_task.status.value,
+            "priority": orchestration_task.priority,
+            "dependencies": list(orchestration_task.dependencies),
+            "dependents": list(orchestration_task.dependents),
+            "assigned_agent": orchestration_task.assigned_agent,
+            "start_time": orchestration_task.start_time,
+            "completion_time": orchestration_task.completion_time,
+            "retry_count": orchestration_task.retry_count,
+            "has_error": orchestration_task.error is not None,
+            "timeout_seconds": orchestration_task.timeout_seconds,
         }
 
     async def get_orchestration_metrics(self) -> dict[str, Any]:
@@ -315,33 +329,41 @@ class AsyncTaskOrchestrator:
             agent_utilization = {}
             for agent_id, resource in self.agent_resources.items():
                 agent_utilization[agent_id] = {
-                    'current_tasks': resource.current_task_count,
-                    'max_tasks': resource.max_concurrent_tasks,
-                    'utilization_percent': (resource.current_task_count / resource.max_concurrent_tasks) * 100,
-                    'memory_usage_mb': resource.reserved_memory_mb,
-                    'recent_requests': len([
-                        req for req in resource.current_requests
-                        if time.time() - req < 60
-                    ])
+                    "current_tasks": resource.current_task_count,
+                    "max_tasks": resource.max_concurrent_tasks,
+                    "utilization_percent": (
+                        resource.current_task_count / resource.max_concurrent_tasks
+                    )
+                    * 100,
+                    "memory_usage_mb": resource.reserved_memory_mb,
+                    "recent_requests": len(
+                        [
+                            req
+                            for req in resource.current_requests
+                            if time.time() - req < 60
+                        ]
+                    ),
                 }
 
             # Performance data
             performance_summary = {}
             if self.performance_monitor:
-                performance_summary = self.performance_monitor.get_performance_summary(300)  # Last 5 minutes
+                performance_summary = self.performance_monitor.get_performance_summary(
+                    300
+                )  # Last 5 minutes
 
             return {
-                'total_tasks': total_tasks,
-                'running_tasks': running_count,
-                'completed_tasks': completed_count,
-                'failed_tasks': failed_count,
-                'ready_queue_size': self.ready_queue.qsize(),
-                'status_distribution': dict(status_counts),
-                'agent_utilization': agent_utilization,
-                'performance': performance_summary,
-                'orchestration_metrics': self.metrics.copy(),
-                'max_concurrent_tasks': self.max_concurrent_tasks,
-                'is_running': self.is_running
+                "total_tasks": total_tasks,
+                "running_tasks": running_count,
+                "completed_tasks": completed_count,
+                "failed_tasks": failed_count,
+                "ready_queue_size": self.ready_queue.qsize(),
+                "status_distribution": dict(status_counts),
+                "agent_utilization": agent_utilization,
+                "performance": performance_summary,
+                "orchestration_metrics": self.metrics.copy(),
+                "max_concurrent_tasks": self.max_concurrent_tasks,
+                "is_running": self.is_running,
             }
 
     # Private implementation methods
@@ -378,8 +400,7 @@ class AsyncTaskOrchestrator:
         try:
             # Get ready task with timeout to avoid blocking
             orchestration_task = await asyncio.wait_for(
-                self.ready_queue.get(),
-                timeout=0.1
+                self.ready_queue.get(), timeout=0.1
             )
 
             # Check resource availability
@@ -403,22 +424,25 @@ class AsyncTaskOrchestrator:
 
         # Check agent-specific limits
         if orchestration_task.assigned_agent:
-            agent_resource = await self._get_agent_resource(orchestration_task.assigned_agent)
+            agent_resource = await self._get_agent_resource(
+                orchestration_task.assigned_agent
+            )
 
             # Check concurrent task limit
             if agent_resource.current_task_count >= agent_resource.max_concurrent_tasks:
-                self.metrics['resource_constraints_hit'] += 1
+                self.metrics["resource_constraints_hit"] += 1
                 return False
 
             # Check request rate limit (last minute)
             current_time = time.time()
             recent_requests = [
-                req for req in agent_resource.current_requests
+                req
+                for req in agent_resource.current_requests
                 if current_time - req < 60
             ]
 
             if len(recent_requests) >= agent_resource.max_requests_per_minute:
-                self.metrics['resource_constraints_hit'] += 1
+                self.metrics["resource_constraints_hit"] += 1
                 return False
 
         return True
@@ -437,16 +461,21 @@ class AsyncTaskOrchestrator:
 
             # Update agent resource usage
             if orchestration_task.assigned_agent:
-                agent_resource = await self._get_agent_resource(orchestration_task.assigned_agent)
+                agent_resource = await self._get_agent_resource(
+                    orchestration_task.assigned_agent
+                )
                 agent_resource.current_task_count += 1
                 agent_resource.current_requests.append(time.time())
 
                 # Trim old requests
                 current_time = time.time()
-                agent_resource.current_requests = deque([
-                    req for req in agent_resource.current_requests
-                    if current_time - req < 60
-                ])
+                agent_resource.current_requests = deque(
+                    [
+                        req
+                        for req in agent_resource.current_requests
+                        if current_time - req < 60
+                    ]
+                )
 
         # Start task execution
         try:
@@ -471,8 +500,7 @@ class AsyncTaskOrchestrator:
             # Execute with timeout
             if orchestration_task.timeout_seconds:
                 result = await asyncio.wait_for(
-                    execution_coro,
-                    timeout=orchestration_task.timeout_seconds
+                    execution_coro, timeout=orchestration_task.timeout_seconds
                 )
             else:
                 result = await execution_coro
@@ -481,10 +509,14 @@ class AsyncTaskOrchestrator:
             await self._handle_task_success(orchestration_task, result)
 
         except TimeoutError:
-            logger.warning(f"Task {task_id} timed out after {orchestration_task.timeout_seconds}s")
+            logger.warning(
+                f"Task {task_id} timed out after {orchestration_task.timeout_seconds}s"
+            )
             orchestration_task.status = OrchestrationStatus.TIMEOUT
-            self.metrics['timeout_violations'] += 1
-            await self._handle_task_failure(orchestration_task, TimeoutError("Task execution timeout"))
+            self.metrics["timeout_violations"] += 1
+            await self._handle_task_failure(
+                orchestration_task, TimeoutError("Task execution timeout")
+            )
 
         except asyncio.CancelledError:
             logger.info(f"Task {task_id} was cancelled")
@@ -502,7 +534,9 @@ class AsyncTaskOrchestrator:
         await asyncio.sleep(0.1)  # Simulate task execution
         return f"Result for task {managed_task.id}"
 
-    async def _handle_task_success(self, orchestration_task: OrchestrationTask, result: Any):
+    async def _handle_task_success(
+        self, orchestration_task: OrchestrationTask, result: Any
+    ):
         """Handle successful task completion."""
         task_id = orchestration_task.id
 
@@ -525,7 +559,7 @@ class AsyncTaskOrchestrator:
             orchestration_task.managed_task.progress = 1.0
 
             # Update metrics
-            self.metrics['tasks_completed'] += 1
+            self.metrics["tasks_completed"] += 1
 
             # Cleanup resources
             await self._cleanup_task_execution(orchestration_task)
@@ -535,7 +569,9 @@ class AsyncTaskOrchestrator:
 
         logger.info(f"Task {task_id} completed successfully")
 
-    async def _handle_task_failure(self, orchestration_task: OrchestrationTask, error: Exception):
+    async def _handle_task_failure(
+        self, orchestration_task: OrchestrationTask, error: Exception
+    ):
         """Handle task failure with retry logic."""
         task_id = orchestration_task.id
 
@@ -545,7 +581,9 @@ class AsyncTaskOrchestrator:
 
             # Check if we should retry
             if orchestration_task.retry_count <= orchestration_task.max_retries:
-                logger.info(f"Retrying task {task_id} (attempt {orchestration_task.retry_count})")
+                logger.info(
+                    f"Retrying task {task_id} (attempt {orchestration_task.retry_count})"
+                )
 
                 # Reset for retry
                 orchestration_task.status = OrchestrationStatus.READY
@@ -575,9 +613,11 @@ class AsyncTaskOrchestrator:
                 orchestration_task.managed_task.status = TaskStatus.FAILED
 
                 # Update metrics
-                self.metrics['tasks_failed'] += 1
+                self.metrics["tasks_failed"] += 1
 
-                logger.error(f"Task {task_id} failed permanently after {orchestration_task.retry_count} attempts")
+                logger.error(
+                    f"Task {task_id} failed permanently after {orchestration_task.retry_count} attempts"
+                )
 
                 # Handle dependent tasks (they may need to be cancelled)
                 await self._handle_task_completion(task_id, failed=True)
@@ -589,10 +629,16 @@ class AsyncTaskOrchestrator:
         """Clean up resources after task execution."""
         # Update agent resource usage
         if orchestration_task.assigned_agent:
-            agent_resource = await self._get_agent_resource(orchestration_task.assigned_agent)
-            agent_resource.current_task_count = max(0, agent_resource.current_task_count - 1)
+            agent_resource = await self._get_agent_resource(
+                orchestration_task.assigned_agent
+            )
+            agent_resource.current_task_count = max(
+                0, agent_resource.current_task_count - 1
+            )
 
-    async def _handle_task_completion(self, task_id: str, failed: bool = False, cancelled: bool = False):
+    async def _handle_task_completion(
+        self, task_id: str, failed: bool = False, cancelled: bool = False
+    ):
         """Handle task completion and check dependent tasks."""
         dependents = self.reverse_dependency_graph.get(task_id, set())
 
@@ -617,7 +663,10 @@ class AsyncTaskOrchestrator:
         orchestration_task = self.tasks[task_id]
 
         # Check if already running/completed
-        if orchestration_task.status not in (OrchestrationStatus.PENDING, OrchestrationStatus.WAITING_DEPENDENCIES):
+        if orchestration_task.status not in (
+            OrchestrationStatus.PENDING,
+            OrchestrationStatus.WAITING_DEPENDENCIES,
+        ):
             return False
 
         # Check all dependencies
@@ -637,8 +686,10 @@ class AsyncTaskOrchestrator:
         """Add dependencies to the task graph."""
         # Check for cycles
         if await self._would_create_cycle(task_id, dependencies):
-            self.metrics['dependency_cycles_detected'] += 1
-            raise ValueError(f"Adding dependencies would create a cycle for task {task_id}")
+            self.metrics["dependency_cycles_detected"] += 1
+            raise ValueError(
+                f"Adding dependencies would create a cycle for task {task_id}"
+            )
 
         # Add to dependency graphs
         for dep_id in dependencies:
@@ -693,7 +744,10 @@ class AsyncTaskOrchestrator:
         """Check for tasks that may have become ready due to dependency completion."""
         async with self.task_lock:
             for task_id, orchestration_task in self.tasks.items():
-                if orchestration_task.status == OrchestrationStatus.WAITING_DEPENDENCIES:
+                if (
+                    orchestration_task.status
+                    == OrchestrationStatus.WAITING_DEPENDENCIES
+                ):
                     if await self._is_task_ready(task_id):
                         orchestration_task.status = OrchestrationStatus.READY
                         await self.ready_queue.put(orchestration_task)
@@ -704,20 +758,24 @@ class AsyncTaskOrchestrator:
             return
 
         # Get recent performance data
-        performance_summary = self.performance_monitor.get_performance_summary(60)  # Last minute
+        performance_summary = self.performance_monitor.get_performance_summary(
+            60
+        )  # Last minute
 
-        resource_usage = performance_summary.get('resource_usage', {})
-        current_usage = resource_usage.get('current', {})
+        resource_usage = performance_summary.get("resource_usage", {})
+        current_usage = resource_usage.get("current", {})
 
-        cpu_percent = current_usage.get('cpu_percent', 0)
-        memory_percent = current_usage.get('memory_percent', 0)
+        cpu_percent = current_usage.get("cpu_percent", 0)
+        memory_percent = current_usage.get("memory_percent", 0)
 
         # Adjust concurrency based on resource usage
         if cpu_percent > 80 or memory_percent > 80:
             # Reduce concurrency under high load
             new_limit = max(1, int(self.max_concurrent_tasks * 0.7))
             if new_limit != self.max_concurrent_tasks:
-                logger.info(f"Reducing concurrency limit to {new_limit} due to high resource usage")
+                logger.info(
+                    f"Reducing concurrency limit to {new_limit} due to high resource usage"
+                )
                 # Note: We can't easily change semaphore size, so we'll track this separately
 
         elif cpu_percent < 50 and memory_percent < 50:
@@ -729,8 +787,7 @@ class AsyncTaskOrchestrator:
         """Get or create agent resource tracking."""
         if agent_id not in self.agent_resources:
             self.agent_resources[agent_id] = AgentResource(
-                agent_id=agent_id,
-                **self.default_agent_limits
+                agent_id=agent_id, **self.default_agent_limits
             )
         return self.agent_resources[agent_id]
 
@@ -745,10 +802,11 @@ class AsyncTaskOrchestrator:
 # Global orchestrator instance
 _global_orchestrator: AsyncTaskOrchestrator | None = None
 
+
 async def get_orchestrator(
     max_concurrent_tasks: int = 10,
     default_task_timeout: float = 300.0,
-    enable_performance_monitoring: bool = True
+    enable_performance_monitoring: bool = True,
 ) -> AsyncTaskOrchestrator:
     """Get or create the global orchestrator instance."""
     global _global_orchestrator
@@ -757,11 +815,12 @@ async def get_orchestrator(
         _global_orchestrator = AsyncTaskOrchestrator(
             max_concurrent_tasks=max_concurrent_tasks,
             default_task_timeout=default_task_timeout,
-            enable_performance_monitoring=enable_performance_monitoring
+            enable_performance_monitoring=enable_performance_monitoring,
         )
         await _global_orchestrator.start()
 
     return _global_orchestrator
+
 
 async def shutdown_orchestrator():
     """Shutdown the global orchestrator instance."""

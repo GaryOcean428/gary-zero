@@ -41,7 +41,7 @@ async def test_plugin_execution():
         name="simple_test",
         method=None,
         args={"action": "info"},
-        message="Test message"
+        message="Test message",
     )
 
     try:
@@ -59,7 +59,7 @@ async def test_plugin_execution():
             name="simple_test",
             method=None,
             args={"action": "echo", "message": "Hello from plugin test!"},
-            message="Test message"
+            message="Test message",
         )
 
         response2 = await tool2.execute()
@@ -72,6 +72,7 @@ async def test_plugin_execution():
     except Exception as e:
         print(f"❌ Plugin execution failed: {e}")
         import traceback
+
         traceback.print_exc()
 
 
@@ -100,8 +101,8 @@ async def test_plugin_manager_operations():
 
         # Check status
         plugins = manager.list_plugins()
-        simple_test = next((p for p in plugins if p['name'] == 'simple_test'), None)
-        if simple_test and not simple_test['enabled']:
+        simple_test = next((p for p in plugins if p["name"] == "simple_test"), None)
+        if simple_test and not simple_test["enabled"]:
             print("✓ Plugin status updated to disabled")
 
         # Re-enable
@@ -117,4 +118,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"❌ Test failed: {e}")
         import traceback
+
         traceback.print_exc()

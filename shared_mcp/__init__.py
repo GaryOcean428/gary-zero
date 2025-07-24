@@ -24,9 +24,4 @@ __email__ = "gary@garyocean.com"
 from .server import SharedMCPServer
 from .client import SharedMCPClient, MCPConfig
 
-__all__ = [
-    "SharedMCPServer", 
-    "SharedMCPClient", 
-    "MCPConfig",
-    "__version__"
-]
+__all__ = ["SharedMCPServer", "SharedMCPClient", "MCPConfig", "__version__"]

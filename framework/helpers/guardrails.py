@@ -19,6 +19,7 @@ from framework.helpers.print_style import PrintStyle
 
 class GuardrailSeverity(Enum):
     """Severity levels for guardrail violations."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -28,6 +29,7 @@ class GuardrailSeverity(Enum):
 @dataclass
 class GuardrailViolation:
     """Represents a guardrail violation."""
+
     rule_name: str
     severity: GuardrailSeverity
     message: str
@@ -42,17 +44,17 @@ class InputValidator:
     def __init__(self):
         self.max_length = 10000
         self.banned_patterns = [
-            r'(?i)ignore\s+previous\s+instructions',
-            r'(?i)ignore\s+all\s+previous',
-            r'(?i)system\s*:\s*ignore',
-            r'(?i)override\s+safety',
-            r'(?i)jailbreak',
-            r'(?i)pretend\s+you\s+are',
+            r"(?i)ignore\s+previous\s+instructions",
+            r"(?i)ignore\s+all\s+previous",
+            r"(?i)system\s*:\s*ignore",
+            r"(?i)override\s+safety",
+            r"(?i)jailbreak",
+            r"(?i)pretend\s+you\s+are",
         ]
         self.sensitive_info_patterns = [
-            r'\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b',  # Credit card numbers
-            r'\b\d{3}-\d{2}-\d{4}\b',  # SSN
-            r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',  # Email (for logging)
+            r"\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b",  # Credit card numbers
+            r"\b\d{3}-\d{2}-\d{4}\b",  # SSN
+            r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",  # Email (for logging)
         ]
         self.violations: list[GuardrailViolation] = []
 
@@ -62,23 +64,27 @@ class InputValidator:
 
         # Length validation
         if len(message) > self.max_length:
-            self.violations.append(GuardrailViolation(
-                rule_name="max_length",
-                severity=GuardrailSeverity.MEDIUM,
-                message=f"Message too long ({len(message)} > {self.max_length})",
-                content=message[:100] + "..."
-            ))
-            message = message[:self.max_length] + " [truncated by guardrail]"
+            self.violations.append(
+                GuardrailViolation(
+                    rule_name="max_length",
+                    severity=GuardrailSeverity.MEDIUM,
+                    message=f"Message too long ({len(message)} > {self.max_length})",
+                    content=message[:100] + "...",
+                )
+            )
+            message = message[: self.max_length] + " [truncated by guardrail]"
 
         # Injection attempt detection
         for pattern in self.banned_patterns:
             if re.search(pattern, message):
-                self.violations.append(GuardrailViolation(
-                    rule_name="injection_attempt",
-                    severity=GuardrailSeverity.HIGH,
-                    message=f"Potential prompt injection detected: {pattern}",
-                    content=message[:200] + "..."
-                ))
+                self.violations.append(
+                    GuardrailViolation(
+                        rule_name="injection_attempt",
+                        severity=GuardrailSeverity.HIGH,
+                        message=f"Potential prompt injection detected: {pattern}",
+                        content=message[:200] + "...",
+                    )
+                )
                 # Sanitize by adding warning
                 message = f"[WARNING: Potential prompt injection detected] {message}"
 
@@ -86,13 +92,15 @@ class InputValidator:
         for pattern in self.sensitive_info_patterns:
             matches = re.findall(pattern, message)
             if matches:
-                self.violations.append(GuardrailViolation(
-                    rule_name="sensitive_info",
-                    severity=GuardrailSeverity.HIGH,
-                    message=f"Sensitive information detected: {len(matches)} matches",
-                    content="[Redacted for security]",
-                    metadata={"pattern_type": pattern, "match_count": len(matches)}
-                ))
+                self.violations.append(
+                    GuardrailViolation(
+                        rule_name="sensitive_info",
+                        severity=GuardrailSeverity.HIGH,
+                        message=f"Sensitive information detected: {len(matches)} matches",
+                        content="[Redacted for security]",
+                        metadata={"pattern_type": pattern, "match_count": len(matches)},
+                    )
+                )
                 # Redact sensitive information
                 message = re.sub(pattern, "[REDACTED]", message)
 
@@ -116,7 +124,7 @@ class InputValidator:
             GuardrailSeverity.LOW: "yellow",
             GuardrailSeverity.MEDIUM: "orange",
             GuardrailSeverity.HIGH: "red",
-            GuardrailSeverity.CRITICAL: "purple"
+            GuardrailSeverity.CRITICAL: "purple",
         }
         return colors.get(severity, "white")
 
@@ -131,14 +139,14 @@ class OutputValidator:
     def __init__(self):
         self.max_length = 50000
         self.banned_content_patterns = [
-            r'(?i)generate\s+malware',
-            r'(?i)create\s+virus',
-            r'(?i)hack\s+into',
-            r'(?i)illegal\s+activities',
+            r"(?i)generate\s+malware",
+            r"(?i)create\s+virus",
+            r"(?i)hack\s+into",
+            r"(?i)illegal\s+activities",
         ]
         self.pii_patterns = [
-            r'\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b',  # Credit card
-            r'\b\d{3}-\d{2}-\d{4}\b',  # SSN
+            r"\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b",  # Credit card
+            r"\b\d{3}-\d{2}-\d{4}\b",  # SSN
         ]
         self.violations: list[GuardrailViolation] = []
 
@@ -154,23 +162,29 @@ class OutputValidator:
 
         # Length validation
         if len(output_str) > self.max_length:
-            self.violations.append(GuardrailViolation(
-                rule_name="output_max_length",
-                severity=GuardrailSeverity.MEDIUM,
-                message=f"Output too long ({len(output_str)} > {self.max_length})",
-                content=output_str[:100] + "..."
-            ))
-            output_str = output_str[:self.max_length] + " [truncated by output guardrail]"
+            self.violations.append(
+                GuardrailViolation(
+                    rule_name="output_max_length",
+                    severity=GuardrailSeverity.MEDIUM,
+                    message=f"Output too long ({len(output_str)} > {self.max_length})",
+                    content=output_str[:100] + "...",
+                )
+            )
+            output_str = (
+                output_str[: self.max_length] + " [truncated by output guardrail]"
+            )
 
         # Banned content detection
         for pattern in self.banned_content_patterns:
             if re.search(pattern, output_str):
-                self.violations.append(GuardrailViolation(
-                    rule_name="banned_content",
-                    severity=GuardrailSeverity.CRITICAL,
-                    message=f"Banned content pattern detected: {pattern}",
-                    content=output_str[:200] + "..."
-                ))
+                self.violations.append(
+                    GuardrailViolation(
+                        rule_name="banned_content",
+                        severity=GuardrailSeverity.CRITICAL,
+                        message=f"Banned content pattern detected: {pattern}",
+                        content=output_str[:200] + "...",
+                    )
+                )
                 # Replace with safety message
                 output_str = "[Content blocked by safety guardrail - potentially harmful content detected]"
 
@@ -178,13 +192,15 @@ class OutputValidator:
         for pattern in self.pii_patterns:
             matches = re.findall(pattern, output_str)
             if matches:
-                self.violations.append(GuardrailViolation(
-                    rule_name="pii_detected",
-                    severity=GuardrailSeverity.HIGH,
-                    message=f"PII detected in output: {len(matches)} matches",
-                    content="[Redacted for privacy]",
-                    metadata={"pattern_type": pattern, "match_count": len(matches)}
-                ))
+                self.violations.append(
+                    GuardrailViolation(
+                        rule_name="pii_detected",
+                        severity=GuardrailSeverity.HIGH,
+                        message=f"PII detected in output: {len(matches)} matches",
+                        content="[Redacted for privacy]",
+                        metadata={"pattern_type": pattern, "match_count": len(matches)},
+                    )
+                )
                 # Redact PII
                 output_str = re.sub(pattern, "[PII_REDACTED]", output_str)
 
@@ -213,7 +229,7 @@ class OutputValidator:
             GuardrailSeverity.LOW: "yellow",
             GuardrailSeverity.MEDIUM: "orange",
             GuardrailSeverity.HIGH: "red",
-            GuardrailSeverity.CRITICAL: "purple"
+            GuardrailSeverity.CRITICAL: "purple",
         }
         return colors.get(severity, "white")
 
@@ -237,7 +253,7 @@ class SafetyEvaluator:
             "output_length": len(output),
             "risk_score": 0.0,
             "risk_factors": [],
-            "is_safe": True
+            "is_safe": True,
         }
 
         # Evaluate input risks
@@ -271,9 +287,9 @@ class SafetyEvaluator:
 
         # Check for manipulation attempts
         manipulation_patterns = [
-            r'(?i)ignore\s+previous',
-            r'(?i)forget\s+instructions',
-            r'(?i)override\s+safety',
+            r"(?i)ignore\s+previous",
+            r"(?i)forget\s+instructions",
+            r"(?i)override\s+safety",
         ]
 
         for pattern in manipulation_patterns:
@@ -283,9 +299,9 @@ class SafetyEvaluator:
 
         # Check for requests for harmful content
         harmful_patterns = [
-            r'(?i)how\s+to\s+hack',
-            r'(?i)make\s+explosives',
-            r'(?i)illegal\s+drugs',
+            r"(?i)how\s+to\s+hack",
+            r"(?i)make\s+explosives",
+            r"(?i)illegal\s+drugs",
         ]
 
         for pattern in harmful_patterns:
@@ -293,10 +309,7 @@ class SafetyEvaluator:
                 risk_score += 0.5
                 risk_factors.append(f"harmful_request: {pattern}")
 
-        return {
-            "score": min(risk_score, 1.0),
-            "factors": risk_factors
-        }
+        return {"score": min(risk_score, 1.0), "factors": risk_factors}
 
     async def _evaluate_output_risks(self, output: str) -> dict[str, Any]:
         """Evaluate risks in output content."""
@@ -305,9 +318,9 @@ class SafetyEvaluator:
 
         # Check for potentially harmful instructions
         harmful_output_patterns = [
-            r'(?i)here\'s\s+how\s+to\s+hack',
-            r'(?i)steps\s+to\s+create\s+malware',
-            r'(?i)illegal\s+activities\s+include',
+            r"(?i)here\'s\s+how\s+to\s+hack",
+            r"(?i)steps\s+to\s+create\s+malware",
+            r"(?i)illegal\s+activities\s+include",
         ]
 
         for pattern in harmful_output_patterns:
@@ -316,14 +329,11 @@ class SafetyEvaluator:
                 risk_factors.append(f"harmful_instructions: {pattern}")
 
         # Check for private information disclosure
-        if re.search(r'\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b', output):
+        if re.search(r"\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b", output):
             risk_score += 0.4
             risk_factors.append("potential_pii_disclosure")
 
-        return {
-            "score": min(risk_score, 1.0),
-            "factors": risk_factors
-        }
+        return {"score": min(risk_score, 1.0), "factors": risk_factors}
 
     def get_evaluation_history(self, limit: int = 100) -> list[dict[str, Any]]:
         """Get recent evaluation history."""
@@ -339,10 +349,12 @@ class ErrorHandler:
             "network_error": self._handle_network_error,
             "rate_limit": self._handle_rate_limit,
             "validation_error": self._handle_validation_error,
-            "safety_violation": self._handle_safety_violation
+            "safety_violation": self._handle_safety_violation,
         }
 
-    async def handle_error(self, error: Exception, context: dict[str, Any]) -> dict[str, Any]:
+    async def handle_error(
+        self, error: Exception, context: dict[str, Any]
+    ) -> dict[str, Any]:
         """Handle errors with appropriate strategies."""
         error_type = self._classify_error(error)
 
@@ -352,7 +364,7 @@ class ErrorHandler:
             "error_message": str(error),
             "context": context,
             "handled": False,
-            "retry_suggested": False
+            "retry_suggested": False,
         }
 
         # Apply appropriate handling strategy
@@ -387,38 +399,46 @@ class ErrorHandler:
         else:
             return "unknown_error"
 
-    async def _handle_network_error(self, error: Exception, context: dict[str, Any]) -> dict[str, Any]:
+    async def _handle_network_error(
+        self, error: Exception, context: dict[str, Any]
+    ) -> dict[str, Any]:
         """Handle network-related errors."""
         return {
             "handled": True,
             "retry_suggested": True,
             "retry_delay": 5,
-            "handling_strategy": "exponential_backoff"
+            "handling_strategy": "exponential_backoff",
         }
 
-    async def _handle_rate_limit(self, error: Exception, context: dict[str, Any]) -> dict[str, Any]:
+    async def _handle_rate_limit(
+        self, error: Exception, context: dict[str, Any]
+    ) -> dict[str, Any]:
         """Handle rate limit errors."""
         return {
             "handled": True,
             "retry_suggested": True,
             "retry_delay": 60,
-            "handling_strategy": "rate_limit_backoff"
+            "handling_strategy": "rate_limit_backoff",
         }
 
-    async def _handle_validation_error(self, error: Exception, context: dict[str, Any]) -> dict[str, Any]:
+    async def _handle_validation_error(
+        self, error: Exception, context: dict[str, Any]
+    ) -> dict[str, Any]:
         """Handle validation errors."""
         return {
             "handled": True,
             "retry_suggested": False,
-            "handling_strategy": "input_sanitization"
+            "handling_strategy": "input_sanitization",
         }
 
-    async def _handle_safety_violation(self, error: Exception, context: dict[str, Any]) -> dict[str, Any]:
+    async def _handle_safety_violation(
+        self, error: Exception, context: dict[str, Any]
+    ) -> dict[str, Any]:
         """Handle safety violations."""
         return {
             "handled": True,
             "retry_suggested": False,
-            "handling_strategy": "safety_block"
+            "handling_strategy": "safety_block",
         }
 
 
@@ -440,7 +460,9 @@ class GuardrailsManager:
             return message
 
         try:
-            validated_message = await self.input_validator.validate_and_sanitize(message)
+            validated_message = await self.input_validator.validate_and_sanitize(
+                message
+            )
             return validated_message
         except Exception as e:
             await self.error_handler.handle_error(e, {"stage": "input_processing"})
@@ -466,7 +488,9 @@ class GuardrailsManager:
             return {"is_safe": True, "risk_score": 0.0}
 
         try:
-            evaluation = await self.safety_evaluator.evaluate_interaction(input_msg, output)
+            evaluation = await self.safety_evaluator.evaluate_interaction(
+                input_msg, output
+            )
             return evaluation
         except Exception as e:
             await self.error_handler.handle_error(e, {"stage": "safety_evaluation"})
@@ -480,7 +504,7 @@ class GuardrailsManager:
             "input_violations": len(self.input_validator.get_violations()),
             "output_violations": len(self.output_validator.get_violations()),
             "recent_evaluations": len(self.safety_evaluator.get_evaluation_history(10)),
-            "recent_errors": len(self.error_handler.error_history[-10:])
+            "recent_errors": len(self.error_handler.error_history[-10:]),
         }
 
     def enable_strict_mode(self):
@@ -516,6 +540,4 @@ def initialize_guardrails(strict_mode: bool = False) -> None:
     if strict_mode:
         manager.enable_strict_mode()
 
-    PrintStyle(font_color="green", padding=True).print(
-        "Guardrails system initialized"
-    )
+    PrintStyle(font_color="green", padding=True).print("Guardrails system initialized")

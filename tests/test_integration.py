@@ -3,7 +3,7 @@ Integration tests for Gary-Zero Framework Quality Upgrades
 
 These tests verify that all framework components work together correctly:
 - Container + Security integration
-- Container + Performance integration  
+- Container + Performance integration
 - Security + Performance integration
 - Full end-to-end workflows
 """
@@ -17,7 +17,12 @@ import pytest
 from framework.container import Container
 from framework.interfaces import BaseService
 from framework.performance import CacheManager, PerformanceMonitor, cached, timer
-from framework.security import AuditLogger, ContentSanitizer, InputValidator, RateLimiter
+from framework.security import (
+    AuditLogger,
+    ContentSanitizer,
+    InputValidator,
+    RateLimiter,
+)
 
 
 class MockSecureService(BaseService):
@@ -73,12 +78,10 @@ class MockPerformantService(BaseService):
         """Simulate expensive operation with caching and timing."""
         # Simulate processing time
         import time
+
         time.sleep(0.01)
 
-        return {
-            "result": f"processed_{data}",
-            "timestamp": time.time()
-        }
+        return {"result": f"processed_{data}", "timestamp": time.time()}
 
     async def async_batch_process(self, items: list) -> dict[str, Any]:
         """Async batch processing with monitoring."""
@@ -91,7 +94,7 @@ class MockPerformantService(BaseService):
             return {
                 "results": results,
                 "count": len(results),
-                "metrics": self.monitor.get_metrics_summary()
+                "metrics": self.monitor.get_metrics_summary(),
             }
 
 
@@ -114,9 +117,9 @@ class TestFrameworkIntegration:
         # Get and initialize service
         service = self.container.get("secure_service")
         assert isinstance(service, MockSecureService)
-        assert hasattr(service, 'validator')
-        assert hasattr(service, 'sanitizer')
-        assert hasattr(service, 'audit_logger')
+        assert hasattr(service, "validator")
+        assert hasattr(service, "sanitizer")
+        assert hasattr(service, "audit_logger")
 
         # Test valid input processing
         result = service.process_user_input("valid_input_123")
@@ -140,8 +143,8 @@ class TestFrameworkIntegration:
         # Get service
         service = self.container.get("performant_service")
         assert isinstance(service, MockPerformantService)
-        assert hasattr(service, 'cache_manager')
-        assert hasattr(service, 'monitor')
+        assert hasattr(service, "cache_manager")
+        assert hasattr(service, "monitor")
 
         # Test cached operation
         result1 = service.expensive_operation("test_data")
@@ -172,6 +175,7 @@ class TestFrameworkIntegration:
 
     def test_security_performance_integration(self):
         """Test security and performance working together."""
+
         # Create service with both security and performance
         class IntegratedService(BaseService):
             def __init__(self):
@@ -205,6 +209,7 @@ class TestFrameworkIntegration:
 
     def test_rate_limiting_with_services(self):
         """Test rate limiting integration with container services."""
+
         class RateLimitedService(BaseService):
             def __init__(self):
                 super().__init__()
@@ -278,6 +283,7 @@ class TestFrameworkIntegration:
 
     def test_dependency_injection_with_framework_components(self):
         """Test dependency injection with framework security and performance components."""
+
         class ServiceWithDependencies(BaseService):
             def __init__(self, validator: InputValidator, cache_manager: CacheManager):
                 super().__init__()
@@ -315,6 +321,7 @@ class TestFrameworkIntegration:
 
     def test_error_handling_integration(self):
         """Test error handling across framework components."""
+
         class ErrorProneService(BaseService):
             def __init__(self):
                 super().__init__()
@@ -359,7 +366,9 @@ class TestPerformanceUnderLoad:
 
         # Create multiple concurrent tasks
         async def concurrent_task(task_id: int):
-            return await service.async_batch_process([f"item_{task_id}_{i}" for i in range(3)])
+            return await service.async_batch_process(
+                [f"item_{task_id}_{i}" for i in range(3)]
+            )
 
         # Run tasks concurrently
         tasks = [concurrent_task(i) for i in range(5)]

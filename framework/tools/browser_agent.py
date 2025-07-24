@@ -68,7 +68,9 @@ class State:
         if self.task and self.task.is_alive():
             self.kill_task()
 
-        self.task = defer.DeferredTask(thread_name="BrowserAgent" + self.agent.context.id)
+        self.task = defer.DeferredTask(
+            thread_name="BrowserAgent" + self.agent.context.id
+        )
         if self.agent.context.task:
             self.agent.context.task.add_child_task(self.task, terminate_thread=True)
         self.task.start_task(self._run_task, task)
@@ -124,7 +126,9 @@ class State:
             browser_session=self.browser_session,
             llm=model,
             use_vision=self.agent.config.browser_model.vision,
-            extend_system_message=self.agent.read_prompt("prompts/browser_agent.system.md"),
+            extend_system_message=self.agent.read_prompt(
+                "prompts/browser_agent.system.md"
+            ),
             controller=controller,
             enable_memory=False,  # Disable memory to avoid state conflicts
             # available_file_paths=[],
@@ -138,7 +142,9 @@ class State:
                 raise InterventionError("Task cancelled")
 
         # try:
-        result = await self.use_agent.run(max_steps=50, on_step_start=hook, on_step_end=hook)
+        result = await self.use_agent.run(
+            max_steps=50, on_step_start=hook, on_step_end=hook
+        )
         return result
         # finally:
         #     # if self.browser_session:
@@ -177,13 +183,14 @@ class State:
     async def get_selector_map(self):
         """Get the selector map for the current page state."""
         if self.use_agent and self.browser_session:
-            await self.browser_session.get_state_summary(cache_clickable_elements_hashes=True)
+            await self.browser_session.get_state_summary(
+                cache_clickable_elements_hashes=True
+            )
             return await self.browser_session.get_selector_map()
         return {}
 
 
 class BrowserAgent(Tool):
-
     async def execute(self, message="", reset="", **kwargs):
         self.guid = str(uuid.uuid4())
         reset = str(reset).lower().strip() == "true"
@@ -213,7 +220,9 @@ class BrowserAgent(Tool):
                     fail_counter = 0  # reset on success
                 except TimeoutError:
                     fail_counter += 1
-                    PrintStyle().warning(f"browser_agent.get_update timed out ({fail_counter}/3)")
+                    PrintStyle().warning(
+                        f"browser_agent.get_update timed out ({fail_counter}/3)"
+                    )
                     if fail_counter >= 3:
                         PrintStyle().warning(
                             "3 consecutive browser_agent.get_update timeouts, breaking loop"
@@ -263,10 +272,14 @@ class BrowserAgent(Tool):
                     answer_data = DirtyJson.parse_string(answer)
                     answer_text = strings.dict_to_text(answer_data)  # type: ignore
                 else:
-                    answer_text = str(answer) if answer else "Task completed successfully"
+                    answer_text = (
+                        str(answer) if answer else "Task completed successfully"
+                    )
             except Exception as e:
                 answer_text = (
-                    str(answer) if answer else f"Task completed with parse error: {str(e)}"
+                    str(answer)
+                    if answer
+                    else f"Task completed with parse error: {str(e)}"
                 )
         else:
             # Task hit max_steps without calling done()
@@ -281,7 +294,11 @@ class BrowserAgent(Tool):
         self.log.update(answer=answer_text)
 
         # add screenshot to the answer if we have it
-        if self.log.kvps and "screenshot" in self.log.kvps and self.log.kvps["screenshot"]:
+        if (
+            self.log.kvps
+            and "screenshot" in self.log.kvps
+            and self.log.kvps["screenshot"]
+        ):
             path = self.log.kvps["screenshot"].split("//", 1)[-1].split("&", 1)[0]
             answer_text += f"\n\nScreenshot: {path}"
 
@@ -308,7 +325,6 @@ class BrowserAgent(Tool):
             try:
 
                 async def _get_update():
-
                     # await agent.wait_if_paused() # no need here
 
                     # for message in ua.message_manager.get_messages():

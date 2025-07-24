@@ -3,7 +3,7 @@ Resource optimization utilities.
 
 Provides intelligent resource optimization including:
 - Memory usage optimization
-- CPU usage optimization  
+- CPU usage optimization
 - I/O optimization
 - Automatic resource management
 """
@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class OptimizationResult:
     """Result of an optimization operation."""
+
     optimization_type: str
     before_value: float
     after_value: float
@@ -72,12 +73,12 @@ class BaseOptimizer(ABC):
     def get_stats(self) -> dict[str, Any]:
         """Get optimizer statistics."""
         return {
-            'name': self.name,
-            'enabled': self._enabled,
-            'optimization_count': self._optimization_count,
-            'total_improvement': self._total_improvement,
-            'last_optimization': self._last_optimization,
-            'current_usage': self.get_current_usage()
+            "name": self.name,
+            "enabled": self._enabled,
+            "optimization_count": self._optimization_count,
+            "total_improvement": self._total_improvement,
+            "last_optimization": self._last_optimization,
+            "current_usage": self.get_current_usage(),
         }
 
 
@@ -114,12 +115,12 @@ class MemoryOptimizer(BaseOptimizer):
             system_memory = psutil.virtual_memory()
 
             return {
-                'process_rss_mb': memory_info.rss / 1024 / 1024,
-                'process_vms_mb': memory_info.vms / 1024 / 1024,
-                'system_used_mb': system_memory.used / 1024 / 1024,
-                'system_available_mb': system_memory.available / 1024 / 1024,
-                'system_percent': system_memory.percent,
-                'process_percent': process.memory_percent()
+                "process_rss_mb": memory_info.rss / 1024 / 1024,
+                "process_vms_mb": memory_info.vms / 1024 / 1024,
+                "system_used_mb": system_memory.used / 1024 / 1024,
+                "system_available_mb": system_memory.available / 1024 / 1024,
+                "system_percent": system_memory.percent,
+                "process_percent": process.memory_percent(),
             }
         except Exception as e:
             logger.warning(f"Failed to get detailed memory info: {e}")
@@ -128,7 +129,9 @@ class MemoryOptimizer(BaseOptimizer):
     def cleanup_weak_references(self) -> int:
         """Clean up dead weak references and return count cleaned."""
         initial_count = len(self._weak_cache_refs)
-        self._weak_cache_refs = [ref for ref in self._weak_cache_refs if ref() is not None]
+        self._weak_cache_refs = [
+            ref for ref in self._weak_cache_refs if ref() is not None
+        ]
         return initial_count - len(self._weak_cache_refs)
 
     def cleanup_caches(self) -> int:
@@ -151,13 +154,13 @@ class MemoryOptimizer(BaseOptimizer):
 
         # Run garbage collection for all generations
         collected = {
-            'gen0': gc.collect(0),
-            'gen1': gc.collect(1),
-            'gen2': gc.collect(2)
+            "gen0": gc.collect(0),
+            "gen1": gc.collect(1),
+            "gen2": gc.collect(2),
         }
 
         after_objects = len(gc.get_objects())
-        collected['objects_freed'] = before_objects - after_objects
+        collected["objects_freed"] = before_objects - after_objects
 
         return collected
 
@@ -181,7 +184,7 @@ class MemoryOptimizer(BaseOptimizer):
 
         # Force garbage collection
         gc_stats = self.force_garbage_collection()
-        total_collected = sum(gc_stats[key] for key in ['gen0', 'gen1', 'gen2'])
+        total_collected = sum(gc_stats[key] for key in ["gen0", "gen1", "gen2"])
         if total_collected > 0:
             recommendations.append(
                 f"Garbage collected {total_collected} objects "
@@ -196,11 +199,15 @@ class MemoryOptimizer(BaseOptimizer):
         improvement_percent = (improvement / max(before_usage, 0.01)) * 100
 
         # Add memory-specific recommendations
-        if after_info.get('system_percent', 0) > 80:
-            recommendations.append("System memory usage is high - consider reducing cache sizes")
+        if after_info.get("system_percent", 0) > 80:
+            recommendations.append(
+                "System memory usage is high - consider reducing cache sizes"
+            )
 
-        if after_info.get('process_percent', 0) > 50:
-            recommendations.append("Process memory usage is high - consider memory profiling")
+        if after_info.get("process_percent", 0) > 50:
+            recommendations.append(
+                "Process memory usage is high - consider memory profiling"
+            )
 
         duration = time.time() - start_time
 
@@ -216,7 +223,7 @@ class MemoryOptimizer(BaseOptimizer):
             improvement=improvement,
             improvement_percent=improvement_percent,
             duration_seconds=duration,
-            recommendations=recommendations
+            recommendations=recommendations,
         )
 
         logger.info(
@@ -252,13 +259,13 @@ class CPUOptimizer(BaseOptimizer):
         """Get detailed CPU information."""
         try:
             return {
-                'system_cpu_percent': psutil.cpu_percent(interval=0.1),
-                'process_cpu_percent': self._process.cpu_percent(),
-                'cpu_count_logical': psutil.cpu_count(logical=True),
-                'cpu_count_physical': psutil.cpu_count(logical=False),
-                'process_num_threads': self._process.num_threads(),
-                'process_nice': self._process.nice(),
-                'load_average': getattr(psutil, 'getloadavg', lambda: [0, 0, 0])()
+                "system_cpu_percent": psutil.cpu_percent(interval=0.1),
+                "process_cpu_percent": self._process.cpu_percent(),
+                "cpu_count_logical": psutil.cpu_count(logical=True),
+                "cpu_count_physical": psutil.cpu_count(logical=False),
+                "process_num_threads": self._process.num_threads(),
+                "process_nice": self._process.nice(),
+                "load_average": getattr(psutil, "getloadavg", lambda: [0, 0, 0])(),
             }
         except Exception as e:
             logger.warning(f"Failed to get CPU info: {e}")
@@ -268,8 +275,8 @@ class CPUOptimizer(BaseOptimizer):
         """Optimize process priority based on current load."""
         try:
             cpu_info = self.get_cpu_info()
-            current_nice = cpu_info.get('process_nice', 0)
-            system_cpu = cpu_info.get('system_cpu_percent', 0)
+            current_nice = cpu_info.get("process_nice", 0)
+            system_cpu = cpu_info.get("system_cpu_percent", 0)
 
             # Adjust priority based on system load
             if system_cpu > 80:
@@ -300,17 +307,19 @@ class CPUOptimizer(BaseOptimizer):
         for i, pool in enumerate(self._thread_pools):
             try:
                 # Try to adjust thread pool size based on CPU count
-                if hasattr(pool, '_max_workers'):
+                if hasattr(pool, "_max_workers"):
                     current_workers = pool._max_workers
                     optimal_workers = min(cpu_count * 2, current_workers)
 
-                    if hasattr(pool, '_adjust_worker_count'):
+                    if hasattr(pool, "_adjust_worker_count"):
                         pool._adjust_worker_count(optimal_workers)
                         results.append(
                             f"Thread pool {i}: adjusted from {current_workers} to {optimal_workers} workers"
                         )
                     else:
-                        results.append(f"Thread pool {i}: no adjustment method available")
+                        results.append(
+                            f"Thread pool {i}: no adjustment method available"
+                        )
                 else:
                     results.append(f"Thread pool {i}: unable to determine worker count")
 
@@ -346,12 +355,16 @@ class CPUOptimizer(BaseOptimizer):
         improvement_percent = (improvement / max(before_usage, 0.01)) * 100
 
         # Add CPU-specific recommendations
-        cpu_count = after_info.get('cpu_count_logical', 4)
-        if after_info.get('system_cpu_percent', 0) > 80:
-            recommendations.append("High CPU usage detected - consider using async patterns")
+        cpu_count = after_info.get("cpu_count_logical", 4)
+        if after_info.get("system_cpu_percent", 0) > 80:
+            recommendations.append(
+                "High CPU usage detected - consider using async patterns"
+            )
 
-        if after_info.get('process_num_threads', 0) > cpu_count * 2:
-            recommendations.append(f"High thread count ({after_info['process_num_threads']}) - consider thread pooling")
+        if after_info.get("process_num_threads", 0) > cpu_count * 2:
+            recommendations.append(
+                f"High thread count ({after_info['process_num_threads']}) - consider thread pooling"
+            )
 
         duration = time.time() - start_time
 
@@ -367,12 +380,11 @@ class CPUOptimizer(BaseOptimizer):
             improvement=improvement,
             improvement_percent=improvement_percent,
             duration_seconds=duration,
-            recommendations=recommendations
+            recommendations=recommendations,
         )
 
         logger.info(
-            f"CPU optimization completed: "
-            f"{improvement_percent:.2f}% improvement"
+            f"CPU optimization completed: {improvement_percent:.2f}% improvement"
         )
 
         return result
@@ -381,10 +393,12 @@ class CPUOptimizer(BaseOptimizer):
 class ResourceOptimizer:
     """Comprehensive resource optimizer coordinating all optimization strategies."""
 
-    def __init__(self,
-                 memory_optimizer: MemoryOptimizer | None = None,
-                 cpu_optimizer: CPUOptimizer | None = None,
-                 auto_optimize_interval: float | None = None):
+    def __init__(
+        self,
+        memory_optimizer: MemoryOptimizer | None = None,
+        cpu_optimizer: CPUOptimizer | None = None,
+        auto_optimize_interval: float | None = None,
+    ):
         self.memory_optimizer = memory_optimizer or MemoryOptimizer()
         self.cpu_optimizer = cpu_optimizer or CPUOptimizer()
         self.auto_optimize_interval = auto_optimize_interval
@@ -416,9 +430,9 @@ class ResourceOptimizer:
             self._optimization_history.append(result)
         return result
 
-    def optimize_all(self,
-                    memory_threshold: float = 0.8,
-                    cpu_threshold: float = 0.8) -> list[OptimizationResult]:
+    def optimize_all(
+        self, memory_threshold: float = 0.8, cpu_threshold: float = 0.8
+    ) -> list[OptimizationResult]:
         """Optimize all resources that exceed thresholds."""
         results = []
 
@@ -440,10 +454,12 @@ class ResourceOptimizer:
 
         return results
 
-    def start_auto_optimization(self,
-                               interval: float | None = None,
-                               memory_threshold: float = 0.8,
-                               cpu_threshold: float = 0.8) -> None:
+    def start_auto_optimization(
+        self,
+        interval: float | None = None,
+        memory_threshold: float = 0.8,
+        cpu_threshold: float = 0.8,
+    ) -> None:
         """Start automatic optimization at regular intervals."""
         if self._auto_optimize_task:
             self.stop_auto_optimization()
@@ -454,7 +470,9 @@ class ResourceOptimizer:
             try:
                 results = self.optimize_all(memory_threshold, cpu_threshold)
                 if results:
-                    logger.info(f"Auto-optimization completed: {len(results)} optimizations performed")
+                    logger.info(
+                        f"Auto-optimization completed: {len(results)} optimizations performed"
+                    )
             except Exception as e:
                 logger.error(f"Auto-optimization failed: {e}")
             finally:
@@ -474,7 +492,9 @@ class ResourceOptimizer:
             self._auto_optimize_task = None
             logger.info("Stopped auto-optimization")
 
-    def get_optimization_history(self, limit: int | None = None) -> list[OptimizationResult]:
+    def get_optimization_history(
+        self, limit: int | None = None
+    ) -> list[OptimizationResult]:
         """Get optimization history."""
         with self._lock:
             history = self._optimization_history.copy()
@@ -488,19 +508,19 @@ class ResourceOptimizer:
         cpu_info = self.cpu_optimizer.get_cpu_info()
 
         return {
-            'timestamp': time.time(),
-            'memory': {
-                'usage_percent': self.memory_optimizer.get_current_usage() * 100,
-                'details': memory_info,
-                'optimizer_stats': self.memory_optimizer.get_stats()
+            "timestamp": time.time(),
+            "memory": {
+                "usage_percent": self.memory_optimizer.get_current_usage() * 100,
+                "details": memory_info,
+                "optimizer_stats": self.memory_optimizer.get_stats(),
             },
-            'cpu': {
-                'usage_percent': self.cpu_optimizer.get_current_usage() * 100,
-                'details': cpu_info,
-                'optimizer_stats': self.cpu_optimizer.get_stats()
+            "cpu": {
+                "usage_percent": self.cpu_optimizer.get_current_usage() * 100,
+                "details": cpu_info,
+                "optimizer_stats": self.cpu_optimizer.get_stats(),
             },
-            'optimization_history_count': len(self._optimization_history),
-            'auto_optimization_active': self._auto_optimize_task is not None
+            "optimization_history_count": len(self._optimization_history),
+            "auto_optimization_active": self._auto_optimize_task is not None,
         }
 
     def generate_optimization_report(self) -> dict[str, Any]:
@@ -510,19 +530,25 @@ class ResourceOptimizer:
 
         # Calculate aggregate statistics
         if history:
-            memory_optimizations = [r for r in history if r.optimization_type == "memory"]
+            memory_optimizations = [
+                r for r in history if r.optimization_type == "memory"
+            ]
             cpu_optimizations = [r for r in history if r.optimization_type == "cpu"]
 
             total_memory_improvement = sum(r.improvement for r in memory_optimizations)
             total_cpu_improvement = sum(r.improvement for r in cpu_optimizations)
 
             avg_memory_improvement = (
-                sum(r.improvement_percent for r in memory_optimizations) / len(memory_optimizations)
-                if memory_optimizations else 0
+                sum(r.improvement_percent for r in memory_optimizations)
+                / len(memory_optimizations)
+                if memory_optimizations
+                else 0
             )
             avg_cpu_improvement = (
-                sum(r.improvement_percent for r in cpu_optimizations) / len(cpu_optimizations)
-                if cpu_optimizations else 0
+                sum(r.improvement_percent for r in cpu_optimizations)
+                / len(cpu_optimizations)
+                if cpu_optimizations
+                else 0
             )
         else:
             total_memory_improvement = 0
@@ -531,58 +557,73 @@ class ResourceOptimizer:
             avg_cpu_improvement = 0
 
         return {
-            'report_timestamp': time.time(),
-            'current_status': status,
-            'optimization_summary': {
-                'total_optimizations': len(history),
-                'memory_optimizations': len([r for r in history if r.optimization_type == "memory"]),
-                'cpu_optimizations': len([r for r in history if r.optimization_type == "cpu"]),
-                'total_memory_improvement': total_memory_improvement,
-                'total_cpu_improvement': total_cpu_improvement,
-                'avg_memory_improvement_percent': avg_memory_improvement,
-                'avg_cpu_improvement_percent': avg_cpu_improvement,
+            "report_timestamp": time.time(),
+            "current_status": status,
+            "optimization_summary": {
+                "total_optimizations": len(history),
+                "memory_optimizations": len(
+                    [r for r in history if r.optimization_type == "memory"]
+                ),
+                "cpu_optimizations": len(
+                    [r for r in history if r.optimization_type == "cpu"]
+                ),
+                "total_memory_improvement": total_memory_improvement,
+                "total_cpu_improvement": total_cpu_improvement,
+                "avg_memory_improvement_percent": avg_memory_improvement,
+                "avg_cpu_improvement_percent": avg_cpu_improvement,
             },
-            'recent_optimizations': history[-10:] if history else [],
-            'recommendations': self._generate_recommendations(status, history)
+            "recent_optimizations": history[-10:] if history else [],
+            "recommendations": self._generate_recommendations(status, history),
         }
 
-    def _generate_recommendations(self,
-                                 status: dict[str, Any],
-                                 history: list[OptimizationResult]) -> list[str]:
+    def _generate_recommendations(
+        self, status: dict[str, Any], history: list[OptimizationResult]
+    ) -> list[str]:
         """Generate optimization recommendations based on current status and history."""
         recommendations = []
 
         # Memory recommendations
-        memory_usage = status['memory']['usage_percent']
+        memory_usage = status["memory"]["usage_percent"]
         if memory_usage > 80:
-            recommendations.append("High memory usage - consider enabling auto-optimization")
+            recommendations.append(
+                "High memory usage - consider enabling auto-optimization"
+            )
         elif memory_usage > 60:
             recommendations.append("Moderate memory usage - monitor for trends")
 
         # CPU recommendations
-        cpu_usage = status['cpu']['usage_percent']
+        cpu_usage = status["cpu"]["usage_percent"]
         if cpu_usage > 80:
             recommendations.append("High CPU usage - consider process optimization")
 
         # Historical analysis
         if history:
             recent_history = history[-5:]
-            avg_improvement = sum(r.improvement_percent for r in recent_history) / len(recent_history)
+            avg_improvement = sum(r.improvement_percent for r in recent_history) / len(
+                recent_history
+            )
 
             if avg_improvement < 5:
-                recommendations.append("Low optimization impact - review optimization strategies")
+                recommendations.append(
+                    "Low optimization impact - review optimization strategies"
+                )
             elif avg_improvement > 20:
-                recommendations.append("High optimization impact - consider more frequent optimization")
+                recommendations.append(
+                    "High optimization impact - consider more frequent optimization"
+                )
 
         # Auto-optimization recommendations
-        if not status['auto_optimization_active']:
-            recommendations.append("Auto-optimization not active - consider enabling for maintenance")
+        if not status["auto_optimization_active"]:
+            recommendations.append(
+                "Auto-optimization not active - consider enabling for maintenance"
+            )
 
         return recommendations
 
 
 # Global resource optimizer instance
 _default_optimizer = None
+
 
 def get_resource_optimizer() -> ResourceOptimizer:
     """Get the default resource optimizer instance."""
@@ -604,6 +645,7 @@ def optimize_cpu() -> OptimizationResult:
 
 def auto_optimize(memory_threshold: float = 0.8, cpu_threshold: float = 0.8):
     """Decorator to automatically optimize resources when thresholds are exceeded."""
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -619,6 +661,7 @@ def auto_optimize(memory_threshold: float = 0.8, cpu_threshold: float = 0.8):
                 optimizer.optimize_all(memory_threshold, cpu_threshold)
 
         return wrapper
+
     return decorator
 
 
@@ -660,7 +703,9 @@ def memory_optimize():
         def wrapper(*args, **kwargs):
             optimizer.optimize()
             return func(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
@@ -672,7 +717,9 @@ def cpu_optimize():
         def wrapper(*args, **kwargs):
             optimizer.optimize()
             return func(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
@@ -684,5 +731,7 @@ def auto_optimize():
         def wrapper(*args, **kwargs):
             optimizer.optimize_all()
             return func(*args, **kwargs)
+
         return wrapper
+
     return decorator

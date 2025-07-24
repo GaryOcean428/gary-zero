@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class TaskStatus(Enum):
     """Background task status."""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -32,6 +33,7 @@ class TaskStatus(Enum):
 @dataclass
 class BackgroundTask:
     """Background task representation."""
+
     id: str
     name: str
     coro: Coroutine
@@ -47,12 +49,14 @@ class BackgroundTask:
 class AsyncPool:
     """Async connection/resource pool with configurable limits."""
 
-    def __init__(self,
-                 factory: Callable[[], Any],
-                 max_size: int = 10,
-                 min_size: int = 1,
-                 timeout: float = 30.0,
-                 cleanup_func: Callable | None = None):
+    def __init__(
+        self,
+        factory: Callable[[], Any],
+        max_size: int = 10,
+        min_size: int = 1,
+        timeout: float = 30.0,
+        cleanup_func: Callable | None = None,
+    ):
         self.factory = factory
         self.max_size = max_size
         self.min_size = min_size
@@ -99,9 +103,7 @@ class AsyncPool:
 
         try:
             # Try to get existing resource
-            resource = await asyncio.wait_for(
-                self._pool.get(), timeout=0.1
-            )
+            resource = await asyncio.wait_for(self._pool.get(), timeout=0.1)
         except TimeoutError:
             # Create new resource if pool is not full
             async with self._lock:
@@ -173,12 +175,12 @@ class AsyncPool:
     def stats(self) -> dict[str, Any]:
         """Get pool statistics."""
         return {
-            'total_created': self._created_count,
-            'active_count': self._active_count,
-            'available_count': self._pool.qsize(),
-            'max_size': self.max_size,
-            'min_size': self.min_size,
-            'is_closed': self._closed
+            "total_created": self._created_count,
+            "active_count": self._active_count,
+            "available_count": self._pool.qsize(),
+            "max_size": self.max_size,
+            "min_size": self.min_size,
+            "is_closed": self._closed,
         }
 
 
@@ -218,11 +220,9 @@ class BackgroundTaskManager:
                 async with self._lock:
                     self._running_tasks.pop(task.id, None)
 
-    async def submit(self,
-                    name: str,
-                    coro: Coroutine,
-                    priority: int = 0,
-                    task_id: str | None = None) -> str:
+    async def submit(
+        self, name: str, coro: Coroutine, priority: int = 0, task_id: str | None = None
+    ) -> str:
         """Submit a coroutine as a background task."""
         if self._shutdown:
             raise RuntimeError("Task manager is shutdown")
@@ -231,10 +231,7 @@ class BackgroundTaskManager:
             task_id = f"{name}_{int(time.time() * 1000000)}"
 
         background_task = BackgroundTask(
-            id=task_id,
-            name=name,
-            coro=coro,
-            priority=priority
+            id=task_id, name=name, coro=coro, priority=priority
         )
 
         async with self._lock:
@@ -254,7 +251,11 @@ class BackgroundTaskManager:
         task = self._tasks[task_id]
 
         # If task is already completed, return immediately
-        if task.status in (TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.CANCELLED):
+        if task.status in (
+            TaskStatus.COMPLETED,
+            TaskStatus.FAILED,
+            TaskStatus.CANCELLED,
+        ):
             if task.status == TaskStatus.FAILED:
                 raise task.error
             elif task.status == TaskStatus.CANCELLED:
@@ -299,13 +300,16 @@ class BackgroundTaskManager:
         try:
             await asyncio.wait_for(
                 asyncio.gather(*self._running_tasks.values(), return_exceptions=True),
-                timeout=timeout
+                timeout=timeout,
             )
         except TimeoutError:
             logger.warning("Timeout waiting for all tasks to complete")
 
-        return {task_id: task.result for task_id, task in self._tasks.items()
-                if task.status == TaskStatus.COMPLETED}
+        return {
+            task_id: task.result
+            for task_id, task in self._tasks.items()
+            if task.status == TaskStatus.COMPLETED
+        }
 
     async def shutdown(self, timeout: float | None = 30.0) -> None:
         """Shutdown the task manager and cancel all running tasks."""
@@ -322,7 +326,7 @@ class BackgroundTaskManager:
             try:
                 await asyncio.wait_for(
                     asyncio.gather(*cancel_tasks, return_exceptions=True),
-                    timeout=timeout
+                    timeout=timeout,
                 )
             except TimeoutError:
                 logger.warning("Timeout during task manager shutdown")
@@ -334,18 +338,20 @@ class BackgroundTaskManager:
 
         task = self._tasks[task_id]
         return {
-            'id': task.id,
-            'name': task.name,
-            'status': task.status.value,
-            'created_at': task.created_at,
-            'started_at': task.started_at,
-            'completed_at': task.completed_at,
-            'duration': (
-                (task.completed_at or time.time()) - (task.started_at or task.created_at)
-                if task.started_at else None
+            "id": task.id,
+            "name": task.name,
+            "status": task.status.value,
+            "created_at": task.created_at,
+            "started_at": task.started_at,
+            "completed_at": task.completed_at,
+            "duration": (
+                (task.completed_at or time.time())
+                - (task.started_at or task.created_at)
+                if task.started_at
+                else None
             ),
-            'priority': task.priority,
-            'has_error': task.error is not None
+            "priority": task.priority,
+            "has_error": task.error is not None,
         }
 
     def list_tasks(self, status: TaskStatus | None = None) -> list[dict[str, Any]]:
@@ -357,7 +363,7 @@ class BackgroundTaskManager:
                 if task_info:
                     tasks.append(task_info)
 
-        return sorted(tasks, key=lambda x: x['priority'], reverse=True)
+        return sorted(tasks, key=lambda x: x["priority"], reverse=True)
 
     def stats(self) -> dict[str, Any]:
         """Get task manager statistics."""
@@ -368,20 +374,20 @@ class BackgroundTaskManager:
             )
 
         return {
-            'total_tasks': len(self._tasks),
-            'running_tasks': len(self._running_tasks),
-            'max_concurrent': self.max_concurrent,
-            'is_shutdown': self._shutdown,
-            'status_counts': status_counts
+            "total_tasks": len(self._tasks),
+            "running_tasks": len(self._running_tasks),
+            "max_concurrent": self.max_concurrent,
+            "is_shutdown": self._shutdown,
+            "status_counts": status_counts,
         }
 
 
 class AsyncContextManager:
     """Utility class for creating async context managers."""
 
-    def __init__(self,
-                 enter_func: Callable | None = None,
-                 exit_func: Callable | None = None):
+    def __init__(
+        self, enter_func: Callable | None = None, exit_func: Callable | None = None
+    ):
         self.enter_func = enter_func
         self.exit_func = exit_func
         self.resource = None
@@ -404,15 +410,19 @@ class AsyncContextManager:
 
 def async_timeout(timeout: float):
     """Decorator to add timeout to async functions."""
+
     def decorator(func):
         async def wrapper(*args, **kwargs):
             return await asyncio.wait_for(func(*args, **kwargs), timeout=timeout)
+
         return wrapper
+
     return decorator
 
 
 def async_retry(max_attempts: int = 3, delay: float = 1.0, backoff: float = 2.0):
     """Decorator to add retry logic to async functions."""
+
     def decorator(func):
         async def wrapper(*args, **kwargs):
             last_exception = None
@@ -436,12 +446,15 @@ def async_retry(max_attempts: int = 3, delay: float = 1.0, backoff: float = 2.0)
                         )
 
             raise last_exception
+
         return wrapper
+
     return decorator
 
 
 # Global instances
 _default_task_manager = None
+
 
 def get_task_manager() -> BackgroundTaskManager:
     """Get the default background task manager."""

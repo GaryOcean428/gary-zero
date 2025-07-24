@@ -21,9 +21,9 @@ class BenchmarkReporter:
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
-    def generate_summary_report(self,
-                               results: list[BenchmarkResult],
-                               title: str = "Benchmark Summary Report") -> str:
+    def generate_summary_report(
+        self, results: list[BenchmarkResult], title: str = "Benchmark Summary Report"
+    ) -> str:
         """Generate a comprehensive summary report."""
         timestamp = datetime.now(UTC)
 
@@ -42,26 +42,30 @@ class BenchmarkReporter:
                 "report_generation_time": timestamp.isoformat(),
                 "analysis_period": {
                     "start": min(r.timestamp for r in results) if results else None,
-                    "end": max(r.timestamp for r in results) if results else None
-                }
+                    "end": max(r.timestamp for r in results) if results else None,
+                },
             },
             "summary_statistics": summary_stats,
             "configuration_comparison": config_comparison,
             "task_breakdown": self._generate_task_breakdown(results),
-            "recommendations": self._generate_recommendations(results, summary_stats)
+            "recommendations": self._generate_recommendations(results, summary_stats),
         }
 
         # Save report
-        report_file = self.output_dir / f"summary_report_{int(timestamp.timestamp())}.json"
-        with open(report_file, 'w') as f:
+        report_file = (
+            self.output_dir / f"summary_report_{int(timestamp.timestamp())}.json"
+        )
+        with open(report_file, "w") as f:
             json.dump(report, f, indent=2, default=str)
 
         return str(report_file)
 
-    def generate_regression_report(self,
-                                  baseline_results: list[BenchmarkResult],
-                                  current_results: list[BenchmarkResult],
-                                  title: str = "Regression Analysis Report") -> str:
+    def generate_regression_report(
+        self,
+        baseline_results: list[BenchmarkResult],
+        current_results: list[BenchmarkResult],
+        title: str = "Regression Analysis Report",
+    ) -> str:
         """Generate a regression analysis report."""
         timestamp = datetime.now(UTC)
 
@@ -81,8 +85,8 @@ class BenchmarkReporter:
                 "current_results": len(current_results),
                 "detection_thresholds": {
                     "score_threshold": detector.score_threshold,
-                    "duration_threshold": detector.duration_threshold
-                }
+                    "duration_threshold": detector.duration_threshold,
+                },
             },
             "regression_alerts": [
                 {
@@ -92,7 +96,7 @@ class BenchmarkReporter:
                     "baseline_value": alert.baseline_value,
                     "change_percent": alert.change_percent,
                     "severity": alert.severity,
-                    "timestamp": alert.timestamp
+                    "timestamp": alert.timestamp,
                 }
                 for alert in alerts
             ],
@@ -102,23 +106,27 @@ class BenchmarkReporter:
                 "alerts_by_severity": {
                     "severe": len([a for a in alerts if a.severity == "severe"]),
                     "moderate": len([a for a in alerts if a.severity == "moderate"]),
-                    "minor": len([a for a in alerts if a.severity == "minor"])
+                    "minor": len([a for a in alerts if a.severity == "minor"]),
                 },
-                "most_affected_tasks": self._get_most_affected_tasks(alerts)
-            }
+                "most_affected_tasks": self._get_most_affected_tasks(alerts),
+            },
         }
 
         # Save report
-        report_file = self.output_dir / f"regression_report_{int(timestamp.timestamp())}.json"
-        with open(report_file, 'w') as f:
+        report_file = (
+            self.output_dir / f"regression_report_{int(timestamp.timestamp())}.json"
+        )
+        with open(report_file, "w") as f:
             json.dump(report, f, indent=2, default=str)
 
         return str(report_file)
 
-    def generate_trend_report(self,
-                             results: list[BenchmarkResult],
-                             window_size: int = 10,
-                             title: str = "Performance Trend Analysis") -> str:
+    def generate_trend_report(
+        self,
+        results: list[BenchmarkResult],
+        window_size: int = 10,
+        title: str = "Performance Trend Analysis",
+    ) -> str:
         """Generate a trend analysis report."""
         timestamp = datetime.now(UTC)
 
@@ -134,7 +142,9 @@ class BenchmarkReporter:
 
         task_trends = {}
         for task_id, task_result_list in task_results.items():
-            task_trends[task_id] = BenchmarkAnalysis.analyze_trends(task_result_list, window_size)
+            task_trends[task_id] = BenchmarkAnalysis.analyze_trends(
+                task_result_list, window_size
+            )
 
         # Create report
         report = {
@@ -145,22 +155,26 @@ class BenchmarkReporter:
                 "window_size": window_size,
                 "analysis_period": {
                     "start": min(r.timestamp for r in results) if results else None,
-                    "end": max(r.timestamp for r in results) if results else None
-                }
+                    "end": max(r.timestamp for r in results) if results else None,
+                },
             },
             "overall_trends": trend_analysis,
             "task_specific_trends": task_trends,
-            "insights": self._generate_trend_insights(trend_analysis, task_trends)
+            "insights": self._generate_trend_insights(trend_analysis, task_trends),
         }
 
         # Save report
-        report_file = self.output_dir / f"trend_report_{int(timestamp.timestamp())}.json"
-        with open(report_file, 'w') as f:
+        report_file = (
+            self.output_dir / f"trend_report_{int(timestamp.timestamp())}.json"
+        )
+        with open(report_file, "w") as f:
             json.dump(report, f, indent=2, default=str)
 
         return str(report_file)
 
-    def _generate_task_breakdown(self, results: list[BenchmarkResult]) -> dict[str, Any]:
+    def _generate_task_breakdown(
+        self, results: list[BenchmarkResult]
+    ) -> dict[str, Any]:
         """Generate task-specific breakdown."""
         task_breakdown = {}
 
@@ -172,7 +186,7 @@ class BenchmarkReporter:
                     "successful_runs": 0,
                     "failed_runs": 0,
                     "scores": [],
-                    "durations": []
+                    "durations": [],
                 }
 
             breakdown = task_breakdown[task_id]
@@ -189,16 +203,22 @@ class BenchmarkReporter:
         # Calculate statistics for each task
         for task_id, breakdown in task_breakdown.items():
             if breakdown["scores"]:
-                breakdown["avg_score"] = sum(breakdown["scores"]) / len(breakdown["scores"])
+                breakdown["avg_score"] = sum(breakdown["scores"]) / len(
+                    breakdown["scores"]
+                )
                 breakdown["min_score"] = min(breakdown["scores"])
                 breakdown["max_score"] = max(breakdown["scores"])
 
             if breakdown["durations"]:
-                breakdown["avg_duration"] = sum(breakdown["durations"]) / len(breakdown["durations"])
+                breakdown["avg_duration"] = sum(breakdown["durations"]) / len(
+                    breakdown["durations"]
+                )
                 breakdown["min_duration"] = min(breakdown["durations"])
                 breakdown["max_duration"] = max(breakdown["durations"])
 
-            breakdown["success_rate"] = breakdown["successful_runs"] / breakdown["total_runs"]
+            breakdown["success_rate"] = (
+                breakdown["successful_runs"] / breakdown["total_runs"]
+            )
 
             # Clean up raw data arrays for cleaner JSON
             del breakdown["scores"]
@@ -206,9 +226,9 @@ class BenchmarkReporter:
 
         return task_breakdown
 
-    def _generate_recommendations(self,
-                                 results: list[BenchmarkResult],
-                                 summary_stats: dict[str, Any]) -> list[str]:
+    def _generate_recommendations(
+        self, results: list[BenchmarkResult], summary_stats: dict[str, Any]
+    ) -> list[str]:
         """Generate actionable recommendations based on results."""
         recommendations = []
 
@@ -218,21 +238,29 @@ class BenchmarkReporter:
 
         success_rate = summary_stats.get("success_rate", 0)
         if success_rate < 0.8:
-            recommendations.append(f"Success rate is low ({success_rate:.1%}). Investigate failing test cases.")
+            recommendations.append(
+                f"Success rate is low ({success_rate:.1%}). Investigate failing test cases."
+            )
 
         score_stats = summary_stats.get("score_stats", {})
         avg_score = score_stats.get("mean", 0)
         if avg_score < 0.7:
-            recommendations.append(f"Average score is below target ({avg_score:.2f}). Review model performance.")
+            recommendations.append(
+                f"Average score is below target ({avg_score:.2f}). Review model performance."
+            )
 
         score_std = score_stats.get("std_dev", 0)
         if score_std > 0.15:
-            recommendations.append(f"High score variability (σ={score_std:.3f}). Consider more stable configurations.")
+            recommendations.append(
+                f"High score variability (σ={score_std:.3f}). Consider more stable configurations."
+            )
 
         duration_stats = summary_stats.get("duration_stats", {})
         avg_duration = duration_stats.get("mean", 0)
         if avg_duration > 300:  # 5 minutes
-            recommendations.append(f"Long average duration ({avg_duration:.1f}s). Optimize for performance.")
+            recommendations.append(
+                f"Long average duration ({avg_duration:.1f}s). Optimize for performance."
+            )
 
         return recommendations
 
@@ -249,7 +277,9 @@ class BenchmarkReporter:
 
             # Track maximum severity
             current_severity = task_alert_counts[task_id]["max_severity"]
-            if alert.severity == "severe" or (alert.severity == "moderate" and current_severity == "minor"):
+            if alert.severity == "severe" or (
+                alert.severity == "moderate" and current_severity == "minor"
+            ):
                 task_alert_counts[task_id]["max_severity"] = alert.severity
 
         # Sort by alert count and severity
@@ -257,17 +287,21 @@ class BenchmarkReporter:
         sorted_tasks = sorted(
             task_alert_counts.items(),
             key=lambda x: (x[1]["count"], severity_order[x[1]["max_severity"]]),
-            reverse=True
+            reverse=True,
         )
 
         return [
-            {"task_id": task_id, "alert_count": info["count"], "max_severity": info["max_severity"]}
+            {
+                "task_id": task_id,
+                "alert_count": info["count"],
+                "max_severity": info["max_severity"],
+            }
             for task_id, info in sorted_tasks[:5]  # Top 5 most affected
         ]
 
-    def _generate_trend_insights(self,
-                                overall_trends: dict[str, Any],
-                                task_trends: dict[str, dict[str, Any]]) -> list[str]:
+    def _generate_trend_insights(
+        self, overall_trends: dict[str, Any], task_trends: dict[str, dict[str, Any]]
+    ) -> list[str]:
         """Generate insights from trend analysis."""
         insights = []
 
@@ -278,7 +312,9 @@ class BenchmarkReporter:
             insights.append("Overall performance is improving. Good progress!")
 
         if overall_trends.get("duration_trend") == "slower":
-            insights.append("Tasks are taking longer to complete. Performance optimization needed.")
+            insights.append(
+                "Tasks are taking longer to complete. Performance optimization needed."
+            )
         elif overall_trends.get("duration_trend") == "faster":
             insights.append("Task completion times are improving.")
 
@@ -293,9 +329,13 @@ class BenchmarkReporter:
                 improving_tasks.append(task_id)
 
         if declining_tasks:
-            insights.append(f"Tasks showing declining performance: {', '.join(declining_tasks[:3])}")
+            insights.append(
+                f"Tasks showing declining performance: {', '.join(declining_tasks[:3])}"
+            )
 
         if improving_tasks:
-            insights.append(f"Tasks showing improvement: {', '.join(improving_tasks[:3])}")
+            insights.append(
+                f"Tasks showing improvement: {', '.join(improving_tasks[:3])}"
+            )
 
         return insights

@@ -17,11 +17,11 @@ class A2aNotify:
     async def process(self, input_data: dict[str, Any], request) -> dict[str, Any]:
         """
         Handle A2A push notification
-        
+
         Args:
             input_data: Request input containing notification data
             request: HTTP request object
-            
+
         Returns:
             Notification response with acknowledgment
         """
@@ -31,16 +31,10 @@ class A2aNotify:
             notification_type = input_data.get("notification_type")
 
             if not recipient_id:
-                return {
-                    "success": False,
-                    "error": "recipient_id is required"
-                }
+                return {"success": False, "error": "recipient_id is required"}
 
             if not notification_type:
-                return {
-                    "success": False,
-                    "error": "notification_type is required"
-                }
+                return {"success": False, "error": "notification_type is required"}
 
             # Create notification message
             import uuid
@@ -57,9 +51,9 @@ class A2aNotify:
                     "title": input_data.get("title", ""),
                     "message": input_data.get("message", ""),
                     "data": input_data.get("data", {}),
-                    "priority": input_data.get("priority", "normal")
+                    "priority": input_data.get("priority", "normal"),
                 },
-                timestamp=datetime.utcnow().isoformat() + "Z"
+                timestamp=datetime.utcnow().isoformat() + "Z",
             )
 
             # For now, just acknowledge receipt (streaming service would be used in full implementation)
@@ -67,16 +61,13 @@ class A2aNotify:
                 "success": True,
                 "message_id": notification_message.id,
                 "delivery_method": "queued",
-                "timestamp": notification_message.timestamp
+                "timestamp": notification_message.timestamp,
             }
 
         except ValidationError as e:
-            return {
-                "success": False,
-                "error": f"Invalid notification format: {str(e)}"
-            }
+            return {"success": False, "error": f"Invalid notification format: {str(e)}"}
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Notification delivery failed: {str(e)}"
+                "error": f"Notification delivery failed: {str(e)}",
             }

@@ -29,15 +29,19 @@ shared_mcp_server = SharedMCPServer(
     Gary-Zero is a general AI assistant controlling it's linux environment.
     Gary-Zero can install software, manage files, execute commands, code, use internet, etc.
     Gary-Zero's environment is isolated unless configured otherwise.
-    """
+    """,
 )
 
 # For backward compatibility, expose the FastMCP instance as mcp_server
 mcp_server = shared_mcp_server.get_fastmcp_instance()
 
 
-async def _send_message_handler(message: str, attachments: list[str] | None = None,
-                               chat_id: str | None = None, persistent_chat: bool | None = None) -> ToolResponse | ToolError:
+async def _send_message_handler(
+    message: str,
+    attachments: list[str] | None = None,
+    chat_id: str | None = None,
+    persistent_chat: bool | None = None,
+) -> ToolResponse | ToolError:
     """Message handler implementation for the shared server"""
     context: AgentContext | None = None
     if chat_id:
@@ -51,7 +55,9 @@ async def _send_message_handler(message: str, attachments: list[str] | None = No
         context = AgentContext(config=config, type=AgentContextType.MCP)
 
     if not message:
-        return ToolError(error="Message is required", chat_id=context.id if persistent_chat else "")
+        return ToolError(
+            error="Message is required", chat_id=context.id if persistent_chat else ""
+        )
 
     try:
         response = await _run_chat(context, message, attachments)
@@ -59,7 +65,9 @@ async def _send_message_handler(message: str, attachments: list[str] | None = No
             context.reset()
             AgentContext.remove(context.id)
             remove_chat(context.id)
-        return ToolResponse(response=response, chat_id=context.id if persistent_chat else "")
+        return ToolResponse(
+            response=response, chat_id=context.id if persistent_chat else ""
+        )
     except Exception as e:
         return ToolError(error=str(e), chat_id=context.id if persistent_chat else "")
 
@@ -79,7 +87,9 @@ async def _finish_chat_handler(chat_id: str) -> ToolResponse | ToolError:
         return ToolResponse(response="Chat finished", chat_id=chat_id)
 
 
-async def _run_chat(context: AgentContext, message: str, attachments: list[str] | None = None):
+async def _run_chat(
+    context: AgentContext, message: str, attachments: list[str] | None = None
+):
     """Run chat implementation (unchanged from original)"""
     try:
         _PRINTER.print("MCP Chat message received")
@@ -100,7 +110,9 @@ async def _run_chat(context: AgentContext, message: str, attachments: list[str] 
                                 f"Skipping attachment (unsupported scheme): [{attachment}]"
                             )
                     except (ValueError, AttributeError) as e:
-                        _PRINTER.print(f"Skipping malformed attachment URL [{attachment}]: {e}")
+                        _PRINTER.print(
+                            f"Skipping malformed attachment URL [{attachment}]: {e}"
+                        )
 
         _PRINTER.print("User message:")
         _PRINTER.print(f"> {message}")
@@ -110,7 +122,9 @@ async def _run_chat(context: AgentContext, message: str, attachments: list[str] 
                 _PRINTER.print(f"- {filename}")
 
         task = context.communicate(
-            UserMessage(message=message, system_message=[], attachments=attachment_filenames)
+            UserMessage(
+                message=message, system_message=[], attachments=attachment_filenames
+            )
         )
         result = await task.result()
 
@@ -155,6 +169,8 @@ async def mcp_middleware(request: Request, call_next):
     cfg = settings.get_settings()
     if not cfg["mcp_server_enabled"]:
         PrintStyle.error("[MCP] Access denied: MCP server is disabled in settings.")
-        raise StarletteHTTPException(status_code=403, detail="MCP server is disabled in settings.")
+        raise StarletteHTTPException(
+            status_code=403, detail="MCP server is disabled in settings."
+        )
 
     return await call_next(request)

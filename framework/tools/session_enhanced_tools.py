@@ -23,8 +23,7 @@ class SessionEnhancedGeminiCLI(Tool):
         try:
             # Create message from tool arguments
             message = session_manager.create_message(
-                message_type="gemini_cli",
-                payload=self.args
+                message_type="gemini_cli", payload=self.args
             )
 
             # Execute with session management
@@ -33,20 +32,15 @@ class SessionEnhancedGeminiCLI(Tool):
             )
 
             if response.success:
-                return Response(
-                    message=response.message,
-                    break_loop=False
-                )
+                return Response(message=response.message, break_loop=False)
             else:
                 return Response(
-                    message=f"❌ Gemini CLI error: {response.error}",
-                    break_loop=False
+                    message=f"❌ Gemini CLI error: {response.error}", break_loop=False
                 )
 
         except Exception as e:
             return Response(
-                message=f"❌ Session management error: {str(e)}",
-                break_loop=False
+                message=f"❌ Session management error: {str(e)}", break_loop=False
             )
 
     def get_log_object(self):
@@ -69,8 +63,7 @@ class SessionEnhancedAnthropicComputerUse(Tool):
 
         try:
             message = session_manager.create_message(
-                message_type="anthropic_computer_use",
-                payload=self.args
+                message_type="anthropic_computer_use", payload=self.args
             )
 
             response = await session_manager.execute_with_session(
@@ -78,20 +71,15 @@ class SessionEnhancedAnthropicComputerUse(Tool):
             )
 
             if response.success:
-                return Response(
-                    message=response.message,
-                    break_loop=False
-                )
+                return Response(message=response.message, break_loop=False)
             else:
                 return Response(
-                    message=f"❌ Computer Use error: {response.error}",
-                    break_loop=False
+                    message=f"❌ Computer Use error: {response.error}", break_loop=False
                 )
 
         except Exception as e:
             return Response(
-                message=f"❌ Session management error: {str(e)}",
-                break_loop=False
+                message=f"❌ Session management error: {str(e)}", break_loop=False
             )
 
     def get_log_object(self):
@@ -114,8 +102,7 @@ class SessionEnhancedClaudeCode(Tool):
 
         try:
             message = session_manager.create_message(
-                message_type="claude_code",
-                payload=self.args
+                message_type="claude_code", payload=self.args
             )
 
             response = await session_manager.execute_with_session(
@@ -123,20 +110,15 @@ class SessionEnhancedClaudeCode(Tool):
             )
 
             if response.success:
-                return Response(
-                    message=response.message,
-                    break_loop=False
-                )
+                return Response(message=response.message, break_loop=False)
             else:
                 return Response(
-                    message=f"❌ Claude Code error: {response.error}",
-                    break_loop=False
+                    message=f"❌ Claude Code error: {response.error}", break_loop=False
                 )
 
         except Exception as e:
             return Response(
-                message=f"❌ Session management error: {str(e)}",
-                break_loop=False
+                message=f"❌ Session management error: {str(e)}", break_loop=False
             )
 
     def get_log_object(self):
@@ -159,8 +141,7 @@ class SessionEnhancedKaliService(Tool):
 
         try:
             message = session_manager.create_message(
-                message_type="kali_service",
-                payload=self.args
+                message_type="kali_service", payload=self.args
             )
 
             response = await session_manager.execute_with_session(
@@ -168,20 +149,15 @@ class SessionEnhancedKaliService(Tool):
             )
 
             if response.success:
-                return Response(
-                    message=response.message,
-                    break_loop=False
-                )
+                return Response(message=response.message, break_loop=False)
             else:
                 return Response(
-                    message=f"❌ Kali service error: {response.error}",
-                    break_loop=False
+                    message=f"❌ Kali service error: {response.error}", break_loop=False
                 )
 
         except Exception as e:
             return Response(
-                message=f"❌ Session management error: {str(e)}",
-                break_loop=False
+                message=f"❌ Session management error: {str(e)}", break_loop=False
             )
 
     def get_log_object(self):
@@ -196,7 +172,7 @@ class SessionEnhancedKaliService(Tool):
 class UnifiedRemoteSessionTool(Tool):
     """
     Unified tool that can execute operations across all remote session types.
-    
+
     This tool demonstrates how multiple session types can be coordinated
     in a single tool interface.
     """
@@ -221,13 +197,12 @@ class UnifiedRemoteSessionTool(Tool):
             else:
                 return Response(
                     message=f"❌ Unknown operation type: {operation_type}. Available: code_generation_workflow, security_audit_workflow, multi_tool_demo, session_stats",
-                    break_loop=False
+                    break_loop=False,
                 )
 
         except Exception as e:
             return Response(
-                message=f"❌ Unified session tool error: {str(e)}",
-                break_loop=False
+                message=f"❌ Unified session tool error: {str(e)}", break_loop=False
             )
 
     async def _code_generation_workflow(self, session_manager):
@@ -237,12 +212,12 @@ class UnifiedRemoteSessionTool(Tool):
         workflow = CodeGenerationWorkflow(session_manager)
         results = await workflow.run()
 
-        success_count = sum(1 for step in results['steps'] if step['success'])
-        total_steps = len(results['steps'])
+        success_count = sum(1 for step in results["steps"] if step["success"])
+        total_steps = len(results["steps"])
 
         return Response(
             message=f"✅ Code generation workflow completed: {success_count}/{total_steps} steps successful",
-            break_loop=False
+            break_loop=False,
         )
 
     async def _security_audit_workflow(self, session_manager):
@@ -253,12 +228,12 @@ class UnifiedRemoteSessionTool(Tool):
         workflow = SecurityAuditWorkflow(session_manager)
         results = await workflow.run(target)
 
-        success_count = sum(1 for step in results['steps'] if step['success'])
-        total_steps = len(results['steps'])
+        success_count = sum(1 for step in results["steps"] if step["success"])
+        total_steps = len(results["steps"])
 
         return Response(
             message=f"✅ Security audit workflow for {target} completed: {success_count}/{total_steps} steps successful",
-            break_loop=False
+            break_loop=False,
         )
 
     async def _multi_tool_demo(self, session_manager):
@@ -268,12 +243,12 @@ class UnifiedRemoteSessionTool(Tool):
         workflow = MultiToolShowcaseWorkflow(session_manager)
         results = await workflow.run()
 
-        success_count = sum(1 for step in results['steps'] if step['success'])
-        total_steps = len(results['steps'])
+        success_count = sum(1 for step in results["steps"] if step["success"])
+        total_steps = len(results["steps"])
 
         return Response(
             message=f"✅ Multi-tool showcase completed: {success_count}/{total_steps} steps successful",
-            break_loop=False
+            break_loop=False,
         )
 
     async def _get_session_stats(self, session_manager):
@@ -286,13 +261,10 @@ class UnifiedRemoteSessionTool(Tool):
             f"   Registered Factories: {len(stats['registered_factories'])}",
             f"   Active Sessions: {stats['pool_stats']['total_active_sessions']}",
             f"   Pooled Sessions: {stats['pool_stats']['total_pooled_sessions']}",
-            f"   Pooling Enabled: {stats['config']['pooling_enabled']}"
+            f"   Pooling Enabled: {stats['config']['pooling_enabled']}",
         ]
 
-        return Response(
-            message="\n".join(message_lines),
-            break_loop=False
-        )
+        return Response(message="\n".join(message_lines), break_loop=False)
 
     def get_log_object(self):
         return self.agent.context.log.log(

@@ -40,7 +40,9 @@ def read_file(_relative_path, _backup_dirs=None, _encoding="utf-8", **kwargs):
     content = replace_placeholders_text(content, **kwargs)
 
     # Process include statements
-    content = process_includes(content, os.path.dirname(_relative_path), _backup_dirs, **kwargs)
+    content = process_includes(
+        content, os.path.dirname(_relative_path), _backup_dirs, **kwargs
+    )
 
     return content
 
@@ -100,9 +102,13 @@ def replace_placeholders_dict(_content: dict, **kwargs):
                         if value == f"{{{{{placeholder}}}}}":
                             return replacement
                         elif isinstance(replacement, (dict, list)):
-                            value = value.replace(f"{{{{{placeholder}}}}}", json.dumps(replacement))
+                            value = value.replace(
+                                f"{{{{{placeholder}}}}}", json.dumps(replacement)
+                            )
                         else:
-                            value = value.replace(f"{{{{{placeholder}}}}}", str(replacement))
+                            value = value.replace(
+                                f"{{{{{placeholder}}}}}", str(replacement)
+                            )
             return value
         elif isinstance(value, dict):
             return {k: replace_value(v) for k, v in value.items()}
@@ -121,7 +127,9 @@ def process_includes(_content, _base_path, _backup_dirs, **kwargs):
     def replace_include(match):
         include_path = match.group(1)
         # First attempt to resolve the include relative to the base path
-        full_include_path = find_file_in_dirs(os.path.join(_base_path, include_path), _backup_dirs)
+        full_include_path = find_file_in_dirs(
+            os.path.join(_base_path, include_path), _backup_dirs
+        )
 
         # Recursively read the included file content, keeping the original base path
         included_content = read_file(full_include_path, _backup_dirs, **kwargs)

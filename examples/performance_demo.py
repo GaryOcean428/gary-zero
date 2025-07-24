@@ -42,7 +42,7 @@ class PerformanceDemo:
                 "id": i,
                 "name": f"User{i}",
                 "email": f"user{i}@example.com",
-                "profile": {"score": random.randint(1, 100)}
+                "profile": {"score": random.randint(1, 100)},
             }
             for i in range(1000)
         }
@@ -98,7 +98,9 @@ class PerformanceDemo:
 
         return {
             "total_users": len(users),
-            "average_score": sum(u["profile"]["score"] for u in users) / len(users) if users else 0
+            "average_score": sum(u["profile"]["score"] for u in users) / len(users)
+            if users
+            else 0,
         }
 
     @timer("cpu_intensive_task")
@@ -109,7 +111,7 @@ class PerformanceDemo:
 
         result = 0
         for i in range(iterations):
-            result += i ** 0.5
+            result += i**0.5
 
         return result
 
@@ -123,12 +125,13 @@ class PerformanceDemo:
             task_id = await run_background(
                 f"data_processing_{i}",
                 self.process_user_data([i * 10 + j for j in range(10)]),
-                priority=i  # Higher priority for later tasks
+                priority=i,  # Higher priority for later tasks
             )
             task_ids.append(task_id)
 
         # Wait for all tasks to complete
         from framework.performance.async_utils import get_task_manager
+
         task_manager = get_task_manager()
         results = await task_manager.wait_all(timeout=30.0)
 
@@ -165,8 +168,7 @@ class PerformanceDemo:
 
         # Process multiple batches concurrently
         batch_tasks = [
-            self.process_user_data([i * 20 + j for j in range(20)])
-            for i in range(3)
+            self.process_user_data([i * 20 + j for j in range(20)]) for i in range(3)
         ]
 
         start_time = time.time()
@@ -201,7 +203,9 @@ class PerformanceDemo:
 
         status_after = self.optimizer.get_resource_status()
 
-        print(f"Memory optimization: {memory_result.improvement_percent:.1f}% improvement")
+        print(
+            f"Memory optimization: {memory_result.improvement_percent:.1f}% improvement"
+        )
         print(f"CPU optimization: {cpu_result.improvement_percent:.1f}% improvement")
         print(f"Memory usage after: {status_after['memory']['usage_percent']:.1f}%")
 
@@ -223,38 +227,44 @@ class PerformanceDemo:
         perf_summary = self.monitor.get_performance_summary(duration_seconds=300)
         print("\nOperation Performance (last 5 minutes):")
 
-        for operation, metrics in perf_summary['operation_metrics'].items():
+        for operation, metrics in perf_summary["operation_metrics"].items():
             print(f"  {operation}:")
             print(f"    Count: {metrics['count']}")
             print(f"    Avg Duration: {metrics['avg_duration']:.3f}s")
             print(f"    95th Percentile: {metrics['p95_duration']:.3f}s")
 
         # Resource usage
-        resource_usage = perf_summary['resource_usage']
+        resource_usage = perf_summary["resource_usage"]
         print("\nResource Usage:")
         print(f"  Current CPU: {resource_usage['current']['cpu_percent']:.1f}%")
         print(f"  Current Memory: {resource_usage['current']['memory_percent']:.1f}%")
         print(f"  Average CPU: {resource_usage['average'].get('cpu_percent', 0):.1f}%")
-        print(f"  Average Memory: {resource_usage['average'].get('memory_percent', 0):.1f}%")
+        print(
+            f"  Average Memory: {resource_usage['average'].get('memory_percent', 0):.1f}%"
+        )
 
         # Alerts
-        if perf_summary['alerts']:
+        if perf_summary["alerts"]:
             print("\nAlerts:")
-            for alert in perf_summary['alerts']:
+            for alert in perf_summary["alerts"]:
                 print(f"  ⚠️  {alert['type']}: {alert['message']}")
 
         # Optimization report
         opt_report = self.optimizer.generate_optimization_report()
-        opt_summary = opt_report['optimization_summary']
+        opt_summary = opt_report["optimization_summary"]
 
         print("\nOptimization Summary:")
         print(f"  Total Optimizations: {opt_summary['total_optimizations']}")
-        print(f"  Avg Memory Improvement: {opt_summary['avg_memory_improvement_percent']:.1f}%")
-        print(f"  Avg CPU Improvement: {opt_summary['avg_cpu_improvement_percent']:.1f}%")
+        print(
+            f"  Avg Memory Improvement: {opt_summary['avg_memory_improvement_percent']:.1f}%"
+        )
+        print(
+            f"  Avg CPU Improvement: {opt_summary['avg_cpu_improvement_percent']:.1f}%"
+        )
 
-        if opt_report['recommendations']:
+        if opt_report["recommendations"]:
             print("\nRecommendations:")
-            for rec in opt_report['recommendations']:
+            for rec in opt_report["recommendations"]:
                 print(f"  💡 {rec}")
 
 

@@ -67,7 +67,9 @@ class DeferredTask:
         self._future: Future | None = None
         self.children: list[ChildTask] = []
 
-    def start_task(self, func: Callable[..., Coroutine[Any, Any, Any]], *args: Any, **kwargs: Any):
+    def start_task(
+        self, func: Callable[..., Coroutine[Any, Any, Any]], *args: Any, **kwargs: Any
+    ):
         self.func = func
         self.args = args
         self.kwargs = kwargs
@@ -92,7 +94,9 @@ class DeferredTask:
         try:
             return self._future.result(timeout)
         except TimeoutError as e:
-            raise TimeoutError("The task did not complete within the specified timeout.") from e
+            raise TimeoutError(
+                "The task did not complete within the specified timeout."
+            ) from e
 
     async def result(self, timeout: float | None = None) -> Any:
         if not self._future:
@@ -106,7 +110,9 @@ class DeferredTask:
                 # self.kill()
                 return result
             except TimeoutError as e:
-                raise TimeoutError("The task did not complete within the specified timeout.") from e
+                raise TimeoutError(
+                    "The task did not complete within the specified timeout."
+                ) from e
 
         return await loop.run_in_executor(None, _get_result)
 
@@ -154,10 +160,14 @@ class DeferredTask:
         self.kill(terminate_thread=terminate_thread)
         self._start_task()
 
-    def add_child_task(self, task: "DeferredTask", terminate_thread: bool = False) -> None:
+    def add_child_task(
+        self, task: "DeferredTask", terminate_thread: bool = False
+    ) -> None:
         self.children.append(ChildTask(task, terminate_thread))
 
-    async def _execute_in_task_context(self, func: Callable[..., T], *args, **kwargs) -> T:
+    async def _execute_in_task_context(
+        self, func: Callable[..., T], *args, **kwargs
+    ) -> T:
         """Execute a function in the task's context and return its result."""
         result = func(*args, **kwargs)
         if asyncio.iscoroutine(result):
@@ -178,9 +188,13 @@ class DeferredTask:
                 # Keep awaiting until we get a concrete value
                 while isinstance(result, Awaitable):
                     result = await result
-                self.event_loop_thread.loop.call_soon_threadsafe(future.set_result, result)
+                self.event_loop_thread.loop.call_soon_threadsafe(
+                    future.set_result, result
+                )
             except Exception as e:
-                self.event_loop_thread.loop.call_soon_threadsafe(future.set_exception, e)
+                self.event_loop_thread.loop.call_soon_threadsafe(
+                    future.set_exception, e
+                )
 
         asyncio.run_coroutine_threadsafe(wrapped(), self.event_loop_thread.loop)
         return asyncio.wrap_future(future)

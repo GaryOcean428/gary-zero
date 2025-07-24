@@ -1,0 +1,243 @@
+# Reusable Workflow: Static Code Checks
+# Handles linting, type-checking, and secret scanning for Python and Node.js
+
+name: Static Checks
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        description: 'Python version to use'
+        type: string
+        default: '3.13'
+      node-version:
+        description: 'Node.js version to use'
+        type: string
+        default: '22'
+      skip-secret-scan:
+        description: 'Skip secret scanning step'
+        type: boolean
+        default: false
+    outputs:
+      python-lint-status:
+        description: 'Python linting status'
+        value: ${{ jobs.python-checks.outputs.lint-status }}
+      node-lint-status:
+        description: 'Node.js linting status'
+        value: ${{ jobs.node-checks.outputs.lint-status }}
+
+env:
+  PYTHON_VERSION: ${{ inputs.python-version }}
+  NODE_VERSION: ${{ inputs.node-version }}
+
+jobs:
+  python-checks:
+    name: Python Static Analysis
+    runs-on: ubuntu-latest
+    outputs:
+      lint-status: ${{ steps.lint-summary.outputs.status }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Needed for some security scanners
+
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install ruff mypy black detect-secrets
+        if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Python code formatting check (Black)
+      id: black-check
+      run: |
+        echo "🔍 Checking Python code formatting with Black..."
+        black --check --diff . || {
+          echo "❌ Black formatting check failed"
+          echo "Run: black . to fix formatting issues"
+          exit 1
+        }
+        echo "✅ Black formatting check passed"
+
+    - name: Python linting (Ruff)
+      id: ruff-check
+      run: |
+        echo "🔍 Running Ruff linting..."
+        
+        # Check for syntax errors and undefined names
+        ruff check --select=E9,F63,F7,F82 --statistics . || {
+          echo "❌ Critical Ruff errors found"
+          exit 1
+        }
+        
+        # Full linting
+        ruff check . || {
+          echo "❌ Ruff linting failed"
+          echo "Run: ruff check --fix . to attempt automatic fixes"
+          exit 1
+        }
+        
+        # Format check
+        ruff format --check . || {
+          echo "❌ Ruff format check failed"
+          echo "Run: ruff format . to fix formatting"
+          exit 1
+        }
+        
+        echo "✅ Ruff linting passed"
+
+    - name: Python type checking (MyPy)
+      id: mypy-check
+      run: |
+        echo "🔍 Running MyPy type checking..."
+        mypy framework/ api/ security/ \
+          --ignore-missing-imports \
+          --no-strict-optional \
+          --show-error-codes \
+          --pretty || {
+          echo "❌ MyPy type checking failed"
+          exit 1
+        }
+        echo "✅ MyPy type checking passed"
+
+    - name: Lint summary
+      id: lint-summary
+      run: |
+        echo "status=passed" >> $GITHUB_OUTPUT
+        echo "✅ All Python static checks passed"
+
+  node-checks:
+    name: Node.js Static Analysis
+    runs-on: ubuntu-latest
+    outputs:
+      lint-status: ${{ steps.lint-summary.outputs.status }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install Node.js dependencies
+      run: npm ci
+
+    - name: JavaScript/TypeScript linting (ESLint)
+      id: eslint-check
+      run: |
+        echo "🔍 Running ESLint..."
+        npm run lint:clean || {
+          echo "❌ ESLint failed"
+          echo "Run: npm run lint:fix:clean to attempt automatic fixes"
+          exit 1
+        }
+        echo "✅ ESLint passed"
+
+    - name: Code formatting check (Prettier)
+      id: prettier-check
+      run: |
+        echo "🔍 Checking code formatting with Prettier..."
+        npm run format:check || {
+          echo "❌ Prettier formatting check failed"
+          echo "Run: npm run format to fix formatting issues"
+          exit 1
+        }
+        echo "✅ Prettier formatting check passed"
+
+    - name: TypeScript type checking
+      id: tsc-check
+      run: |
+        echo "🔍 Running TypeScript type checking..."
+        npm run tsc:check || {
+          echo "❌ TypeScript type checking failed"
+          exit 1
+        }
+        echo "✅ TypeScript type checking passed"
+
+    - name: Lint summary
+      id: lint-summary
+      run: |
+        echo "status=passed" >> $GITHUB_OUTPUT
+        echo "✅ All Node.js static checks passed"
+
+  secret-scanning:
+    name: Secret Detection
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.skip-secret-scan }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install detect-secrets
+      run: |
+        python -m pip install --upgrade pip
+        pip install detect-secrets
+
+    - name: Run secret detection
+      id: secret-scan
+      run: |
+        echo "🔍 Scanning for secrets..."
+        if [ -f .secrets.baseline ]; then
+          detect-secrets scan --baseline .secrets.baseline --all-files || {
+            echo "❌ New secrets detected!"
+            echo "Please review and update .secrets.baseline if these are false positives"
+            exit 1
+          }
+        else
+          echo "⚠️ No .secrets.baseline found, creating one..."
+          detect-secrets scan --all-files --force-use-all-plugins > .secrets.baseline
+          echo "📝 Created .secrets.baseline - please review and commit it"
+        fi
+        echo "✅ Secret scan completed"
+
+    - name: Upload secrets baseline (if created)
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: secrets-baseline
+        path: .secrets.baseline
+        if-no-files-found: ignore
+
+  static-checks-summary:
+    name: Static Checks Summary
+    runs-on: ubuntu-latest
+    needs: [python-checks, node-checks, secret-scanning]
+    if: always()
+    
+    steps:
+    - name: Check all results
+      run: |
+        echo "📊 Static Checks Summary"
+        echo "========================"
+        echo "Python checks: ${{ needs.python-checks.result }}"
+        echo "Node.js checks: ${{ needs.node-checks.result }}"
+        echo "Secret scanning: ${{ needs.secret-scanning.result }}"
+        echo ""
+        
+        if [[ "${{ needs.python-checks.result }}" != "success" ]] || 
+           [[ "${{ needs.node-checks.result }}" != "success" ]] || 
+           [[ "${{ needs.secret-scanning.result }}" != "success" && "${{ needs.secret-scanning.result }}" != "skipped" ]]; then
+          echo "❌ One or more static checks failed"
+          exit 1
+        fi
+        
+        echo "✅ All static checks passed successfully!"

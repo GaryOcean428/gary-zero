@@ -8,14 +8,15 @@ from framework.helpers.memory import Memory
 
 
 class MemorizeMemories(Extension):
-
     REPLACE_THRESHOLD = 0.9
 
     async def execute(self, loop_data: LoopData = LoopData(), **kwargs):
         # try:
 
         # show temp info message
-        self.agent.context.log.log(type="info", content="Memorizing new information...", temp=True)
+        self.agent.context.log.log(
+            type="info", content="Memorizing new information...", temp=True
+        )
 
         # show full util message, this will hide temp message immediately if turned on
         log_item = self.agent.context.log.log(
@@ -27,7 +28,6 @@ class MemorizeMemories(Extension):
         asyncio.create_task(self.memorize(loop_data, log_item))
 
     async def memorize(self, loop_data: LoopData, log_item: LogItem, **kwargs):
-
         # get system message and chat history for util llm
         system = self.agent.read_prompt("memory.memories_sum.sys.md")
         msgs_text = self.agent.history.output_text()
@@ -104,7 +104,9 @@ class MemorizeMemories(Extension):
                     log_item.update(replaced=rem_txt)
 
             # insert new solution
-            await db.insert_text(text=txt, metadata={"area": Memory.Area.FRAGMENTS.value})
+            await db.insert_text(
+                text=txt, metadata={"area": Memory.Area.FRAGMENTS.value}
+            )
 
         log_item.update(
             result=f"{len(memories)} entries memorized.",

@@ -40,6 +40,7 @@ def test_port_resolution():
     print(f"\n{'✅ All tests passed!' if all_passed else '❌ Some tests failed!'}")
     return all_passed
 
+
 def test_script_syntax():
     """Test that the startup script has valid Python syntax."""
     print("\n🧪 Testing startup script syntax...")
@@ -49,7 +50,7 @@ def test_script_syntax():
             [sys.executable, "-m", "py_compile", "start_uvicorn.py"],
             capture_output=True,
             text=True,
-            cwd="/home/runner/work/gary-zero/gary-zero"
+            cwd="/home/runner/work/gary-zero/gary-zero",
         )
 
         if result.returncode == 0:
@@ -62,6 +63,7 @@ def test_script_syntax():
         print(f"   ❌ FAIL: Error testing syntax: {e}")
         return False
 
+
 def test_railway_toml_updated():
     """Test that railway.toml was updated correctly."""
     print("\n🧪 Testing railway.toml configuration...")
@@ -70,7 +72,7 @@ def test_railway_toml_updated():
         with open("/home/runner/work/gary-zero/gary-zero/railway.toml") as f:
             content = f.read()
 
-        if "startCommand = \"python start_uvicorn.py\"" in content:
+        if 'startCommand = "python start_uvicorn.py"' in content:
             print("   ✅ PASS: railway.toml contains correct startCommand")
             return True
         else:
@@ -79,6 +81,7 @@ def test_railway_toml_updated():
     except Exception as e:
         print(f"   ❌ FAIL: Error reading railway.toml: {e}")
         return False
+
 
 def main():
     """Run all tests for the Railway deploy fix."""
@@ -104,6 +107,7 @@ def main():
     else:
         print("💥 Some tests failed! Please review the implementation.")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

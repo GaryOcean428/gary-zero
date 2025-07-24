@@ -378,37 +378,46 @@ const settingsModalProxy = {
                 body: JSON.stringify({ provider: newProvider }),
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                const models = data.models || [];
-                
-                // Find the corresponding model name field and update its options
-                const modelFieldId = providerId.replace('_provider', '_name');
-                
-                // Get the current modal data
-                const modalEl = document.getElementById("settingsModal");
-                if (modalEl) {
-                    const modalAD = Alpine.$data(modalEl);
-                    if (modalAD && modalAD.settings && modalAD.settings.sections) {
-                        for (const section of modalAD.settings.sections) {
-                            for (const field of section.fields) {
-                                if (field.id === modelFieldId) {
-                                    field.options = models;
-                                    // Reset the model value if current value is not in new options
-                                    const currentValueExists = models.some(model => model.value === field.value);
-                                    if (!currentValueExists && models.length > 0) {
-                                        field.value = models[0].value; // Set to first available model
-                                        
-                                        // Auto-update model parameters when model changes
-                                        await this.handleModelChange(modelFieldId, field.value, newProvider);
+                            if (response.ok) {
+                                const data = await response.json();
+                                const models = data.models || [];
+                                
+                                // Add release date tooltips to model options
+                                const enhancedModels = models.map(model => {
+                                    const enhanced = { ...model };
+                                    if (model.release_date) {
+                                        enhanced.tooltip = `Released: ${model.release_date}`;
                                     }
-                                    console.log(`Updated ${modelFieldId} with ${models.length} models`);
-                                    break;
+                                    return enhanced;
+                                });
+                                
+                                // Find the corresponding model name field and update its options
+                                const modelFieldId = providerId.replace('_provider', '_name');
+                                
+                                // Get the current modal data
+                                const modalEl = document.getElementById("settingsModal");
+                                if (modalEl) {
+                                    const modalAD = Alpine.$data(modalEl);
+                                    if (modalAD && modalAD.settings && modalAD.settings.sections) {
+                                        for (const section of modalAD.settings.sections) {
+                                            for (const field of section.fields) {
+                                                if (field.id === modelFieldId) {
+                                                    field.options = enhancedModels;
+                                                    // Reset the model value if current value is not in new options
+                                                    const currentValueExists = enhancedModels.some(model => model.value === field.value);
+                                                    if (!currentValueExists && enhancedModels.length > 0) {
+                                                        field.value = enhancedModels[0].value; // Set to first available model
+                                                        
+                                                        // Auto-update model parameters when model changes
+                                                        await this.handleModelChange(modelFieldId, field.value, newProvider);
+                                                    }
+                                                    console.log(`Updated ${modelFieldId} with ${enhancedModels.length} models`);
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
-                            }
-                        }
-                    }
-                }
             } else {
                 console.error("Failed to fetch models for provider:", response.status);
             }
@@ -703,16 +712,25 @@ document.addEventListener("alpine:init", () => {
                         const data = await response.json();
                         const models = data.models || [];
                         
+                        // Add release date tooltips to model options
+                        const enhancedModels = models.map(model => {
+                            const enhanced = { ...model };
+                            if (model.release_date) {
+                                enhanced.tooltip = `Released: ${model.release_date}`;
+                            }
+                            return enhanced;
+                        });
+                        
                         // Find the corresponding model name field and update its options
                         const modelFieldId = providerId.replace('_provider', '_name');
                         for (const section of this.settingsData.sections) {
                             for (const field of section.fields) {
                                 if (field.id === modelFieldId) {
-                                    field.options = models;
+                                    field.options = enhancedModels;
                                     // Reset the model value if current value is not in new options
-                                    const currentValueExists = models.some(model => model.value === field.value);
-                                    if (!currentValueExists && models.length > 0) {
-                                        field.value = models[0].value; // Set to first available model
+                                    const currentValueExists = enhancedModels.some(model => model.value === field.value);
+                                    if (!currentValueExists && enhancedModels.length > 0) {
+                                        field.value = enhancedModels[0].value; // Set to first available model
                                         
                                         // Auto-update model parameters when model changes
                                         await this.handleModelChange(modelFieldId, field.value, newProvider);

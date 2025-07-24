@@ -13,6 +13,7 @@ class MockResponse:
         self.message = message
         self.break_loop = break_loop
 
+
 def test_basic_integration():
     """Test basic integration without dependencies."""
     print("🧪 Testing Google Gemini Live API Integration (Basic)")
@@ -26,7 +27,7 @@ def test_basic_integration():
         client = GeminiLiveClient(
             api_key="test_key",
             model_name="models/gemini-2.5-flash-preview-native-audio-dialog",
-            voice_name="Zephyr"
+            voice_name="Zephyr",
         )
         print("   ✅ GeminiLiveClient created successfully")
         print(f"   📝 Model: {client.model_name}")
@@ -45,7 +46,9 @@ def test_basic_integration():
         api_key_present = bool(os.getenv("GEMINI_API_KEY"))
         print(f"   🔑 GEMINI_API_KEY present: {api_key_present}")
 
-        default_model = os.getenv("GEMINI_LIVE_MODEL", "models/gemini-2.5-flash-preview-native-audio-dialog")
+        default_model = os.getenv(
+            "GEMINI_LIVE_MODEL", "models/gemini-2.5-flash-preview-native-audio-dialog"
+        )
         print(f"   🤖 Default model: {default_model}")
 
         default_voice = os.getenv("GEMINI_LIVE_VOICE", "Zephyr")
@@ -53,22 +56,30 @@ def test_basic_integration():
 
         # Test 4: Test tool factory
         print("\n4. Testing tool factory...")
-        tool_instance = __import__('instruments.custom.gemini_live.gemini_live_tool', fromlist=['get_tool']).get_tool()
+        tool_instance = __import__(
+            "instruments.custom.gemini_live.gemini_live_tool", fromlist=["get_tool"]
+        ).get_tool()
         print("   ✅ Tool factory function works")
         print(f"   📋 Tool name: {getattr(tool_instance, 'name', 'Not set')}")
 
-        print("\n✅ All basic tests passed! Gemini Live API integration is properly set up.")
+        print(
+            "\n✅ All basic tests passed! Gemini Live API integration is properly set up."
+        )
 
         if not api_key_present:
-            print("\n⚠️  Note: Set GEMINI_API_KEY environment variable to test actual API connectivity.")
+            print(
+                "\n⚠️  Note: Set GEMINI_API_KEY environment variable to test actual API connectivity."
+            )
 
         return True
 
     except Exception as e:
         print(f"\n❌ Test failed with error: {e}")
         import traceback
+
         traceback.print_exc()
         return False
+
 
 def test_configuration_options():
     """Test configuration options."""
@@ -80,7 +91,7 @@ def test_configuration_options():
         models = [
             "models/gemini-2.5-flash-preview-native-audio-dialog",
             "models/gemini-2.5-pro-preview-native-audio-dialog",
-            "models/gemini-2.0-flash"
+            "models/gemini-2.0-flash",
         ]
         print(f"✅ Supported models: {len(models)}")
         for model in models:
@@ -105,6 +116,7 @@ def test_configuration_options():
         print(f"❌ Configuration test failed: {e}")
         return False
 
+
 if __name__ == "__main__":
     print("🚀 Starting Gemini Live API Basic Tests\n")
 
@@ -115,7 +127,7 @@ if __name__ == "__main__":
     config_success = test_configuration_options()
 
     # Summary
-    print("\n" + "="*55)
+    print("\n" + "=" * 55)
     print("📋 Test Summary:")
     print(f"   Basic Integration: {'✅ PASSED' if basic_success else '❌ FAILED'}")
     print(f"   Configuration: {'✅ PASSED' if config_success else '❌ FAILED'}")

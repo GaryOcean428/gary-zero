@@ -6,11 +6,17 @@ import asyncio
 import sys
 import time
 
-sys.path.append('/home/runner/work/gary-zero/gary-zero')
+sys.path.append("/home/runner/work/gary-zero/gary-zero")
 
 # Test just the core orchestration components without agent dependencies
-from framework.helpers.async_orchestrator import AsyncTaskOrchestrator, OrchestrationStatus
-from framework.helpers.orchestration_config import OrchestrationConfig, OrchestrationConfigManager
+from framework.helpers.async_orchestrator import (
+    AsyncTaskOrchestrator,
+    OrchestrationStatus,
+)
+from framework.helpers.orchestration_config import (
+    OrchestrationConfig,
+    OrchestrationConfigManager,
+)
 
 
 # Simple mock task class for testing
@@ -31,7 +37,7 @@ async def test_orchestrator_basic():
     orchestrator = AsyncTaskOrchestrator(
         max_concurrent_tasks=3,
         default_task_timeout=5.0,
-        enable_performance_monitoring=False
+        enable_performance_monitoring=False,
     )
 
     # Test lifecycle
@@ -60,8 +66,8 @@ async def test_orchestrator_basic():
 
     # Check metrics
     metrics = await orchestrator.get_orchestration_metrics()
-    assert metrics['total_tasks'] >= 1
-    assert metrics['completed_tasks'] >= 1
+    assert metrics["total_tasks"] >= 1
+    assert metrics["completed_tasks"] >= 1
 
     await orchestrator.stop()
     assert not orchestrator.is_running
@@ -74,8 +80,7 @@ async def test_concurrent_execution():
     print("Testing concurrent execution...")
 
     orchestrator = AsyncTaskOrchestrator(
-        max_concurrent_tasks=5,
-        enable_performance_monitoring=False
+        max_concurrent_tasks=5, enable_performance_monitoring=False
     )
     await orchestrator.start()
 
@@ -103,10 +108,9 @@ async def test_concurrent_execution():
             task_ids.append(task_id)
 
         # Wait for all to complete
-        results = await asyncio.gather(*[
-            orchestrator.wait_for_task(task_id, timeout=5.0)
-            for task_id in task_ids
-        ])
+        results = await asyncio.gather(
+            *[orchestrator.wait_for_task(task_id, timeout=5.0) for task_id in task_ids]
+        )
 
         execution_time = time.time() - start_time
 
@@ -122,8 +126,8 @@ async def test_concurrent_execution():
 
         # Test metrics
         metrics = await orchestrator.get_orchestration_metrics()
-        assert metrics['total_tasks'] == 5
-        assert metrics['completed_tasks'] == 5
+        assert metrics["total_tasks"] == 5
+        assert metrics["completed_tasks"] == 5
 
     finally:
         await orchestrator.stop()
@@ -136,8 +140,7 @@ async def test_dependencies():
     print("Testing dependency management...")
 
     orchestrator = AsyncTaskOrchestrator(
-        max_concurrent_tasks=5,
-        enable_performance_monitoring=False
+        max_concurrent_tasks=5, enable_performance_monitoring=False
     )
     await orchestrator.start()
 
@@ -165,7 +168,7 @@ async def test_dependencies():
         await asyncio.gather(
             orchestrator.wait_for_task("dep_a", timeout=5.0),
             orchestrator.wait_for_task("dep_b", timeout=5.0),
-            orchestrator.wait_for_task("dep_c", timeout=5.0)
+            orchestrator.wait_for_task("dep_c", timeout=5.0),
         )
 
         # Verify execution order
@@ -238,7 +241,11 @@ async def test_timeout_handling():
         # Allow some time for status to update
         await asyncio.sleep(0.2)
         print(f"Task status after timeout: {orchestration_task.status}")
-        assert orchestration_task.status in (OrchestrationStatus.TIMEOUT, OrchestrationStatus.FAILED, OrchestrationStatus.RUNNING)
+        assert orchestration_task.status in (
+            OrchestrationStatus.TIMEOUT,
+            OrchestrationStatus.FAILED,
+            OrchestrationStatus.RUNNING,
+        )
 
     finally:
         await orchestrator.stop()
@@ -267,10 +274,10 @@ def test_configuration():
     assert current_config.max_concurrent_tasks == 20
 
     # Test agent config
-    agent_config = {'max_concurrent_tasks': 5, 'max_requests_per_minute': 100}
-    manager.set_agent_config('test_agent', agent_config)
-    retrieved = manager.get_agent_config('test_agent')
-    assert retrieved['max_concurrent_tasks'] == 5
+    agent_config = {"max_concurrent_tasks": 5, "max_requests_per_minute": 100}
+    manager.set_agent_config("test_agent", agent_config)
+    retrieved = manager.get_agent_config("test_agent")
+    assert retrieved["max_concurrent_tasks"] == 5
 
     # Reset
     manager.update_config(max_concurrent_tasks=original_max)
@@ -283,12 +290,11 @@ async def test_resource_management():
     print("Testing resource management...")
 
     orchestrator = AsyncTaskOrchestrator(
-        max_concurrent_tasks=10,
-        enable_performance_monitoring=False
+        max_concurrent_tasks=10, enable_performance_monitoring=False
     )
 
     # Set tight limits for testing
-    orchestrator.default_agent_limits['max_concurrent_tasks'] = 2
+    orchestrator.default_agent_limits["max_concurrent_tasks"] = 2
 
     await orchestrator.start()
 
@@ -316,15 +322,17 @@ async def test_resource_management():
         metrics = await orchestrator.get_orchestration_metrics()
 
         # Check that not all tasks started immediately due to limits
-        agent_util = metrics.get('agent_utilization', {})
-        if 'test_agent' in agent_util:
+        agent_util = metrics.get("agent_utilization", {})
+        if "test_agent" in agent_util:
             print(f"✓ Agent utilization tracked: {agent_util['test_agent']}")
 
         # Wait for completion
-        await asyncio.gather(*[
-            orchestrator.wait_for_task(f"resource_task_{i}", timeout=10.0)
-            for i in range(4)
-        ])
+        await asyncio.gather(
+            *[
+                orchestrator.wait_for_task(f"resource_task_{i}", timeout=10.0)
+                for i in range(4)
+            ]
+        )
 
     finally:
         await orchestrator.stop()
@@ -373,6 +381,7 @@ async def run_validation_tests():
     except Exception as e:
         print(f"\n❌ Test failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 

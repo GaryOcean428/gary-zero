@@ -22,10 +22,7 @@ class TestSchedulerTool:
     @pytest.fixture
     def scheduler_tool(self, mock_agent, mock_tool_args):
         """Fixture to create a SchedulerTool instance with a mock agent."""
-        return SchedulerTool(
-            agent=mock_agent,
-            **mock_tool_args
-        )
+        return SchedulerTool(agent=mock_agent, **mock_tool_args)
 
     @pytest.fixture
     def mock_task_scheduler(self):
@@ -35,7 +32,9 @@ class TestSchedulerTool:
             yield mock_instance
 
     @pytest.mark.asyncio
-    async def test_create_planned_task_success(self, scheduler_tool, mock_task_scheduler):
+    async def test_create_planned_task_success(
+        self, scheduler_tool, mock_task_scheduler
+    ):
         """Test successful creation of a planned task."""
         # Setup test data
         task_name = "test_task"
@@ -75,7 +74,9 @@ class TestSchedulerTool:
         assert added_task.context_id == "test_context_id"
 
     @pytest.mark.asyncio
-    async def test_create_planned_task_dedicated_context(self, scheduler_tool, mock_task_scheduler):
+    async def test_create_planned_task_dedicated_context(
+        self, scheduler_tool, mock_task_scheduler
+    ):
         """Test creating a planned task with dedicated context."""
         # Setup test data
         future_time = datetime.now(UTC) + timedelta(hours=1)
@@ -86,7 +87,11 @@ class TestSchedulerTool:
 
         # Call the method under test with dedicated_context=True
         await scheduler_tool.create_planned_task(
-            name="test_task", system_prompt="Test", prompt="Test", plan=plan, dedicated_context=True
+            name="test_task",
+            system_prompt="Test",
+            prompt="Test",
+            plan=plan,
+            dedicated_context=True,
         )
 
         # Verify the task was created with no context_id
@@ -94,7 +99,9 @@ class TestSchedulerTool:
         assert added_task.context_id is None
 
     @pytest.mark.asyncio
-    async def test_create_planned_task_invalid_plan(self, scheduler_tool, mock_task_scheduler):
+    async def test_create_planned_task_invalid_plan(
+        self, scheduler_tool, mock_task_scheduler
+    ):
         """Test creating a planned task with an invalid plan."""
         # Call with invalid datetime string
         result = await scheduler_tool.create_planned_task(
@@ -135,6 +142,8 @@ class TestSchedulerTool:
 
         # Verify the result
         assert "task1" in result.message
-        assert "task2" not in result.message  # Should only show tasks in current context
+        assert (
+            "task2" not in result.message
+        )  # Should only show tasks in current context
         assert "PENDING" in result.message
         assert result.break_loop is False

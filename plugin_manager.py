@@ -23,9 +23,11 @@ def list_plugins(args):
     print("-" * 75)
 
     for plugin in plugins:
-        status = "Enabled" if plugin['enabled'] else "Disabled"
-        loaded = "Yes" if plugin['loaded'] else "No"
-        print(f"{plugin['name']:<20} {plugin['version']:<10} {status:<10} {loaded:<8} {plugin['author']:<15}")
+        status = "Enabled" if plugin["enabled"] else "Disabled"
+        loaded = "Yes" if plugin["loaded"] else "No"
+        print(
+            f"{plugin['name']:<20} {plugin['version']:<10} {status:<10} {loaded:<8} {plugin['author']:<15}"
+        )
 
 
 def show_plugin(args):
@@ -96,8 +98,10 @@ def uninstall_plugin(args):
     manager = PluginManager()
 
     if not args.force:
-        confirm = input(f"Are you sure you want to uninstall plugin '{args.name}'? (y/N): ")
-        if confirm.lower() != 'y':
+        confirm = input(
+            f"Are you sure you want to uninstall plugin '{args.name}'? (y/N): "
+        )
+        if confirm.lower() != "y":
             print("Uninstall cancelled.")
             return
 
@@ -141,56 +145,66 @@ def list_capabilities(args):
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(description="Gary-Zero Plugin Manager")
-    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # List plugins
-    list_parser = subparsers.add_parser('list', help='List plugins')
-    list_parser.add_argument('--enabled-only', action='store_true', help='Show only enabled plugins')
+    list_parser = subparsers.add_parser("list", help="List plugins")
+    list_parser.add_argument(
+        "--enabled-only", action="store_true", help="Show only enabled plugins"
+    )
     list_parser.set_defaults(func=list_plugins)
 
     # Show plugin info
-    show_parser = subparsers.add_parser('show', help='Show plugin information')
-    show_parser.add_argument('name', help='Plugin name')
+    show_parser = subparsers.add_parser("show", help="Show plugin information")
+    show_parser.add_argument("name", help="Plugin name")
     show_parser.set_defaults(func=show_plugin)
 
     # Enable plugin
-    enable_parser = subparsers.add_parser('enable', help='Enable a plugin')
-    enable_parser.add_argument('name', help='Plugin name')
+    enable_parser = subparsers.add_parser("enable", help="Enable a plugin")
+    enable_parser.add_argument("name", help="Plugin name")
     enable_parser.set_defaults(func=enable_plugin)
 
     # Disable plugin
-    disable_parser = subparsers.add_parser('disable', help='Disable a plugin')
-    disable_parser.add_argument('name', help='Plugin name')
+    disable_parser = subparsers.add_parser("disable", help="Disable a plugin")
+    disable_parser.add_argument("name", help="Plugin name")
     disable_parser.set_defaults(func=disable_plugin)
 
     # Reload plugin
-    reload_parser = subparsers.add_parser('reload', help='Reload a plugin')
-    reload_parser.add_argument('name', help='Plugin name')
+    reload_parser = subparsers.add_parser("reload", help="Reload a plugin")
+    reload_parser.add_argument("name", help="Plugin name")
     reload_parser.set_defaults(func=reload_plugin)
 
     # Install plugin
-    install_parser = subparsers.add_parser('install', help='Install a plugin')
-    install_parser.add_argument('path', help='Path to plugin directory')
-    install_parser.add_argument('--disable', action='store_true', help='Install but do not enable')
+    install_parser = subparsers.add_parser("install", help="Install a plugin")
+    install_parser.add_argument("path", help="Path to plugin directory")
+    install_parser.add_argument(
+        "--disable", action="store_true", help="Install but do not enable"
+    )
     install_parser.set_defaults(func=install_plugin)
 
     # Uninstall plugin
-    uninstall_parser = subparsers.add_parser('uninstall', help='Uninstall a plugin')
-    uninstall_parser.add_argument('name', help='Plugin name')
-    uninstall_parser.add_argument('--force', action='store_true', help='Skip confirmation')
+    uninstall_parser = subparsers.add_parser("uninstall", help="Uninstall a plugin")
+    uninstall_parser.add_argument("name", help="Plugin name")
+    uninstall_parser.add_argument(
+        "--force", action="store_true", help="Skip confirmation"
+    )
     uninstall_parser.set_defaults(func=uninstall_plugin)
 
     # Refresh plugins
-    refresh_parser = subparsers.add_parser('refresh', help='Refresh plugin discovery')
+    refresh_parser = subparsers.add_parser("refresh", help="Refresh plugin discovery")
     refresh_parser.set_defaults(func=refresh_plugins)
 
     # Validate plugin
-    validate_parser = subparsers.add_parser('validate', help='Validate plugin dependencies')
-    validate_parser.add_argument('name', help='Plugin name')
+    validate_parser = subparsers.add_parser(
+        "validate", help="Validate plugin dependencies"
+    )
+    validate_parser.add_argument("name", help="Plugin name")
     validate_parser.set_defaults(func=validate_plugin)
 
     # List capabilities
-    capabilities_parser = subparsers.add_parser('capabilities', help='List available capabilities')
+    capabilities_parser = subparsers.add_parser(
+        "capabilities", help="List available capabilities"
+    )
     capabilities_parser.set_defaults(func=list_capabilities)
 
     args = parser.parse_args()
@@ -206,5 +220,5 @@ def main():
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -1,10 +1,12 @@
 """
 Final validation test for secure code execution implementation.
 """
+
 import sys
 
 # Add the project root to Python path
-sys.path.insert(0, '/home/runner/work/gary-zero/gary-zero')
+sys.path.insert(0, "/home/runner/work/gary-zero/gary-zero")
+
 
 def test_complete_implementation():
     """Test the complete secure execution implementation."""
@@ -33,9 +35,11 @@ def test_complete_implementation():
         print(f"✅ Session Creation: {session_id[:8]}...")
 
         # Test 2: Python execution in isolation
-        result = manager.execute_code(session_id,
+        result = manager.execute_code(
+            session_id,
             "import os; print(f'Working directory: {os.getcwd()}'); print('Secure execution works!')",
-            "python")
+            "python",
+        )
 
         if result["success"]:
             print("✅ Python Execution: SUCCESS")
@@ -52,7 +56,9 @@ def test_complete_implementation():
             print("✅ Package Installation: SUCCESS")
 
             # Verify package is available in session
-            test_result = manager.execute_code(session_id, "import uuid; print(f'UUID: {uuid.uuid4()}')", "python")
+            test_result = manager.execute_code(
+                session_id, "import uuid; print(f'UUID: {uuid.uuid4()}')", "python"
+            )
             if test_result["success"]:
                 print("✅ Package Usage: SUCCESS")
                 print(f"   Output: {test_result['stdout'].strip()}")
@@ -63,7 +69,9 @@ def test_complete_implementation():
 
         # Test 4: Shell command execution
         print("\n🖥️  Testing Shell Command Isolation:")
-        shell_result = manager.execute_code(session_id, "whoami && pwd && ls -la", "bash")
+        shell_result = manager.execute_code(
+            session_id, "whoami && pwd && ls -la", "bash"
+        )
 
         if shell_result["success"]:
             print("✅ Shell Execution: SUCCESS")
@@ -86,8 +94,10 @@ def test_complete_implementation():
     except Exception as e:
         print(f"❌ VALIDATION FAILED: {e}")
         import traceback
+
         traceback.print_exc()
         return False
+
 
 def show_integration_summary():
     """Show summary of the integration."""
@@ -118,6 +128,7 @@ def show_integration_summary():
     print("   • New runtime options: 'secure_info', 'install'")
     print("   • Automatic secure executor selection")
     print("   • Graceful fallback if needed")
+
 
 if __name__ == "__main__":
     print("🚀 Gary Zero Secure Code Execution - Final Validation")

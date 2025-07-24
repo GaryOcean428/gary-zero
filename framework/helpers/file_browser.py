@@ -53,7 +53,9 @@ class FileBrowser:
             PrintStyle.error(f"Error saving file {filename}: {e}")
             return False
 
-    def save_files(self, files: list, current_path: str = "") -> tuple[list[str], list[str]]:
+    def save_files(
+        self, files: list, current_path: str = ""
+    ) -> tuple[list[str], list[str]]:
         """Save uploaded files and return successful and failed filenames"""
         successful = []
         failed = []
@@ -137,7 +139,9 @@ class FileBrowser:
                 entry_data: dict[str, Any] = {
                     "name": entry.name,
                     "path": str(Path(entry.path).relative_to(self.base_dir)),
-                    "modified": datetime.fromtimestamp(entry.stat().st_mtime).isoformat(),
+                    "modified": datetime.fromtimestamp(
+                        entry.stat().st_mtime
+                    ).isoformat(),
                 }
 
                 if entry.is_file():

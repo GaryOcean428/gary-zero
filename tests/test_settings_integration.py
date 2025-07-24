@@ -1,6 +1,5 @@
 """Tests for settings integration with new tools."""
 
-
 from framework.helpers.settings import convert_out
 from framework.helpers.settings.types import DEFAULT_SETTINGS
 
@@ -14,7 +13,9 @@ class TestSettingsIntegration:
 
         # Computer Use settings
         assert "computer_use_enabled" in defaults
-        assert defaults["computer_use_enabled"] is False  # Should be disabled by default
+        assert (
+            defaults["computer_use_enabled"] is False
+        )  # Should be disabled by default
         assert "computer_use_require_approval" in defaults
         assert defaults["computer_use_require_approval"] is True
         assert "computer_use_screenshot_interval" in defaults
@@ -77,13 +78,15 @@ class TestSettingsIntegration:
         settings_output = convert_out(DEFAULT_SETTINGS)
 
         computer_use_section = next(
-            section for section in settings_output["sections"]
+            section
+            for section in settings_output["sections"]
             if section["id"] == "computer_use"
         )
 
         # Test enabled field
         enabled_field = next(
-            field for field in computer_use_section["fields"]
+            field
+            for field in computer_use_section["fields"]
             if field["id"] == "computer_use_enabled"
         )
         assert enabled_field["type"] == "switch"
@@ -91,7 +94,8 @@ class TestSettingsIntegration:
 
         # Test screenshot interval field
         interval_field = next(
-            field for field in computer_use_section["fields"]
+            field
+            for field in computer_use_section["fields"]
             if field["id"] == "computer_use_screenshot_interval"
         )
         assert interval_field["type"] == "number"
@@ -101,7 +105,8 @@ class TestSettingsIntegration:
 
         # Test max actions field
         max_actions_field = next(
-            field for field in computer_use_section["fields"]
+            field
+            for field in computer_use_section["fields"]
             if field["id"] == "computer_use_max_actions_per_session"
         )
         assert max_actions_field["type"] == "number"
@@ -113,13 +118,15 @@ class TestSettingsIntegration:
         settings_output = convert_out(DEFAULT_SETTINGS)
 
         claude_code_section = next(
-            section for section in settings_output["sections"]
+            section
+            for section in settings_output["sections"]
             if section["id"] == "claude_code"
         )
 
         # Test enabled field
         enabled_field = next(
-            field for field in claude_code_section["fields"]
+            field
+            for field in claude_code_section["fields"]
             if field["id"] == "claude_code_enabled"
         )
         assert enabled_field["type"] == "switch"
@@ -127,7 +134,8 @@ class TestSettingsIntegration:
 
         # Test max file size field
         file_size_field = next(
-            field for field in claude_code_section["fields"]
+            field
+            for field in claude_code_section["fields"]
             if field["id"] == "claude_code_max_file_size"
         )
         assert file_size_field["type"] == "number"
@@ -136,14 +144,16 @@ class TestSettingsIntegration:
 
         # Test git ops field
         git_field = next(
-            field for field in claude_code_section["fields"]
+            field
+            for field in claude_code_section["fields"]
             if field["id"] == "claude_code_enable_git_ops"
         )
         assert git_field["type"] == "switch"
 
         # Test terminal field
         terminal_field = next(
-            field for field in claude_code_section["fields"]
+            field
+            for field in claude_code_section["fields"]
             if field["id"] == "claude_code_enable_terminal"
         )
         assert terminal_field["type"] == "switch"
@@ -154,7 +164,8 @@ class TestSettingsIntegration:
 
         # Check that we have sections with "tools" tab
         tools_sections = [
-            section for section in settings_output["sections"]
+            section
+            for section in settings_output["sections"]
             if section.get("tab") == "tools"
         ]
 
@@ -170,7 +181,8 @@ class TestSettingsIntegration:
 
         # Computer Use section
         computer_use_section = next(
-            section for section in settings_output["sections"]
+            section
+            for section in settings_output["sections"]
             if section["id"] == "computer_use"
         )
         assert "desktop automation" in computer_use_section["description"].lower()
@@ -179,7 +191,8 @@ class TestSettingsIntegration:
 
         # Claude Code section
         claude_code_section = next(
-            section for section in settings_output["sections"]
+            section
+            for section in settings_output["sections"]
             if section["id"] == "claude_code"
         )
         assert "editing" in claude_code_section["description"].lower()

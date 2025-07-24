@@ -55,43 +55,46 @@ T = TypeVar("T")
 
 class SharedMCPClient:
     """Reusable MCP client for consuming external servers"""
-    
+
     def __init__(self, settings_provider=None):
         """
         Initialize the shared MCP client
-        
+
         Args:
             settings_provider: Function that returns settings dict with timeout values
         """
         self.config = MCPConfig(settings_provider)
-        
+
     async def connect_to_servers(self, configs: list[dict[str, Any]]):
         """Connect to external MCP servers"""
         await self.config.update_from_configs(configs)
-        
+
     def get_servers_status(self) -> list[dict[str, Any]]:
         """Get status of all connected servers"""
         return self.config.get_servers_status()
-        
+
     def get_tools(self) -> list[dict[str, dict[str, Any]]]:
         """Get all tools from all servers"""
         return self.config.get_tools()
-        
+
     def get_tools_prompt(self, server_name: str = "") -> str:
         """Get a prompt for all tools"""
         return self.config.get_tools_prompt(server_name)
-        
+
     def has_tool(self, tool_name: str) -> bool:
         """Check if a tool is available"""
         return self.config.has_tool(tool_name)
-        
-    async def call_tool(self, tool_name: str, input_data: dict[str, Any]) -> CallToolResult:
+
+    async def call_tool(
+        self, tool_name: str, input_data: dict[str, Any]
+    ) -> CallToolResult:
         """Call a tool with the given input data"""
         return await self.config.call_tool(tool_name, input_data)
 
 
 class MCPServerRemote(BaseModel):
     """Remote SSE MCP Server"""
+
     name: str = Field(default_factory=str)
     description: Optional[str] = Field(default="Remote SSE Server")
     url: str = Field(default_factory=str)
@@ -126,7 +129,9 @@ class MCPServerRemote(BaseModel):
         with self.__lock:
             return self.__client.has_tool(tool_name)  # type: ignore
 
-    async def call_tool(self, tool_name: str, input_data: dict[str, Any]) -> CallToolResult:
+    async def call_tool(
+        self, tool_name: str, input_data: dict[str, Any]
+    ) -> CallToolResult:
         """Call a tool with the given input data"""
         with self.__lock:
             return await self.__client.call_tool(tool_name, input_data)  # type: ignore
@@ -135,8 +140,14 @@ class MCPServerRemote(BaseModel):
         with self.__lock:
             for key, value in config.items():
                 if key in [
-                    "name", "description", "url", "serverUrl", "headers",
-                    "init_timeout", "tool_timeout", "disabled",
+                    "name",
+                    "description",
+                    "url",
+                    "serverUrl",
+                    "headers",
+                    "init_timeout",
+                    "tool_timeout",
+                    "disabled",
                 ]:
                     if key == "name":
                         value = normalize_name(value)
@@ -152,13 +163,16 @@ class MCPServerRemote(BaseModel):
 
 class MCPServerLocal(BaseModel):
     """Local StdIO MCP Server"""
+
     name: str = Field(default_factory=str)
     description: Optional[str] = Field(default="Local StdIO Server")
     command: str = Field(default_factory=str)
     args: list[str] = Field(default_factory=list)
     env: dict[str, str] | None = Field(default_factory=dict[str, str])
     encoding: str = Field(default="utf-8")
-    encoding_error_handler: Literal["strict", "ignore", "replace"] = Field(default="strict")
+    encoding_error_handler: Literal["strict", "ignore", "replace"] = Field(
+        default="strict"
+    )
     init_timeout: int = Field(default=0)
     tool_timeout: int = Field(default=0)
     disabled: bool = Field(default=False)
@@ -189,7 +203,9 @@ class MCPServerLocal(BaseModel):
         with self.__lock:
             return self.__client.has_tool(tool_name)  # type: ignore
 
-    async def call_tool(self, tool_name: str, input_data: dict[str, Any]) -> CallToolResult:
+    async def call_tool(
+        self, tool_name: str, input_data: dict[str, Any]
+    ) -> CallToolResult:
         """Call a tool with the given input data"""
         with self.__lock:
             return await self.__client.call_tool(tool_name, input_data)  # type: ignore
@@ -198,8 +214,16 @@ class MCPServerLocal(BaseModel):
         with self.__lock:
             for key, value in config.items():
                 if key in [
-                    "name", "description", "command", "args", "env", "encoding",
-                    "encoding_error_handler", "init_timeout", "tool_timeout", "disabled",
+                    "name",
+                    "description",
+                    "command",
+                    "args",
+                    "env",
+                    "encoding",
+                    "encoding_error_handler",
+                    "init_timeout",
+                    "tool_timeout",
+                    "disabled",
                 ]:
                     if key == "name":
                         value = normalize_name(value)
@@ -222,6 +246,7 @@ MCPServer = Annotated[
 
 class MCPConfig(BaseModel):
     """MCP Configuration Manager"""
+
     servers: list[MCPServer] = Field(default_factory=list)
     disconnected_servers: list[dict[str, Any]] = Field(default_factory=list)
     __lock: ClassVar[threading.Lock] = PrivateAttr(default=threading.Lock())
@@ -231,10 +256,9 @@ class MCPConfig(BaseModel):
 
     def __init__(self, settings_provider=None):
         super().__init__()
-        self.__settings_provider = settings_provider or (lambda: {
-            "mcp_client_init_timeout": 30,
-            "mcp_client_tool_timeout": 60
-        })
+        self.__settings_provider = settings_provider or (
+            lambda: {"mcp_client_init_timeout": 30, "mcp_client_tool_timeout": 60}
+        )
         self.servers = []
         self.disconnected_servers = []
 
@@ -243,17 +267,19 @@ class MCPConfig(BaseModel):
         with self.__lock:
             self.servers = []
             self.disconnected_servers = []
-            
+
             for config in configs:
                 if config.get("disabled", False):
                     server_name = normalize_name(config.get("name", "unnamed_server"))
-                    self.disconnected_servers.append({
-                        "config": config,
-                        "error": "Disabled in config",
-                        "name": server_name,
-                    })
+                    self.disconnected_servers.append(
+                        {
+                            "config": config,
+                            "error": "Disabled in config",
+                            "name": server_name,
+                        }
+                    )
                     continue
-                    
+
                 try:
                     if config.get("url") or config.get("serverUrl"):
                         self.servers.append(MCPServerRemote(config))
@@ -261,11 +287,9 @@ class MCPConfig(BaseModel):
                         self.servers.append(MCPServerLocal(config))
                 except Exception as e:
                     server_name = normalize_name(config.get("name", "unnamed_server"))
-                    self.disconnected_servers.append({
-                        "config": config,
-                        "error": str(e),
-                        "name": server_name
-                    })
+                    self.disconnected_servers.append(
+                        {"config": config, "error": str(e), "name": server_name}
+                    )
 
     def get_servers_status(self) -> list[dict[str, Any]]:
         """Get status of all servers"""
@@ -279,23 +303,27 @@ class MCPConfig(BaseModel):
                 error = server.get_error()
                 has_log = server.get_log() != ""
 
-                result.append({
-                    "name": name,
-                    "connected": connected,
-                    "error": error,
-                    "tool_count": tool_count,
-                    "has_log": has_log,
-                })
+                result.append(
+                    {
+                        "name": name,
+                        "connected": connected,
+                        "error": error,
+                        "tool_count": tool_count,
+                        "has_log": has_log,
+                    }
+                )
 
             # add failed servers
             for disconnected in self.disconnected_servers:
-                result.append({
-                    "name": disconnected["name"],
-                    "connected": False,
-                    "error": disconnected["error"],
-                    "tool_count": 0,
-                    "has_log": False,
-                })
+                result.append(
+                    {
+                        "name": disconnected["name"],
+                        "connected": False,
+                        "error": disconnected["error"],
+                        "tool_count": 0,
+                        "has_log": False,
+                    }
+                )
 
         return result
 
@@ -337,14 +365,16 @@ class MCPConfig(BaseModel):
                         f"{tool['description']}\n\n"
                     )
 
-                    input_schema = json.dumps(tool["input_schema"]) if tool["input_schema"] else ""
+                    input_schema = (
+                        json.dumps(tool["input_schema"]) if tool["input_schema"] else ""
+                    )
                     prompt += f"#### Input schema for tool_args:\n{input_schema}\n\n"
 
                     prompt += (
                         f"#### Usage:\n"
                         f"{{\n"
                         f'    "thoughts": ["..."],\n'
-                        f"    \"tool_name\": \"{server_name}.{tool['name']}\",\n"
+                        f'    "tool_name": "{server_name}.{tool["name"]}",\n'
                         f'    "tool_args": !follow schema above\n'
                         f"}}\n"
                     )
@@ -362,7 +392,9 @@ class MCPConfig(BaseModel):
                     return server.has_tool(tool_name_part)
             return False
 
-    async def call_tool(self, tool_name: str, input_data: dict[str, Any]) -> CallToolResult:
+    async def call_tool(
+        self, tool_name: str, input_data: dict[str, Any]
+    ) -> CallToolResult:
         """Call a tool with the given input data"""
         if "." not in tool_name:
             raise ValueError(f"Tool {tool_name} not found")
@@ -376,7 +408,7 @@ class MCPConfig(BaseModel):
 
 class MCPClientBase(ABC):
     """Base class for MCP clients"""
-    
+
     __lock: ClassVar[threading.Lock] = threading.Lock()
 
     def __init__(self, server: Union[MCPServerLocal, MCPServerRemote]):
@@ -387,7 +419,9 @@ class MCPClientBase(ABC):
         self.log_file: Optional[TextIO] = None
 
     @abstractmethod
-    async def _create_stdio_transport(self, current_exit_stack: AsyncExitStack) -> tuple[
+    async def _create_stdio_transport(
+        self, current_exit_stack: AsyncExitStack
+    ) -> tuple[
         MemoryObjectReceiveStream[SessionMessage | Exception],
         MemoryObjectSendStream[SessionMessage],
     ]:
@@ -418,6 +452,7 @@ class MCPClientBase(ABC):
 
     async def update_tools(self) -> "MCPClientBase":
         """Update the tools list from the server"""
+
         async def list_tools_op(current_session: ClientSession):
             response: ListToolsResult = await current_session.list_tools()
             with self.__lock:
@@ -451,12 +486,16 @@ class MCPClientBase(ABC):
         with self.__lock:
             return self.tools
 
-    async def call_tool(self, tool_name: str, input_data: dict[str, Any]) -> CallToolResult:
+    async def call_tool(
+        self, tool_name: str, input_data: dict[str, Any]
+    ) -> CallToolResult:
         """Call a tool on the server"""
         if not self.has_tool(tool_name):
             await self.update_tools()
             if not self.has_tool(tool_name):
-                raise ValueError(f"Tool {tool_name} not found after refreshing tool list.")
+                raise ValueError(
+                    f"Tool {tool_name} not found after refreshing tool list."
+                )
 
         async def call_tool_op(current_session: ClientSession):
             response: CallToolResult = await current_session.call_tool(
@@ -487,14 +526,16 @@ class MCPClientBase(ABC):
 
 class MCPClientLocal(MCPClientBase):
     """Local stdio MCP client"""
-    
+
     def __del__(self):
         if hasattr(self, "log_file") and self.log_file is not None:
             with suppress(Exception):
                 self.log_file.close()
             self.log_file = None
 
-    async def _create_stdio_transport(self, current_exit_stack: AsyncExitStack) -> tuple[
+    async def _create_stdio_transport(
+        self, current_exit_stack: AsyncExitStack
+    ) -> tuple[
         MemoryObjectReceiveStream[SessionMessage | Exception],
         MemoryObjectSendStream[SessionMessage],
     ]:
@@ -513,8 +554,9 @@ class MCPClientLocal(MCPClientBase):
             encoding=server.encoding,
             encoding_error_handler=server.encoding_error_handler,
         )
-        
+
         import tempfile
+
         if not hasattr(self, "log_file") or self.log_file is None:
             self.log_file = tempfile.TemporaryFile(mode="w+", encoding="utf-8")
 
@@ -526,8 +568,10 @@ class MCPClientLocal(MCPClientBase):
 
 class MCPClientRemote(MCPClientBase):
     """Remote SSE MCP client"""
-    
-    async def _create_stdio_transport(self, current_exit_stack: AsyncExitStack) -> tuple[
+
+    async def _create_stdio_transport(
+        self, current_exit_stack: AsyncExitStack
+    ) -> tuple[
         MemoryObjectReceiveStream[SessionMessage | Exception],
         MemoryObjectSendStream[SessionMessage],
     ]:

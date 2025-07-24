@@ -59,7 +59,9 @@ def initialize_agent():
     )
     # browser model from user settings
     browser_llm = ModelConfig(
-        provider=models.ModelProvider[current_settings["browser_model_provider"].upper()],
+        provider=models.ModelProvider[
+            current_settings["browser_model_provider"].upper()
+        ],
         name=current_settings["browser_model_name"],
         vision=current_settings["browser_model_vision"],
         kwargs=current_settings["browser_model_kwargs"],
@@ -86,7 +88,9 @@ def initialize_agent():
         except (ValueError, RuntimeError) as e:
             error_msg = f"Failed to update MCP settings: {e}"
             # Log warning (context not available during initialization)
-            PrintStyle(background_color="black", font_color="red", padding=True).print(error_msg)
+            PrintStyle(background_color="black", font_color="red", padding=True).print(
+                error_msg
+            )
             logger.warning("Failed to update MCP settings", exc_info=e)
 
     # return config object

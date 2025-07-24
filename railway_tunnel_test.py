@@ -7,11 +7,9 @@ using the railway proxy command. This is an alternative approach when direct
 connections aren't working.
 """
 
-import os
 import socket
 import subprocess
 import sys
-import threading
 import time
 
 import psycopg2
@@ -24,6 +22,7 @@ def check_command_exists(command):
         return True
     except subprocess.CalledProcessError:
         return False
+
 
 def start_railway_tunnel(port=6432):
     """Start a Railway SSH tunnel on the specified port."""
@@ -65,10 +64,11 @@ def start_railway_tunnel(port=6432):
         process.terminate()
         return False
 
+
 def test_tunneled_connection(port=6432):
     """Test connection to PostgreSQL via the Railway tunnel."""
     connection_string = f"postgresql://postgres:SrtjmSLiWGHrUVQnGogqodYpNUQqzjsn@localhost:{port}/railway"
-    print(f"🔍 Testing PostgreSQL connection via tunnel")
+    print("🔍 Testing PostgreSQL connection via tunnel")
     print(f"Connection string: {connection_string}")
 
     try:
@@ -91,6 +91,7 @@ def test_tunneled_connection(port=6432):
         print(f"❌ Connection failed: {e}")
         return False
 
+
 def main():
     """Main function."""
     print("🚀 Railway PostgreSQL SSH Tunnel Test")
@@ -109,11 +110,15 @@ def main():
 
         if success:
             print("\n✅ Successfully connected to PostgreSQL via Railway tunnel!")
-            print("==> This confirms your database is working but has connectivity issues")
+            print(
+                "==> This confirms your database is working but has connectivity issues"
+            )
             print("==> Use the 'railway tunnel' approach for your application")
         else:
             print("\n❌ Failed to connect to PostgreSQL via Railway tunnel")
-            print("==> This indicates issues with your database credentials or configuration")
+            print(
+                "==> This indicates issues with your database credentials or configuration"
+            )
     finally:
         # Clean up the tunnel process
         if tunnel_process:
@@ -121,6 +126,7 @@ def main():
             tunnel_process.terminate()
             tunnel_process.wait()
             print("✅ Railway tunnel stopped")
+
 
 if __name__ == "__main__":
     main()

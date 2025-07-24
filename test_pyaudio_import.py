@@ -16,11 +16,12 @@ class TestPyAudioImport(unittest.TestCase):
         """Test that pyaudio can be imported without errors."""
         try:
             import pyaudio
+
             self.assertTrue(True, "pyaudio imported successfully")
             print("✅ pyaudio imported successfully")
 
             # Test basic functionality - get version if available
-            if hasattr(pyaudio, '__version__'):
+            if hasattr(pyaudio, "__version__"):
                 print(f"✅ pyaudio version: {pyaudio.__version__}")
 
             # Test that PyAudio class can be instantiated (without actually initializing audio)
@@ -40,16 +41,18 @@ class TestPyAudioImport(unittest.TestCase):
 
             # Test that common constants are available
             constants_to_test = [
-                'paFloat32',
-                'paInt16',
-                'paInt32',
-                'paContinue',
-                'paComplete'
+                "paFloat32",
+                "paInt16",
+                "paInt32",
+                "paContinue",
+                "paComplete",
             ]
 
             for constant in constants_to_test:
-                self.assertTrue(hasattr(pyaudio, constant),
-                              f"pyaudio.{constant} should be available")
+                self.assertTrue(
+                    hasattr(pyaudio, constant),
+                    f"pyaudio.{constant} should be available",
+                )
 
             print("✅ pyaudio constants are accessible")
 
@@ -68,18 +71,22 @@ class TestPyAudioImport(unittest.TestCase):
             try:
                 p = pyaudio.PyAudio()
                 device_count = p.get_device_count()
-                print(f"✅ Audio device detection successful. Found {device_count} devices")
+                print(
+                    f"✅ Audio device detection successful. Found {device_count} devices"
+                )
                 p.terminate()
             except Exception as audio_error:
                 # This is expected in container environments without audio hardware
-                print(f"⚠️  Audio hardware not available (expected in containers): {audio_error}")
+                print(
+                    f"⚠️  Audio hardware not available (expected in containers): {audio_error}"
+                )
                 # This should not be a test failure - it's expected behavior
 
         except ImportError as e:
             self.fail(f"Failed to import pyaudio for device detection test: {e}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("🔧 Testing pyaudio import and basic functionality...")
     print("=" * 50)
 

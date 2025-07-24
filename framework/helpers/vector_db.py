@@ -20,7 +20,11 @@ class MyFaiss(FAISS):
     # override aget_by_ids
     def get_by_ids(self, ids: Sequence[str], /) -> list[Document]:
         # return all self.docstore._dict[id] in ids
-        return [self.docstore._dict[id] for id in (ids if isinstance(ids, list) else [ids]) if id in self.docstore._dict]  # type: ignore
+        return [
+            self.docstore._dict[id]
+            for id in (ids if isinstance(ids, list) else [ids])
+            if id in self.docstore._dict
+        ]  # type: ignore
 
     async def aget_by_ids(self, ids: Sequence[str], /) -> list[Document]:
         return self.get_by_ids(ids)
@@ -60,7 +64,9 @@ class VectorDB:
         comparator = get_comparator(filter) if filter else None
 
         # rate limiter
-        await self.agent.rate_limiter(model_config=self.agent.config.embeddings_model, input=query)
+        await self.agent.rate_limiter(
+            model_config=self.agent.config.embeddings_model, input=query
+        )
 
         return await self.db.asearch(
             query,
@@ -100,7 +106,9 @@ def format_docs_plain(docs: list[Document]) -> list[str]:
 
 def cosine_normalizer(val: float) -> float:
     res = (1 + val) / 2
-    res = max(0, min(1, res))  # float precision can cause values like 1.0000000596046448
+    res = max(
+        0, min(1, res)
+    )  # float precision can cause values like 1.0000000596046448
     return res
 
 

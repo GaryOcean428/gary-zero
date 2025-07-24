@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath("."))
 
 from framework.security import (
     ActionDefinition,
@@ -56,16 +56,21 @@ class TestApprovalWorkflow:
             risk_level=RiskLevel.HIGH,
             description="Custom test action",
             required_roles=[UserRole.OWNER],
-            approval_policy=ApprovalPolicy.ALWAYS_ASK
+            approval_policy=ApprovalPolicy.ALWAYS_ASK,
         )
 
         self.workflow.register_action(custom_action)
         assert "custom_action" in self.workflow.action_definitions
-        assert self.workflow.action_definitions["custom_action"].risk_level == RiskLevel.HIGH
+        assert (
+            self.workflow.action_definitions["custom_action"].risk_level
+            == RiskLevel.HIGH
+        )
 
     def test_action_configuration(self):
         """Test configuring existing action types."""
-        original_timeout = self.workflow.action_definitions["file_write"].timeout_seconds
+        original_timeout = self.workflow.action_definitions[
+            "file_write"
+        ].timeout_seconds
 
         self.workflow.configure_action("file_write", timeout_seconds=600)
         assert self.workflow.action_definitions["file_write"].timeout_seconds == 600
@@ -77,13 +82,15 @@ class TestApprovalWorkflow:
     @pytest.mark.asyncio
     async def test_never_ask_policy(self):
         """Test NEVER_ASK approval policy."""
-        self.workflow.configure_action("file_write", approval_policy=ApprovalPolicy.NEVER_ASK)
+        self.workflow.configure_action(
+            "file_write", approval_policy=ApprovalPolicy.NEVER_ASK
+        )
 
         approved = await self.workflow.request_approval(
             user_id="user123",
             action_type="file_write",
             action_description="Test file write",
-            parameters={"file": "test.txt"}
+            parameters={"file": "test.txt"},
         )
 
         assert approved is True
@@ -96,7 +103,7 @@ class TestApprovalWorkflow:
             user_id="guest123",
             action_type="shell_command",
             action_description="Test shell command",
-            parameters={"command": "ls"}
+            parameters={"command": "ls"},
         )
 
         assert approved is False
@@ -108,7 +115,7 @@ class TestApprovalWorkflow:
             user_id="user123",
             action_type="unknown_action",
             action_description="Unknown action",
-            parameters={}
+            parameters={},
         )
 
         assert approved is False
@@ -117,7 +124,9 @@ class TestApprovalWorkflow:
     async def test_ask_once_policy_caching(self):
         """Test ASK_ONCE policy with caching."""
         # Configure action for ask_once policy
-        self.workflow.configure_action("file_write", approval_policy=ApprovalPolicy.ASK_ONCE)
+        self.workflow.configure_action(
+            "file_write", approval_policy=ApprovalPolicy.ASK_ONCE
+        )
 
         # First request should use cache miss (but we'll simulate approval)
         cache_key = "user123:file_write"
@@ -128,7 +137,7 @@ class TestApprovalWorkflow:
             user_id="user123",
             action_type="file_write",
             action_description="Cached test",
-            parameters={"file": "test.txt"}
+            parameters={"file": "test.txt"},
         )
 
         assert approved is True
@@ -143,7 +152,7 @@ class TestApprovalWorkflow:
                 action_type="shell_command",
                 action_description="Test command",
                 parameters={"command": "echo test"},
-                timeout_override=5  # Short timeout for test
+                timeout_override=5,  # Short timeout for test
             )
         )
 
@@ -160,9 +169,7 @@ class TestApprovalWorkflow:
 
         # Approve the request
         approved = await self.workflow.approve_request(
-            request.request_id,
-            "approver123",
-            "Test approval"
+            request.request_id, "approver123", "Test approval"
         )
         assert approved is True
 
@@ -184,7 +191,7 @@ class TestApprovalWorkflow:
                 action_type="shell_command",
                 action_description="Test command",
                 parameters={"command": "rm -rf /"},
-                timeout_override=5
+                timeout_override=5,
             )
         )
 
@@ -198,9 +205,7 @@ class TestApprovalWorkflow:
 
         # Reject the request
         rejected = await self.workflow.reject_request(
-            request.request_id,
-            "rejector123",
-            "Dangerous command"
+            request.request_id, "rejector123", "Dangerous command"
         )
         assert rejected is True
 
@@ -218,7 +223,7 @@ class TestApprovalWorkflow:
                 action_type="shell_command",
                 action_description="Timeout test",
                 parameters={"command": "test"},
-                timeout_override=0.1  # Very short timeout
+                timeout_override=0.1,  # Very short timeout
             )
 
     @pytest.mark.asyncio
@@ -231,7 +236,7 @@ class TestApprovalWorkflow:
                 action_type="shell_command",
                 action_description="Cancel test",
                 parameters={"command": "test"},
-                timeout_override=10
+                timeout_override=10,
             )
         )
 
@@ -241,7 +246,9 @@ class TestApprovalWorkflow:
         pending = self.workflow.get_pending_requests()
         request = pending[0]
 
-        cancelled = await self.workflow.cancel_request(request.request_id, "canceller123")
+        cancelled = await self.workflow.cancel_request(
+            request.request_id, "canceller123"
+        )
         assert cancelled is True
 
         # Original task should complete with False
@@ -264,7 +271,7 @@ class TestApprovalWorkflow:
             risk_level=RiskLevel.LOW,
             status=ApprovalStatus.PENDING,
             created_at=time.time() - 1000,
-            expires_at=time.time() - 500  # Already expired
+            expires_at=time.time() - 500,  # Already expired
         )
         self.workflow.pending_requests["expired_123"] = expired_request
 
@@ -274,7 +281,10 @@ class TestApprovalWorkflow:
         # Request should be moved to completed with expired status
         assert "expired_123" not in self.workflow.pending_requests
         assert "expired_123" in self.workflow.completed_requests
-        assert self.workflow.completed_requests["expired_123"].status == ApprovalStatus.EXPIRED
+        assert (
+            self.workflow.completed_requests["expired_123"].status
+            == ApprovalStatus.EXPIRED
+        )
 
     def test_approval_cache_management(self):
         """Test approval cache management."""
@@ -310,7 +320,7 @@ class TestApprovalWorkflow:
             status=ApprovalStatus.APPROVED,
             created_at=time.time() - 100,
             expires_at=time.time() + 100,
-            approved_at=time.time() - 50
+            approved_at=time.time() - 50,
         )
 
         rejected_request = ApprovalRequest(
@@ -322,7 +332,7 @@ class TestApprovalWorkflow:
             risk_level=RiskLevel.HIGH,
             status=ApprovalStatus.REJECTED,
             created_at=time.time() - 100,
-            expires_at=time.time() + 100
+            expires_at=time.time() + 100,
         )
 
         self.workflow.completed_requests["approved_123"] = approved_request
@@ -350,7 +360,7 @@ class TestApprovalWorkflow:
             risk_level=RiskLevel.HIGH,
             status=ApprovalStatus.PENDING,
             created_at=time.time(),
-            expires_at=time.time() + 300
+            expires_at=time.time() + 300,
         )
 
         # Test dict conversion
@@ -376,7 +386,9 @@ class TestApprovalDecorators:
         set_global_approval_workflow(self.workflow)
 
         # Configure test action to auto-approve for testing
-        self.workflow.configure_action("test_action", approval_policy=ApprovalPolicy.NEVER_ASK)
+        self.workflow.configure_action(
+            "test_action", approval_policy=ApprovalPolicy.NEVER_ASK
+        )
 
     @pytest.mark.asyncio
     async def test_require_approval_decorator_async(self):
@@ -403,9 +415,11 @@ class TestApprovalDecorators:
     async def test_decorator_permission_denied(self):
         """Test decorator with permission denied."""
         # Configure action to require approval and set user with insufficient role
-        self.workflow.configure_action("restricted_action",
-                                      approval_policy=ApprovalPolicy.ALWAYS_ASK,
-                                      required_roles=[UserRole.OWNER])
+        self.workflow.configure_action(
+            "restricted_action",
+            approval_policy=ApprovalPolicy.ALWAYS_ASK,
+            required_roles=[UserRole.OWNER],
+        )
 
         @require_approval("restricted_action", RiskLevel.HIGH)
         async def restricted_function(user_id: str):
@@ -454,7 +468,7 @@ async def test_approval_integration_with_audit_logger():
         user_id="user123",
         action_type="file_write",
         action_description="Test file write",
-        parameters={"file": "test.txt"}
+        parameters={"file": "test.txt"},
     )
 
     assert approved is True

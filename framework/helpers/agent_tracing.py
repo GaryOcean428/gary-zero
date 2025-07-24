@@ -23,6 +23,7 @@ from framework.helpers.print_style import PrintStyle
 
 class TraceEventType(Enum):
     """Types of trace events."""
+
     AGENT_START = "agent_start"
     AGENT_END = "agent_end"
     TASK_START = "task_start"
@@ -37,6 +38,7 @@ class TraceEventType(Enum):
 @dataclass
 class TraceEvent:
     """Individual trace event."""
+
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     trace_id: str = ""
     span_id: str = ""
@@ -89,7 +91,7 @@ class GaryZeroTracingProcessor(TracingProcessor):
             span_id=span.span_id,
             event_type=self._map_span_to_event_type(span),
             agent_name=self._extract_agent_name(span),
-            data=self._extract_span_data(span)
+            data=self._extract_span_data(span),
         )
 
         self.trace_events.append(event)
@@ -111,52 +113,56 @@ class GaryZeroTracingProcessor(TracingProcessor):
             data=self._extract_span_data(span),
             duration_ms=duration_ms,
             success=not span.error,
-            error_message=str(span.error) if span.error else None
+            error_message=str(span.error) if span.error else None,
         )
 
         self.trace_events.append(event)
         self._log_event(event)
 
-    def _map_span_to_event_type(self, span: Span, is_end: bool = False) -> TraceEventType:
+    def _map_span_to_event_type(
+        self, span: Span, is_end: bool = False
+    ) -> TraceEventType:
         """Map SDK span to our event types."""
-        span_name = getattr(span, 'name', '').lower()
+        span_name = getattr(span, "name", "").lower()
 
-        if 'agent' in span_name:
+        if "agent" in span_name:
             return TraceEventType.AGENT_END if is_end else TraceEventType.AGENT_START
-        elif 'task' in span_name:
+        elif "task" in span_name:
             return TraceEventType.TASK_END if is_end else TraceEventType.TASK_START
-        elif 'tool' in span_name:
+        elif "tool" in span_name:
             return TraceEventType.TOOL_CALL
-        elif 'llm' in span_name or 'model' in span_name:
+        elif "llm" in span_name or "model" in span_name:
             return TraceEventType.LLM_CALL
-        elif 'handoff' in span_name:
+        elif "handoff" in span_name:
             return TraceEventType.HANDOFF
         else:
             return TraceEventType.AGENT_END if is_end else TraceEventType.AGENT_START
 
     def _extract_agent_name(self, span: Span) -> str:
         """Extract agent name from span."""
-        if hasattr(span, 'data') and span.data:
-            return span.data.get('agent_name', 'unknown')
-        return 'unknown'
+        if hasattr(span, "data") and span.data:
+            return span.data.get("agent_name", "unknown")
+        return "unknown"
 
     def _extract_span_data(self, span: Span) -> dict[str, Any]:
         """Extract relevant data from span."""
         data = {}
 
-        if hasattr(span, 'data') and span.data:
+        if hasattr(span, "data") and span.data:
             # Convert span data to dictionary
-            if hasattr(span.data, '__dict__'):
+            if hasattr(span.data, "__dict__"):
                 data = span.data.__dict__.copy()
             else:
                 data = dict(span.data)
 
         # Add span metadata
-        data.update({
-            'span_name': getattr(span, 'name', ''),
-            'start_time': getattr(span, 'start_time', None),
-            'end_time': getattr(span, 'end_time', None)
-        })
+        data.update(
+            {
+                "span_name": getattr(span, "name", ""),
+                "start_time": getattr(span, "start_time", None),
+                "end_time": getattr(span, "end_time", None),
+            }
+        )
 
         return data
 
@@ -173,8 +179,8 @@ class GaryZeroTracingProcessor(TracingProcessor):
                     "span_id": event.span_id,
                     "duration_ms": event.duration_ms,
                     "success": event.success,
-                    "data": event.data
-                }
+                    "data": event.data,
+                },
             )
 
         # Also log to console with color coding
@@ -195,12 +201,13 @@ class GaryZeroTracingProcessor(TracingProcessor):
             TraceEventType.LLM_CALL: "purple",
             TraceEventType.HANDOFF: "orange",
             TraceEventType.ERROR: "red",
-            TraceEventType.GUARDRAIL_VIOLATION: "red"
+            TraceEventType.GUARDRAIL_VIOLATION: "red",
         }
         return colors.get(event_type, "white")
 
-    def get_trace_events(self, trace_id: str | None = None,
-                        limit: int = 100) -> list[TraceEvent]:
+    def get_trace_events(
+        self, trace_id: str | None = None, limit: int = 100
+    ) -> list[TraceEvent]:
         """Get trace events, optionally filtered by trace ID."""
         events = self.trace_events
 
@@ -231,7 +238,7 @@ class AgentTracer:
             "task_id": task_id,
             "start_time": datetime.now(UTC),
             "events": [],
-            "metadata": {}
+            "metadata": {},
         }
 
         self.active_traces[trace_id] = trace_data
@@ -242,7 +249,7 @@ class AgentTracer:
             event_type=TraceEventType.AGENT_START,
             agent_name=agent_name,
             task_id=task_id,
-            data={"operation": "agent_start"}
+            data={"operation": "agent_start"},
         )
 
         trace_data["events"].append(event)
@@ -250,8 +257,13 @@ class AgentTracer:
 
         return trace_id
 
-    def end_agent_trace(self, trace_id: str, success: bool = True,
-                       result: str | None = None, error: str | None = None):
+    def end_agent_trace(
+        self,
+        trace_id: str,
+        success: bool = True,
+        result: str | None = None,
+        error: str | None = None,
+    ):
         """End tracing for an agent operation."""
         if trace_id not in self.active_traces:
             return
@@ -271,8 +283,8 @@ class AgentTracer:
             data={
                 "operation": "agent_end",
                 "result": result,
-                "total_events": len(trace_data["events"])
-            }
+                "total_events": len(trace_data["events"]),
+            },
         )
 
         trace_data["events"].append(event)
@@ -285,8 +297,9 @@ class AgentTracer:
         # Move to completed traces
         del self.active_traces[trace_id]
 
-    def add_trace_event(self, trace_id: str, event_type: TraceEventType,
-                       data: dict[str, Any]):
+    def add_trace_event(
+        self, trace_id: str, event_type: TraceEventType, data: dict[str, Any]
+    ):
         """Add a custom trace event."""
         if trace_id not in self.active_traces:
             return
@@ -298,7 +311,7 @@ class AgentTracer:
             event_type=event_type,
             agent_name=trace_data["agent_name"],
             task_id=trace_data["task_id"],
-            data=data
+            data=data,
         )
 
         trace_data["events"].append(event)
@@ -315,8 +328,8 @@ class AgentTracer:
                     "trace_id": event.trace_id,
                     "task_id": event.task_id,
                     "timestamp": event.timestamp.isoformat(),
-                    "data": event.data
-                }
+                    "data": event.data,
+                },
             )
 
     def get_trace_summary(self, trace_id: str) -> dict[str, Any] | None:
@@ -331,7 +344,9 @@ class AgentTracer:
                 "task_id": trace_data["task_id"],
                 "start_time": trace_data["start_time"].isoformat(),
                 "event_count": len(trace_data["events"]),
-                "latest_event": trace_data["events"][-1].event_type.value if trace_data["events"] else None
+                "latest_event": trace_data["events"][-1].event_type.value
+                if trace_data["events"]
+                else None,
             }
 
         # Check completed traces from processor
@@ -345,7 +360,7 @@ class AgentTracer:
                 "first_event": events[0].timestamp.isoformat(),
                 "last_event": events[-1].timestamp.isoformat(),
                 "duration_ms": events[-1].duration_ms,
-                "success": events[-1].success
+                "success": events[-1].success,
             }
 
         return None
@@ -353,8 +368,7 @@ class AgentTracer:
     def get_all_active_traces(self) -> list[dict[str, Any]]:
         """Get summaries of all active traces."""
         return [
-            self.get_trace_summary(trace_id)
-            for trace_id in self.active_traces.keys()
+            self.get_trace_summary(trace_id) for trace_id in self.active_traces.keys()
         ]
 
 
@@ -368,7 +382,7 @@ class PerformanceMonitor:
             "successful_operations": 0,
             "average_duration_ms": 0.0,
             "agent_statistics": {},
-            "error_rate": 0.0
+            "error_rate": 0.0,
         }
 
     def update_metrics(self, trace_events: list[TraceEvent]):
@@ -377,7 +391,9 @@ class PerformanceMonitor:
             return
 
         # Count operations
-        agent_operations = [e for e in trace_events if e.event_type == TraceEventType.AGENT_END]
+        agent_operations = [
+            e for e in trace_events if e.event_type == TraceEventType.AGENT_END
+        ]
 
         self.metrics["total_operations"] += len(agent_operations)
         successful_ops = len([e for e in agent_operations if e.success])
@@ -385,10 +401,14 @@ class PerformanceMonitor:
 
         # Calculate success rate
         if self.metrics["total_operations"] > 0:
-            self.metrics["error_rate"] = 1.0 - (self.metrics["successful_operations"] / self.metrics["total_operations"])
+            self.metrics["error_rate"] = 1.0 - (
+                self.metrics["successful_operations"] / self.metrics["total_operations"]
+            )
 
         # Calculate average duration
-        durations = [e.duration_ms for e in agent_operations if e.duration_ms is not None]
+        durations = [
+            e.duration_ms for e in agent_operations if e.duration_ms is not None
+        ]
         if durations:
             avg_duration = sum(durations) / len(durations)
             # Moving average
@@ -403,7 +423,7 @@ class PerformanceMonitor:
                 self.metrics["agent_statistics"][agent_name] = {
                     "operations": 0,
                     "successes": 0,
-                    "average_duration_ms": 0.0
+                    "average_duration_ms": 0.0,
                 }
 
             stats = self.metrics["agent_statistics"][agent_name]
@@ -439,11 +459,14 @@ class LoggingIntegration:
 
     def _start_metrics_updates(self):
         """Start periodic metrics updates."""
+
         async def update_metrics_periodically():
             while True:
                 try:
                     await asyncio.sleep(30)  # Update every 30 seconds
-                    recent_events = self.tracer.tracing_processor.get_trace_events(limit=100)
+                    recent_events = self.tracer.tracing_processor.get_trace_events(
+                        limit=100
+                    )
                     self.performance_monitor.update_metrics(recent_events)
                 except Exception as e:
                     PrintStyle(font_color="red", padding=True).print(
@@ -452,8 +475,9 @@ class LoggingIntegration:
 
         self._metrics_update_task = asyncio.create_task(update_metrics_periodically())
 
-    def log_agent_operation(self, agent_name: str, operation: str,
-                           data: dict[str, Any]) -> str:
+    def log_agent_operation(
+        self, agent_name: str, operation: str, data: dict[str, Any]
+    ) -> str:
         """Log an agent operation and return trace ID."""
         trace_id = self.tracer.start_agent_trace(agent_name, data.get("task_id"))
 
@@ -461,17 +485,14 @@ class LoggingIntegration:
             type="agent_operation",
             heading=f"Agent Operation: {operation}",
             content=f"Agent: {agent_name}",
-            kvps={
-                "trace_id": trace_id,
-                "operation": operation,
-                "data": data
-            }
+            kvps={"trace_id": trace_id, "operation": operation, "data": data},
         )
 
         return trace_id
 
-    def log_tool_execution(self, trace_id: str, tool_name: str,
-                          args: dict[str, Any], result: Any):
+    def log_tool_execution(
+        self, trace_id: str, tool_name: str, args: dict[str, Any], result: Any
+    ):
         """Log tool execution within a trace."""
         self.tracer.add_trace_event(
             trace_id,
@@ -479,32 +500,25 @@ class LoggingIntegration:
             {
                 "tool_name": tool_name,
                 "args": args,
-                "result": str(result)[:500]  # Truncate long results
-            }
+                "result": str(result)[:500],  # Truncate long results
+            },
         )
 
         self.gary_logger.log(
             type="tool_execution",
             heading=f"Tool: {tool_name}",
             content=f"Trace: {trace_id[:8]}",
-            kvps={
-                "tool_name": tool_name,
-                "args": args,
-                "trace_id": trace_id
-            }
+            kvps={"tool_name": tool_name, "args": args, "trace_id": trace_id},
         )
 
-    def log_handoff(self, trace_id: str, from_agent: str, to_agent: str,
-                   context: dict[str, Any]):
+    def log_handoff(
+        self, trace_id: str, from_agent: str, to_agent: str, context: dict[str, Any]
+    ):
         """Log agent handoff within a trace."""
         self.tracer.add_trace_event(
             trace_id,
             TraceEventType.HANDOFF,
-            {
-                "from_agent": from_agent,
-                "to_agent": to_agent,
-                "context": context
-            }
+            {"from_agent": from_agent, "to_agent": to_agent, "context": context},
         )
 
         self.gary_logger.log(
@@ -515,8 +529,8 @@ class LoggingIntegration:
                 "from_agent": from_agent,
                 "to_agent": to_agent,
                 "context": context,
-                "trace_id": trace_id
-            }
+                "trace_id": trace_id,
+            },
         )
 
     def get_tracing_status(self) -> dict[str, Any]:
@@ -525,7 +539,7 @@ class LoggingIntegration:
             "active_traces": len(self.tracer.active_traces),
             "total_events": len(self.tracer.tracing_processor.trace_events),
             "performance_metrics": self.performance_monitor.get_metrics(),
-            "logging_enabled": True
+            "logging_enabled": True,
         }
 
     def cleanup(self):

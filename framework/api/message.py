@@ -61,13 +61,15 @@ class Message(ApiHandler):
 
         # Prepare attachment filenames for logging
         attachment_filenames = (
-            [os.path.basename(path) for path in attachment_paths] if attachment_paths else []
+            [os.path.basename(path) for path in attachment_paths]
+            if attachment_paths
+            else []
         )
 
         # Print to console and log
-        PrintStyle(background_color="#6C3483", font_color="white", bold=True, padding=True).print(
-            "User message:"
-        )
+        PrintStyle(
+            background_color="#6C3483", font_color="white", bold=True, padding=True
+        ).print("User message:")
         PrintStyle(font_color="white", padding=False).print(f"> {message}")
         if attachment_filenames:
             PrintStyle(font_color="white", padding=False).print("Attachments:")

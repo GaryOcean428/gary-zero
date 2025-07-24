@@ -4,7 +4,6 @@ from framework.helpers.mcp_handler import MCPConfig
 
 class McpServerGetLog(ApiHandler):
     async def process(self, input: Input, request: Request) -> Output:
-
         # try:
         server_name = input.get("server_name")
         if not server_name:

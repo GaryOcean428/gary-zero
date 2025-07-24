@@ -19,7 +19,12 @@ from framework.logging.hooks import log_tool_execution
 from framework.logging.storage import SqliteStorage
 
 # Import our new components
-from framework.logging.unified_logger import EventType, LogEvent, LogLevel, get_unified_logger
+from framework.logging.unified_logger import (
+    EventType,
+    LogEvent,
+    LogLevel,
+    get_unified_logger,
+)
 
 
 class DummyTestExecutor(TestExecutor):
@@ -42,7 +47,7 @@ class DummyTestExecutor(TestExecutor):
             score=0.85,  # Dummy score
             scores={"accuracy": 0.9, "completeness": 0.8},
             output_data={"generated": "dummy output"},
-            configuration=config
+            configuration=config,
         )
 
         return result
@@ -61,7 +66,7 @@ async def test_unified_logger():
         success=True,
         duration_ms=150.5,
         user_id="test_user",
-        agent_id="test_agent"
+        agent_id="test_agent",
     )
 
     print(f"✅ Logged tool execution event: {event_id}")
@@ -110,7 +115,7 @@ async def test_storage():
         level=LogLevel.INFO,
         message="Test storage event",
         agent_id="test_agent",
-        metadata={"test": True}
+        metadata={"test": True},
     )
 
     await storage.store_event(event)
@@ -148,11 +153,9 @@ async def test_benchmarking():
     print("✅ Registered dummy executor")
 
     # Register configuration
-    harness.register_configuration("test_config", {
-        "model": "test-model",
-        "temperature": 0.7,
-        "max_tokens": 1000
-    })
+    harness.register_configuration(
+        "test_config", {"model": "test-model", "temperature": 0.7, "max_tokens": 1000}
+    )
     print("✅ Registered test configuration")
 
     # Run a single test
@@ -160,9 +163,11 @@ async def test_benchmarking():
         result = await harness.run_single_test(
             task_id=summarization_tasks[0].task_id,
             executor_name="dummy",
-            config_name="test_config"
+            config_name="test_config",
         )
-        print(f"✅ Test completed with status: {result.status.value}, score: {result.score}")
+        print(
+            f"✅ Test completed with status: {result.status.value}, score: {result.score}"
+        )
 
     # Get statistics
     stats = harness.get_statistics()
@@ -178,6 +183,7 @@ async def test_api_integration():
     # Test that we can import the API module
     try:
         from framework.api.monitoring import router
+
         print("✅ API module imported successfully")
 
         # Check that routes are defined

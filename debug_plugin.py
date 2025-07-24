@@ -31,7 +31,7 @@ async def debug_plugin():
             name="simple_test",
             method=None,
             args={"action": "info"},
-            message="test"
+            message="test",
         )
 
         print(f"Tool instance: {tool}")
@@ -48,6 +48,7 @@ async def debug_plugin():
         except Exception as e:
             print(f"Execute error: {e}")
             import traceback
+
             traceback.print_exc()
 
 

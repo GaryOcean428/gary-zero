@@ -13,6 +13,7 @@ from typing import Any
 
 class AuditEventType(Enum):
     """Types of audit events."""
+
     USER_INPUT = "user_input"
     TOOL_EXECUTION = "tool_execution"
     CONFIG_CHANGE = "config_change"
@@ -28,6 +29,7 @@ class AuditEventType(Enum):
 
 class AuditLevel(Enum):
     """Audit event severity levels."""
+
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
@@ -37,6 +39,7 @@ class AuditLevel(Enum):
 @dataclass
 class AuditEvent:
     """Audit event data structure."""
+
     event_type: AuditEventType
     level: AuditLevel
     message: str
@@ -55,9 +58,9 @@ class AuditEvent:
     def to_dict(self) -> dict[str, Any]:
         """Convert audit event to dictionary."""
         data = asdict(self)
-        data['event_type'] = self.event_type.value
-        data['level'] = self.level.value
-        data['timestamp_iso'] = datetime.fromtimestamp(
+        data["event_type"] = self.event_type.value
+        data["level"] = self.level.value
+        data["timestamp_iso"] = datetime.fromtimestamp(
             self.timestamp, tz=UTC
         ).isoformat()
         return data
@@ -82,7 +85,7 @@ class AuditLogger:
 
         # Create formatter for structured logs
         formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
 
         # Console handler
@@ -118,8 +121,9 @@ class AuditLogger:
         elif event.level == AuditLevel.CRITICAL:
             self.logger.critical(log_message, extra=log_data)
 
-    async def log_user_input(self, user_id: str, content: str,
-                           content_type: str = "text", **kwargs) -> None:
+    async def log_user_input(
+        self, user_id: str, content: str, content_type: str = "text", **kwargs
+    ) -> None:
         """Log user input event."""
         event = AuditEvent(
             event_type=AuditEventType.USER_INPUT,
@@ -130,15 +134,23 @@ class AuditLogger:
             input_data={
                 "content_length": len(content),
                 "content_type": content_type,
-                "content_preview": content[:100] + "..." if len(content) > 100 else content
+                "content_preview": content[:100] + "..."
+                if len(content) > 100
+                else content,
             },
-            **kwargs
+            **kwargs,
         )
         await self.log_event(event)
 
-    async def log_tool_execution(self, user_id: str, tool_name: str,
-                               parameters: dict[str, Any], success: bool,
-                               execution_time: float, **kwargs) -> None:
+    async def log_tool_execution(
+        self,
+        user_id: str,
+        tool_name: str,
+        parameters: dict[str, Any],
+        success: bool,
+        execution_time: float,
+        **kwargs,
+    ) -> None:
         """Log tool execution event."""
         level = AuditLevel.INFO if success else AuditLevel.WARNING
         message = f"Tool execution {'completed' if success else 'failed'}: {tool_name}"
@@ -153,14 +165,15 @@ class AuditLogger:
             input_data={
                 "parameters": parameters,
                 "execution_time": execution_time,
-                "success": success
+                "success": success,
             },
-            **kwargs
+            **kwargs,
         )
         await self.log_event(event)
 
-    async def log_config_change(self, user_id: str, key: str, old_value: Any,
-                              new_value: Any, **kwargs) -> None:
+    async def log_config_change(
+        self, user_id: str, key: str, old_value: Any, new_value: Any, **kwargs
+    ) -> None:
         """Log configuration change event."""
         event = AuditEvent(
             event_type=AuditEventType.CONFIG_CHANGE,
@@ -173,12 +186,17 @@ class AuditLogger:
                 "old_value": str(old_value)[:200],  # Truncate for security
                 "new_value": str(new_value)[:200],
             },
-            **kwargs
+            **kwargs,
         )
         await self.log_event(event)
 
-    async def log_security_violation(self, event_details: str, severity: AuditLevel,
-                                   user_id: str | None = None, **kwargs) -> None:
+    async def log_security_violation(
+        self,
+        event_details: str,
+        severity: AuditLevel,
+        user_id: str | None = None,
+        **kwargs,
+    ) -> None:
         """Log security violation event."""
         event = AuditEvent(
             event_type=AuditEventType.SECURITY_VIOLATION,
@@ -186,12 +204,13 @@ class AuditLogger:
             message=f"Security violation: {event_details}",
             timestamp=time.time(),
             user_id=user_id,
-            **kwargs
+            **kwargs,
         )
         await self.log_event(event)
 
-    async def log_rate_limit(self, endpoint: str, identifier: str,
-                           limit_type: str, **kwargs) -> None:
+    async def log_rate_limit(
+        self, endpoint: str, identifier: str, limit_type: str, **kwargs
+    ) -> None:
         """Log rate limit exceeded event."""
         event = AuditEvent(
             event_type=AuditEventType.RATE_LIMIT,
@@ -199,16 +218,14 @@ class AuditLogger:
             message=f"Rate limit exceeded: {endpoint}",
             timestamp=time.time(),
             endpoint=endpoint,
-            input_data={
-                "identifier": identifier,
-                "limit_type": limit_type
-            },
-            **kwargs
+            input_data={"identifier": identifier, "limit_type": limit_type},
+            **kwargs,
         )
         await self.log_event(event)
 
-    async def log_authentication(self, user_id: str, success: bool,
-                               method: str, **kwargs) -> None:
+    async def log_authentication(
+        self, user_id: str, success: bool, method: str, **kwargs
+    ) -> None:
         """Log authentication event."""
         level = AuditLevel.INFO if success else AuditLevel.WARNING
         message = f"Authentication {'successful' if success else 'failed'}: {method}"
@@ -219,16 +236,14 @@ class AuditLogger:
             message=message,
             timestamp=time.time(),
             user_id=user_id,
-            input_data={
-                "method": method,
-                "success": success
-            },
-            **kwargs
+            input_data={"method": method, "success": success},
+            **kwargs,
         )
         await self.log_event(event)
 
-    async def log_error(self, error_message: str, error_type: str,
-                       user_id: str | None = None, **kwargs) -> None:
+    async def log_error(
+        self, error_message: str, error_type: str, user_id: str | None = None, **kwargs
+    ) -> None:
         """Log error event."""
         event = AuditEvent(
             event_type=AuditEventType.ERROR,
@@ -237,12 +252,13 @@ class AuditLogger:
             timestamp=time.time(),
             user_id=user_id,
             error_details=error_message,
-            **kwargs
+            **kwargs,
         )
         await self.log_event(event)
 
-    async def log_approval_request(self, user_id: str, action_type: str,
-                                 risk_level: str, request_id: str, **kwargs) -> None:
+    async def log_approval_request(
+        self, user_id: str, action_type: str, risk_level: str, request_id: str, **kwargs
+    ) -> None:
         """Log approval request event."""
         event = AuditEvent(
             event_type=AuditEventType.APPROVAL_REQUEST,
@@ -253,15 +269,22 @@ class AuditLogger:
             input_data={
                 "action_type": action_type,
                 "risk_level": risk_level,
-                "request_id": request_id
+                "request_id": request_id,
             },
-            **kwargs
+            **kwargs,
         )
         await self.log_event(event)
 
-    async def log_approval_decision(self, user_id: str, action_type: str,
-                                  approved: bool, approver_id: str,
-                                  request_id: str, reason: str | None = None, **kwargs) -> None:
+    async def log_approval_decision(
+        self,
+        user_id: str,
+        action_type: str,
+        approved: bool,
+        approver_id: str,
+        request_id: str,
+        reason: str | None = None,
+        **kwargs,
+    ) -> None:
         """Log approval decision event."""
         level = AuditLevel.INFO if approved else AuditLevel.WARNING
         message = f"Action {action_type} {'approved' if approved else 'denied'}"
@@ -277,17 +300,20 @@ class AuditLogger:
                 "approved": approved,
                 "approver_id": approver_id,
                 "request_id": request_id,
-                "reason": reason
+                "reason": reason,
             },
-            **kwargs
+            **kwargs,
         )
         await self.log_event(event)
 
-    async def get_events(self, event_type: AuditEventType | None = None,
-                        user_id: str | None = None,
-                        start_time: float | None = None,
-                        end_time: float | None = None,
-                        limit: int = 100) -> list[AuditEvent]:
+    async def get_events(
+        self,
+        event_type: AuditEventType | None = None,
+        user_id: str | None = None,
+        start_time: float | None = None,
+        end_time: float | None = None,
+        limit: int = 100,
+    ) -> list[AuditEvent]:
         """Retrieve audit events with filtering."""
         async with self.buffer_lock:
             events = list(self.buffer)
@@ -322,44 +348,56 @@ class AuditLogger:
             "errors": 0,
             "events_by_type": {},
             "events_by_level": {},
-            "hours_analyzed": hours
+            "hours_analyzed": hours,
         }
 
         for event in events:
             # Count by type
             event_type = event.event_type.value
-            summary["events_by_type"][event_type] = summary["events_by_type"].get(event_type, 0) + 1
+            summary["events_by_type"][event_type] = (
+                summary["events_by_type"].get(event_type, 0) + 1
+            )
 
             # Count by level
             level = event.level.value
-            summary["events_by_level"][level] = summary["events_by_level"].get(level, 0) + 1
+            summary["events_by_level"][level] = (
+                summary["events_by_level"].get(level, 0) + 1
+            )
 
             # Count specific security events
             if event.event_type == AuditEventType.SECURITY_VIOLATION:
                 summary["security_violations"] += 1
             elif event.event_type == AuditEventType.RATE_LIMIT:
                 summary["rate_limit_exceeded"] += 1
-            elif (event.event_type == AuditEventType.AUTHENTICATION and
-                  event.input_data and not event.input_data.get("success", True)):
+            elif (
+                event.event_type == AuditEventType.AUTHENTICATION
+                and event.input_data
+                and not event.input_data.get("success", True)
+            ):
                 summary["authentication_failures"] += 1
             elif event.event_type == AuditEventType.ERROR:
                 summary["errors"] += 1
 
         return summary
 
-    async def export_events(self, file_path: str,
-                          event_type: AuditEventType | None = None,
-                          start_time: float | None = None,
-                          end_time: float | None = None) -> int:
+    async def export_events(
+        self,
+        file_path: str,
+        event_type: AuditEventType | None = None,
+        start_time: float | None = None,
+        end_time: float | None = None,
+    ) -> int:
         """Export audit events to a file."""
-        events = await self.get_events(event_type, None, start_time, end_time, limit=10000)
+        events = await self.get_events(
+            event_type, None, start_time, end_time, limit=10000
+        )
 
         export_path = Path(file_path)
         export_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(export_path, 'w') as f:
+        with open(export_path, "w") as f:
             for event in events:
-                f.write(event.to_json() + '\n')
+                f.write(event.to_json() + "\n")
 
         return len(events)
 

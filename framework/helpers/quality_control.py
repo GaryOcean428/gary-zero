@@ -14,6 +14,7 @@ from typing import Any
 
 class QualityLevel(Enum):
     """Quality assessment levels."""
+
     EXCELLENT = "excellent"
     GOOD = "good"
     ACCEPTABLE = "acceptable"
@@ -23,6 +24,7 @@ class QualityLevel(Enum):
 
 class ReviewType(Enum):
     """Types of reviews that can be performed."""
+
     CODE_REVIEW = "code_review"
     OUTPUT_VALIDATION = "output_validation"
     TASK_COMPLETION = "task_completion"
@@ -33,6 +35,7 @@ class ReviewType(Enum):
 @dataclass
 class QualityMetric:
     """Individual quality metric assessment."""
+
     name: str
     score: float  # 0.0 to 1.0
     weight: float = 1.0
@@ -43,6 +46,7 @@ class QualityMetric:
 @dataclass
 class QualityAssessment:
     """Complete quality assessment result."""
+
     overall_score: float
     quality_level: QualityLevel
     metrics: list[QualityMetric]
@@ -67,10 +71,12 @@ class QualityController:
             QualityLevel.GOOD: 0.75,
             QualityLevel.ACCEPTABLE: 0.6,
             QualityLevel.POOR: 0.4,
-            QualityLevel.UNACCEPTABLE: 0.0
+            QualityLevel.UNACCEPTABLE: 0.0,
         }
 
-    def assess_code_quality(self, code: str, language: str = "python") -> QualityAssessment:
+    def assess_code_quality(
+        self, code: str, language: str = "python"
+    ) -> QualityAssessment:
         """Assess the quality of code output."""
         metrics = []
 
@@ -105,13 +111,15 @@ class QualityController:
             content_type=f"{language}_code",
             recommendations=recommendations,
             issues=issues,
-            passed_checks=passed_checks
+            passed_checks=passed_checks,
         )
 
         self.assessment_history.append(assessment)
         return assessment
 
-    def assess_response_quality(self, response: str, context: str = "") -> QualityAssessment:
+    def assess_response_quality(
+        self, response: str, context: str = ""
+    ) -> QualityAssessment:
         """Assess the quality of an agent response."""
         metrics = []
 
@@ -151,13 +159,15 @@ class QualityController:
             content_type="text_response",
             recommendations=recommendations,
             issues=issues,
-            passed_checks=passed_checks
+            passed_checks=passed_checks,
         )
 
         self.assessment_history.append(assessment)
         return assessment
 
-    def assess_task_completion(self, task_description: str, result: str) -> QualityAssessment:
+    def assess_task_completion(
+        self, task_description: str, result: str
+    ) -> QualityAssessment:
         """Assess how well a task was completed."""
         metrics = []
 
@@ -193,7 +203,7 @@ class QualityController:
             content_type="task_result",
             recommendations=recommendations,
             issues=issues,
-            passed_checks=passed_checks
+            passed_checks=passed_checks,
         )
 
         self.assessment_history.append(assessment)
@@ -212,40 +222,48 @@ class QualityController:
             syntax_score = 0.0
             syntax_details = {"valid": False, "error": str(e)}
 
-        metrics.append(QualityMetric(
-            name="syntax_validity",
-            score=syntax_score,
-            weight=2.0,
-            description="Code syntax is valid",
-            details=syntax_details
-        ))
+        metrics.append(
+            QualityMetric(
+                name="syntax_validity",
+                score=syntax_score,
+                weight=2.0,
+                description="Code syntax is valid",
+                details=syntax_details,
+            )
+        )
 
         # Code structure and formatting
         structure_score = self._assess_code_structure(code)
-        metrics.append(QualityMetric(
-            name="code_structure",
-            score=structure_score,
-            weight=1.5,
-            description="Code is well-structured and formatted"
-        ))
+        metrics.append(
+            QualityMetric(
+                name="code_structure",
+                score=structure_score,
+                weight=1.5,
+                description="Code is well-structured and formatted",
+            )
+        )
 
         # Documentation and comments
         doc_score = self._assess_code_documentation(code)
-        metrics.append(QualityMetric(
-            name="documentation",
-            score=doc_score,
-            weight=1.0,
-            description="Code includes appropriate documentation"
-        ))
+        metrics.append(
+            QualityMetric(
+                name="documentation",
+                score=doc_score,
+                weight=1.0,
+                description="Code includes appropriate documentation",
+            )
+        )
 
         # Security considerations
         security_score = self._assess_code_security(code)
-        metrics.append(QualityMetric(
-            name="security",
-            score=security_score,
-            weight=1.5,
-            description="Code follows security best practices"
-        ))
+        metrics.append(
+            QualityMetric(
+                name="security",
+                score=security_score,
+                weight=1.5,
+                description="Code follows security best practices",
+            )
+        )
 
         return metrics
 
@@ -255,21 +273,25 @@ class QualityController:
 
         # Basic syntax checks (simplified)
         syntax_score = self._basic_js_syntax_check(code)
-        metrics.append(QualityMetric(
-            name="syntax_validity",
-            score=syntax_score,
-            weight=2.0,
-            description="JavaScript syntax appears valid"
-        ))
+        metrics.append(
+            QualityMetric(
+                name="syntax_validity",
+                score=syntax_score,
+                weight=2.0,
+                description="JavaScript syntax appears valid",
+            )
+        )
 
         # Code structure
         structure_score = self._assess_code_structure(code)
-        metrics.append(QualityMetric(
-            name="code_structure",
-            score=structure_score,
-            weight=1.5,
-            description="Code is well-structured"
-        ))
+        metrics.append(
+            QualityMetric(
+                name="code_structure",
+                score=structure_score,
+                weight=1.5,
+                description="Code is well-structured",
+            )
+        )
 
         return metrics
 
@@ -279,12 +301,14 @@ class QualityController:
 
         # Basic structure assessment
         structure_score = self._assess_code_structure(code)
-        metrics.append(QualityMetric(
-            name="code_structure",
-            score=structure_score,
-            weight=1.0,
-            description="Code appears well-structured"
-        ))
+        metrics.append(
+            QualityMetric(
+                name="code_structure",
+                score=structure_score,
+                weight=1.0,
+                description="Code appears well-structured",
+            )
+        )
 
         return metrics
 
@@ -293,8 +317,10 @@ class QualityController:
         score = 0.5  # Base score
 
         # Check for proper indentation
-        lines = code.split('\n')
-        indented_lines = sum(1 for line in lines if line.startswith(('    ', '\t')) and line.strip())
+        lines = code.split("\n")
+        indented_lines = sum(
+            1 for line in lines if line.startswith(("    ", "\t")) and line.strip()
+        )
         if indented_lines > len(lines) * 0.2:  # At least 20% indented
             score += 0.2
 
@@ -309,7 +335,7 @@ class QualityController:
             score += 0.1
 
         # Check for consistent naming (basic check)
-        if re.search(r'[a-z_][a-z0-9_]*', code):  # Snake_case or camelCase patterns
+        if re.search(r"[a-z_][a-z0-9_]*", code):  # Snake_case or camelCase patterns
             score += 0.1
 
         return min(1.0, score)
@@ -323,8 +349,10 @@ class QualityController:
             score += 0.4
 
         # Check for comments
-        comment_lines = len([line for line in code.split('\n') if line.strip().startswith('#')])
-        total_lines = len([line for line in code.split('\n') if line.strip()])
+        comment_lines = len(
+            [line for line in code.split("\n") if line.strip().startswith("#")]
+        )
+        total_lines = len([line for line in code.split("\n") if line.strip()])
 
         if total_lines > 0:
             comment_ratio = comment_lines / total_lines
@@ -334,7 +362,9 @@ class QualityController:
                 score += 0.2
 
         # Check for function/class definitions with potential docs
-        if re.search(r'def\s+\w+.*:\s*"""', code) or re.search(r'class\s+\w+.*:\s*"""', code):
+        if re.search(r'def\s+\w+.*:\s*"""', code) or re.search(
+            r'class\s+\w+.*:\s*"""', code
+        ):
             score += 0.3
 
         return min(1.0, score)
@@ -345,11 +375,11 @@ class QualityController:
 
         # Check for common security issues
         security_issues = [
-            r'eval\s*\(',  # eval() usage
-            r'exec\s*\(',  # exec() usage
-            r'__import__\s*\(',  # dynamic imports
-            r'os\.system\s*\(',  # os.system() usage
-            r'subprocess\.(call|run|Popen).*shell\s*=\s*True',  # shell=True
+            r"eval\s*\(",  # eval() usage
+            r"exec\s*\(",  # exec() usage
+            r"__import__\s*\(",  # dynamic imports
+            r"os\.system\s*\(",  # os.system() usage
+            r"subprocess\.(call|run|Popen).*shell\s*=\s*True",  # shell=True
         ]
 
         for pattern in security_issues:
@@ -361,9 +391,9 @@ class QualityController:
     def _basic_js_syntax_check(self, code: str) -> float:
         """Basic JavaScript syntax validation."""
         # Very basic checks for common syntax errors
-        balanced_braces = code.count('{') == code.count('}')
-        balanced_parens = code.count('(') == code.count(')')
-        balanced_brackets = code.count('[') == code.count(']')
+        balanced_braces = code.count("{") == code.count("}")
+        balanced_parens = code.count("(") == code.count(")")
+        balanced_brackets = code.count("[") == code.count("]")
 
         checks_passed = sum([balanced_braces, balanced_parens, balanced_brackets])
         return checks_passed / 3.0
@@ -388,7 +418,7 @@ class QualityController:
             score=score,
             weight=0.5,
             description="Response length is appropriate",
-            details={"character_count": length}
+            details={"character_count": length},
         )
 
     def _assess_response_clarity(self, response: str) -> QualityMetric:
@@ -396,25 +426,27 @@ class QualityController:
         score = 0.5  # Base score
 
         # Check for structured content
-        if any(marker in response for marker in ['1.', '2.', '-', '*', '##', '**']):
+        if any(marker in response for marker in ["1.", "2.", "-", "*", "##", "**"]):
             score += 0.2
 
         # Check for reasonable sentence structure
-        sentences = response.split('.')
-        avg_sentence_length = sum(len(s.split()) for s in sentences) / len(sentences) if sentences else 0
+        sentences = response.split(".")
+        avg_sentence_length = (
+            sum(len(s.split()) for s in sentences) / len(sentences) if sentences else 0
+        )
 
         if 5 <= avg_sentence_length <= 25:  # Reasonable sentence length
             score += 0.2
 
         # Check for paragraphs
-        if '\n\n' in response or response.count('\n') > 2:
+        if "\n\n" in response or response.count("\n") > 2:
             score += 0.1
 
         return QualityMetric(
             name="clarity_structure",
             score=min(1.0, score),
             weight=1.0,
-            description="Response is clear and well-structured"
+            description="Response is clear and well-structured",
         )
 
     def _assess_response_relevance(self, response: str, context: str) -> QualityMetric:
@@ -433,7 +465,7 @@ class QualityController:
             name="relevance",
             score=relevance_score,
             weight=1.5,
-            description="Response is relevant to the context"
+            description="Response is relevant to the context",
         )
 
     def _assess_response_helpfulness(self, response: str) -> QualityMetric:
@@ -442,13 +474,13 @@ class QualityController:
 
         # Check for helpful patterns
         helpful_patterns = [
-            r'here\s+(is|are)',
-            r'you\s+can',
-            r'try\s+this',
-            r'example',
-            r'step\s+\d',
-            r'first.*second.*third',
-            r'here\'s\s+how'
+            r"here\s+(is|are)",
+            r"you\s+can",
+            r"try\s+this",
+            r"example",
+            r"step\s+\d",
+            r"first.*second.*third",
+            r"here\'s\s+how",
         ]
 
         for pattern in helpful_patterns:
@@ -459,7 +491,7 @@ class QualityController:
             name="helpfulness",
             score=min(1.0, score),
             weight=1.0,
-            description="Response appears helpful and actionable"
+            description="Response appears helpful and actionable",
         )
 
     def _assess_response_tone(self, response: str) -> QualityMetric:
@@ -468,9 +500,9 @@ class QualityController:
 
         # Check for inappropriate content
         inappropriate_patterns = [
-            r'\b(damn|hell|crap)\b',
-            r'[!]{3,}',  # Multiple exclamation marks
-            r'[A-Z]{5,}',  # ALL CAPS words
+            r"\b(damn|hell|crap)\b",
+            r"[!]{3,}",  # Multiple exclamation marks
+            r"[A-Z]{5,}",  # ALL CAPS words
         ]
 
         for pattern in inappropriate_patterns:
@@ -478,14 +510,16 @@ class QualityController:
                 score -= 0.2
 
         # Check for positive indicators
-        if any(word in response.lower() for word in ['please', 'thank', 'help', 'assist']):
+        if any(
+            word in response.lower() for word in ["please", "thank", "help", "assist"]
+        ):
             score += 0.1
 
         return QualityMetric(
             name="professional_tone",
             score=max(0.0, min(1.0, score)),
             weight=0.8,
-            description="Response maintains professional tone"
+            description="Response maintains professional tone",
         )
 
     def _assess_task_completeness(self, task: str, result: str) -> QualityMetric:
@@ -512,7 +546,7 @@ class QualityController:
             name="task_completeness",
             score=score,
             weight=2.0,
-            description="Task appears to be completely addressed"
+            description="Task appears to be completely addressed",
         )
 
     def _assess_result_accuracy(self, result: str) -> QualityMetric:
@@ -522,15 +556,18 @@ class QualityController:
 
         # Check for uncertainty indicators (good for accuracy)
         uncertainty_patterns = [
-            r'might\s+be',
-            r'could\s+be',
-            r'appears\s+to',
-            r'seems\s+to',
-            r'likely'
+            r"might\s+be",
+            r"could\s+be",
+            r"appears\s+to",
+            r"seems\s+to",
+            r"likely",
         ]
 
-        uncertainty_count = sum(1 for pattern in uncertainty_patterns
-                               if re.search(pattern, result, re.IGNORECASE))
+        uncertainty_count = sum(
+            1
+            for pattern in uncertainty_patterns
+            if re.search(pattern, result, re.IGNORECASE)
+        )
 
         # Some uncertainty is good (shows thoughtfulness)
         if 1 <= uncertainty_count <= 3:
@@ -540,7 +577,7 @@ class QualityController:
             name="result_accuracy",
             score=min(1.0, score),
             weight=1.5,
-            description="Result appears accurate and well-reasoned"
+            description="Result appears accurate and well-reasoned",
         )
 
     def _assess_result_specificity(self, result: str) -> QualityMetric:
@@ -549,11 +586,11 @@ class QualityController:
 
         # Look for specific indicators
         specific_patterns = [
-            r'\d+',  # Numbers
-            r'step\s+\d',  # Step numbers
-            r'line\s+\d',  # Line numbers
-            r'version\s+\d',  # Version numbers
-            r'[a-zA-Z]+\.[a-zA-Z]+',  # File extensions or methods
+            r"\d+",  # Numbers
+            r"step\s+\d",  # Step numbers
+            r"line\s+\d",  # Line numbers
+            r"version\s+\d",  # Version numbers
+            r"[a-zA-Z]+\.[a-zA-Z]+",  # File extensions or methods
         ]
 
         for pattern in specific_patterns:
@@ -564,7 +601,7 @@ class QualityController:
             name="result_specificity",
             score=min(1.0, score),
             weight=1.0,
-            description="Result is specific and concrete"
+            description="Result is specific and concrete",
         )
 
     def _assess_result_actionability(self, result: str) -> QualityMetric:
@@ -573,14 +610,14 @@ class QualityController:
 
         # Look for actionable language
         actionable_patterns = [
-            r'run\s+',
-            r'execute\s+',
-            r'click\s+',
-            r'type\s+',
-            r'install\s+',
-            r'create\s+',
-            r'open\s+',
-            r'save\s+',
+            r"run\s+",
+            r"execute\s+",
+            r"click\s+",
+            r"type\s+",
+            r"install\s+",
+            r"create\s+",
+            r"open\s+",
+            r"save\s+",
         ]
 
         for pattern in actionable_patterns:
@@ -591,18 +628,21 @@ class QualityController:
             name="result_actionability",
             score=min(1.0, score),
             weight=1.2,
-            description="Result provides actionable guidance"
+            description="Result provides actionable guidance",
         )
 
     def _score_to_quality_level(self, score: float) -> QualityLevel:
         """Convert numeric score to quality level."""
-        for level, threshold in sorted(self.thresholds.items(),
-                                       key=lambda x: x[1], reverse=True):
+        for level, threshold in sorted(
+            self.thresholds.items(), key=lambda x: x[1], reverse=True
+        ):
             if score >= threshold:
                 return level
         return QualityLevel.UNACCEPTABLE
 
-    def _generate_code_recommendations(self, metrics: list[QualityMetric], language: str) -> list[str]:
+    def _generate_code_recommendations(
+        self, metrics: list[QualityMetric], language: str
+    ) -> list[str]:
         """Generate recommendations for code improvement."""
         recommendations = []
 
@@ -619,20 +659,26 @@ class QualityController:
 
         return recommendations
 
-    def _generate_response_recommendations(self, metrics: list[QualityMetric]) -> list[str]:
+    def _generate_response_recommendations(
+        self, metrics: list[QualityMetric]
+    ) -> list[str]:
         """Generate recommendations for response improvement."""
         recommendations = []
 
         for metric in metrics:
             if metric.score < 0.7:
                 if metric.name == "response_length":
-                    recommendations.append("Adjust response length - provide more detail or be more concise")
+                    recommendations.append(
+                        "Adjust response length - provide more detail or be more concise"
+                    )
                 elif metric.name == "clarity_structure":
                     recommendations.append("Improve response structure and clarity")
                 elif metric.name == "relevance":
                     recommendations.append("Make response more relevant to the context")
                 elif metric.name == "helpfulness":
-                    recommendations.append("Provide more actionable and helpful information")
+                    recommendations.append(
+                        "Provide more actionable and helpful information"
+                    )
 
         return recommendations
 
@@ -643,11 +689,17 @@ class QualityController:
         for metric in metrics:
             if metric.score < 0.7:
                 if metric.name == "task_completeness":
-                    recommendations.append("Address all aspects of the task more thoroughly")
+                    recommendations.append(
+                        "Address all aspects of the task more thoroughly"
+                    )
                 elif metric.name == "result_accuracy":
-                    recommendations.append("Verify accuracy and provide more confident responses")
+                    recommendations.append(
+                        "Verify accuracy and provide more confident responses"
+                    )
                 elif metric.name == "result_specificity":
-                    recommendations.append("Provide more specific and detailed information")
+                    recommendations.append(
+                        "Provide more specific and detailed information"
+                    )
                 elif metric.name == "result_actionability":
                     recommendations.append("Include more actionable steps and guidance")
 
@@ -714,12 +766,16 @@ class QualityController:
         # Quality level distribution
         level_counts = {}
         for level in QualityLevel:
-            level_counts[level.value] = sum(1 for a in self.assessment_history if a.quality_level == level)
+            level_counts[level.value] = sum(
+                1 for a in self.assessment_history if a.quality_level == level
+            )
 
         # Review type distribution
         type_counts = {}
         for review_type in ReviewType:
-            type_counts[review_type.value] = sum(1 for a in self.assessment_history if a.review_type == review_type)
+            type_counts[review_type.value] = sum(
+                1 for a in self.assessment_history if a.review_type == review_type
+            )
 
         # Average scores
         avg_score = sum(a.overall_score for a in self.assessment_history) / total
@@ -729,7 +785,9 @@ class QualityController:
             "average_score": avg_score,
             "quality_distribution": level_counts,
             "review_type_distribution": type_counts,
-            "latest_assessment": self.assessment_history[-1].overall_score if self.assessment_history else None
+            "latest_assessment": self.assessment_history[-1].overall_score
+            if self.assessment_history
+            else None,
         }
 
 

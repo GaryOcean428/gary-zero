@@ -13,11 +13,11 @@ class A2aMcpTools:
     async def process(self, input_data: dict[str, Any], request) -> dict[str, Any]:
         """
         List available MCP tools that can be accessed by other agents
-        
+
         Args:
             input_data: Request input (may contain filters)
             request: HTTP request object
-            
+
         Returns:
             List of available MCP tools and their descriptions
         """
@@ -32,10 +32,10 @@ class A2aMcpTools:
                         "type": "object",
                         "properties": {
                             "language": {"type": "string"},
-                            "code": {"type": "string"}
-                        }
+                            "code": {"type": "string"},
+                        },
                     },
-                    "category": "mcp_tool"
+                    "category": "mcp_tool",
                 },
                 {
                     "name": "file_operations",
@@ -45,11 +45,11 @@ class A2aMcpTools:
                         "type": "object",
                         "properties": {
                             "operation": {"type": "string"},
-                            "path": {"type": "string"}
-                        }
+                            "path": {"type": "string"},
+                        },
                     },
-                    "category": "mcp_tool"
-                }
+                    "category": "mcp_tool",
+                },
             ]
 
             # Apply filters if provided
@@ -57,8 +57,10 @@ class A2aMcpTools:
             if tool_filter:
                 filtered_tools = []
                 for tool in mock_tools:
-                    if (tool_filter.lower() in tool["name"].lower() or
-                        tool_filter.lower() in tool["description"].lower()):
+                    if (
+                        tool_filter.lower() in tool["name"].lower()
+                        or tool_filter.lower() in tool["description"].lower()
+                    ):
                         filtered_tools.append(tool)
                 mock_tools = filtered_tools
 
@@ -66,14 +68,11 @@ class A2aMcpTools:
                 "success": True,
                 "tools": mock_tools,
                 "total_count": len(mock_tools),
-                "servers_connected": 1  # Mock server count
+                "servers_connected": 1,  # Mock server count
             }
 
         except Exception as e:
-            return {
-                "success": False,
-                "error": f"Failed to list MCP tools: {str(e)}"
-            }
+            return {"success": False, "error": f"Failed to list MCP tools: {str(e)}"}
 
 
 class A2aMcpExecute:
@@ -82,11 +81,11 @@ class A2aMcpExecute:
     async def process(self, input_data: dict[str, Any], request) -> dict[str, Any]:
         """
         Execute an MCP tool on behalf of another agent
-        
+
         Args:
             input_data: Request input containing tool name and parameters
             request: HTTP request object
-            
+
         Returns:
             Tool execution result
         """
@@ -97,23 +96,17 @@ class A2aMcpExecute:
             tool_args = input_data.get("arguments", {})
 
             if not tool_name:
-                return {
-                    "success": False,
-                    "error": "tool_name is required"
-                }
+                return {"success": False, "error": "tool_name is required"}
 
             if not server_name:
-                return {
-                    "success": False,
-                    "error": "server_name is required"
-                }
+                return {"success": False, "error": "server_name is required"}
 
             # Security check: validate that the requesting agent is authorized
             requester_id = input_data.get("requester_id")
             if not requester_id:
                 return {
                     "success": False,
-                    "error": "requester_id is required for MCP tool execution"
+                    "error": "requester_id is required for MCP tool execution",
                 }
 
             # For now, return a mock execution result
@@ -124,18 +117,16 @@ class A2aMcpExecute:
                 "requester_id": requester_id,
                 "result": f"Tool '{tool_name}' executed successfully (mock)",
                 "execution_id": f"exec_{tool_name}_{requester_id}",
-                "timestamp": self._get_current_timestamp()
+                "timestamp": self._get_current_timestamp(),
             }
 
             return result
 
         except Exception as e:
-            return {
-                "success": False,
-                "error": f"MCP tool execution failed: {str(e)}"
-            }
+            return {"success": False, "error": f"MCP tool execution failed: {str(e)}"}
 
     def _get_current_timestamp(self) -> str:
         """Get current timestamp in ISO format"""
         from datetime import datetime
+
         return datetime.utcnow().isoformat() + "Z"

@@ -1,10 +1,12 @@
 """
 Simple test for the secure execution integration.
 """
+
 import sys
 
 # Add the project root to Python path
-sys.path.insert(0, '/home/runner/work/gary-zero/gary-zero')
+sys.path.insert(0, "/home/runner/work/gary-zero/gary-zero")
+
 
 def test_secure_manager_import():
     """Test that we can import and use the secure manager."""
@@ -24,9 +26,11 @@ def test_secure_manager_import():
         # Test a simple execution
         if manager.is_secure_execution_available():
             session_id = manager.create_session()
-            result = manager.execute_code(session_id, "print('Integration test successful!')", "python")
+            result = manager.execute_code(
+                session_id, "print('Integration test successful!')", "python"
+            )
             print(f"   Test execution: {result.get('success', False)}")
-            if result.get('success'):
+            if result.get("success"):
                 print(f"   Output: {result.get('stdout', 'No output').strip()}")
             manager.close_session(session_id)
 
@@ -36,8 +40,10 @@ def test_secure_manager_import():
     except Exception as e:
         print(f"❌ Secure manager test failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
+
 
 def test_enhanced_tool_import():
     """Test that we can import the enhanced tool."""
@@ -49,6 +55,7 @@ def test_enhanced_tool_import():
 
         # Test import of enhanced code execution tool
         import framework.tools.code_execution_tool as cet
+
         print("✅ Enhanced CodeExecution tool imported successfully")
         print(f"   Secure execution available: {cet.SECURE_EXECUTION_AVAILABLE}")
 
@@ -57,8 +64,10 @@ def test_enhanced_tool_import():
     except Exception as e:
         print(f"❌ Enhanced tool import test failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
+
 
 def test_integration_validation():
     """Test the integration works end-to-end."""
@@ -81,8 +90,10 @@ def test_integration_validation():
     except Exception as e:
         print(f"❌ Integration validation failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
+
 
 def main():
     """Run all tests."""
@@ -104,6 +115,7 @@ def main():
     else:
         print("\n❌ Some integration tests failed")
         return False
+
 
 if __name__ == "__main__":
     success = main()

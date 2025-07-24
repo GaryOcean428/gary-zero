@@ -2,6 +2,7 @@
 E2B-based secure code execution for Gary Zero agent.
 Enhanced with connection monitoring, session management, and performance tracking.
 """
+
 import os
 import time
 from datetime import UTC, datetime
@@ -16,15 +17,18 @@ class E2BCodeExecutor(BaseCodeExecutor):
     def __init__(self):
         super().__init__()
         # Check if E2B is available
-        if not os.getenv('E2B_API_KEY'):
+        if not os.getenv("E2B_API_KEY"):
             raise ValueError("E2B_API_KEY environment variable is required")
 
         # Import E2B here to avoid import errors if not available
         try:
             from e2b_code_interpreter import Sandbox
+
             self.Sandbox = Sandbox
         except ImportError:
-            raise ImportError("e2b-code-interpreter package not installed. Run: pip install e2b-code-interpreter")
+            raise ImportError(
+                "e2b-code-interpreter package not installed. Run: pip install e2b-code-interpreter"
+            )
 
         # Enhanced tracking
         self.connection_stats = {
@@ -32,7 +36,7 @@ class E2BCodeExecutor(BaseCodeExecutor):
             "active_sessions": 0,
             "total_executions": 0,
             "failed_connections": 0,
-            "last_connection_test": None
+            "last_connection_test": None,
         }
         self.session_health = {}  # Track health of each session
 
@@ -54,16 +58,12 @@ class E2BCodeExecutor(BaseCodeExecutor):
                 "success": True,
                 "message": "E2B connection successful",
                 "test_output": test_result.text,
-                "timestamp": self.connection_stats["last_connection_test"]
+                "timestamp": self.connection_stats["last_connection_test"],
             }
 
         except Exception as e:
             self.connection_stats["failed_connections"] += 1
-            return {
-                "success": False,
-                "error": str(e),
-                "timestamp": datetime.now(UTC)
-            }
+            return {"success": False, "error": str(e), "timestamp": datetime.now(UTC)}
 
     def create_session(self, session_id: str | None = None) -> str:
         """Create a new E2B sandbox session with enhanced tracking."""
@@ -78,7 +78,9 @@ class E2BCodeExecutor(BaseCodeExecutor):
             sandbox = self.Sandbox()
 
             self.sessions[session_id] = sandbox
-            self.session_metadata[session_id] = self._create_session_metadata(session_id)
+            self.session_metadata[session_id] = self._create_session_metadata(
+                session_id
+            )
 
             # Initialize session health tracking
             self.session_health[session_id] = {
@@ -86,7 +88,7 @@ class E2BCodeExecutor(BaseCodeExecutor):
                 "last_used": datetime.now(UTC),
                 "execution_count": 0,
                 "error_count": 0,
-                "status": "active"
+                "status": "active",
             }
 
             # Update statistics
@@ -101,7 +103,9 @@ class E2BCodeExecutor(BaseCodeExecutor):
             print(f"❌ Failed to create E2B session: {e}")
             raise
 
-    def execute_code(self, session_id: str, code: str, language: str = "python") -> dict[str, Any]:
+    def execute_code(
+        self, session_id: str, code: str, language: str = "python"
+    ) -> dict[str, Any]:
         """Execute code in the specified E2B session with enhanced monitoring."""
         if session_id not in self.sessions:
             raise ValueError(f"Session {session_id} not found")
@@ -128,14 +132,20 @@ class E2BCodeExecutor(BaseCodeExecutor):
                     "success": True,
                     "stdout": execution.text or "",
                     "stderr": execution.error or "",
-                    "results": getattr(execution, 'results', []),  # Rich outputs (charts, tables, etc.)
+                    "results": getattr(
+                        execution, "results", []
+                    ),  # Rich outputs (charts, tables, etc.)
                     "execution_time": time.time() - start_time,
                     "logs": {
-                        "stdout": getattr(execution.logs, 'stdout', []) if hasattr(execution, 'logs') else [],
-                        "stderr": getattr(execution.logs, 'stderr', []) if hasattr(execution, 'logs') else []
+                        "stdout": getattr(execution.logs, "stdout", [])
+                        if hasattr(execution, "logs")
+                        else [],
+                        "stderr": getattr(execution.logs, "stderr", [])
+                        if hasattr(execution, "logs")
+                        else [],
                     },
                     "session_id": session_id,
-                    "language": language
+                    "language": language,
                 }
 
                 # Check for errors and update health
@@ -146,7 +156,9 @@ class E2BCodeExecutor(BaseCodeExecutor):
 
             elif language.lower() in ["bash", "shell", "sh"]:
                 # Execute shell commands
-                execution = sandbox.run_code(f"!{code}")  # Use ! prefix for shell commands
+                execution = sandbox.run_code(
+                    f"!{code}"
+                )  # Use ! prefix for shell commands
 
                 self.connection_stats["total_executions"] += 1
 
@@ -156,11 +168,15 @@ class E2BCodeExecutor(BaseCodeExecutor):
                     "stderr": execution.error or "",
                     "execution_time": time.time() - start_time,
                     "logs": {
-                        "stdout": getattr(execution.logs, 'stdout', []) if hasattr(execution, 'logs') else [],
-                        "stderr": getattr(execution.logs, 'stderr', []) if hasattr(execution, 'logs') else []
+                        "stdout": getattr(execution.logs, "stdout", [])
+                        if hasattr(execution, "logs")
+                        else [],
+                        "stderr": getattr(execution.logs, "stderr", [])
+                        if hasattr(execution, "logs")
+                        else [],
                     },
                     "session_id": session_id,
-                    "language": language
+                    "language": language,
                 }
 
                 if execution.error:
@@ -180,12 +196,16 @@ class E2BCodeExecutor(BaseCodeExecutor):
                 "error": str(e),
                 "stdout": "",
                 "stderr": "",
-                "execution_time": time.time() - start_time if 'start_time' in locals() else 0,
+                "execution_time": time.time() - start_time
+                if "start_time" in locals()
+                else 0,
                 "session_id": session_id,
-                "language": language
+                "language": language,
             }
 
-    def upload_file(self, session_id: str, file_path: str, content: bytes) -> dict[str, Any]:
+    def upload_file(
+        self, session_id: str, file_path: str, content: bytes
+    ) -> dict[str, Any]:
         """Upload a file to the E2B sandbox."""
         if session_id not in self.sessions:
             raise ValueError(f"Session {session_id} not found")
@@ -197,16 +217,9 @@ class E2BCodeExecutor(BaseCodeExecutor):
             with sandbox.filesystem.write(file_path, content) as f:
                 pass
 
-            return {
-                "success": True,
-                "file_path": file_path,
-                "size": len(content)
-            }
+            return {"success": True, "file_path": file_path, "size": len(content)}
         except Exception as e:
-            return {
-                "success": False,
-                "error": str(e)
-            }
+            return {"success": False, "error": str(e)}
 
     def download_file(self, session_id: str, file_path: str) -> dict[str, Any]:
         """Download a file from the E2B sandbox."""
@@ -223,13 +236,10 @@ class E2BCodeExecutor(BaseCodeExecutor):
                 "success": True,
                 "file_path": file_path,
                 "content": content,
-                "size": len(content)
+                "size": len(content),
             }
         except Exception as e:
-            return {
-                "success": False,
-                "error": str(e)
-            }
+            return {"success": False, "error": str(e)}
 
     def list_files(self, session_id: str, directory: str = ".") -> dict[str, Any]:
         """List files in the E2B sandbox directory."""
@@ -252,18 +262,15 @@ print(files)
         try:
             # Parse the output to get file list
             import ast
+
             files = ast.literal_eval(result["stdout"].strip())
 
-            return {
-                "success": True,
-                "files": files,
-                "directory": directory
-            }
+            return {"success": True, "files": files, "directory": directory}
         except Exception as e:
             return {
                 "success": False,
                 "error": f"Failed to parse file list: {e}",
-                "raw_output": result
+                "raw_output": result,
             }
 
     def get_session_health(self, session_id: str) -> dict[str, Any]:
@@ -292,7 +299,9 @@ print(files)
 
         # Add calculated metrics
         if stats["total_sessions"] > 0:
-            stats["failure_rate"] = stats["failed_connections"] / stats["total_sessions"]
+            stats["failure_rate"] = (
+                stats["failed_connections"] / stats["total_sessions"]
+            )
         else:
             stats["failure_rate"] = 0.0
 
@@ -330,7 +339,7 @@ print(files)
         return {
             "stale_sessions_found": len(stale_sessions),
             "cleaned_sessions": cleaned_count,
-            "session_ids": stale_sessions
+            "session_ids": stale_sessions,
         }
 
     def close_session(self, session_id: str):

@@ -2,7 +2,6 @@ from framework.helpers.tool import Response, Tool
 
 
 class ResponseTool(Tool):
-
     async def execute(self, **kwargs):
         return Response(message=self.args["text"], break_loop=True)
 

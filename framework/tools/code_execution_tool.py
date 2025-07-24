@@ -6,7 +6,10 @@ from dataclasses import dataclass
 
 from framework.helpers import rfc_exchange
 from framework.helpers.docker import DockerContainerManager
-from framework.helpers.execution_mode import get_execution_info, should_use_ssh_execution
+from framework.helpers.execution_mode import (
+    get_execution_info,
+    should_use_ssh_execution,
+)
 from framework.helpers.messages import truncate_text
 from framework.helpers.print_style import PrintStyle
 from framework.helpers.shell_local import LocalInteractiveSession
@@ -16,6 +19,7 @@ from framework.helpers.tool import Response, Tool
 # Import secure execution framework
 try:
     from framework.executors.secure_manager import SecureCodeExecutionManager
+
     SECURE_EXECUTION_AVAILABLE = True
 except ImportError:
     SECURE_EXECUTION_AVAILABLE = False
@@ -32,10 +36,10 @@ class State:
 
 
 class CodeExecution(Tool):
-
     async def execute(self, **kwargs):
-
-        await self.agent.handle_intervention()  # wait for intervention and handle it, if paused
+        await (
+            self.agent.handle_intervention()
+        )  # wait for intervention and handle it, if paused
 
         await self.prepare_state()
 
@@ -44,9 +48,13 @@ class CodeExecution(Tool):
 
         # Add new runtime options for secure execution
         if runtime == "python":
-            response = await self.execute_python_code(code=self.args["code"], session=session)
+            response = await self.execute_python_code(
+                code=self.args["code"], session=session
+            )
         elif runtime == "nodejs":
-            response = await self.execute_nodejs_code(code=self.args["code"], session=session)
+            response = await self.execute_nodejs_code(
+                code=self.args["code"], session=session
+            )
         elif runtime == "terminal":
             response = await self.execute_terminal_command(
                 command=self.args["code"], session=session
@@ -62,11 +70,15 @@ class CodeExecution(Tool):
         elif runtime == "install":
             package = self.args.get("package", "")
             if not package:
-                response = self.agent.read_prompt("fw.code.runtime_wrong.md", runtime="install (missing package name)")
+                response = self.agent.read_prompt(
+                    "fw.code.runtime_wrong.md", runtime="install (missing package name)"
+                )
             else:
                 response = await self.install_package(package=package, session=session)
         else:
-            response = self.agent.read_prompt("fw.code.runtime_wrong.md", runtime=runtime)
+            response = self.agent.read_prompt(
+                "fw.code.runtime_wrong.md", runtime=runtime
+            )
 
         if not response:
             response = self.agent.read_prompt(
@@ -88,14 +100,15 @@ class CodeExecution(Tool):
     async def prepare_state(self, reset=False, session=None):
         self.state = self.agent.get_data("_cet_state")
         if not self.state or reset:
-
             # Initialize secure execution manager if available
             secure_manager = None
             secure_sessions = {}
             if SECURE_EXECUTION_AVAILABLE:
                 try:
                     secure_manager = SecureCodeExecutionManager()
-                    PrintStyle(font_color="#85C1E9").print(f"🔒 Secure execution enabled: {secure_manager.get_executor_info()['description']}")
+                    PrintStyle(font_color="#85C1E9").print(
+                        f"🔒 Secure execution enabled: {secure_manager.get_executor_info()['description']}"
+                    )
                 except Exception as e:
                     PrintStyle.warning(f"Secure execution initialization failed: {e}")
                     secure_manager = None
@@ -117,8 +130,12 @@ class CodeExecution(Tool):
             shells = {} if not self.state else self.state.shells.copy()
 
             # Handle secure sessions
-            if self.state and hasattr(self.state, 'secure_sessions'):
-                secure_sessions = self.state.secure_sessions.copy() if self.state.secure_sessions else {}
+            if self.state and hasattr(self.state, "secure_sessions"):
+                secure_sessions = (
+                    self.state.secure_sessions.copy()
+                    if self.state.secure_sessions
+                    else {}
+                )
 
             # Only reset the specified session if provided
             if session is not None and session in shells:
@@ -143,11 +160,16 @@ class CodeExecution(Tool):
                 shell = None
 
                 # Determine if SSH should be used based on environment and availability
-                use_ssh = self.agent.config.code_exec_ssh_enabled and should_use_ssh_execution()
+                use_ssh = (
+                    self.agent.config.code_exec_ssh_enabled
+                    and should_use_ssh_execution()
+                )
 
                 if use_ssh:
                     try:
-                        PrintStyle(font_color="#85C1E9").print(f"🔗 Attempting SSH connection: {get_execution_info()}")
+                        PrintStyle(font_color="#85C1E9").print(
+                            f"🔗 Attempting SSH connection: {get_execution_info()}"
+                        )
                         pswd = (
                             self.agent.config.code_exec_ssh_pass
                             if self.agent.config.code_exec_ssh_pass
@@ -162,7 +184,9 @@ class CodeExecution(Tool):
                         )
                         shells[0] = shell
                         await shell.connect()
-                        PrintStyle(font_color="#85C1E9").print("✅ SSH connection established successfully")
+                        PrintStyle(font_color="#85C1E9").print(
+                            "✅ SSH connection established successfully"
+                        )
                     except Exception as ssh_error:
                         PrintStyle.warning(f"❌ SSH connection failed: {ssh_error}")
                         PrintStyle.warning("🔄 Falling back to local execution")
@@ -170,12 +194,19 @@ class CodeExecution(Tool):
 
                 # Fallback to local execution if SSH failed or wasn't attempted
                 if shell is None:
-                    PrintStyle(font_color="#85C1E9").print(f"🖥️  Using direct execution: {get_execution_info()}")
+                    PrintStyle(font_color="#85C1E9").print(
+                        f"🖥️  Using direct execution: {get_execution_info()}"
+                    )
                     shell = LocalInteractiveSession()
                     shells[0] = shell
                     await shell.connect()
 
-            self.state = State(shells=shells, docker=docker, secure_manager=secure_manager, secure_sessions=secure_sessions)
+            self.state = State(
+                shells=shells,
+                docker=docker,
+                secure_manager=secure_manager,
+                secure_sessions=secure_sessions,
+            )
         self.agent.set_data("_cet_state", self.state)
 
     async def execute_python_code(self, session: int, code: str, reset: bool = False):
@@ -184,7 +215,9 @@ class CodeExecution(Tool):
             if self.state.secure_manager.is_secure_execution_available():
                 return await self._execute_secure_python(session, code, reset)
             else:
-                PrintStyle.warning("🔄 Secure execution not available, falling back to terminal execution")
+                PrintStyle.warning(
+                    "🔄 Secure execution not available, falling back to terminal execution"
+                )
 
         # Fallback to legacy terminal execution
         escaped_code = shlex.quote(code)
@@ -197,25 +230,33 @@ class CodeExecution(Tool):
             if self.state.secure_manager.is_secure_execution_available():
                 return await self._execute_secure_nodejs(session, code, reset)
             else:
-                PrintStyle.warning("🔄 Secure execution not available, falling back to terminal execution")
+                PrintStyle.warning(
+                    "🔄 Secure execution not available, falling back to terminal execution"
+                )
 
         # Fallback to legacy terminal execution
         escaped_code = shlex.quote(code)
         command = f"node /exe/node_eval.js {escaped_code}"
         return await self.terminal_session(session, command, reset)
 
-    async def execute_terminal_command(self, session: int, command: str, reset: bool = False):
+    async def execute_terminal_command(
+        self, session: int, command: str, reset: bool = False
+    ):
         # Prefer secure execution as primary path
         if self.state.secure_manager:
             if self.state.secure_manager.is_secure_execution_available():
                 return await self._execute_secure_terminal(session, command, reset)
             else:
-                PrintStyle.warning("🔄 Secure execution not available, falling back to terminal execution")
+                PrintStyle.warning(
+                    "🔄 Secure execution not available, falling back to terminal execution"
+                )
 
         # Fallback to legacy terminal execution
         return await self.terminal_session(session, command, reset)
 
-    async def _execute_secure_python(self, session: int, code: str, reset: bool = False):
+    async def _execute_secure_python(
+        self, session: int, code: str, reset: bool = False
+    ):
         """Execute Python code using secure execution framework."""
         try:
             # Get or create secure session
@@ -225,7 +266,9 @@ class CodeExecution(Tool):
                 f"{self.agent.agent_name} secure Python execution"
             )
 
-            result = self.state.secure_manager.execute_code(secure_session_id, code, "python")
+            result = self.state.secure_manager.execute_code(
+                secure_session_id, code, "python"
+            )
 
             if result["success"]:
                 output = result["stdout"]
@@ -238,7 +281,9 @@ class CodeExecution(Tool):
                 if output:
                     response_parts.append(output)
 
-                response_parts.append(f"✅ Execution completed in {execution_time:.2f}s using {result.get('executor_type', 'unknown')} executor")
+                response_parts.append(
+                    f"✅ Execution completed in {execution_time:.2f}s using {result.get('executor_type', 'unknown')} executor"
+                )
 
                 return "\n".join(response_parts)
             else:
@@ -257,7 +302,9 @@ class CodeExecution(Tool):
             PrintStyle.error(error_msg)
             return error_msg
 
-    async def _execute_secure_nodejs(self, session: int, code: str, reset: bool = False):
+    async def _execute_secure_nodejs(
+        self, session: int, code: str, reset: bool = False
+    ):
         """Execute Node.js code using secure execution framework."""
         try:
             # Get or create secure session
@@ -269,7 +316,9 @@ class CodeExecution(Tool):
 
             # For Node.js, we'll use shell execution with node command
             node_command = f"node -e '{code}'"
-            result = self.state.secure_manager.execute_code(secure_session_id, node_command, "bash")
+            result = self.state.secure_manager.execute_code(
+                secure_session_id, node_command, "bash"
+            )
 
             if result["success"]:
                 output = result["stdout"]
@@ -293,7 +342,9 @@ class CodeExecution(Tool):
             PrintStyle.error(error_msg)
             return error_msg
 
-    async def _execute_secure_terminal(self, session: int, command: str, reset: bool = False):
+    async def _execute_secure_terminal(
+        self, session: int, command: str, reset: bool = False
+    ):
         """Execute terminal command using secure execution framework."""
         try:
             # Get or create secure session
@@ -303,7 +354,9 @@ class CodeExecution(Tool):
                 f"{self.agent.agent_name} secure terminal execution"
             )
 
-            result = self.state.secure_manager.execute_code(secure_session_id, command, "bash")
+            result = self.state.secure_manager.execute_code(
+                secure_session_id, command, "bash"
+            )
 
             if result["success"]:
                 output = result["stdout"]
@@ -331,7 +384,9 @@ class CodeExecution(Tool):
             PrintStyle.error(error_msg)
             return error_msg
 
-    async def _get_or_create_secure_session(self, session: int, reset: bool = False) -> str:
+    async def _get_or_create_secure_session(
+        self, session: int, reset: bool = False
+    ) -> str:
         """Get or create a secure session for the given session number."""
         if not self.state.secure_sessions:
             self.state.secure_sessions = {}
@@ -351,14 +406,19 @@ class CodeExecution(Tool):
     async def install_package(self, package: str, session: int = 0) -> str:
         """Install a package in the execution environment."""
         try:
-            if self.state.secure_manager and self.state.secure_manager.is_secure_execution_available():
+            if (
+                self.state.secure_manager
+                and self.state.secure_manager.is_secure_execution_available()
+            ):
                 secure_session_id = await self._get_or_create_secure_session(session)
 
-                PrintStyle(background_color="yellow", font_color="black", bold=True).print(
-                    f"{self.agent.agent_name} secure package installation"
-                )
+                PrintStyle(
+                    background_color="yellow", font_color="black", bold=True
+                ).print(f"{self.agent.agent_name} secure package installation")
 
-                result = self.state.secure_manager.install_package(secure_session_id, package)
+                result = self.state.secure_manager.install_package(
+                    secure_session_id, package
+                )
 
                 if result["success"]:
                     execution_time = result.get("execution_time", 0)
@@ -389,13 +449,15 @@ class CodeExecution(Tool):
                     "🔒 Secure Code Execution Environment Information:",
                     f"Executor Type: {info['type']}",
                     f"Security Level: {'High' if info['secure'] == 'True' else 'Low (Host execution)'}",
-                    f"Description: {info['description']}"
+                    f"Description: {info['description']}",
                 ]
 
-                if info['secure'] == 'True':
+                if info["secure"] == "True":
                     response_parts.append("✅ Code execution is isolated and secure")
                 else:
-                    response_parts.append("⚠️  Warning: Code execution may not be isolated")
+                    response_parts.append(
+                        "⚠️  Warning: Code execution may not be isolated"
+                    )
 
                 response = "\n".join(response_parts)
                 PrintStyle(font_color="#85C1E9").print(response)
@@ -411,12 +473,12 @@ class CodeExecution(Tool):
             return error_msg
 
     async def terminal_session(self, session: int, command: str, reset: bool = False):
-
-        await self.agent.handle_intervention()  # wait for intervention and handle it, if paused
+        await (
+            self.agent.handle_intervention()
+        )  # wait for intervention and handle it, if paused
         # try again on lost connection
         for i in range(2):
             try:
-
                 if reset:
                     await self.reset_terminal()
 
@@ -424,7 +486,10 @@ class CodeExecution(Tool):
                     shell = None
 
                     # Determine if SSH should be used based on environment and availability
-                    use_ssh = self.agent.config.code_exec_ssh_enabled and should_use_ssh_execution()
+                    use_ssh = (
+                        self.agent.config.code_exec_ssh_enabled
+                        and should_use_ssh_execution()
+                    )
 
                     if use_ssh:
                         try:
@@ -443,7 +508,9 @@ class CodeExecution(Tool):
                             self.state.shells[session] = shell
                             await shell.connect()
                         except Exception as ssh_error:
-                            PrintStyle.warning(f"SSH connection failed: {ssh_error}, falling back to local execution")
+                            PrintStyle.warning(
+                                f"SSH connection failed: {ssh_error}, falling back to local execution"
+                            )
                             shell = None  # Reset to force local execution
 
                     # Fallback to local execution if SSH failed or wasn't attempted
@@ -454,9 +521,9 @@ class CodeExecution(Tool):
 
                 self.state.shells[session].send_command(command)
 
-                PrintStyle(background_color="white", font_color="#1B4F72", bold=True).print(
-                    f"{self.agent.agent_name} code execution output"
-                )
+                PrintStyle(
+                    background_color="white", font_color="#1B4F72", bold=True
+                ).print(f"{self.agent.agent_name} code execution output")
                 return await self.get_terminal_output(session)
 
             except Exception as e:
@@ -511,16 +578,22 @@ class CodeExecution(Tool):
                 got_output = True
 
                 # Check for shell prompt at the end of output
-                last_lines = truncated_output.splitlines()[-3:] if truncated_output else []
+                last_lines = (
+                    truncated_output.splitlines()[-3:] if truncated_output else []
+                )
                 for line in last_lines:
                     for pat in prompt_patterns:
                         if pat.search(line.strip()):
-                            PrintStyle.info("Detected shell prompt, returning output early.")
+                            PrintStyle.info(
+                                "Detected shell prompt, returning output early."
+                            )
                             return truncated_output
 
             # Check for max execution time
             if now - start_time > max_exec_timeout:
-                sysinfo = self.agent.read_prompt("fw.code.max_time.md", timeout=max_exec_timeout)
+                sysinfo = self.agent.read_prompt(
+                    "fw.code.max_time.md", timeout=max_exec_timeout
+                )
                 response = self.agent.read_prompt("fw.code.info.md", info=sysinfo)
                 if truncated_output:
                     response = truncated_output + "\n\n" + response
@@ -563,9 +636,11 @@ class CodeExecution(Tool):
             )
 
         # Reset both secure and legacy sessions
-        if (self.state.secure_manager and
-            self.state.secure_sessions and
-            session in self.state.secure_sessions):
+        if (
+            self.state.secure_manager
+            and self.state.secure_sessions
+            and session in self.state.secure_sessions
+        ):
             # Reset secure session
             secure_session_id = self.state.secure_sessions[session]
             self.state.secure_manager.close_session(secure_session_id)

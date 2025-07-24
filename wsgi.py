@@ -12,6 +12,7 @@ from framework.helpers.print_style import PrintStyle
 # Add the application directory to the Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+
 # Graceful shutdown handling
 def signal_handler(sig, frame):
     """Handle shutdown signals gracefully."""
@@ -23,16 +24,20 @@ def signal_handler(sig, frame):
     PrintStyle().print("✅ Graceful shutdown completed")
     sys.exit(0)
 
+
 # Register signal handlers
 signal.signal(signal.SIGTERM, signal_handler)  # Railway sends SIGTERM
-signal.signal(signal.SIGINT, signal_handler)   # Ctrl+C
+signal.signal(signal.SIGINT, signal_handler)  # Ctrl+C
+
 
 def cleanup_on_exit():
     """Cleanup function called on normal exit."""
     PrintStyle().print("🧹 Performing cleanup on exit...")
 
+
 # Register cleanup function
 atexit.register(cleanup_on_exit)
+
 
 def create_app():
     """Create and configure the WSGI application for production deployment."""
@@ -52,7 +57,14 @@ def create_app():
         from framework.helpers import mcp_server
         from framework.helpers.api import ApiHandler
         from framework.helpers.extract_tools import load_classes_from_folder
-        from run_ui import init_a0, lock, requires_api_key, requires_auth, requires_loopback, webapp
+        from run_ui import (
+            init_a0,
+            lock,
+            requires_api_key,
+            requires_auth,
+            requires_loopback,
+            webapp,
+        )
 
         PrintStyle().print("📦 Registering API handlers...")
 
@@ -62,14 +74,17 @@ def create_app():
             instance = handler(app, lock)
 
             if handler.requires_loopback():
+
                 @requires_loopback
                 async def handle_request():
                     return await instance.handle_request(request=request)
             elif handler.requires_auth():
+
                 @requires_auth
                 async def handle_request():
                     return await instance.handle_request(request=request)
             elif handler.requires_api_key():
+
                 @requires_api_key
                 async def handle_request():
                     return await instance.handle_request(request=request)
@@ -100,7 +115,9 @@ def create_app():
             app = DispatcherMiddleware(
                 webapp,
                 {
-                    "/mcp": ASGIMiddleware(app=mcp_server.DynamicMcpProxy.get_instance()),
+                    "/mcp": ASGIMiddleware(
+                        app=mcp_server.DynamicMcpProxy.get_instance()
+                    ),
                 },
             )
             PrintStyle().debug("✅ Registered middleware for MCP")
@@ -134,26 +151,31 @@ def create_app():
 
         emergency_app = Flask(__name__)
 
-        @emergency_app.route('/health', methods=['GET'])
+        @emergency_app.route("/health", methods=["GET"])
         def emergency_health():
-            return jsonify({
-                "status": "error",
-                "error": error_message,
-                "timestamp": time.time(),
-                "startup_failed": True
-            })
+            return jsonify(
+                {
+                    "status": "error",
+                    "error": error_message,
+                    "timestamp": time.time(),
+                    "startup_failed": True,
+                }
+            )
 
-        @emergency_app.route('/ready', methods=['GET'])
+        @emergency_app.route("/ready", methods=["GET"])
         def emergency_ready():
-            return jsonify({
-                "status": "error",
-                "error": error_message,
-                "timestamp": time.time(),
-                "startup_failed": True
-            })
+            return jsonify(
+                {
+                    "status": "error",
+                    "error": error_message,
+                    "timestamp": time.time(),
+                    "startup_failed": True,
+                }
+            )
 
         PrintStyle().print("⚠️  Emergency mode: basic health check only")
         return emergency_app
+
 
 # Create the application instance for Gunicorn
 application = create_app()

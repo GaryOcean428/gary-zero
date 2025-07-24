@@ -12,7 +12,7 @@ from typing import Any
 from framework.helpers import dirty_json, settings
 from framework.helpers.print_style import PrintStyle
 from framework.helpers.tool import Response, Tool
-from shared_mcp.client import SharedMCPClient, normalize_name
+from shared_mcp.client import SharedMCPClient
 
 
 def initialize_mcp(mcp_servers_config: str):
@@ -42,7 +42,9 @@ class MCPTool(Tool):
         try:
             client = MCPConfig.get_instance().get_shared_client()
             response = await client.call_tool(self.name, kwargs)
-            message = "\n\n".join([item.text for item in response.content if item.type == "text"])
+            message = "\n\n".join(
+                [item.text for item in response.content if item.type == "text"]
+            )
             if response.isError:
                 error = message
         except Exception as e:
@@ -53,7 +55,9 @@ class MCPTool(Tool):
             PrintStyle(
                 background_color="#CC34C3", font_color="white", bold=True, padding=True
             ).print(f"MCPTool::Failed to call mcp tool {self.name}:")
-            PrintStyle(background_color="#AA4455", font_color="white", padding=False).print(error)
+            PrintStyle(
+                background_color="#AA4455", font_color="white", padding=False
+            ).print(error)
 
             self.agent.context.log.log(
                 type="warning",
@@ -69,7 +73,9 @@ class MCPTool(Tool):
         self.log = self.get_log_object()
 
         for key, value in self.args.items():
-            PrintStyle(font_color="#85C1E9", bold=True).stream(self.nice_key(key) + ": ")
+            PrintStyle(font_color="#85C1E9", bold=True).stream(
+                self.nice_key(key) + ": "
+            )
             PrintStyle(
                 font_color="#85C1E9", padding=isinstance(value, str) and "\n" in value
             ).stream(value)
@@ -84,11 +90,19 @@ class MCPTool(Tool):
             raw_tool_response = "[Tool returned no textual content]"
 
         # Prepare user message context
-        user_message_text = "No specific user message context available for this exact step."
-        if self.agent and self.agent.last_user_message and self.agent.last_user_message.content:
+        user_message_text = (
+            "No specific user message context available for this exact step."
+        )
+        if (
+            self.agent
+            and self.agent.last_user_message
+            and self.agent.last_user_message.content
+        ):
             content = self.agent.last_user_message.content
             if isinstance(content, dict):
-                user_message_text = content.get("message", json.dumps(content, indent=2))
+                user_message_text = content.get(
+                    "message", json.dumps(content, indent=2)
+                )
             elif isinstance(content, str):
                 user_message_text = content
             else:
@@ -99,7 +113,9 @@ class MCPTool(Tool):
         # Truncate user message context if it's too long
         max_user_context_len = 500
         if len(user_message_text) > max_user_context_len:
-            user_message_text = user_message_text[:max_user_context_len] + "... (truncated)"
+            user_message_text = (
+                user_message_text[:max_user_context_len] + "... (truncated)"
+            )
 
         final_text_for_agent = raw_tool_response
 
@@ -110,7 +126,9 @@ class MCPTool(Tool):
             f"{self.agent.agent_name}: Response from tool '{self.name}' (plus context added)"
         )
         PrintStyle(font_color="#85C1E9").print(
-            raw_tool_response if raw_tool_response else "[No direct textual output from tool]"
+            raw_tool_response
+            if raw_tool_response
+            else "[No direct textual output from tool]"
         )
         if self.log:
             self.log.update(content=final_text_for_agent)
@@ -131,7 +149,7 @@ class MCPConfig:
         cfg = settings.get_settings()
         return {
             "mcp_client_init_timeout": cfg.get("mcp_client_init_timeout", 30),
-            "mcp_client_tool_timeout": cfg.get("mcp_client_tool_timeout", 60)
+            "mcp_client_tool_timeout": cfg.get("mcp_client_tool_timeout", 60),
         }
 
     @classmethod
@@ -166,7 +184,9 @@ class MCPConfig:
                             )
                     servers_data = valid_servers
                 else:
-                    PrintStyle(background_color="red", font_color="white", padding=True).print(
+                    PrintStyle(
+                        background_color="red", font_color="white", padding=True
+                    ).print(
                         f"Error: Parsed MCP config top-level structure is not a list. Config string: '{config_str}'"
                     )
             except Exception as e:
@@ -176,6 +196,7 @@ class MCPConfig:
 
         # Update the shared client
         import asyncio
+
         asyncio.run(instance.shared_client.connect_to_servers(servers_data))
         cls._initialized = True
         return instance
@@ -226,11 +247,15 @@ class MCPConfig:
                     for tool_dict in all_tools:
                         for tool_name, tool_info in tool_dict.items():
                             if tool_info.get("server") == server_name:
-                                tools.append({
-                                    "name": tool_info["name"],
-                                    "description": tool_info["description"],
-                                    "input_schema": tool_info.get("input_schema", {})
-                                })
+                                tools.append(
+                                    {
+                                        "name": tool_info["name"],
+                                        "description": tool_info["description"],
+                                        "input_schema": tool_info.get(
+                                            "input_schema", {}
+                                        ),
+                                    }
+                                )
                 except Exception:
                     tools = []
 

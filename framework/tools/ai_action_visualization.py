@@ -17,7 +17,10 @@ from framework.helpers.ai_action_interceptor import (
     AIProvider,
     get_ai_action_manager,
 )
-from framework.helpers.ai_action_streaming import broadcast_action, get_streaming_service
+from framework.helpers.ai_action_streaming import (
+    broadcast_action,
+    get_streaming_service,
+)
 from framework.helpers.log import Log
 from framework.tools.code_execution_tool import CodeExecutionTool
 
@@ -25,7 +28,7 @@ from framework.tools.code_execution_tool import CodeExecutionTool
 class AIActionVisualizationTool(CodeExecutionTool):
     """
     Tool for controlling and triggering AI action visualizations.
-    
+
     Provides high-level interface for agents to create, update, and manage
     action visualizations across all AI providers and action types.
     """
@@ -111,24 +114,24 @@ Dictionary with visualization results:
     async def call(self, agent=None, **kwargs) -> dict[str, Any]:
         """
         Create or update an AI action visualization.
-        
+
         Args:
             agent: Agent instance (for UI integration)
             **kwargs: Action parameters
-            
+
         Returns:
             Dict containing visualization results
         """
-        action_type = kwargs.get('action_type', 'code_execution')
-        provider = kwargs.get('provider', 'gary_zero_native')
-        description = kwargs.get('description', 'AI action visualization')
-        parameters = kwargs.get('parameters', {})
-        session_id = kwargs.get('session_id', f"viz_{int(datetime.now().timestamp())}")
-        ui_url = kwargs.get('ui_url')
-        status = kwargs.get('status', 'started')
-        agent_name = kwargs.get('agent_name', 'Unknown Agent')
-        screenshot_path = kwargs.get('screenshot_path')
-        metadata = kwargs.get('metadata', {})
+        action_type = kwargs.get("action_type", "code_execution")
+        provider = kwargs.get("provider", "gary_zero_native")
+        description = kwargs.get("description", "AI action visualization")
+        parameters = kwargs.get("parameters", {})
+        session_id = kwargs.get("session_id", f"viz_{int(datetime.now().timestamp())}")
+        ui_url = kwargs.get("ui_url")
+        status = kwargs.get("status", "started")
+        agent_name = kwargs.get("agent_name", "Unknown Agent")
+        screenshot_path = kwargs.get("screenshot_path")
+        metadata = kwargs.get("metadata", {})
 
         try:
             # Create AI action
@@ -142,7 +145,7 @@ Dictionary with visualization results:
                 agent_name=agent_name,
                 status=status,
                 ui_url=ui_url,
-                screenshot_path=screenshot_path
+                screenshot_path=screenshot_path,
             )
 
             # Ensure interception is started
@@ -163,7 +166,7 @@ Dictionary with visualization results:
                 "visualization_created": True,
                 "streaming_enabled": self.streaming_service.running,
                 "visualization_url": self._get_visualization_url(action),
-                "timestamp": action.timestamp.isoformat()
+                "timestamp": action.timestamp.isoformat(),
             }
 
             return result
@@ -173,48 +176,45 @@ Dictionary with visualization results:
                 "success": False,
                 "error": f"Invalid parameter: {str(e)}",
                 "valid_providers": [p.value for p in AIProvider],
-                "valid_action_types": [t.value for t in AIActionType]
+                "valid_action_types": [t.value for t in AIActionType],
             }
         except Exception as e:
-            return {
-                "success": False,
-                "error": f"Visualization failed: {str(e)}"
-            }
+            return {"success": False, "error": f"Visualization failed: {str(e)}"}
 
     async def _emit_visualization_event(self, agent, action: AIAction):
         """Emit UI event for visualization."""
         try:
             event_data = {
-                'type': 'ai_action_visualization',
-                'action_id': action.action_id,
-                'provider': action.provider.value,
-                'action_type': action.action_type.value,
-                'description': action.description,
-                'session_id': action.session_id,
-                'status': action.status,
-                'ui_url': action.ui_url,
-                'screenshot_path': action.screenshot_path,
-                'timestamp': action.timestamp.isoformat()
+                "type": "ai_action_visualization",
+                "action_id": action.action_id,
+                "provider": action.provider.value,
+                "action_type": action.action_type.value,
+                "description": action.description,
+                "session_id": action.session_id,
+                "status": action.status,
+                "ui_url": action.ui_url,
+                "screenshot_path": action.screenshot_path,
+                "timestamp": action.timestamp.isoformat(),
             }
 
             # Try to emit via agent
-            if hasattr(agent, 'emit_ui_event'):
-                await agent.emit_ui_event('ai_action_detected', event_data)
-            elif hasattr(agent, 'ui_state'):
+            if hasattr(agent, "emit_ui_event"):
+                await agent.emit_ui_event("ai_action_detected", event_data)
+            elif hasattr(agent, "ui_state"):
                 # Store in agent UI state as fallback
                 if not agent.ui_state:
                     agent.ui_state = {}
-                agent.ui_state['ai_actions'] = agent.ui_state.get('ai_actions', [])
-                agent.ui_state['ai_actions'].append(event_data)
+                agent.ui_state["ai_actions"] = agent.ui_state.get("ai_actions", [])
+                agent.ui_state["ai_actions"].append(event_data)
                 # Keep only last 10 actions
-                agent.ui_state['ai_actions'] = agent.ui_state['ai_actions'][-10:]
+                agent.ui_state["ai_actions"] = agent.ui_state["ai_actions"][-10:]
 
         except Exception as e:
             Log.log().warning(f"Failed to emit visualization event: {e}")
 
     def _get_visualization_url(self, action: AIAction) -> str:
         """Get the URL for viewing the visualization."""
-        base_url = os.getenv('GARY_ZERO_UI_URL', 'http://localhost:8080')
+        base_url = os.getenv("GARY_ZERO_UI_URL", "http://localhost:8080")
         return f"{base_url}/visualizations/{action.session_id}"
 
 
@@ -227,17 +227,17 @@ class AIActionUpdateTool(CodeExecutionTool):
 
     async def call(self, agent=None, **kwargs) -> dict[str, Any]:
         """Update an existing AI action visualization."""
-        action_id = kwargs.get('action_id')
-        session_id = kwargs.get('session_id')
-        status = kwargs.get('status')
-        execution_time = kwargs.get('execution_time')
-        result = kwargs.get('result')
-        screenshot_path = kwargs.get('screenshot_path')
+        action_id = kwargs.get("action_id")
+        session_id = kwargs.get("session_id")
+        status = kwargs.get("status")
+        execution_time = kwargs.get("execution_time")
+        result = kwargs.get("result")
+        screenshot_path = kwargs.get("screenshot_path")
 
         if not action_id and not session_id:
             return {
                 "success": False,
-                "error": "Either action_id or session_id is required"
+                "error": "Either action_id or session_id is required",
             }
 
         try:
@@ -249,7 +249,7 @@ class AIActionUpdateTool(CodeExecutionTool):
                 status=status or "updated",
                 execution_time=execution_time,
                 result=result,
-                screenshot_path=screenshot_path
+                screenshot_path=screenshot_path,
             )
 
             # Broadcast update
@@ -259,14 +259,11 @@ class AIActionUpdateTool(CodeExecutionTool):
                 "success": True,
                 "action_id": update_action.action_id,
                 "updated": True,
-                "timestamp": update_action.timestamp.isoformat()
+                "timestamp": update_action.timestamp.isoformat(),
             }
 
         except Exception as e:
-            return {
-                "success": False,
-                "error": f"Update failed: {str(e)}"
-            }
+            return {"success": False, "error": f"Update failed: {str(e)}"}
 
 
 class AIActionStreamingControlTool(CodeExecutionTool):
@@ -278,10 +275,10 @@ class AIActionStreamingControlTool(CodeExecutionTool):
 
     async def call(self, agent=None, **kwargs) -> dict[str, Any]:
         """Control the AI action streaming service."""
-        action = kwargs.get('action', 'status')  # start, stop, status, stats
+        action = kwargs.get("action", "status")  # start, stop, status, stats
 
         try:
-            if action == 'start':
+            if action == "start":
                 if not self.streaming_service.running:
                     # Start streaming in background
                     asyncio.create_task(self.streaming_service.start_server())
@@ -291,47 +288,44 @@ class AIActionStreamingControlTool(CodeExecutionTool):
                     "success": True,
                     "action": "start",
                     "streaming_active": self.streaming_service.running,
-                    "server_url": f"ws://{self.streaming_service.host}:{self.streaming_service.port}"
+                    "server_url": f"ws://{self.streaming_service.host}:{self.streaming_service.port}",
                 }
 
-            elif action == 'stop':
+            elif action == "stop":
                 if self.streaming_service.running:
                     await self.streaming_service.stop_server()
 
                 return {
                     "success": True,
                     "action": "stop",
-                    "streaming_active": self.streaming_service.running
+                    "streaming_active": self.streaming_service.running,
                 }
 
-            elif action == 'status':
+            elif action == "status":
                 return {
                     "success": True,
                     "streaming_active": self.streaming_service.running,
                     "server_url": f"ws://{self.streaming_service.host}:{self.streaming_service.port}",
                     "client_count": len(self.streaming_service.clients),
-                    "stats": self.streaming_service.get_server_stats()
+                    "stats": self.streaming_service.get_server_stats(),
                 }
 
-            elif action == 'stats':
+            elif action == "stats":
                 return {
                     "success": True,
                     "stats": self.streaming_service.get_server_stats(),
-                    "recent_actions": len(self.streaming_service.message_history)
+                    "recent_actions": len(self.streaming_service.message_history),
                 }
 
             else:
                 return {
                     "success": False,
                     "error": f"Unknown action: {action}",
-                    "available_actions": ["start", "stop", "status", "stats"]
+                    "available_actions": ["start", "stop", "status", "stats"],
                 }
 
         except Exception as e:
-            return {
-                "success": False,
-                "error": f"Streaming control failed: {str(e)}"
-            }
+            return {"success": False, "error": f"Streaming control failed: {str(e)}"}
 
 
 class AIActionInterceptionControlTool(CodeExecutionTool):
@@ -343,10 +337,10 @@ class AIActionInterceptionControlTool(CodeExecutionTool):
 
     async def call(self, agent=None, **kwargs) -> dict[str, Any]:
         """Control AI action interception."""
-        action = kwargs.get('action', 'status')  # start, stop, status
+        action = kwargs.get("action", "status")  # start, stop, status
 
         try:
-            if action == 'start':
+            if action == "start":
                 if not self.action_manager.active:
                     self.action_manager.start_interception()
 
@@ -354,40 +348,41 @@ class AIActionInterceptionControlTool(CodeExecutionTool):
                     "success": True,
                     "action": "start",
                     "interception_active": self.action_manager.active,
-                    "intercepted_providers": list(self.action_manager.interceptors.keys())
+                    "intercepted_providers": list(
+                        self.action_manager.interceptors.keys()
+                    ),
                 }
 
-            elif action == 'stop':
+            elif action == "stop":
                 if self.action_manager.active:
                     self.action_manager.stop_interception()
 
                 return {
                     "success": True,
                     "action": "stop",
-                    "interception_active": self.action_manager.active
+                    "interception_active": self.action_manager.active,
                 }
 
-            elif action == 'status':
+            elif action == "status":
                 return {
                     "success": True,
                     "interception_active": self.action_manager.active,
-                    "intercepted_providers": [p.value for p in self.action_manager.interceptors.keys()],
+                    "intercepted_providers": [
+                        p.value for p in self.action_manager.interceptors.keys()
+                    ],
                     "recent_actions": len(self.action_manager.action_history),
-                    "total_actions": len(self.action_manager.action_history)
+                    "total_actions": len(self.action_manager.action_history),
                 }
 
             else:
                 return {
                     "success": False,
                     "error": f"Unknown action: {action}",
-                    "available_actions": ["start", "stop", "status"]
+                    "available_actions": ["start", "stop", "status"],
                 }
 
         except Exception as e:
-            return {
-                "success": False,
-                "error": f"Interception control failed: {str(e)}"
-            }
+            return {"success": False, "error": f"Interception control failed: {str(e)}"}
 
 
 # Tool definitions for registration
@@ -405,8 +400,8 @@ AI_ACTION_VISUALIZATION_TOOL = {
         "status": "Action status (started, completed, failed, error)",
         "agent_name": "Name of the executing agent",
         "screenshot_path": "Path to action screenshot",
-        "metadata": "Additional metadata (dict)"
-    }
+        "metadata": "Additional metadata (dict)",
+    },
 }
 
 AI_ACTION_UPDATE_TOOL = {
@@ -419,24 +414,20 @@ AI_ACTION_UPDATE_TOOL = {
         "status": "Updated status (completed, failed, error)",
         "execution_time": "Action execution time in seconds",
         "result": "Action result data (dict)",
-        "screenshot_path": "Path to updated screenshot"
-    }
+        "screenshot_path": "Path to updated screenshot",
+    },
 }
 
 AI_ACTION_STREAMING_TOOL = {
     "name": "ai_action_streaming",
     "description": "Control real-time AI action streaming service",
     "class": AIActionStreamingControlTool,
-    "parameters": {
-        "action": "Control action (start, stop, status, stats)"
-    }
+    "parameters": {"action": "Control action (start, stop, status, stats)"},
 }
 
 AI_ACTION_INTERCEPTION_TOOL = {
     "name": "ai_action_interception",
     "description": "Control AI action interception across all providers",
     "class": AIActionInterceptionControlTool,
-    "parameters": {
-        "action": "Control action (start, stop, status)"
-    }
+    "parameters": {"action": "Control action (start, stop, status)"},
 }

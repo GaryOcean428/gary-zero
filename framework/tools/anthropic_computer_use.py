@@ -1,7 +1,7 @@
 """
 Anthropic Computer Use Tool for Desktop and GUI Automation.
 
-This tool integrates Anthropic's computer-use capabilities to enable 
+This tool integrates Anthropic's computer-use capabilities to enable
 agent automation of desktop tasks through keyboard, mouse, and window control.
 """
 
@@ -18,6 +18,7 @@ from framework.security import RiskLevel, require_approval
 try:
     import pyautogui
     from PIL import Image, ImageGrab
+
     GUI_AVAILABLE = True
 except (ImportError, Exception) as e:
     GUI_AVAILABLE = False
@@ -26,19 +27,30 @@ except (ImportError, Exception) as e:
 
 class ComputerUseConfig(BaseModel):
     """Configuration for Computer Use tool."""
-    enabled: bool = Field(default=False, description="Enable computer use functionality")
-    require_approval: bool = Field(default=True, description="Require approval for actions")
-    screenshot_interval: float = Field(default=1.0, description="Interval between screenshots")
-    max_actions_per_session: int = Field(default=50, description="Maximum actions per session")
+
+    enabled: bool = Field(
+        default=False, description="Enable computer use functionality"
+    )
+    require_approval: bool = Field(
+        default=True, description="Require approval for actions"
+    )
+    screenshot_interval: float = Field(
+        default=1.0, description="Interval between screenshots"
+    )
+    max_actions_per_session: int = Field(
+        default=50, description="Maximum actions per session"
+    )
 
 
 class ScreenshotAction(BaseModel):
     """Take a screenshot of the current screen."""
+
     action: str = "screenshot"
 
 
 class ClickAction(BaseModel):
     """Click at specified coordinates."""
+
     action: str = "click"
     x: int = Field(description="X coordinate to click")
     y: int = Field(description="Y coordinate to click")
@@ -48,18 +60,21 @@ class ClickAction(BaseModel):
 
 class TypeAction(BaseModel):
     """Type text at current cursor position."""
+
     action: str = "type"
     text: str = Field(description="Text to type")
 
 
 class KeyAction(BaseModel):
     """Press keyboard keys."""
+
     action: str = "key"
     keys: str = Field(description="Key combination (e.g., 'ctrl+c', 'enter', 'tab')")
 
 
 class MoveAction(BaseModel):
     """Move mouse to coordinates."""
+
     action: str = "move"
     x: int = Field(description="X coordinate to move to")
     y: int = Field(description="Y coordinate to move to")
@@ -67,6 +82,7 @@ class MoveAction(BaseModel):
 
 class ScrollAction(BaseModel):
     """Scroll at coordinates."""
+
     action: str = "scroll"
     x: int = Field(description="X coordinate to scroll at")
     y: int = Field(description="Y coordinate to scroll at")
@@ -92,32 +108,34 @@ class AnthropicComputerUse(Tool):
         # Set pause between actions
         pyautogui.PAUSE = 0.1
 
-    @require_approval("computer_control", RiskLevel.CRITICAL, "Control desktop/GUI automation")
+    @require_approval(
+        "computer_control", RiskLevel.CRITICAL, "Control desktop/GUI automation"
+    )
     async def execute(self, **kwargs) -> Response:
         """Execute computer use action with approval workflow."""
         try:
             # Extract user_id for approval system
-            user_id = kwargs.get('user_id', 'system')
+            user_id = kwargs.get("user_id", "system")
 
             # Check if GUI is available
             if not GUI_AVAILABLE:
                 return Response(
                     message=f"Computer Use tool requires GUI environment. Error: {GUI_IMPORT_ERROR}",
-                    break_loop=False
+                    break_loop=False,
                 )
 
             # Check if tool is enabled
             if not self.config.enabled:
                 return Response(
                     message="Computer Use tool is disabled. Enable it in settings to use desktop automation.",
-                    break_loop=False
+                    break_loop=False,
                 )
 
             # Check action limit
             if self.action_count >= self.config.max_actions_per_session:
                 return Response(
                     message=f"Maximum actions per session ({self.config.max_actions_per_session}) reached.",
-                    break_loop=False
+                    break_loop=False,
                 )
 
             action_type = self.args.get("action", "screenshot")
@@ -165,7 +183,9 @@ class AnthropicComputerUse(Tool):
             # Get screen dimensions
             width, height = screenshot.size
 
-            return f"Screenshot saved as {filepath}. Screen dimensions: {width}x{height}"
+            return (
+                f"Screenshot saved as {filepath}. Screen dimensions: {width}x{height}"
+            )
 
         except Exception as e:
             return f"Failed to take screenshot: {str(e)}"
@@ -209,7 +229,9 @@ class AnthropicComputerUse(Tool):
 
             # Request approval if required
             if self.config.require_approval:
-                action_desc = f"Type text: '{text[:50]}{'...' if len(text) > 50 else ''}'"
+                action_desc = (
+                    f"Type text: '{text[:50]}{'...' if len(text) > 50 else ''}'"
+                )
                 if not await self.request_approval(action_desc):
                     return "Action cancelled by user"
 

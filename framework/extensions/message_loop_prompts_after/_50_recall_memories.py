@@ -8,17 +8,17 @@ DATA_NAME_TASK = "_recall_memories_task"
 
 
 class RecallMemories(Extension):
-
     INTERVAL = 3
     HISTORY = 10000
     RESULTS = 3
     THRESHOLD = 0.6
 
     async def execute(self, loop_data: LoopData = LoopData(), **kwargs):
-
         # every 3 iterations (or the first one) recall memories
         if loop_data.iteration % RecallMemories.INTERVAL == 0:
-            task = asyncio.create_task(self.search_memories(loop_data=loop_data, **kwargs))
+            task = asyncio.create_task(
+                self.search_memories(loop_data=loop_data, **kwargs)
+            )
         else:
             task = None
 
@@ -27,7 +27,6 @@ class RecallMemories(Extension):
             self.agent.set_data(DATA_NAME_TASK, task)
 
     async def search_memories(self, loop_data: LoopData, **kwargs):
-
         # cleanup
         extras = loop_data.extras_persistent
         if "memories" in extras:
@@ -35,7 +34,9 @@ class RecallMemories(Extension):
 
         # try:
         # show temp info message
-        self.agent.context.log.log(type="info", content="Searching memories...", temp=True)
+        self.agent.context.log.log(
+            type="info", content="Searching memories...", temp=True
+        )
 
         # show full util message, this will hide temp message immediately if turned on
         log_item = self.agent.context.log.log(
@@ -45,7 +46,9 @@ class RecallMemories(Extension):
 
         # get system message and chat history for util llm
         msgs_text = self.agent.history.output_text()[-RecallMemories.HISTORY :]
-        system = self.agent.read_prompt("memory.memories_query.sys.md", history=msgs_text)
+        system = self.agent.read_prompt(
+            "memory.memories_query.sys.md", history=msgs_text
+        )
 
         # log query streamed by LLM
         async def log_callback(content):
@@ -54,7 +57,9 @@ class RecallMemories(Extension):
         # call util llm to summarize conversation
         query = await self.agent.call_utility_model(
             system=system,
-            message=(loop_data.user_message.output_text() if loop_data.user_message else ""),
+            message=(
+                loop_data.user_message.output_text() if loop_data.user_message else ""
+            ),
             callback=log_callback,
         )
 

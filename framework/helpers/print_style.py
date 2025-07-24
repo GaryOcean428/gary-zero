@@ -95,7 +95,9 @@ class PrintStyle:
         styles.append(font_color_code)
         styles.append(background_color_code)
         style_attr = " ".join(styles)
-        escaped_text = html.escape(text).replace("\n", "<br>")  # Escape HTML special characters
+        escaped_text = html.escape(text).replace(
+            "\n", "<br>"
+        )  # Escape HTML special characters
         return f'<span style="{style_attr}">{escaped_text}</span>'
 
     def _add_padding_if_needed(self):

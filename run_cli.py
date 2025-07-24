@@ -29,7 +29,6 @@ _state = GlobalState()
 
 # Main conversation loop
 async def chat(agent_context: AgentContext):
-
     # start the conversation loop
     while True:
         # ask user for message
@@ -56,7 +55,9 @@ async def chat(agent_context: AgentContext):
                     font_color="white",
                     bold=True,
                     padding=True,
-                ).print(f"User message ({timeout}s timeout, 'w' to wait, 'e' to leave):")
+                ).print(
+                    f"User message ({timeout}s timeout, 'w' to wait, 'e' to leave):"
+                )
                 if sys.platform != "win32":
                     pass  # this fixes arrow keys in terminal
                 user_input = timeout_input("> ", timeout)  # Wait for input with timeout
@@ -99,7 +100,9 @@ def intervention():
         ).print("User intervention ('e' to leave, empty to continue):")
 
         user_input = input("> ")
-        PrintStyle(font_color="white", padding=False, log_only=True).print(f"> {user_input}")
+        PrintStyle(font_color="white", padding=False, log_only=True).print(
+            f"> {user_input}"
+        )
         if user_input.lower() == "e" or user_input.lower() == "exit":
             os._exit(0)  # exit the conversation when the user types 'exit'
         if user_input:
@@ -115,7 +118,11 @@ def capture_keys():
         while True:
             event = get_input_event(timeout=1)
             if isinstance(event, InputEvent):
-                if event.key.lower() == "i" and _state.context and _state.context.streaming_agent:
+                if (
+                    event.key.lower() == "i"
+                    and _state.context
+                    and _state.context.streaming_agent
+                ):
                     intervention()
                 if event.key.lower() == "e":
                     os._exit(0)

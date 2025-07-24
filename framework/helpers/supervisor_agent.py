@@ -18,6 +18,7 @@ from framework.helpers.task_manager import Task, TaskManager, TaskPriority, Task
 @dataclass
 class AgentPool:
     """Pool of available agents for parallel execution."""
+
     coding_agents: list[Any] = field(default_factory=list)
     utility_agents: list[Any] = field(default_factory=list)
     browser_agents: list[Any] = field(default_factory=list)
@@ -29,7 +30,7 @@ class AgentPool:
             "coding": self.coding_agents,
             "utility": self.utility_agents,
             "browser": self.browser_agents,
-            "general": self.general_agents
+            "general": self.general_agents,
         }
 
         pool = pool_map.get(task_type, self.general_agents)
@@ -42,7 +43,7 @@ class AgentPool:
             "coding": self.coding_agents,
             "utility": self.utility_agents,
             "browser": self.browser_agents,
-            "general": self.general_agents
+            "general": self.general_agents,
         }
 
         pool = pool_map.get(agent_type, self.general_agents)
@@ -53,6 +54,7 @@ class AgentPool:
 @dataclass
 class ParallelExecution:
     """Configuration for parallel task execution."""
+
     max_concurrent_tasks: int = 3
     enable_load_balancing: bool = True
     priority_scheduling: bool = True
@@ -63,6 +65,7 @@ def _safe_print(message: str, color: str = "default") -> None:
     """Safe print function that falls back to regular print if PrintStyle unavailable."""
     try:
         from framework.helpers.print_style import PrintStyle
+
         _safe_print(message)
     except ImportError:
         print(f"[{color.upper()}] {message}")
@@ -78,11 +81,13 @@ class SupervisorAgent:
         self.parallel_config = ParallelExecution(
             max_concurrent_tasks=self.config.get("max_concurrent_tasks", 3),
             enable_load_balancing=self.config.get("enable_load_balancing", True),
-            priority_scheduling=self.config.get("priority_scheduling", True)
+            priority_scheduling=self.config.get("priority_scheduling", True),
         )
         self.active_orchestrations: set[str] = set()
         self.handoff_strategies: dict[str, Any] = {}
-        self.executor = ThreadPoolExecutor(max_workers=self.parallel_config.max_concurrent_tasks)
+        self.executor = ThreadPoolExecutor(
+            max_workers=self.parallel_config.max_concurrent_tasks
+        )
         self.running_tasks: dict[str, asyncio.Task] = {}
 
         # Performance monitoring
@@ -90,12 +95,15 @@ class SupervisorAgent:
             "total_tasks_orchestrated": 0,
             "parallel_executions": 0,
             "average_completion_time": 0.0,
-            "success_rate": 0.0
+            "success_rate": 0.0,
         }
 
     async def orchestrate_parallel_tasks(self, task_ids: list[str]) -> dict[str, Any]:
         """Orchestrate multiple tasks in parallel."""
-        _safe_print(f"[Supervisor] Starting parallel orchestration of {len(task_ids)} tasks", "blue")
+        _safe_print(
+            f"[Supervisor] Starting parallel orchestration of {len(task_ids)} tasks",
+            "blue",
+        )
 
         self.performance_metrics["parallel_executions"] += 1
         start_time = time.time()
@@ -114,10 +122,12 @@ class SupervisorAgent:
             "status": "completed",
             "execution_time": execution_time,
             "task_results": results,
-            "parallel_count": len(task_ids)
+            "parallel_count": len(task_ids),
         }
 
-    async def _execute_tasks_parallel(self, grouped_tasks: dict[str, list[str]]) -> dict[str, Any]:
+    async def _execute_tasks_parallel(
+        self, grouped_tasks: dict[str, list[str]]
+    ) -> dict[str, Any]:
         """Execute grouped tasks in parallel."""
         all_tasks = []
         results = {}
@@ -148,8 +158,11 @@ class SupervisorAgent:
 
         # Wait for all tasks to complete
         completed_tasks = await asyncio.gather(
-            *[limited_execution(task_id, task_coro) for task_id, task_coro in all_tasks],
-            return_exceptions=True
+            *[
+                limited_execution(task_id, task_coro)
+                for task_id, task_coro in all_tasks
+            ],
+            return_exceptions=True,
         )
 
         # Process results
@@ -162,14 +175,18 @@ class SupervisorAgent:
 
         return results
 
-    async def _execute_single_task_async(self, task_id: str, task_type: str) -> dict[str, Any]:
+    async def _execute_single_task_async(
+        self, task_id: str, task_type: str
+    ) -> dict[str, Any]:
         """Execute a single task asynchronously."""
         task = self.task_manager.get_task(task_id)
         if not task:
             return {"error": f"Task {task_id} not found", "status": "failed"}
 
         try:
-            _safe_print(f"[Supervisor] Executing task {task_id[:8]} ({task_type})", "cyan")
+            _safe_print(
+                f"[Supervisor] Executing task {task_id[:8]} ({task_type})", "cyan"
+            )
 
             # Get appropriate agent from pool
             agent = self.agent_pool.get_available_agent(task_type)
@@ -190,12 +207,14 @@ class SupervisorAgent:
 
             # Complete task
             execution_time = time.time() - start_time
-            self.task_manager.complete_task(task_id, f"Task completed in {execution_time:.2f}s")
+            self.task_manager.complete_task(
+                task_id, f"Task completed in {execution_time:.2f}s"
+            )
 
             return {
                 "status": "completed",
                 "execution_time": execution_time,
-                "agent_type": task_type
+                "agent_type": task_type,
             }
 
         except Exception as e:
@@ -205,7 +224,10 @@ class SupervisorAgent:
     async def _fallback_task_execution(self, task_id: str) -> dict[str, Any]:
         """Fallback execution when no specialized agent is available."""
         try:
-            _safe_print(f"[Supervisor] Using fallback execution for task {task_id[:8]}", "yellow")
+            _safe_print(
+                f"[Supervisor] Using fallback execution for task {task_id[:8]}",
+                "yellow",
+            )
 
             # Basic task execution without specialized agent
             start_time = time.time()
@@ -216,26 +238,25 @@ class SupervisorAgent:
 
             # Complete
             execution_time = time.time() - start_time
-            self.task_manager.complete_task(task_id, f"Fallback execution completed in {execution_time:.2f}s")
+            self.task_manager.complete_task(
+                task_id, f"Fallback execution completed in {execution_time:.2f}s"
+            )
 
             return {
                 "status": "completed",
                 "execution_time": execution_time,
-                "agent_type": "fallback"
+                "agent_type": "fallback",
             }
 
         except Exception as e:
             self.task_manager.fail_task(task_id, str(e))
             return {"error": str(e), "status": "failed"}
 
-    def _group_tasks_for_parallel_execution(self, task_ids: list[str]) -> dict[str, list[str]]:
+    def _group_tasks_for_parallel_execution(
+        self, task_ids: list[str]
+    ) -> dict[str, list[str]]:
         """Group tasks by type and priority for optimal parallel execution."""
-        grouped = {
-            "coding": [],
-            "utility": [],
-            "browser": [],
-            "general": []
-        }
+        grouped = {"coding": [], "utility": [], "browser": [], "general": []}
 
         for task_id in task_ids:
             task = self.task_manager.get_task(task_id)
@@ -259,18 +280,31 @@ class SupervisorAgent:
         title_lower = task.title.lower()
 
         # Check for coding-related keywords
-        if any(keyword in description_lower or keyword in title_lower
-               for keyword in ["code", "program", "function", "debug", "implement", "script"]):
+        if any(
+            keyword in description_lower or keyword in title_lower
+            for keyword in [
+                "code",
+                "program",
+                "function",
+                "debug",
+                "implement",
+                "script",
+            ]
+        ):
             return "coding"
 
         # Check for browser-related keywords
-        elif any(keyword in description_lower or keyword in title_lower
-                 for keyword in ["browser", "web", "page", "click", "navigate", "scrape"]):
+        elif any(
+            keyword in description_lower or keyword in title_lower
+            for keyword in ["browser", "web", "page", "click", "navigate", "scrape"]
+        ):
             return "browser"
 
         # Check for utility keywords
-        elif any(keyword in description_lower or keyword in title_lower
-                 for keyword in ["analyze", "process", "convert", "calculate", "utility"]):
+        elif any(
+            keyword in description_lower or keyword in title_lower
+            for keyword in ["analyze", "process", "convert", "calculate", "utility"]
+        ):
             return "utility"
 
         else:
@@ -298,14 +332,17 @@ class SupervisorAgent:
             TaskPriority.CRITICAL: 4,
             TaskPriority.HIGH: 3,
             TaskPriority.MEDIUM: 2,
-            TaskPriority.LOW: 1
+            TaskPriority.LOW: 1,
         }
         return priority_map.get(priority, 2)  # Default to medium
 
-    def _update_performance_metrics(self, execution_time: float, results: dict[str, Any]):
+    def _update_performance_metrics(
+        self, execution_time: float, results: dict[str, Any]
+    ):
         """Update performance metrics after task execution."""
-        successful_tasks = sum(1 for result in results.values()
-                             if result.get("status") == "completed")
+        successful_tasks = sum(
+            1 for result in results.values() if result.get("status") == "completed"
+        )
         total_tasks = len(results)
 
         # Update success rate
@@ -313,14 +350,14 @@ class SupervisorAgent:
             current_success_rate = successful_tasks / total_tasks
             # Moving average
             self.performance_metrics["success_rate"] = (
-                self.performance_metrics["success_rate"] * 0.8 +
-                current_success_rate * 0.2
+                self.performance_metrics["success_rate"] * 0.8
+                + current_success_rate * 0.2
             )
 
         # Update average completion time
         self.performance_metrics["average_completion_time"] = (
-            self.performance_metrics["average_completion_time"] * 0.8 +
-            execution_time * 0.2
+            self.performance_metrics["average_completion_time"] * 0.8
+            + execution_time * 0.2
         )
 
         self.performance_metrics["total_tasks_orchestrated"] += total_tasks
@@ -386,7 +423,10 @@ class SupervisorAgent:
         max_parallel = current_settings.get("max_parallel_agents", 3)
 
         if len(task_ids) > max_parallel:
-            _safe_print(f"[Supervisor] Limiting parallel tasks to {max_parallel} (requested {len(task_ids)})", "orange")
+            _safe_print(
+                f"[Supervisor] Limiting parallel tasks to {max_parallel} (requested {len(task_ids)})",
+                "orange",
+            )
             task_ids = task_ids[:max_parallel]
 
         _safe_print(f"[Supervisor] Coordinating {len(task_ids)} parallel tasks", "blue")
@@ -400,18 +440,25 @@ class SupervisorAgent:
         results = await asyncio.gather(*coordination_tasks, return_exceptions=True)
 
         return {
-            "completed_tasks": len([r for r in results if not isinstance(r, Exception)]),
+            "completed_tasks": len(
+                [r for r in results if not isinstance(r, Exception)]
+            ),
             "failed_tasks": len([r for r in results if isinstance(r, Exception)]),
-            "results": results
+            "results": results,
         }
 
-    async def implement_handoff_strategy(self, task_id: str, from_agent: str, to_agent: str, context: dict[str, Any]) -> bool:
+    async def implement_handoff_strategy(
+        self, task_id: str, from_agent: str, to_agent: str, context: dict[str, Any]
+    ) -> bool:
         """Implement a task handoff between agents."""
         task = self.task_manager.get_task(task_id)
         if not task:
             return False
 
-        _safe_print(f"[Supervisor] Implementing handoff for task {task.title}: {from_agent} -> {to_agent}", "purple")
+        _safe_print(
+            f"[Supervisor] Implementing handoff for task {task.title}: {from_agent} -> {to_agent}",
+            "purple",
+        )
 
         # Pause the task
         self.task_manager.pause_task(task_id)
@@ -422,7 +469,7 @@ class SupervisorAgent:
             "progress": task.progress,
             "context": task.context,
             "handoff_reason": context.get("reason", "Strategic handoff"),
-            "handoff_time": datetime.now(UTC).isoformat()
+            "handoff_time": datetime.now(UTC).isoformat(),
         }
 
         # Update task assignment
@@ -448,7 +495,7 @@ class SupervisorAgent:
                     "title": task.title,
                     "duration_minutes": self._get_task_duration(task),
                     "progress": task.progress,
-                    "assigned_agent": task.assigned_agent
+                    "assigned_agent": task.assigned_agent,
                 }
                 for task in long_running
             ],
@@ -458,12 +505,12 @@ class SupervisorAgent:
                     "title": task.title,
                     "status": task.status.value,
                     "progress": task.progress,
-                    "assigned_agent": task.assigned_agent
+                    "assigned_agent": task.assigned_agent,
                 }
                 for task in active_tasks
             ],
             "orchestrations": len(self.active_orchestrations),
-            "managed_agents": len(self.managed_agents)
+            "managed_agents": len(self.managed_agents),
         }
 
     async def reprompt_agent(self, task_id: str, guidance: str) -> None:
@@ -492,9 +539,7 @@ class SupervisorAgent:
         # Send guidance to the appropriate agent context
         # This would need to be integrated with the actual agent system
         self.task_manager.update_task_progress(
-            task_id,
-            task.progress,
-            f"Supervisor provided guidance: {guidance[:50]}..."
+            task_id, task.progress, f"Supervisor provided guidance: {guidance[:50]}..."
         )
 
     def _should_decompose_task(self, task: Task) -> bool:
@@ -514,8 +559,19 @@ class SupervisorAgent:
             return True
 
         # Check for multiple action words
-        action_words = ["create", "implement", "analyze", "research", "write", "design", "test", "deploy"]
-        action_count = sum(1 for word in action_words if word in task.description.lower())
+        action_words = [
+            "create",
+            "implement",
+            "analyze",
+            "research",
+            "write",
+            "design",
+            "test",
+            "deploy",
+        ]
+        action_count = sum(
+            1 for word in action_words if word in task.description.lower()
+        )
 
         if action_count > 2:
             return True
@@ -535,14 +591,14 @@ class SupervisorAgent:
                 "title": f"Subtask 1 of {task.title}",
                 "description": f"First part of: {task.description[:100]}...",
                 "category": task.category.value,
-                "priority": task.priority.value
+                "priority": task.priority.value,
             },
             {
                 "title": f"Subtask 2 of {task.title}",
                 "description": f"Second part of: {task.description[:100]}...",
                 "category": task.category.value,
-                "priority": task.priority.value
-            }
+                "priority": task.priority.value,
+            },
         ]
 
         subtasks = self.task_manager.decompose_task(task.id, subtask_data)
@@ -564,7 +620,9 @@ class SupervisorAgent:
         """Determine the best agent type for a task."""
         current_settings = settings.get_settings()
 
-        if task.category.value == "coding" and current_settings.get("coding_agent_enabled", True):
+        if task.category.value == "coding" and current_settings.get(
+            "coding_agent_enabled", True
+        ):
             return "coding"
         elif task.category.value == "research":
             return "research"
@@ -587,7 +645,11 @@ class SupervisorAgent:
             timeout_minutes = current_settings.get("task_timeout_minutes", 30)
             start_time = time.time()
 
-            while task.status in [TaskStatus.PENDING, TaskStatus.IN_PROGRESS, TaskStatus.PAUSED]:
+            while task.status in [
+                TaskStatus.PENDING,
+                TaskStatus.IN_PROGRESS,
+                TaskStatus.PAUSED,
+            ]:
                 await asyncio.sleep(5)  # Check every 5 seconds
 
                 # Check for timeout
@@ -597,7 +659,9 @@ class SupervisorAgent:
                     break
 
                 # Check if it's become a long-running task
-                if elapsed_minutes > current_settings.get("long_task_threshold_minutes", 10):
+                if elapsed_minutes > current_settings.get(
+                    "long_task_threshold_minutes", 10
+                ):
                     await self.handle_long_running_task(task_id)
 
                 # Refresh task state
@@ -608,7 +672,7 @@ class SupervisorAgent:
             return {
                 "status": task.status.value,
                 "progress": task.progress,
-                "duration_minutes": elapsed_minutes
+                "duration_minutes": elapsed_minutes,
             }
 
         finally:
@@ -616,7 +680,9 @@ class SupervisorAgent:
 
     async def _reassess_task_strategy(self, task: Task) -> None:
         """Reassess the strategy for a task with little progress."""
-        _safe_print(f"[Supervisor] Reassessing strategy for task: {task.title}", "orange")
+        _safe_print(
+            f"[Supervisor] Reassessing strategy for task: {task.title}", "orange"
+        )
 
         # Check if task should be decomposed
         if not task.subtask_ids and self._should_decompose_task(task):
@@ -631,7 +697,7 @@ class SupervisorAgent:
                 task.id,
                 current_agent,
                 new_agent_id,
-                {"reason": "Strategy reassessment due to slow progress"}
+                {"reason": "Strategy reassessment due to slow progress"},
             )
 
     async def _provide_guidance(self, task: Task) -> None:
@@ -648,9 +714,7 @@ class SupervisorAgent:
     async def _continue_monitoring(self, task: Task) -> None:
         """Continue monitoring a task that's making good progress."""
         self.task_manager.update_task_progress(
-            task.id,
-            task.progress,
-            "Supervisor: Good progress, continuing monitoring"
+            task.id, task.progress, "Supervisor: Good progress, continuing monitoring"
         )
 
     async def _handle_task_timeout(self, task_id: str) -> None:
@@ -661,7 +725,7 @@ class SupervisorAgent:
         if task:
             self.task_manager.fail_task(
                 task_id,
-                f"Task exceeded timeout of {settings.get_settings().get('task_timeout_minutes', 30)} minutes"
+                f"Task exceeded timeout of {settings.get_settings().get('task_timeout_minutes', 30)} minutes",
             )
 
     def _get_task_duration(self, task: Task) -> float:
@@ -686,12 +750,19 @@ def get_supervisor_agent(config: dict[str, Any] | None = None) -> SupervisorAgen
         if config is None:
             try:
                 from framework.helpers import settings
+
                 current_settings = settings.get_settings()
                 config = {
-                    "monitoring_interval": current_settings.get("supervisor_monitoring_interval", 30),
+                    "monitoring_interval": current_settings.get(
+                        "supervisor_monitoring_interval", 30
+                    ),
                     "max_retries": current_settings.get("supervisor_max_retries", 3),
-                    "enable_handoffs": current_settings.get("supervisor_enable_handoffs", True),
-                    "enable_parallel_execution": current_settings.get("supervisor_enable_parallel", False)
+                    "enable_handoffs": current_settings.get(
+                        "supervisor_enable_handoffs", True
+                    ),
+                    "enable_parallel_execution": current_settings.get(
+                        "supervisor_enable_parallel", False
+                    ),
                 }
             except Exception:
                 # Fallback to minimal default config
@@ -699,7 +770,7 @@ def get_supervisor_agent(config: dict[str, Any] | None = None) -> SupervisorAgen
                     "monitoring_interval": 30,
                     "max_retries": 3,
                     "enable_handoffs": True,
-                    "enable_parallel_execution": False
+                    "enable_parallel_execution": False,
                 }
         _supervisor_instance = SupervisorAgent(config)
     return _supervisor_instance

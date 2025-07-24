@@ -29,7 +29,12 @@ from framework.performance import (
     memory_optimize,
     timer,
 )
-from framework.security import AuditLogger, ContentSanitizer, InputValidator, RateLimiter
+from framework.security import (
+    AuditLogger,
+    ContentSanitizer,
+    InputValidator,
+    RateLimiter,
+)
 
 
 class DemoUserService(BaseService):
@@ -65,7 +70,10 @@ class DemoUserService(BaseService):
 
         # Log the operation
         import asyncio
-        asyncio.create_task(self.audit_logger.log_user_input("system", clean_user_id, "get_user"))
+
+        asyncio.create_task(
+            self.audit_logger.log_user_input("system", clean_user_id, "get_user")
+        )
 
         # Return user or default
         return self.users.get(clean_user_id, {"id": clean_user_id, "name": "Unknown"})
@@ -92,9 +100,12 @@ class DemoUserService(BaseService):
 
         # Log creation
         import asyncio
-        asyncio.create_task(self.audit_logger.log_tool_execution(
-            "system", "create_user", {"user_id": user_id}, True, 0.001
-        ))
+
+        asyncio.create_task(
+            self.audit_logger.log_tool_execution(
+                "system", "create_user", {"user_id": user_id}, True, 0.001
+            )
+        )
 
         return True
 
@@ -135,17 +146,19 @@ class DemoDataService(BaseService):
             for item in data:
                 # Simulate async processing
                 await asyncio.sleep(0.01)
-                processed_items.append({
-                    "id": item.get("id", "unknown"),
-                    "processed_at": datetime.now().isoformat(),
-                    "status": "completed"
-                })
+                processed_items.append(
+                    {
+                        "id": item.get("id", "unknown"),
+                        "processed_at": datetime.now().isoformat(),
+                        "status": "completed",
+                    }
+                )
 
             result = {
                 "batch_id": batch_id,
                 "processed_count": len(processed_items),
                 "items": processed_items,
-                "metrics": self.monitor.get_metrics_summary()
+                "metrics": self.monitor.get_metrics_summary(),
             }
 
             # Cache the result
@@ -180,9 +193,9 @@ async def demonstrate_framework():
     for i in range(15):  # Test rate limit (default is 10/minute)
         try:
             await rate_limiter.check_limit("api_call", "demo_user")
-            print(f"    ✅ Request {i+1} allowed")
+            print(f"    ✅ Request {i + 1} allowed")
         except Exception as e:
-            print(f"    ⚠️  Rate limit exceeded at request {i+1}: {e}")
+            print(f"    ⚠️  Rate limit exceeded at request {i + 1}: {e}")
             break
     else:
         print("    ✅ Rate limiting working normally")
@@ -193,7 +206,7 @@ async def demonstrate_framework():
         "normal_user_123",
         "<script>alert('xss')</script>",
         "user'; DROP TABLE users; --",
-        "valid@email.com"
+        "valid@email.com",
     ]
 
     validator = InputValidator()
@@ -208,7 +221,9 @@ async def demonstrate_framework():
             valid_status = "⚠️  Invalid (blocked)"
 
         sanitized = sanitizer.sanitize_text(test_input)
-        print(f"    Input: '{test_input[:30]}...' -> {valid_status}, Sanitized: '{sanitized[:30]}...'")
+        print(
+            f"    Input: '{test_input[:30]}...' -> {valid_status}, Sanitized: '{sanitized[:30]}...'"
+        )
 
     print("\n⚡ Testing Performance Framework...")
 
@@ -222,15 +237,17 @@ async def demonstrate_framework():
     user2 = user_service.get_user("demo_user_1")  # Second call - cached
     second_call_time = time.time() - start_time
 
-    print(f"    First call: {first_call_time:.4f}s, Second call: {second_call_time:.4f}s")
-    print(f"    Cache speedup: {first_call_time/second_call_time:.2f}x")
+    print(
+        f"    First call: {first_call_time:.4f}s, Second call: {second_call_time:.4f}s"
+    )
+    print(f"    Cache speedup: {first_call_time / second_call_time:.2f}x")
 
     # Test user creation with optimization
     print("  • Testing optimized user creation...")
     test_users = [
         {"id": "user_1", "name": "Alice Johnson", "email": "alice@example.com"},
         {"id": "user_2", "name": "Bob Smith", "email": "bob@example.com"},
-        {"id": "user_3", "name": "Charlie Brown", "email": "charlie@example.com"}
+        {"id": "user_3", "name": "Charlie Brown", "email": "charlie@example.com"},
     ]
 
     creation_times = []
@@ -239,16 +256,22 @@ async def demonstrate_framework():
         success = user_service.create_user(user_data)
         creation_time = time.time() - start_time
         creation_times.append(creation_time)
-        print(f"    Created {user_data['name']}: {creation_time:.4f}s, Success: {success}")
+        print(
+            f"    Created {user_data['name']}: {creation_time:.4f}s, Success: {success}"
+        )
 
-    print(f"    Average creation time: {sum(creation_times)/len(creation_times):.4f}s")
+    print(
+        f"    Average creation time: {sum(creation_times) / len(creation_times):.4f}s"
+    )
 
     # Test async data processing
     print("  • Testing async data processing...")
     test_data = [{"id": f"item_{i}", "value": i * 10} for i in range(5)]
 
     result = await data_service.process_data_batch(test_data)
-    print(f"    Processed {result['processed_count']} items in batch {result['batch_id'][:20]}...")
+    print(
+        f"    Processed {result['processed_count']} items in batch {result['batch_id'][:20]}..."
+    )
 
     # Test background task management
     print("  • Testing background task management...")
@@ -259,9 +282,9 @@ async def demonstrate_framework():
         return f"Task {task_id} completed"
 
     # Start multiple background tasks
-    task_ids = await task_manager.submit_tasks([
-        lambda: background_task(i) for i in range(3)
-    ])
+    task_ids = await task_manager.submit_tasks(
+        [lambda: background_task(i) for i in range(3)]
+    )
     print(f"    Started {len(task_ids)} background tasks")
 
     # Wait for completion
@@ -298,7 +321,9 @@ async def demonstrate_framework():
 
     print(f"  • Total events logged: {security_summary.get('total_events', 0)}")
     print(f"  • User input events: {security_summary.get('user_input_count', 0)}")
-    print(f"  • Tool execution events: {security_summary.get('tool_execution_count', 0)}")
+    print(
+        f"  • Tool execution events: {security_summary.get('tool_execution_count', 0)}"
+    )
 
     print("\n🎉 Demo completed successfully!")
     print("\nFramework Components Demonstrated:")
@@ -321,4 +346,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ Demo failed with error: {e}")
         import traceback
+
         traceback.print_exc()

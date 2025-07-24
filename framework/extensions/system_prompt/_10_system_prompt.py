@@ -6,7 +6,6 @@ from framework.helpers.mcp_handler import MCPConfig
 
 
 class SystemPrompt(Extension):
-
     async def execute(
         self,
         system_prompt: list[str] = None,

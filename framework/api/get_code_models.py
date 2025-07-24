@@ -9,11 +9,11 @@ class GetCodeModels(ApiHandler):
 
     async def process(self, input_data: Input, request: Request) -> Output:
         """Get code-capable models.
-        
+
         Args:
             input_data: Dictionary (may contain optional provider filter)
             request: The request object
-            
+
         Returns:
             Dictionary containing the list of code-capable models
         """
@@ -26,8 +26,4 @@ class GetCodeModels(ApiHandler):
             # Get all code models across all providers
             models = model_catalog.get_all_code_models()
 
-        return {
-            "provider": provider or "all",
-            "models": models,
-            "count": len(models)
-        }
+        return {"provider": provider or "all", "models": models, "count": len(models)}

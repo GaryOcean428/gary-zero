@@ -8,7 +8,6 @@ DATA_NAME_TASK = "_recall_solutions_task"
 
 
 class RecallSolutions(Extension):
-
     INTERVAL = 3
     HISTORY = 10000
     SOLUTIONS_COUNT = 2
@@ -16,10 +15,11 @@ class RecallSolutions(Extension):
     THRESHOLD = 0.6
 
     async def execute(self, loop_data: LoopData = LoopData(), **kwargs):
-
         # every 3 iterations (or the first one) recall memories
         if loop_data.iteration % RecallSolutions.INTERVAL == 0:
-            task = asyncio.create_task(self.search_solutions(loop_data=loop_data, **kwargs))
+            task = asyncio.create_task(
+                self.search_solutions(loop_data=loop_data, **kwargs)
+            )
         else:
             task = None
 
@@ -28,7 +28,6 @@ class RecallSolutions(Extension):
             self.agent.set_data(DATA_NAME_TASK, task)
 
     async def search_solutions(self, loop_data: LoopData, **kwargs):
-
         # cleanup
         extras = loop_data.extras_persistent
         if "solutions" in extras:
@@ -49,7 +48,9 @@ class RecallSolutions(Extension):
         # get system message and chat history for util llm
         msgs_text = self.agent.history.output_text()[-RecallSolutions.HISTORY :]
 
-        system = self.agent.read_prompt("memory.solutions_query.sys.md", history=msgs_text)
+        system = self.agent.read_prompt(
+            "memory.solutions_query.sys.md", history=msgs_text
+        )
 
         # log query streamed by LLM
         async def log_callback(content):
@@ -58,7 +59,9 @@ class RecallSolutions(Extension):
         # call util llm to summarize conversation
         query = await self.agent.call_utility_model(
             system=system,
-            message=(loop_data.user_message.output_text() if loop_data.user_message else ""),
+            message=(
+                loop_data.user_message.output_text() if loop_data.user_message else ""
+            ),
             callback=log_callback,
         )
 

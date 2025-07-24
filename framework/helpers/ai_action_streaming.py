@@ -14,6 +14,7 @@ from typing import Any
 try:
     import websockets
     from websockets.server import WebSocketServerProtocol
+
     WEBSOCKETS_AVAILABLE = True
 except ImportError:
     WEBSOCKETS_AVAILABLE = False
@@ -26,7 +27,9 @@ from framework.helpers.log import Log
 class ActionStreamMessage:
     """Message format for action streaming."""
 
-    def __init__(self, message_type: str, data: Any = None, timestamp: datetime | None = None):
+    def __init__(
+        self, message_type: str, data: Any = None, timestamp: datetime | None = None
+    ):
         self.message_id = str(uuid.uuid4())
         self.message_type = message_type
         self.data = data or {}
@@ -38,7 +41,7 @@ class ActionStreamMessage:
             "message_id": self.message_id,
             "message_type": self.message_type,
             "data": self.data,
-            "timestamp": self.timestamp.isoformat()
+            "timestamp": self.timestamp.isoformat(),
         }
 
     def to_json(self) -> str:
@@ -99,7 +102,7 @@ class ActionStreamClient:
                 action.action_type.value,
                 f"{action.provider.value}.{action.action_type.value}",
                 action.session_id,
-                "all"
+                "all",
             }
             if not action_categories.intersection(self.subscriptions):
                 return False
@@ -125,19 +128,23 @@ class AIActionStreamingService:
             "active_connections": 0,
             "messages_sent": 0,
             "actions_streamed": 0,
-            "started_at": None
+            "started_at": None,
         }
 
     async def start_server(self):
         """Start the WebSocket streaming server."""
         if not WEBSOCKETS_AVAILABLE:
-            Log.log().error("WebSockets not available. Install websockets package for streaming.")
+            Log.log().error(
+                "WebSockets not available. Install websockets package for streaming."
+            )
             return
 
         if self.running:
             return
 
-        Log.log().info(f"🌐 Starting AI Action Streaming Server on {self.host}:{self.port}")
+        Log.log().info(
+            f"🌐 Starting AI Action Streaming Server on {self.host}:{self.port}"
+        )
 
         try:
             self.server = await websockets.serve(
@@ -145,13 +152,15 @@ class AIActionStreamingService:
                 self.host,
                 self.port,
                 ping_interval=20,
-                ping_timeout=10
+                ping_timeout=10,
             )
 
             self.running = True
             self.stats["started_at"] = datetime.now(UTC)
 
-            Log.log().info(f"✅ AI Action Streaming Server started on ws://{self.host}:{self.port}")
+            Log.log().info(
+                f"✅ AI Action Streaming Server started on ws://{self.host}:{self.port}"
+            )
 
             # Keep server running
             await self.server.wait_closed()
@@ -194,9 +203,9 @@ class AIActionStreamingService:
                 "client_id": client.client_id,
                 "server_info": {
                     "version": "1.0.0",
-                    "capabilities": ["action_streaming", "filtering", "subscriptions"]
-                }
-            }
+                    "capabilities": ["action_streaming", "filtering", "subscriptions"],
+                },
+            },
         )
         await client.send_message(welcome_msg)
 
@@ -232,7 +241,7 @@ class AIActionStreamingService:
 
                 response = ActionStreamMessage(
                     "subscription_updated",
-                    {"subscriptions": list(client.subscriptions)}
+                    {"subscriptions": list(client.subscriptions)},
                 )
                 await client.send_message(response)
 
@@ -244,7 +253,7 @@ class AIActionStreamingService:
 
                 response = ActionStreamMessage(
                     "subscription_updated",
-                    {"subscriptions": list(client.subscriptions)}
+                    {"subscriptions": list(client.subscriptions)},
                 )
                 await client.send_message(response)
 
@@ -255,29 +264,31 @@ class AIActionStreamingService:
                     client.set_filter(filter_name, filter_value)
 
                 response = ActionStreamMessage(
-                    "filters_updated",
-                    {"filters": client.filters}
+                    "filters_updated", {"filters": client.filters}
                 )
                 await client.send_message(response)
 
             elif message_type == "get_stats":
                 # Send server statistics
-                response = ActionStreamMessage(
-                    "server_stats",
-                    self.get_server_stats()
-                )
+                response = ActionStreamMessage("server_stats", self.get_server_stats())
                 await client.send_message(response)
 
             elif message_type == "ping":
                 # Handle ping
-                response = ActionStreamMessage("pong", {"timestamp": datetime.now(UTC).isoformat()})
+                response = ActionStreamMessage(
+                    "pong", {"timestamp": datetime.now(UTC).isoformat()}
+                )
                 await client.send_message(response)
 
         except json.JSONDecodeError:
-            error_msg = ActionStreamMessage("error", {"message": "Invalid JSON message"})
+            error_msg = ActionStreamMessage(
+                "error", {"message": "Invalid JSON message"}
+            )
             await client.send_message(error_msg)
         except Exception as e:
-            error_msg = ActionStreamMessage("error", {"message": f"Message handling error: {str(e)}"})
+            error_msg = ActionStreamMessage(
+                "error", {"message": f"Message handling error: {str(e)}"}
+            )
             await client.send_message(error_msg)
 
     async def disconnect_client(self, client_id: str):
@@ -311,7 +322,7 @@ class AIActionStreamingService:
             "execution_time": action.execution_time,
             "result": action.result,
             "ui_url": action.ui_url,
-            "screenshot_path": action.screenshot_path
+            "screenshot_path": action.screenshot_path,
         }
 
         message = ActionStreamMessage("ai_action", action_data)
@@ -360,10 +371,12 @@ class AIActionStreamingService:
             "uptime_seconds": uptime,
             "running": self.running,
             "client_count": len(self.clients),
-            "message_history_size": len(self.message_history)
+            "message_history_size": len(self.message_history),
         }
 
-    async def send_system_message(self, message_type: str, data: Any = None, target_client: str = None):
+    async def send_system_message(
+        self, message_type: str, data: Any = None, target_client: str = None
+    ):
         """Send a system message to clients."""
         message = ActionStreamMessage(message_type, data)
 

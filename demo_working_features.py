@@ -13,7 +13,7 @@ import random
 import sys
 import time
 
-sys.path.append('/home/runner/work/gary-zero/gary-zero')
+sys.path.append("/home/runner/work/gary-zero/gary-zero")
 
 from framework.helpers.async_orchestrator import AsyncTaskOrchestrator
 from framework.helpers.orchestration_config import get_config_manager
@@ -74,8 +74,7 @@ async def demo_performance_improvement():
     # Concurrent execution with orchestrator
     print("\n⚡ Concurrent Execution with Orchestrator:")
     orchestrator = AsyncTaskOrchestrator(
-        max_concurrent_tasks=6,
-        enable_performance_monitoring=False
+        max_concurrent_tasks=6, enable_performance_monitoring=False
     )
 
     await orchestrator.start()
@@ -93,10 +92,9 @@ async def demo_performance_improvement():
             task_ids.append(task_id)
 
         # Wait for completion
-        results = await asyncio.gather(*[
-            orchestrator.wait_for_task(task_id, timeout=5.0)
-            for task_id in task_ids
-        ])
+        results = await asyncio.gather(
+            *[orchestrator.wait_for_task(task_id, timeout=5.0) for task_id in task_ids]
+        )
 
         concurrent_time = time.time() - concurrent_start
 
@@ -111,7 +109,9 @@ async def demo_performance_improvement():
         # Show orchestration metrics
         metrics = await orchestrator.get_orchestration_metrics()
         print("\n📊 Orchestration Metrics:")
-        print(f"   - Tasks completed: {metrics['completed_tasks']}/{metrics['total_tasks']}")
+        print(
+            f"   - Tasks completed: {metrics['completed_tasks']}/{metrics['total_tasks']}"
+        )
         print(f"   - Max concurrent: {metrics['max_concurrent_tasks']}")
         print(f"   - No failures: {metrics['failed_tasks'] == 0}")
 
@@ -122,7 +122,11 @@ async def demo_performance_improvement():
         print(f"   ✓ No degradation: {metrics['failed_tasks']} failures")
         print(f"   ✓ Resource balanced: Completed in {concurrent_time:.2f}s")
 
-        success = improvement >= 30 and metrics['total_tasks'] >= 5 and metrics['failed_tasks'] == 0
+        success = (
+            improvement >= 30
+            and metrics["total_tasks"] >= 5
+            and metrics["failed_tasks"] == 0
+        )
         if success:
             print("   🎉 ALL SUCCESS METRICS MET!")
 
@@ -138,15 +142,14 @@ async def demo_resource_management():
     print("=" * 60)
 
     orchestrator = AsyncTaskOrchestrator(
-        max_concurrent_tasks=8,
-        enable_performance_monitoring=False
+        max_concurrent_tasks=8, enable_performance_monitoring=False
     )
 
     # Configure resource limits
     orchestrator.default_agent_limits = {
-        'max_concurrent_tasks': 2,  # Tight limit for demo
-        'max_requests_per_minute': 20,
-        'max_memory_mb': 512.0
+        "max_concurrent_tasks": 2,  # Tight limit for demo
+        "max_requests_per_minute": 20,
+        "max_memory_mb": 512.0,
     }
 
     await orchestrator.start()
@@ -154,21 +157,21 @@ async def demo_resource_management():
     try:
         # Create tasks for different agents
         agent_tasks = {
-            'worker_a': [
+            "worker_a": [
                 SimpleTask("a1", "Worker A - Task 1", 0.3),
                 SimpleTask("a2", "Worker A - Task 2", 0.25),
                 SimpleTask("a3", "Worker A - Task 3", 0.2),
                 SimpleTask("a4", "Worker A - Task 4", 0.15),
             ],
-            'worker_b': [
+            "worker_b": [
                 SimpleTask("b1", "Worker B - Task 1", 0.2),
                 SimpleTask("b2", "Worker B - Task 2", 0.3),
                 SimpleTask("b3", "Worker B - Task 3", 0.25),
             ],
-            'worker_c': [
+            "worker_c": [
                 SimpleTask("c1", "Worker C - Task 1", 0.18),
                 SimpleTask("c2", "Worker C - Task 2", 0.22),
-            ]
+            ],
         }
 
         orchestrator._execute_managed_task = simulate_work
@@ -191,10 +194,12 @@ async def demo_resource_management():
         print(f"   Total tasks submitted: {total_tasks}")
 
         # Wait for completion
-        results = await asyncio.gather(*[
-            orchestrator.wait_for_task(task_id, timeout=10.0)
-            for task_id in all_task_ids
-        ])
+        results = await asyncio.gather(
+            *[
+                orchestrator.wait_for_task(task_id, timeout=10.0)
+                for task_id in all_task_ids
+            ]
+        )
 
         execution_time = time.time() - start_time
 
@@ -205,10 +210,10 @@ async def demo_resource_management():
 
         # Check final metrics
         metrics = await orchestrator.get_orchestration_metrics()
-        agent_util = metrics.get('agent_utilization', {})
+        agent_util = metrics.get("agent_utilization", {})
 
         print(f"   - Agent utilization tracked: {len(agent_util)} agents")
-        constraints_hit = metrics['orchestration_metrics']['resource_constraints_hit']
+        constraints_hit = metrics["orchestration_metrics"]["resource_constraints_hit"]
         print(f"   - Resource constraints enforced: {constraints_hit} times")
 
         print("\n✅ Resource Management Validation:")
@@ -226,8 +231,7 @@ async def demo_basic_dependencies():
     print("=" * 60)
 
     orchestrator = AsyncTaskOrchestrator(
-        max_concurrent_tasks=5,
-        enable_performance_monitoring=False
+        max_concurrent_tasks=5, enable_performance_monitoring=False
     )
 
     await orchestrator.start()
@@ -262,7 +266,7 @@ async def demo_basic_dependencies():
         await asyncio.gather(
             orchestrator.wait_for_task("dep_a", timeout=5.0),
             orchestrator.wait_for_task("dep_b", timeout=5.0),
-            orchestrator.wait_for_task("dep_c", timeout=5.0)
+            orchestrator.wait_for_task("dep_c", timeout=5.0),
         )
 
         print("\n✅ Dependency Validation:")
@@ -297,15 +301,14 @@ def demo_configuration():
     original_max = config.max_concurrent_tasks
 
     config_manager.update_config(max_concurrent_tasks=15)
-    print(f"   ✓ Updated max concurrent tasks: {original_max} → {config.max_concurrent_tasks}")
+    print(
+        f"   ✓ Updated max concurrent tasks: {original_max} → {config.max_concurrent_tasks}"
+    )
 
     # Agent-specific config
-    agent_config = {
-        'max_concurrent_tasks': 3,
-        'max_requests_per_minute': 50
-    }
-    config_manager.set_agent_config('demo_agent', agent_config)
-    retrieved = config_manager.get_agent_config('demo_agent')
+    agent_config = {"max_concurrent_tasks": 3, "max_requests_per_minute": 50}
+    config_manager.set_agent_config("demo_agent", agent_config)
+    retrieved = config_manager.get_agent_config("demo_agent")
     print(f"   ✓ Agent-specific config: {retrieved['max_concurrent_tasks']} tasks/min")
 
     # Reset
@@ -365,6 +368,7 @@ async def main():
     except Exception as e:
         print(f"\n❌ Demo failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 

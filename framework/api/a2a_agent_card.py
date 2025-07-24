@@ -15,18 +15,15 @@ class A2aAgentCard:
     async def process(self, input_data: dict[str, Any], request) -> dict[str, Any]:
         """
         Return the A2A agent card for Gary-Zero
-        
+
         Returns:
             Agent card as JSON following A2A specification
         """
         try:
             agent_card = get_agent_card()
-            return {
-                "success": True,
-                "agent_card": agent_card.dict()
-            }
+            return {"success": True, "agent_card": agent_card.dict()}
         except Exception as e:
             return {
                 "success": False,
-                "error": f"Failed to generate agent card: {str(e)}"
+                "error": f"Failed to generate agent card: {str(e)}",
             }

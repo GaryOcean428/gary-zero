@@ -25,7 +25,9 @@ async def test_complete_plugin_system():
     # Test 2: Capabilities
     print("\n2️⃣ Testing capability aggregation...")
     capabilities = manager.get_available_capabilities()
-    print(f"   ✅ Found {len(capabilities)} capabilities: {', '.join(capabilities[:5])}...")
+    print(
+        f"   ✅ Found {len(capabilities)} capabilities: {', '.join(capabilities[:5])}..."
+    )
     assert len(capabilities) >= 10, "Expected multiple capabilities"
 
     # Test 3: Plugin Loading
@@ -45,7 +47,7 @@ async def test_complete_plugin_system():
         name="simple_test",
         method=None,
         args={"action": "echo", "message": "Plugin system working!"},
-        message="test"
+        message="test",
     )
 
     response = await tool.execute()
@@ -88,9 +90,9 @@ async def test_complete_plugin_system():
     # Test 8: Plugin Information
     print("\n8️⃣ Testing plugin information retrieval...")
     for plugin in plugins[:3]:  # Test first 3 plugins
-        info = manager.get_plugin_info(plugin['name'])
+        info = manager.get_plugin_info(plugin["name"])
         assert info is not None, f"Failed to get info for {plugin['name']}"
-        assert info['name'] == plugin['name'], "Plugin info mismatch"
+        assert info["name"] == plugin["name"], "Plugin info mismatch"
         print(f"   ✅ {plugin['name']} info retrieved")
 
     print("\n🎉 All tests passed! Plugin system is fully operational.")
@@ -116,7 +118,7 @@ async def test_plugin_capabilities():
             name="weather_tool",
             method=None,
             args={"action": "current", "location": "New York"},
-            message=""
+            message="",
         )
         response = await tool.execute()
         if response and "New York" in response.message:
@@ -132,7 +134,7 @@ async def test_plugin_capabilities():
             name="note_taker",
             method=None,
             args={"action": "create", "title": "Test Note", "content": "Plugin test"},
-            message=""
+            message="",
         )
         response = await tool.execute()
         if response and "created successfully" in response.message:
@@ -151,5 +153,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ Test FAILED: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)

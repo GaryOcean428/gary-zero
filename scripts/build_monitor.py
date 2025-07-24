@@ -13,10 +13,11 @@ from datetime import datetime
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='[%(asctime)s] %(levelname)s: %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
+    format="[%(asctime)s] %(levelname)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 logger = logging.getLogger(__name__)
+
 
 def monitor_build():
     """Monitor the build process with timeout warnings"""
@@ -73,26 +74,29 @@ def monitor_build():
 
     except KeyboardInterrupt:
         elapsed_final = time.time() - start_time
-        logger.info(f"🛑 Monitoring stopped. Total elapsed: {elapsed_final/60:.1f} minutes")
+        logger.info(
+            f"🛑 Monitoring stopped. Total elapsed: {elapsed_final / 60:.1f} minutes"
+        )
         return True
     except Exception as e:
         logger.error(f"❌ Monitor error: {e}")
         return False
+
 
 def check_railway_config():
     """Verify Railway configuration is properly set"""
     try:
         import toml
 
-        with open('railway.toml') as f:
+        with open("railway.toml") as f:
             config = toml.load(f)
 
-        build_config = config.get('build', {})
-        timeout = build_config.get('timeout', 0)
-        retries = build_config.get('retries', 0)
+        build_config = config.get("build", {})
+        timeout = build_config.get("timeout", 0)
+        retries = build_config.get("retries", 0)
 
         logger.info("🔧 Railway configuration check:")
-        logger.info(f"  ⏱️  Timeout: {timeout}s ({timeout/60:.1f} minutes)")
+        logger.info(f"  ⏱️  Timeout: {timeout}s ({timeout / 60:.1f} minutes)")
         logger.info(f"  🔄 Retries: {retries}")
 
         if timeout >= 1800 and retries >= 3:
@@ -109,11 +113,13 @@ def check_railway_config():
         logger.error(f"❌ Config check failed: {e}")
         return False
 
+
 def test_uv_availability():
     """Test if UV package manager is available"""
     try:
-        result = subprocess.run(['uv', '--version'],
-                              capture_output=True, text=True, timeout=10)
+        result = subprocess.run(
+            ["uv", "--version"], capture_output=True, text=True, timeout=10
+        )
         if result.returncode == 0:
             logger.info(f"✅ UV available: {result.stdout.strip()}")
             return True
@@ -130,6 +136,7 @@ def test_uv_availability():
         logger.error(f"❌ UV check failed: {e}")
         return False
 
+
 if __name__ == "__main__":
     logger.info("🔍 Pre-build checks:")
 
@@ -137,7 +144,7 @@ if __name__ == "__main__":
     config_ok = check_railway_config()
     uv_ok = test_uv_availability()
 
-    if '--check-only' in sys.argv:
+    if "--check-only" in sys.argv:
         logger.info("📋 Check-only mode completed")
         sys.exit(0 if config_ok and uv_ok else 1)
 

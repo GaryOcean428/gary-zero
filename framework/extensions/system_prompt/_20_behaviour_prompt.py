@@ -4,7 +4,6 @@ from framework.helpers.extension import Extension
 
 
 class BehaviourPrompt(Extension):
-
     async def execute(
         self,
         system_prompt: list[str] = None,

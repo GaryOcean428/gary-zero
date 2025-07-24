@@ -14,7 +14,9 @@ class MockAgent:
     def __init__(self):
         pass
 
-    def get_tool(self, name: str, method: str | None, args: dict, message: str, **kwargs):
+    def get_tool(
+        self, name: str, method: str | None, args: dict, message: str, **kwargs
+    ):
         """Test the plugin-integrated get_tool method."""
         from framework.helpers import extract_tools
         from framework.helpers.tool import Tool
@@ -25,13 +27,20 @@ class MockAgent:
             plugin_tool_class = self._get_plugin_tool(name)
             if plugin_tool_class:
                 return plugin_tool_class(
-                    agent=self, name=name, method=method, args=args, message=message, **kwargs
+                    agent=self,
+                    name=name,
+                    method=method,
+                    args=args,
+                    message=message,
+                    **kwargs,
                 )
         except Exception as e:
             print(f"Failed to load plugin tool {name}: {e}")
 
         # Fallback to static tools
-        classes = extract_tools.load_classes_from_folder("framework/tools", name + ".py", Tool)
+        classes = extract_tools.load_classes_from_folder(
+            "framework/tools", name + ".py", Tool
+        )
         tool_class = classes[0] if classes else Unknown
         return tool_class(
             agent=self, name=name, method=method, args=args, message=message, **kwargs
@@ -40,9 +49,10 @@ class MockAgent:
     def _get_plugin_tool(self, name: str):
         """Get a tool from the plugin system."""
         # Initialize plugin manager if not already done
-        if not hasattr(self, '_plugin_manager'):
+        if not hasattr(self, "_plugin_manager"):
             try:
                 from framework.plugins.manager import PluginManager
+
                 self._plugin_manager = PluginManager()
             except Exception as e:
                 print(f"Failed to initialize plugin manager: {e}")
@@ -59,10 +69,7 @@ async def test_agent_plugin_integration():
 
     # Test loading a plugin tool
     tool = agent.get_tool(
-        name="simple_test",
-        method=None,
-        args={"action": "info"},
-        message="test message"
+        name="simple_test", method=None, args={"action": "info"}, message="test message"
     )
 
     print(f"✓ Agent loaded tool: {tool.__class__.__name__}")
@@ -78,14 +85,12 @@ async def test_agent_plugin_integration():
     except Exception as e:
         print(f"❌ Plugin tool execution failed: {e}")
         import traceback
+
         traceback.print_exc()
 
     # Test loading a non-existent plugin (should fallback to Unknown)
     unknown_tool = agent.get_tool(
-        name="nonexistent_plugin",
-        method=None,
-        args={},
-        message="test"
+        name="nonexistent_plugin", method=None, args={}, message="test"
     )
 
     print(f"✓ Unknown plugin fallback: {unknown_tool.__class__.__name__}")
@@ -96,7 +101,7 @@ async def test_agent_plugin_integration():
             name="response",  # This should exist in framework/tools
             method=None,
             args={"text": "test response"},
-            message="test"
+            message="test",
         )
         print(f"✓ Static tool loaded: {static_tool.__class__.__name__}")
     except Exception as e:
@@ -110,4 +115,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"❌ Test failed: {e}")
         import traceback
+
         traceback.print_exc()

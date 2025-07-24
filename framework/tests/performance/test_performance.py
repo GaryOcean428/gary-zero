@@ -196,6 +196,7 @@ class TestAsyncPool:
     @pytest.mark.asyncio
     async def test_basic_pool_operations(self):
         """Test basic async pool operations."""
+
         def create_resource():
             return MagicMock()
 
@@ -257,7 +258,7 @@ class TestBackgroundTaskManager:
 
         # Check task status
         status = manager.get_task_status(task_id)
-        assert status['status'] == TaskStatus.COMPLETED.value
+        assert status["status"] == TaskStatus.COMPLETED.value
 
         await manager.shutdown()
 
@@ -283,7 +284,10 @@ class TestBackgroundTaskManager:
         await asyncio.sleep(0.1)
         status = manager.get_task_status(task_id)
         # Task might be cancelled or running when cancelled
-        assert status['status'] in [TaskStatus.CANCELLED.value, TaskStatus.RUNNING.value]
+        assert status["status"] in [
+            TaskStatus.CANCELLED.value,
+            TaskStatus.RUNNING.value,
+        ]
 
         await manager.shutdown()
 
@@ -309,7 +313,7 @@ class TestBackgroundTaskManager:
 
         # Check status
         status = manager.get_task_status(task_id)
-        assert status['status'] == TaskStatus.FAILED.value
+        assert status["status"] == TaskStatus.FAILED.value
 
         await manager.shutdown()
 
@@ -467,6 +471,7 @@ class TestMemoryOptimizer:
 
         # Register a mock cache cleanup function
         cleanup_called = False
+
         def mock_cleanup():
             nonlocal cleanup_called
             cleanup_called = True
@@ -490,7 +495,7 @@ class TestMemoryOptimizer:
 class TestCPUOptimizer:
     """Test cases for CPUOptimizer."""
 
-    @patch('psutil.Process')
+    @patch("psutil.Process")
     def test_cpu_optimization(self, mock_process):
         """Test CPU optimization functionality."""
         # Mock process for testing
@@ -522,8 +527,7 @@ class TestResourceOptimizer:
         cpu_optimizer = CPUOptimizer()
 
         resource_optimizer = ResourceOptimizer(
-            memory_optimizer=memory_optimizer,
-            cpu_optimizer=cpu_optimizer
+            memory_optimizer=memory_optimizer, cpu_optimizer=cpu_optimizer
         )
 
         # Test individual optimizations
@@ -591,6 +595,7 @@ class TestDecorators:
 
     def test_timer_decorator(self):
         """Test the timer decorator."""
+
         @timer("decorated_function")
         def test_function():
             time.sleep(0.01)
@@ -601,6 +606,7 @@ class TestDecorators:
 
         # Check that timing was recorded in default monitor
         from framework.performance.monitor import get_performance_monitor
+
         monitor = get_performance_monitor()
         latest = monitor.metrics.get_latest("operation_duration_decorated_function")
         assert latest is not None
@@ -608,6 +614,7 @@ class TestDecorators:
     @pytest.mark.asyncio
     async def test_async_timeout_decorator(self):
         """Test async timeout decorator."""
+
         @async_timeout(0.1)
         async def fast_function():
             await asyncio.sleep(0.05)

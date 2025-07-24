@@ -10,7 +10,6 @@ from framework.helpers.extension import Extension
 
 class RecallWait(Extension):
     async def execute(self, loop_data: LoopData = LoopData(), **kwargs):
-
         task = self.agent.get_data(DATA_NAME_TASK_MEMORIES)
         if task and not task.done():
             # self.agent.context.log.set_progress("Recalling memories...")

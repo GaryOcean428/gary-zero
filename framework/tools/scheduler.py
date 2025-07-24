@@ -58,7 +58,9 @@ class SchedulerTool(Tool):
         elif self.method == "wait_for_task":
             return await self.wait_for_task(**kwargs)
         else:
-            return Response(message=f"Unknown method '{self.name}:{self.method}'", break_loop=False)
+            return Response(
+                message=f"Unknown method '{self.name}:{self.method}'", break_loop=False
+            )
 
     async def list_tasks(self, **kwargs) -> Response:
         state_filter: list[str] | None = kwargs.get("state")
@@ -66,7 +68,9 @@ class SchedulerTool(Tool):
         next_run_within_filter: int | None = kwargs.get("next_run_within")
         next_run_after_filter: int | None = kwargs.get("next_run_after")
 
-        tasks: list[ScheduledTask | AdHocTask | PlannedTask] = TaskScheduler.get().get_tasks()
+        tasks: list[ScheduledTask | AdHocTask | PlannedTask] = (
+            TaskScheduler.get().get_tasks()
+        )
         filtered_tasks = []
         for task in tasks:
             if state_filter and task.state not in state_filter:
@@ -107,20 +111,22 @@ class SchedulerTool(Tool):
         task_uuid: str = kwargs.get("uuid")
         if not task_uuid:
             return Response(message=TASK_UUID_REQUIRED_MSG, break_loop=False)
-        task: ScheduledTask | AdHocTask | PlannedTask | None = TaskScheduler.get().get_task_by_uuid(
-            task_uuid
+        task: ScheduledTask | AdHocTask | PlannedTask | None = (
+            TaskScheduler.get().get_task_by_uuid(task_uuid)
         )
         if not task:
             return Response(message=f"Task not found: {task_uuid}", break_loop=False)
-        return Response(message=json.dumps(serialize_task(task), indent=4), break_loop=False)
+        return Response(
+            message=json.dumps(serialize_task(task), indent=4), break_loop=False
+        )
 
     async def run_task(self, **kwargs) -> Response:
         task_uuid: str = kwargs.get("uuid")
         if not task_uuid:
             return Response(message=TASK_UUID_REQUIRED_MSG, break_loop=False)
         task_context: str | None = kwargs.get("context")
-        task: ScheduledTask | AdHocTask | PlannedTask | None = TaskScheduler.get().get_task_by_uuid(
-            task_uuid
+        task: ScheduledTask | AdHocTask | PlannedTask | None = (
+            TaskScheduler.get().get_task_by_uuid(task_uuid)
         )
         if not task:
             return Response(message=f"Task not found: {task_uuid}", break_loop=False)
@@ -135,8 +141,8 @@ class SchedulerTool(Tool):
         if not task_uuid:
             return Response(message=TASK_UUID_REQUIRED_MSG, break_loop=False)
 
-        task: ScheduledTask | AdHocTask | PlannedTask | None = TaskScheduler.get().get_task_by_uuid(
-            task_uuid
+        task: ScheduledTask | AdHocTask | PlannedTask | None = (
+            TaskScheduler.get().get_task_by_uuid(task_uuid)
         )
         if not task:
             return Response(message=f"Task not found: {task_uuid}", break_loop=False)
@@ -159,7 +165,9 @@ class SchedulerTool(Tool):
         if TaskScheduler.get().get_task_by_uuid(task_uuid) is None:
             return Response(message=f"Task deleted: {task_uuid}", break_loop=False)
         else:
-            return Response(message=f"Task failed to delete: {task_uuid}", break_loop=False)
+            return Response(
+                message=f"Task failed to delete: {task_uuid}", break_loop=False
+            )
 
     async def create_scheduled_task(self, **kwargs) -> Response:
         # "name": "XXX",
@@ -210,7 +218,9 @@ class SchedulerTool(Tool):
             context_id=None if dedicated_context else self.agent.context.id,
         )
         await TaskScheduler.get().add_task(task)
-        return Response(message=f"Scheduled task '{name}' created: {task.uuid}", break_loop=False)
+        return Response(
+            message=f"Scheduled task '{name}' created: {task.uuid}", break_loop=False
+        )
 
     async def create_adhoc_task(self, **kwargs) -> Response:
         name: str = kwargs.get("name")
@@ -229,7 +239,9 @@ class SchedulerTool(Tool):
             context_id=None if dedicated_context else self.agent.context.id,
         )
         await TaskScheduler.get().add_task(task)
-        return Response(message=f"Adhoc task '{name}' created: {task.uuid}", break_loop=False)
+        return Response(
+            message=f"Adhoc task '{name}' created: {task.uuid}", break_loop=False
+        )
 
     async def create_planned_task(self, **kwargs) -> Response:
         """Create a new planned task with scheduled execution times.
@@ -270,12 +282,14 @@ class SchedulerTool(Tool):
                 todo.append(dt)
             except (ValueError, TypeError):
                 return Response(
-                    f"Invalid datetime format in plan: {item}. Use ISO format.", success=False
+                    f"Invalid datetime format in plan: {item}. Use ISO format.",
+                    success=False,
                 )
 
         if not todo:
             return Response(
-                "At least one valid execution time must be provided in the plan", success=False
+                "At least one valid execution time must be provided in the plan",
+                success=False,
             )
 
         # Create task plan with todo list
@@ -306,17 +320,21 @@ class SchedulerTool(Tool):
             return Response(message=TASK_UUID_REQUIRED_MSG, break_loop=False)
 
         scheduler = TaskScheduler.get()
-        task: ScheduledTask | AdHocTask | PlannedTask | None = scheduler.get_task_by_uuid(task_uuid)
+        task: ScheduledTask | AdHocTask | PlannedTask | None = (
+            scheduler.get_task_by_uuid(task_uuid)
+        )
         if not task:
             return Response(message=f"Task not found: {task_uuid}", break_loop=False)
 
         if not (self.agent and self.agent.context):
             logger.warning(
-                "No agent context available for task %s. " "Task will run in a dedicated context.",
+                "No agent context available for task %s. "
+                "Task will run in a dedicated context.",
                 task.name,
             )
             return Response(
-                message="Cannot wait for task: No agent context available", break_loop=False
+                message="Cannot wait for task: No agent context available",
+                break_loop=False,
             )
 
         if task.context_id == self.agent.context.id:
@@ -334,7 +352,9 @@ class SchedulerTool(Tool):
             await scheduler.reload()
             task = scheduler.get_task_by_uuid(task_uuid)
             if not task:
-                return Response(message=f"Task not found: {task_uuid}", break_loop=False)
+                return Response(
+                    message=f"Task not found: {task_uuid}", break_loop=False
+                )
 
             if task.state == TaskState.RUNNING:
                 await asyncio.sleep(1)

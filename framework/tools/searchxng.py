@@ -14,23 +14,31 @@ from framework.helpers.tool import Response, Tool
 class SearchXng(Tool):
     """Search tool using Railway-hosted SearchXNG service."""
 
-    def __init__(self, agent, name: str, method: str | None, args: dict[str, str], message: str, **kwargs):
+    def __init__(
+        self,
+        agent,
+        name: str,
+        method: str | None,
+        args: dict[str, str],
+        message: str,
+        **kwargs,
+    ):
         super().__init__(agent, name, method, args, message, **kwargs)
 
         # Get SearchXNG URL with proper fallback handling
-        self.searxng_url = os.getenv('SEARXNG_URL', '')
+        self.searxng_url = os.getenv("SEARXNG_URL", "")
 
         # Check if URL contains unresolved Railway reference variables
-        if not self.searxng_url or '${{' in self.searxng_url:
+        if not self.searxng_url or "${{" in self.searxng_url:
             # Try Railway internal domain as fallback
-            if os.getenv('RAILWAY_ENVIRONMENT'):
-                self.searxng_url = 'http://searchxng.railway.internal:8080'
+            if os.getenv("RAILWAY_ENVIRONMENT"):
+                self.searxng_url = "http://searchxng.railway.internal:8080"
                 PrintStyle(font_color="#FFA500").print(
                     f"⚠️  Using fallback SearchXNG URL: {self.searxng_url}"
                 )
             else:
                 # Local development fallback
-                self.searxng_url = 'http://localhost:55510'
+                self.searxng_url = "http://localhost:55510"
 
         # Log the URL being used
         PrintStyle(font_color="#85C1E9").print(f"🔍 SearchXNG URL: {self.searxng_url}")
@@ -45,16 +53,18 @@ class SearchXng(Tool):
             return Response(message="Error: Search query is required", break_loop=False)
 
         try:
-            PrintStyle(font_color="#85C1E9").print(f"🔍 Searching with SearchXNG: {query}")
+            PrintStyle(font_color="#85C1E9").print(
+                f"🔍 Searching with SearchXNG: {query}"
+            )
 
             results = await self._search_searchxng(query, category)
 
-            if isinstance(results, dict) and 'error' in results:
+            if isinstance(results, dict) and "error" in results:
                 error_msg = f"❌ SearchXNG search failed: {results['error']}"
                 PrintStyle.error(error_msg)
 
                 # Suggest fallback to DuckDuckGo if SearchXNG fails
-                if 'connection' in results['error'].lower():
+                if "connection" in results["error"].lower():
                     error_msg += "\n💡 Hint: SearchXNG may not be accessible. Consider using DuckDuckGo as fallback."
 
                 return Response(message=error_msg, break_loop=False)
@@ -74,18 +84,16 @@ class SearchXng(Tool):
         """Perform search using SearchXNG API."""
         try:
             async with aiohttp.ClientSession() as session:
-                params = {
-                    'q': query,
-                    'category': category,
-                    'format': 'json'
-                }
+                params = {"q": query, "category": category, "format": "json"}
 
                 search_url = f"{self.searxng_url}/search"
 
-                async with session.get(search_url, params=params, timeout=30) as response:
+                async with session.get(
+                    search_url, params=params, timeout=30
+                ) as response:
                     if response.status == 200:
                         data = await response.json()
-                        return data.get('results', [])
+                        return data.get("results", [])
                     else:
                         return {"error": f"SearchXNG returned status {response.status}"}
 
@@ -96,7 +104,7 @@ class SearchXng(Tool):
 
     def _format_search_results(self, results, source):
         """Format search results for display."""
-        if isinstance(results, dict) and 'error' in results:
+        if isinstance(results, dict) and "error" in results:
             return f"{source} search failed: {results['error']}"
 
         if not results:
@@ -105,9 +113,9 @@ class SearchXng(Tool):
         formatted = f"🔍 Search results from {source}:\n\n"
 
         for i, result in enumerate(results[:10], 1):  # Limit to top 10 results
-            title = result.get('title', 'No title')
-            url = result.get('url', 'No URL')
-            content = result.get('content', 'No description')
+            title = result.get("title", "No title")
+            url = result.get("url", "No URL")
+            content = result.get("content", "No description")
 
             # Truncate content if too long
             if len(content) > 200:

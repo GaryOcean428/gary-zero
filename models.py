@@ -61,6 +61,7 @@ class ModelProvider(Enum):
     OPENAI_AZURE = "OpenAI Azure"
     OPENROUTER = "OpenRouter"
     PERPLEXITY = "Perplexity"
+    QWEN = "Qwen"
     SAMBANOVA = "Sambanova"
     XAI = "xAI"
     OTHER = "Other"
@@ -83,13 +84,17 @@ def get_api_key(service) -> str | None:
 
 def get_model(model_type: ModelType, provider: ModelProvider, name: str, **kwargs):
     # Construct the function name for the model getter
-    fnc_name = f"get_{provider.name.lower()}_" f"{model_type.name.lower()}"
+    fnc_name = f"get_{provider.name.lower()}_{model_type.name.lower()}"
     model = globals()[fnc_name](name, **kwargs)
     return model
 
 
 def get_rate_limiter(
-    provider: ModelProvider, name: str, requests: int, input_tokens: int, output_tokens: int
+    provider: ModelProvider,
+    name: str,
+    requests: int,
+    input_tokens: int,
+    output_tokens: int,
 ) -> RateLimiter:
     """Get or create a rate limiter for the specified model.
 
@@ -127,7 +132,10 @@ def parse_chunk(chunk: Any):
 
 # Ollama models
 def get_ollama_base_url():
-    return dotenv.get_dotenv_value("OLLAMA_BASE_URL") or f"http://{runtime.get_local_url()}:11434"
+    return (
+        dotenv.get_dotenv_value("OLLAMA_BASE_URL")
+        or f"http://{runtime.get_local_url()}:11434"
+    )
 
 
 def get_ollama_chat(
@@ -154,7 +162,9 @@ def get_ollama_embedding(
 ):
     if not base_url:
         base_url = get_ollama_base_url()
-    return OllamaEmbeddings(model=model_name, base_url=base_url, num_ctx=num_ctx, **kwargs)
+    return OllamaEmbeddings(
+        model=model_name, base_url=base_url, num_ctx=num_ctx, **kwargs
+    )
 
 
 # HuggingFace models
@@ -187,7 +197,8 @@ def get_huggingface_embedding(model_name: str, **kwargs):
 # LM Studio and other OpenAI compatible interfaces
 def get_lmstudio_base_url():
     return (
-        dotenv.get_dotenv_value("LM_STUDIO_BASE_URL") or f"http://{runtime.get_local_url()}:1234/v1"
+        dotenv.get_dotenv_value("LM_STUDIO_BASE_URL")
+        or f"http://{runtime.get_local_url()}:1234/v1"
     )
 
 
@@ -198,7 +209,9 @@ def get_lmstudio_chat(
 ):
     if not base_url:
         base_url = get_lmstudio_base_url()
-    return ChatOpenAI(model=model_name, base_url=base_url, api_key=SecretStr("none"), **kwargs)
+    return ChatOpenAI(
+        model=model_name, base_url=base_url, api_key=SecretStr("none"), **kwargs
+    )
 
 
 def get_lmstudio_embedding(
@@ -227,11 +240,16 @@ def get_anthropic_chat(
     if not api_key:
         api_key = get_api_key("anthropic")
     if not base_url:
-        base_url = dotenv.get_dotenv_value("ANTHROPIC_BASE_URL") or "https://api.anthropic.com"
+        base_url = (
+            dotenv.get_dotenv_value("ANTHROPIC_BASE_URL") or "https://api.anthropic.com"
+        )
 
     # Production hotfix for LangChain Anthropic streaming metadata bug (Issue #26348)
     # Disable stream_usage when LANGCHAIN_ANTHROPIC_STREAM_USAGE is set to false
-    stream_usage_disabled = dotenv.get_dotenv_value("LANGCHAIN_ANTHROPIC_STREAM_USAGE", "true").lower() == "false"
+    stream_usage_disabled = (
+        dotenv.get_dotenv_value("LANGCHAIN_ANTHROPIC_STREAM_USAGE", "true").lower()
+        == "false"
+    )
     if stream_usage_disabled and "stream_usage" not in kwargs:
         kwargs["stream_usage"] = False
 
@@ -257,7 +275,7 @@ def get_openai_chat(
     final_api_key_for_constructor: str | None = None
     if api_key:  # User provided a string for the function's api_key parameter
         # Handle case where api_key might already be a SecretStr
-        if isinstance(api_key, SecretStr) or hasattr(api_key, 'get_secret_value'):
+        if isinstance(api_key, SecretStr) or hasattr(api_key, "get_secret_value"):
             final_api_key_for_constructor = api_key.get_secret_value()
         else:
             final_api_key_for_constructor = api_key
@@ -266,7 +284,9 @@ def get_openai_chat(
         v1_secret_key = get_api_key("openai")
         if v1_secret_key:
             # Handle case where Railway provides SecretStr objects
-            if isinstance(v1_secret_key, SecretStr) or hasattr(v1_secret_key, 'get_secret_value'):
+            if isinstance(v1_secret_key, SecretStr) or hasattr(
+                v1_secret_key, "get_secret_value"
+            ):
                 final_api_key_for_constructor = v1_secret_key.get_secret_value()
             else:
                 final_api_key_for_constructor = str(v1_secret_key)
@@ -278,12 +298,14 @@ def get_openai_chat(
     )
 
 
-def get_openai_embedding(model_name: str, api_key: str | None = None, **kwargs) -> OpenAIEmbeddings:
+def get_openai_embedding(
+    model_name: str, api_key: str | None = None, **kwargs
+) -> OpenAIEmbeddings:
     """Get an OpenAI embedding model."""
     final_api_key_for_constructor: str | None = None
     if api_key:  # User provided a string for the function's api_key parameter
         # Handle case where api_key might already be a SecretStr
-        if isinstance(api_key, SecretStr) or hasattr(api_key, 'get_secret_value'):
+        if isinstance(api_key, SecretStr) or hasattr(api_key, "get_secret_value"):
             final_api_key_for_constructor = api_key.get_secret_value()
         else:
             final_api_key_for_constructor = api_key
@@ -292,11 +314,15 @@ def get_openai_embedding(model_name: str, api_key: str | None = None, **kwargs) 
         v1_secret_key = get_api_key("openai")
         if v1_secret_key:
             # Handle case where Railway provides SecretStr objects
-            if isinstance(v1_secret_key, SecretStr) or hasattr(v1_secret_key, 'get_secret_value'):
+            if isinstance(v1_secret_key, SecretStr) or hasattr(
+                v1_secret_key, "get_secret_value"
+            ):
                 final_api_key_for_constructor = v1_secret_key.get_secret_value()
             else:
                 final_api_key_for_constructor = str(v1_secret_key)
-    return OpenAIEmbeddings(model=model_name, api_key=final_api_key_for_constructor, **kwargs)
+    return OpenAIEmbeddings(
+        model=model_name, api_key=final_api_key_for_constructor, **kwargs
+    )
 
 
 def get_openai_azure_chat(
@@ -394,7 +420,9 @@ def get_google_embedding(
 
 
 # Mistral models
-def get_mistralai_chat(model_name: str, api_key: str | None = None, **kwargs) -> ChatMistralAI:
+def get_mistralai_chat(
+    model_name: str, api_key: str | None = None, **kwargs
+) -> ChatMistralAI:
     """Get a MistralAI chat model."""
     final_api_key_for_constructor: SecretStr | None = None
     if api_key:  # User provided a string for the function's api_key parameter
@@ -403,7 +431,9 @@ def get_mistralai_chat(model_name: str, api_key: str | None = None, **kwargs) ->
         v1_secret_key = get_api_key("mistral")
         if v1_secret_key:
             final_api_key_for_constructor = SecretStr(v1_secret_key)
-    return ChatMistralAI(model_name=model_name, api_key=final_api_key_for_constructor, **kwargs)
+    return ChatMistralAI(
+        model_name=model_name, api_key=final_api_key_for_constructor, **kwargs
+    )
 
 
 # Groq models
@@ -434,21 +464,31 @@ def get_deepseek_chat(
 ) -> ChatOpenAI:
     """Get a DeepSeek chat model."""
     final_api_key_for_constructor: str | None = None
-    if isinstance(api_key, str):  # User provided a string for the function's api_key parameter
+    if isinstance(
+        api_key, str
+    ):  # User provided a string for the function's api_key parameter
         final_api_key_for_constructor = api_key
-    elif isinstance(api_key, SecretStr) or hasattr(api_key, 'get_secret_value'):  # User provided SecretStr
+    elif isinstance(api_key, SecretStr) or hasattr(
+        api_key, "get_secret_value"
+    ):  # User provided SecretStr
         final_api_key_for_constructor = api_key.get_secret_value()
-    elif api_key is None:  # api_key was not provided to the function, try to get from env
+    elif (
+        api_key is None
+    ):  # api_key was not provided to the function, try to get from env
         v1_secret_key = get_api_key("deepseek")
         if v1_secret_key:
             # Handle case where Railway provides SecretStr objects
-            if isinstance(v1_secret_key, SecretStr) or hasattr(v1_secret_key, 'get_secret_value'):
+            if isinstance(v1_secret_key, SecretStr) or hasattr(
+                v1_secret_key, "get_secret_value"
+            ):
                 final_api_key_for_constructor = v1_secret_key.get_secret_value()
             else:
                 final_api_key_for_constructor = str(v1_secret_key)
 
     if not base_url:
-        base_url = dotenv.get_dotenv_value("DEEPSEEK_BASE_URL") or "https://api.deepseek.com"
+        base_url = (
+            dotenv.get_dotenv_value("DEEPSEEK_BASE_URL") or "https://api.deepseek.com"
+        )
     return ChatOpenAI(
         api_key=final_api_key_for_constructor,
         model=model_name,
@@ -463,9 +503,13 @@ def get_openrouter_chat(
 ) -> ChatOpenAI:
     """Get an OpenRouter chat model."""
     final_api_key_for_constructor: SecretStr | None = None
-    if isinstance(api_key, str):  # User provided a string for the function's api_key parameter
+    if isinstance(
+        api_key, str
+    ):  # User provided a string for the function's api_key parameter
         final_api_key_for_constructor = SecretStr(api_key)
-    elif api_key is None:  # api_key was not provided to the function, try to get from env
+    elif (
+        api_key is None
+    ):  # api_key was not provided to the function, try to get from env
         v1_secret_key = get_api_key("openrouter")
         if v1_secret_key:
             final_api_key_for_constructor = SecretStr(v1_secret_key)
@@ -473,7 +517,10 @@ def get_openrouter_chat(
         final_api_key_for_constructor = SecretStr(api_key.get_secret_value())
 
     if not base_url:
-        base_url = dotenv.get_dotenv_value("OPEN_ROUTER_BASE_URL") or "https://openrouter.ai/api/v1"
+        base_url = (
+            dotenv.get_dotenv_value("OPEN_ROUTER_BASE_URL")
+            or "https://openrouter.ai/api/v1"
+        )
     return ChatOpenAI(
         api_key=final_api_key_for_constructor,
         model=model_name,
@@ -489,9 +536,13 @@ def get_openrouter_embedding(
     **kwargs,
 ):
     final_api_key_for_constructor: SecretStr | None = None
-    if isinstance(api_key, str):  # User provided a string for the function's api_key parameter
+    if isinstance(
+        api_key, str
+    ):  # User provided a string for the function's api_key parameter
         final_api_key_for_constructor = SecretStr(api_key)
-    elif api_key is None:  # api_key was not provided to the function, try to get from env
+    elif (
+        api_key is None
+    ):  # api_key was not provided to the function, try to get from env
         v1_secret_key = get_api_key("openrouter")
         if v1_secret_key:
             final_api_key_for_constructor = SecretStr(v1_secret_key)
@@ -499,7 +550,10 @@ def get_openrouter_embedding(
         final_api_key_for_constructor = SecretStr(api_key.get_secret_value())
 
     if not base_url:
-        base_url = dotenv.get_dotenv_value("OPEN_ROUTER_BASE_URL") or "https://openrouter.ai/api/v1"
+        base_url = (
+            dotenv.get_dotenv_value("OPEN_ROUTER_BASE_URL")
+            or "https://openrouter.ai/api/v1"
+        )
     return OpenAIEmbeddings(
         model=model_name,
         api_key=final_api_key_for_constructor,
@@ -524,7 +578,10 @@ def get_sambanova_chat(
         final_api_key_for_constructor = SecretStr(api_key.get_secret_value())  # type: ignore
 
     if not base_url:
-        base_url = dotenv.get_dotenv_value("SAMBANOVA_BASE_URL") or "https://fast-api.snova.ai/v1"
+        base_url = (
+            dotenv.get_dotenv_value("SAMBANOVA_BASE_URL")
+            or "https://fast-api.snova.ai/v1"
+        )
     return ChatOpenAI(
         api_key=final_api_key_for_constructor,
         model=model_name,
@@ -551,7 +608,10 @@ def get_sambanova_embedding(
         final_api_key_for_constructor = SecretStr(api_key.get_secret_value())  # type: ignore
 
     if not base_url:
-        base_url = dotenv.get_dotenv_value("SAMBANOVA_BASE_URL") or "https://fast-api.snova.ai/v1"
+        base_url = (
+            dotenv.get_dotenv_value("SAMBANOVA_BASE_URL")
+            or "https://fast-api.snova.ai/v1"
+        )
     return OpenAIEmbeddings(
         model=model_name,
         api_key=final_api_key_for_constructor,
@@ -560,154 +620,53 @@ def get_sambanova_embedding(
     )
 
 
-# Other OpenAI compatible models
-def get_other_chat(
+# Qwen models
+def get_qwen_chat(
     model_name: str, api_key: str | None = None, base_url: str | None = None, **kwargs
 ) -> ChatOpenAI:
-    """Get any other OpenAI-compatible chat model."""
+    """Get a Qwen chat model."""
+    final_api_key_for_constructor: SecretStr | None = None
+    if isinstance(api_key, str):
+        final_api_key_for_constructor = SecretStr(api_key)
+    elif api_key is None:
+        v1_secret_key = get_api_key("qwen")
+        if v1_secret_key:
+            final_api_key_for_constructor = SecretStr(v1_secret_key)
+    elif hasattr(api_key, "get_secret_value") and callable(api_key.get_secret_value):
+        final_api_key_for_constructor = SecretStr(api_key.get_secret_value())
+
+    if not base_url:
+        base_url = (
+            dotenv.get_dotenv_value("QWEN_BASE_URL")
+            or "https://dashscope.aliyuncs.com/api/v1"
+        )
     return ChatOpenAI(
-        api_key=SecretStr(api_key) if api_key else None,
+        api_key=final_api_key_for_constructor,
         model=model_name,
         base_url=base_url,
         **kwargs,
     )
 
 
-def get_other_embedding(
+def get_qwen_embedding(
     model_name: str, api_key: str | None = None, base_url: str | None = None, **kwargs
 ) -> OpenAIEmbeddings:
-    """Get any other OpenAI-compatible embedding model."""
-    # This function assumes api_key is either a string or None.
-    # If it's a string, wrap it. If None, pass None.
-    # It does not use get_api_key() itself.
-    final_api_key: SecretStr | None = None
-    if isinstance(api_key, str):
-        final_api_key = SecretStr(api_key)
-    elif api_key is None:
-        # If no API key is provided, some models might work without one
-        # (e.g. local), or expect it from env vars. Passing None is the
-        # standard way for ChatOpenAI/OpenAIEmbeddings to handle this.
-        pass
-
-    return OpenAIEmbeddings(model=model_name, api_key=final_api_key, base_url=base_url, **kwargs)
-
-
-# Chutes models
-def get_chutes_chat(
-    model_name: str, api_key: str | None = None, base_url: str | None = None, **kwargs
-) -> ChatOpenAI:
-    """Get a Chutes chat model."""
+    """Get a Qwen embedding model."""
     final_api_key_for_constructor: SecretStr | None = None
     if isinstance(api_key, str):
         final_api_key_for_constructor = SecretStr(api_key)
     elif api_key is None:
-        v1_secret_key = get_api_key("chutes")
+        v1_secret_key = get_api_key("qwen")
         if v1_secret_key:
             final_api_key_for_constructor = SecretStr(v1_secret_key)
     elif hasattr(api_key, "get_secret_value") and callable(api_key.get_secret_value):
-        # This case handles if a Pydantic v1 SecretStr was somehow passed directly
-        final_api_key_for_constructor = SecretStr(api_key.get_secret_value())  # type: ignore
+        final_api_key_for_constructor = SecretStr(api_key.get_secret_value())
 
     if not base_url:
-        base_url = dotenv.get_dotenv_value("CHUTES_BASE_URL") or "https://llm.chutes.ai/v1"
-    return ChatOpenAI(
-        api_key=final_api_key_for_constructor,
-        model=model_name,
-        base_url=base_url,
-        **kwargs,
-    )
-
-
-# XAI models (Grok)
-def get_xai_chat(
-    model_name: str, api_key: str | None = None, base_url: str | None = None, **kwargs
-) -> ChatOpenAI:
-    """Get an xAI chat model."""
-    final_api_key_for_constructor: SecretStr | None = None
-    if isinstance(api_key, str):
-        final_api_key_for_constructor = SecretStr(api_key)
-    elif api_key is None:
-        v1_secret_key = get_api_key("xai")
-        if v1_secret_key:
-            final_api_key_for_constructor = SecretStr(v1_secret_key)
-    elif hasattr(api_key, "get_secret_value") and callable(api_key.get_secret_value):
-        final_api_key_for_constructor = SecretStr(api_key.get_secret_value())  # type: ignore
-
-    if not base_url:
-        base_url = dotenv.get_dotenv_value("XAI_BASE_URL") or "https://api.x.ai/v1"
-    return ChatOpenAI(
-        api_key=final_api_key_for_constructor,
-        model=model_name,
-        base_url=base_url,
-        **kwargs,
-    )
-
-
-def get_xai_embedding(
-    model_name: str, api_key: str | None = None, base_url: str | None = None, **kwargs
-) -> OpenAIEmbeddings:
-    """Get an xAI embedding model."""
-    final_api_key_for_constructor: SecretStr | None = None
-    if isinstance(api_key, str):
-        final_api_key_for_constructor = SecretStr(api_key)
-    elif api_key is None:
-        v1_secret_key = get_api_key("xai")
-        if v1_secret_key:
-            final_api_key_for_constructor = SecretStr(v1_secret_key)
-    elif hasattr(api_key, "get_secret_value") and callable(api_key.get_secret_value):
-        final_api_key_for_constructor = SecretStr(api_key.get_secret_value())  # type: ignore
-
-    if not base_url:
-        base_url = dotenv.get_dotenv_value("XAI_BASE_URL") or "https://api.x.ai/v1"
-    return OpenAIEmbeddings(
-        model=model_name,
-        api_key=final_api_key_for_constructor,
-        base_url=base_url,
-        **kwargs,
-    )
-
-
-# Perplexity models
-def get_perplexity_chat(
-    model_name: str, api_key: str | None = None, base_url: str | None = None, **kwargs
-) -> ChatOpenAI:
-    """Get a Perplexity chat model."""
-    final_api_key_for_constructor: SecretStr | None = None
-    if isinstance(api_key, str):
-        final_api_key_for_constructor = SecretStr(api_key)
-    elif api_key is None:
-        v1_secret_key = get_api_key("perplexity")
-        if v1_secret_key:
-            final_api_key_for_constructor = SecretStr(v1_secret_key)
-    elif hasattr(api_key, "get_secret_value") and callable(api_key.get_secret_value):
-        final_api_key_for_constructor = SecretStr(api_key.get_secret_value())  # type: ignore
-
-    if not base_url:
-        base_url = dotenv.get_dotenv_value("PERPLEXITY_BASE_URL") or "https://api.perplexity.ai"
-    return ChatOpenAI(
-        api_key=final_api_key_for_constructor,
-        model=model_name,
-        base_url=base_url,
-        **kwargs,
-    )
-
-
-def get_perplexity_embedding(
-    model_name: str, api_key: str | None = None, base_url: str | None = None, **kwargs
-) -> OpenAIEmbeddings:
-    """Get a Perplexity embedding model."""
-    final_api_key_for_constructor: SecretStr | None = None
-    if isinstance(api_key, str):
-        final_api_key_for_constructor = SecretStr(api_key)
-    elif api_key is None:
-        v1_secret_key = get_api_key("perplexity")
-        if v1_secret_key:
-            final_api_key_for_constructor = SecretStr(v1_secret_key)
-    elif hasattr(api_key, "get_secret_value") and callable(api_key.get_secret_value):
-        final_api_key_for_constructor = SecretStr(api_key.get_secret_value())  # type: ignore
-
-    if not base_url:
-        base_url = dotenv.get_dotenv_value("PERPLEXITY_BASE_URL") or "https://api.perplexity.ai"
+        base_url = (
+            dotenv.get_dotenv_value("QWEN_BASE_URL")
+            or "https://dashscope.aliyuncs.com/api/v1"
+        )
     return OpenAIEmbeddings(
         model=model_name,
         api_key=final_api_key_for_constructor,

@@ -22,7 +22,7 @@ class DataSummariser(Tool):
         else:
             return Response(
                 message=f"Unknown data action: {action}. Available actions: summarize_list, calculate_stats, analyze_trends",
-                break_loop=False
+                break_loop=False,
             )
 
     async def _summarize_list(self) -> Response:
@@ -30,21 +30,20 @@ class DataSummariser(Tool):
         data_str = self.args.get("data", "")
 
         try:
-            if data_str.startswith('['):
+            if data_str.startswith("["):
                 data = json.loads(data_str)
             else:
-                data = data_str.split(',')
+                data = data_str.split(",")
                 data = [item.strip() for item in data]
         except:
             return Response(
                 message="❌ Invalid data format. Please provide a JSON array or comma-separated values.",
-                break_loop=False
+                break_loop=False,
             )
 
         if not data:
             return Response(
-                message="❌ No data provided to summarize.",
-                break_loop=False
+                message="❌ No data provided to summarize.", break_loop=False
             )
 
         summary = "📊 Data Summary:\n"
@@ -57,31 +56,25 @@ class DataSummariser(Tool):
         else:
             summary += f"• All items: {', '.join(str(x) for x in data)}\n"
 
-        return Response(
-            message=summary,
-            break_loop=False
-        )
+        return Response(message=summary, break_loop=False)
 
     async def _calculate_stats(self) -> Response:
         """Calculate basic statistics for numerical data."""
         data_str = self.args.get("data", "")
 
         try:
-            if data_str.startswith('['):
+            if data_str.startswith("["):
                 data = json.loads(data_str)
             else:
-                data = [float(x.strip()) for x in data_str.split(',')]
+                data = [float(x.strip()) for x in data_str.split(",")]
         except:
             return Response(
                 message="❌ Invalid numerical data format. Please provide numbers as JSON array or comma-separated values.",
-                break_loop=False
+                break_loop=False,
             )
 
         if not data:
-            return Response(
-                message="❌ No numerical data provided.",
-                break_loop=False
-            )
+            return Response(message="❌ No numerical data provided.", break_loop=False)
 
         # Calculate statistics
         total = sum(data)
@@ -93,9 +86,9 @@ class DataSummariser(Tool):
         # Calculate median
         sorted_data = sorted(data)
         if count % 2 == 0:
-            median = (sorted_data[count//2 - 1] + sorted_data[count//2]) / 2
+            median = (sorted_data[count // 2 - 1] + sorted_data[count // 2]) / 2
         else:
-            median = sorted_data[count//2]
+            median = sorted_data[count // 2]
 
         stats = "📈 Statistical Summary:\n"
         stats += f"• Count: {count}\n"
@@ -106,30 +99,26 @@ class DataSummariser(Tool):
         stats += f"• Max: {maximum:.2f}\n"
         stats += f"• Range: {maximum - minimum:.2f}\n"
 
-        return Response(
-            message=stats,
-            break_loop=False
-        )
+        return Response(message=stats, break_loop=False)
 
     async def _analyze_trends(self) -> Response:
         """Analyze trends in time-series data."""
         data_str = self.args.get("data", "")
 
         try:
-            if data_str.startswith('['):
+            if data_str.startswith("["):
                 data = json.loads(data_str)
             else:
-                data = [float(x.strip()) for x in data_str.split(',')]
+                data = [float(x.strip()) for x in data_str.split(",")]
         except:
             return Response(
-                message="❌ Invalid data format for trend analysis.",
-                break_loop=False
+                message="❌ Invalid data format for trend analysis.", break_loop=False
             )
 
         if len(data) < 3:
             return Response(
                 message="❌ Need at least 3 data points for trend analysis.",
-                break_loop=False
+                break_loop=False,
             )
 
         # Simple trend analysis
@@ -137,9 +126,9 @@ class DataSummariser(Tool):
         decreases = 0
 
         for i in range(1, len(data)):
-            if data[i] > data[i-1]:
+            if data[i] > data[i - 1]:
                 increases += 1
-            elif data[i] < data[i-1]:
+            elif data[i] < data[i - 1]:
                 decreases += 1
 
         trend = "📊 Trend Analysis:\n"
@@ -159,7 +148,4 @@ class DataSummariser(Tool):
         pct_change = ((data[-1] - data[0]) / data[0]) * 100
         trend += f"• Total change: {pct_change:.1f}%\n"
 
-        return Response(
-            message=trend,
-            break_loop=False
-        )
+        return Response(message=trend, break_loop=False)

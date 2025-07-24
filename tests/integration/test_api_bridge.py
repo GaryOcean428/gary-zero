@@ -66,14 +66,18 @@ class TestAPIBridge:
         client = TestClient(app)
 
         # Test safe code
-        response = client.post("/api/validate-code?code=print('hello')&security_level=strict")
+        response = client.post(
+            "/api/validate-code?code=print('hello')&security_level=strict"
+        )
         assert response.status_code == 200
 
         data = response.json()
         assert data["is_valid"] is True
 
         # Test unsafe code
-        response = client.post("/api/validate-code?code=import os; os.system('ls')&security_level=strict")
+        response = client.post(
+            "/api/validate-code?code=import os; os.system('ls')&security_level=strict"
+        )
         assert response.status_code == 200
 
         data = response.json()

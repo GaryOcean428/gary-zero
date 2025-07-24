@@ -1,6 +1,5 @@
 """Tests for the security framework components."""
 
-
 import pytest
 
 from framework.security import (
@@ -42,9 +41,7 @@ class TestInputValidator:
     def test_valid_tool_input(self):
         """Test validation of valid tool input."""
         result = self.validator.validate_tool_input(
-            "test_tool",
-            {"param1": "value1"},
-            timeout=60
+            "test_tool", {"param1": "value1"}, timeout=60
         )
         assert result.tool_name == "test_tool"
         assert result.parameters == {"param1": "value1"}
@@ -90,9 +87,7 @@ class TestRateLimiter:
     async def test_sliding_window_rate_limit(self):
         """Test sliding window rate limiting."""
         config = RateLimitConfig(
-            max_requests=3,
-            window_size=1,
-            strategy=RateLimitStrategy.SLIDING_WINDOW
+            max_requests=3, window_size=1, strategy=RateLimitStrategy.SLIDING_WINDOW
         )
         self.rate_limiter.configure_limit("test_endpoint", config)
 
@@ -108,9 +103,7 @@ class TestRateLimiter:
     async def test_token_bucket_rate_limit(self):
         """Test token bucket rate limiting."""
         config = RateLimitConfig(
-            max_requests=2,
-            window_size=1,
-            strategy=RateLimitStrategy.TOKEN_BUCKET
+            max_requests=2, window_size=1, strategy=RateLimitStrategy.TOKEN_BUCKET
         )
         self.rate_limiter.configure_limit("test_endpoint", config)
 
@@ -126,9 +119,7 @@ class TestRateLimiter:
     async def test_fixed_window_rate_limit(self):
         """Test fixed window rate limiting."""
         config = RateLimitConfig(
-            max_requests=2,
-            window_size=1,
-            strategy=RateLimitStrategy.FIXED_WINDOW
+            max_requests=2, window_size=1, strategy=RateLimitStrategy.FIXED_WINDOW
         )
         self.rate_limiter.configure_limit("test_endpoint", config)
 
@@ -144,9 +135,7 @@ class TestRateLimiter:
     async def test_rate_limit_status(self):
         """Test getting rate limit status."""
         config = RateLimitConfig(
-            max_requests=5,
-            window_size=60,
-            strategy=RateLimitStrategy.SLIDING_WINDOW
+            max_requests=5, window_size=60, strategy=RateLimitStrategy.SLIDING_WINDOW
         )
         self.rate_limiter.configure_limit("test_endpoint", config)
 
@@ -179,9 +168,7 @@ class TestAuditLogger:
     async def test_log_user_input(self):
         """Test logging user input events."""
         await self.audit_logger.log_user_input(
-            user_id="user123",
-            content="Test message",
-            content_type="text"
+            user_id="user123", content="Test message", content_type="text"
         )
 
         events = await self.audit_logger.get_events(
@@ -199,7 +186,7 @@ class TestAuditLogger:
             tool_name="test_tool",
             parameters={"param": "value"},
             success=True,
-            execution_time=1.5
+            execution_time=1.5,
         )
 
         events = await self.audit_logger.get_events(
@@ -215,7 +202,7 @@ class TestAuditLogger:
         await self.audit_logger.log_security_violation(
             event_details="Suspicious script injection attempt",
             severity=AuditLevel.WARNING,
-            user_id="user123"
+            user_id="user123",
         )
 
         events = await self.audit_logger.get_events(
@@ -321,9 +308,7 @@ class TestContentSanitizer:
         data = {
             "safe_key": "safe_value",
             "dangerous_key": "<script>alert('xss')</script>",
-            "nested": {
-                "list": ["item1", "<script>evil</script>"]
-            }
+            "nested": {"list": ["item1", "<script>evil</script>"]},
         }
 
         result = self.sanitizer.sanitize_json_data(data)
@@ -383,9 +368,7 @@ async def test_security_integration():
         validated_input = validator.validate_user_input(sanitized_input, "text")
     except ValidationError as e:
         await audit_logger.log_security_violation(
-            f"Input validation failed: {e}",
-            AuditLevel.WARNING,
-            user_id=user_id
+            f"Input validation failed: {e}", AuditLevel.WARNING, user_id=user_id
         )
         return
 
@@ -393,16 +376,14 @@ async def test_security_integration():
     try:
         await rate_limiter.check_limit("user_input", user_id)
     except RateLimitExceeded:
-        await audit_logger.log_rate_limit(
-            "user_input", user_id, "sliding_window"
-        )
+        await audit_logger.log_rate_limit("user_input", user_id, "sliding_window")
         return
 
     # 4. Log successful processing
     await audit_logger.log_user_input(
         user_id=user_id,
         content=validated_input.content,
-        content_type=validated_input.content_type
+        content_type=validated_input.content_type,
     )
 
     # Verify audit log contains expected events

@@ -25,6 +25,7 @@ gemini_live_tool: GeminiLiveTool | None = None
 
 class GeminiLiveRequest(BaseModel):
     """Request model for Gemini Live API operations."""
+
     action: str
     api_key: str | None = None
     model: str | None = None
@@ -36,6 +37,7 @@ class GeminiLiveRequest(BaseModel):
 
 class GeminiLiveResponse(BaseModel):
     """Response model for Gemini Live API operations."""
+
     success: bool
     message: str | None = None
     error: str | None = None
@@ -60,7 +62,8 @@ async def test_connection(request: GeminiLiveRequest):
         tool.args = {
             "action": "status",
             "api_key": request.api_key or os.getenv("GEMINI_API_KEY"),
-            "model": request.model or "models/gemini-2.5-flash-preview-native-audio-dialog"
+            "model": request.model
+            or "models/gemini-2.5-flash-preview-native-audio-dialog",
         }
 
         # Execute the tool
@@ -71,17 +74,16 @@ async def test_connection(request: GeminiLiveRequest):
             message="Connection test successful",
             details={
                 "api_key_present": bool(request.api_key or os.getenv("GEMINI_API_KEY")),
-                "model": request.model or "models/gemini-2.5-flash-preview-native-audio-dialog",
-                "tool_response": response.message
-            }
+                "model": request.model
+                or "models/gemini-2.5-flash-preview-native-audio-dialog",
+                "tool_response": response.message,
+            },
         )
 
     except Exception as e:
         logger.error(f"Connection test failed: {e}")
         return GeminiLiveResponse(
-            success=False,
-            error=str(e),
-            details={"error_type": type(e).__name__}
+            success=False, error=str(e), details={"error_type": type(e).__name__}
         )
 
 
@@ -95,9 +97,13 @@ async def manage_streaming(request: GeminiLiveRequest):
         tool.args = {
             "action": request.action,
             "api_key": request.api_key or os.getenv("GEMINI_API_KEY"),
-            "model": request.model or os.getenv("GEMINI_LIVE_MODEL", "models/gemini-2.5-flash-preview-native-audio-dialog"),
+            "model": request.model
+            or os.getenv(
+                "GEMINI_LIVE_MODEL",
+                "models/gemini-2.5-flash-preview-native-audio-dialog",
+            ),
             "voice": request.voice or os.getenv("GEMINI_LIVE_VOICE", "Zephyr"),
-            "response_modalities": request.response_modalities or ["AUDIO"]
+            "response_modalities": request.response_modalities or ["AUDIO"],
         }
 
         # Add audio configuration if provided
@@ -112,16 +118,16 @@ async def manage_streaming(request: GeminiLiveRequest):
             message=response.message,
             details={
                 "action": request.action,
-                "streaming_active": tool.is_streaming if hasattr(tool, 'is_streaming') else False
-            }
+                "streaming_active": tool.is_streaming
+                if hasattr(tool, "is_streaming")
+                else False,
+            },
         )
 
     except Exception as e:
         logger.error(f"Streaming management failed: {e}")
         return GeminiLiveResponse(
-            success=False,
-            error=str(e),
-            details={"error_type": type(e).__name__}
+            success=False, error=str(e), details={"error_type": type(e).__name__}
         )
 
 
@@ -135,25 +141,17 @@ async def send_audio(request: GeminiLiveRequest):
         tool = get_gemini_live_tool()
 
         # Prepare arguments for the tool
-        tool.args = {
-            "action": "send_audio",
-            "audio_data": request.audio_data
-        }
+        tool.args = {"action": "send_audio", "audio_data": request.audio_data}
 
         # Execute the tool
         response = await tool.execute()
 
-        return GeminiLiveResponse(
-            success=True,
-            message=response.message
-        )
+        return GeminiLiveResponse(success=True, message=response.message)
 
     except Exception as e:
         logger.error(f"Audio sending failed: {e}")
         return GeminiLiveResponse(
-            success=False,
-            error=str(e),
-            details={"error_type": type(e).__name__}
+            success=False, error=str(e), details={"error_type": type(e).__name__}
         )
 
 
@@ -176,17 +174,12 @@ async def configure_streaming(request: GeminiLiveRequest):
         # Execute the tool
         response = await tool.execute()
 
-        return GeminiLiveResponse(
-            success=True,
-            message=response.message
-        )
+        return GeminiLiveResponse(success=True, message=response.message)
 
     except Exception as e:
         logger.error(f"Configuration failed: {e}")
         return GeminiLiveResponse(
-            success=False,
-            error=str(e),
-            details={"error_type": type(e).__name__}
+            success=False, error=str(e), details={"error_type": type(e).__name__}
         )
 
 
@@ -207,16 +200,16 @@ async def get_status():
             message="Status retrieved successfully",
             details={
                 "tool_response": response.message,
-                "streaming_active": tool.is_streaming if hasattr(tool, 'is_streaming') else False
-            }
+                "streaming_active": tool.is_streaming
+                if hasattr(tool, "is_streaming")
+                else False,
+            },
         )
 
     except Exception as e:
         logger.error(f"Status retrieval failed: {e}")
         return GeminiLiveResponse(
-            success=False,
-            error=str(e),
-            details={"error_type": type(e).__name__}
+            success=False, error=str(e), details={"error_type": type(e).__name__}
         )
 
 
@@ -229,35 +222,45 @@ async def get_configuration():
                 {
                     "value": "models/gemini-2.5-flash-preview-native-audio-dialog",
                     "label": "Gemini 2.5 Flash (Audio Dialog)",
-                    "default": True
+                    "default": True,
                 },
                 {
                     "value": "models/gemini-2.5-pro-preview-native-audio-dialog",
                     "label": "Gemini 2.5 Pro (Audio Dialog)",
-                    "default": False
+                    "default": False,
                 },
                 {
                     "value": "models/gemini-2.0-flash",
                     "label": "Gemini 2.0 Flash",
-                    "default": False
-                }
+                    "default": False,
+                },
             ],
             "voices": [
                 {"value": "Zephyr", "label": "Zephyr (Default)", "default": True},
                 {"value": "Echo", "label": "Echo", "default": False},
                 {"value": "Crystal", "label": "Crystal", "default": False},
-                {"value": "Sage", "label": "Sage", "default": False}
+                {"value": "Sage", "label": "Sage", "default": False},
             ],
             "modalities": [
                 {"value": "AUDIO", "label": "Audio", "supported": True},
-                {"value": "VIDEO", "label": "Video", "supported": False, "note": "Coming soon"}
+                {
+                    "value": "VIDEO",
+                    "label": "Video",
+                    "supported": False,
+                    "note": "Coming soon",
+                },
             ],
             "environment": {
                 "api_key_configured": bool(os.getenv("GEMINI_API_KEY")),
-                "default_model": os.getenv("GEMINI_LIVE_MODEL", "models/gemini-2.5-flash-preview-native-audio-dialog"),
+                "default_model": os.getenv(
+                    "GEMINI_LIVE_MODEL",
+                    "models/gemini-2.5-flash-preview-native-audio-dialog",
+                ),
                 "default_voice": os.getenv("GEMINI_LIVE_VOICE", "Zephyr"),
-                "default_modalities": os.getenv("GEMINI_LIVE_RESPONSE_MODALITIES", "AUDIO").split(",")
-            }
+                "default_modalities": os.getenv(
+                    "GEMINI_LIVE_RESPONSE_MODALITIES", "AUDIO"
+                ).split(","),
+            },
         }
 
         return config

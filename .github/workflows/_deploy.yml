@@ -1,0 +1,543 @@
+# Reusable Workflow: Deployment
+# Handles Railpack validation, Docker build, and Railway CLI deployment
+
+name: Deploy
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        type: string
+        default: 'production'
+      docker-tag:
+        description: 'Docker image tag'
+        type: string
+        default: 'latest'
+      skip-docker:
+        description: 'Skip Docker build and push'
+        type: boolean
+        default: false
+      railway-service:
+        description: 'Railway service name'
+        type: string
+        required: false
+    secrets:
+      RAILWAY_TOKEN:
+        description: 'Railway API token'
+        required: true
+      DOCKER_USERNAME:
+        description: 'Docker Hub username'
+        required: false
+      DOCKER_PASSWORD:
+        description: 'Docker Hub password'
+        required: false
+    outputs:
+      deployment-url:
+        description: 'Deployed application URL'
+        value: ${{ jobs.railway-deploy.outputs.url }}
+      deployment-status:
+        description: 'Deployment status'
+        value: ${{ jobs.deploy-summary.outputs.status }}
+
+env:
+  DOCKER_IMAGE: garyocean77/gary-zero
+  DOCKER_TAG: ${{ inputs.docker-tag }}
+
+jobs:
+  validate-deployment:
+    name: Deployment Validation
+    runs-on: ubuntu-latest
+    outputs:
+      railpack-status: ${{ steps.railpack.outputs.status }}
+      railway-config-status: ${{ steps.railway-config.outputs.status }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+
+    - name: Validate Railway configuration
+      id: railway-config
+      run: |
+        echo "🚂 Validating Railway configuration..."
+        
+        # Check railway.toml exists and has required fields
+        if [ ! -f railway.toml ]; then
+          echo "❌ ERROR: railway.toml not found"
+          echo "status=failed" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+        
+        echo "✅ railway.toml found"
+        cat railway.toml
+        
+        # Validate required configuration fields
+        REQUIRED_FIELDS=("builder" "buildCommand" "startCommand")
+        for field in "${REQUIRED_FIELDS[@]}"; do
+          if ! grep -q "$field" railway.toml; then
+            echo "❌ ERROR: Missing required field: $field"
+            echo "status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+        done
+        
+        # Check for NIXPACKS builder
+        if ! grep -q "NIXPACKS" railway.toml; then
+          echo "⚠️  WARNING: NIXPACKS builder not explicitly configured"
+        fi
+        
+        echo "status=passed" >> $GITHUB_OUTPUT
+        echo "✅ Railway configuration validation passed"
+
+    - name: Validate Railpack configuration
+      id: railpack
+      run: |
+        echo "📦 Validating Railpack configuration..."
+        
+        # Install dependencies for validation
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        
+        # 1. Verify railpack.json exists and passes schema validation
+        echo "🔍 Step 1: Validating railpack.json..."
+        if [ ! -f "railpack.json" ]; then
+          echo "❌ ERROR: railpack.json not found"
+          echo "status=failed" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+        
+        # Validate JSON syntax
+        if ! python -m json.tool railpack.json > /dev/null 2>&1; then
+          echo "❌ ERROR: railpack.json contains invalid JSON"
+          echo "status=failed" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+        
+        # Check required railpack.json fields
+        REQUIRED_FIELDS=("builder" "buildCommand" "startCommand" "healthcheckPath")
+        for field in "${REQUIRED_FIELDS[@]}"; do
+          if ! python -c "import json; data=json.load(open('railpack.json')); exit(0 if '$field' in data else 1)" 2>/dev/null; then
+            echo "❌ ERROR: Missing required field in railpack.json: $field"
+            echo "status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+        done
+        echo "✅ railpack.json validation passed"
+        
+        # 2. Check deployment scripts exist and are executable
+        echo "🔍 Step 2: Validating deployment scripts..."
+        SCRIPTS=("scripts/build.sh" "scripts/start.sh")
+        for script in "${SCRIPTS[@]}"; do
+          if [ ! -f "$script" ]; then
+            echo "❌ ERROR: Required script not found: $script"
+            echo "status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          if [ ! -x "$script" ]; then
+            echo "❌ ERROR: Script not executable: $script"
+            echo "status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+        done
+        
+        # Validate script syntax
+        for script in "${SCRIPTS[@]}"; do
+          echo "Validating $script syntax..."
+          bash -n "$script" || {
+            echo "❌ ERROR: Syntax error in $script"
+            echo "status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          }
+        done
+        echo "✅ Deployment scripts validation passed"
+        
+        # 3. Ensure scripts/start.sh & start_uvicorn.py bind to os.getenv("PORT") & host 0.0.0.0
+        echo "🔍 Step 3: Validating port and host binding..."
+        
+        # Check scripts/start.sh for proper PORT environment variable usage
+        if ! grep -q '\${PORT' scripts/start.sh; then
+          echo "❌ ERROR: scripts/start.sh does not use \${PORT} environment variable"
+          echo "status=failed" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+        
+        if ! grep -q '0\.0\.0\.0\|\${WEB_UI_HOST.*0\.0\.0\.0' scripts/start.sh; then
+          echo "❌ ERROR: scripts/start.sh does not bind to 0.0.0.0"
+          echo "status=failed" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+        
+        # Check start_uvicorn.py for proper PORT and host binding
+        if [ -f "start_uvicorn.py" ]; then
+          if ! grep -q 'os\.getenv.*PORT' start_uvicorn.py; then
+            echo "❌ ERROR: start_uvicorn.py does not use os.getenv('PORT')"
+            echo "status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          if ! grep -q '0\.0\.0\.0' start_uvicorn.py; then
+            echo "❌ ERROR: start_uvicorn.py does not bind to 0.0.0.0"
+            echo "status=failed" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+        fi
+        echo "✅ Port and host binding validation passed"
+        
+        # 4. Grep source tree for hard-coded localhost: or 127.0.0.1: outside of tests
+        echo "🔍 Step 4: Checking for hard-coded localhost/127.0.0.1..."
+        
+        # Find hard-coded localhost: or 127.0.0.1: excluding test directories and specific allowed files
+        HARDCODED_HOSTS=$(find . -type f \( -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" \) \
+          -not -path "./tests/*" \
+          -not -path "./test/*" \
+          -not -path "./.venv/*" \
+          -not -path "*/__pycache__/*" \
+          -not -path "./node_modules/*" \
+          -not -path "./.git/*" \
+          -not -name "*.pyc" \
+          -exec grep -l "localhost:\|127\.0\.0\.1:" {} \; 2>/dev/null || true)
+        
+        if [ -n "$HARDCODED_HOSTS" ]; then
+          echo "❌ ERROR: Found hard-coded localhost: or 127.0.0.1: in source files:"
+          echo "$HARDCODED_HOSTS"
+          echo "Files with hard-coded hosts:"
+          for file in $HARDCODED_HOSTS; do
+            echo "  📄 $file:"
+            grep -n "localhost:\|127\.0\.0\.1:" "$file" | head -3 || true
+          done
+          echo "status=failed" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+        echo "✅ No hard-coded localhost/127.0.0.1 found in source tree"
+        
+        echo "status=passed" >> $GITHUB_OUTPUT
+        echo "✅ Railpack configuration validation passed"
+
+    - name: Test health endpoint
+      run: |
+        echo "🏥 Testing health endpoint configuration..."
+        python -c "
+        import sys
+        try:
+            from main import app, HealthResponse
+            import time
+            
+            # Test HealthResponse model
+            health = HealthResponse()
+            assert health.status == 'healthy'
+            assert isinstance(health.timestamp, float)
+            assert health.version == '0.9.0'
+            
+            print('✅ Health endpoint validation passed')
+        except Exception as e:
+            print(f'❌ Health endpoint validation failed: {e}')
+            sys.exit(1)
+        "
+
+    - name: Port configuration test
+      run: |
+        echo "🔌 Testing port configuration..."
+        python -c "
+        import os
+        import socket
+        
+        # Test port binding with environment variable
+        port = int(os.getenv('PORT', 8000))
+        print(f'Testing port binding on 0.0.0.0:{port}')
+        
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.bind(('0.0.0.0', port))
+            s.close()
+            print('✅ Port binding test passed')
+        except Exception as e:
+            print(f'❌ Port binding test failed: {e}')
+            exit(1)
+        "
+      env:
+        PORT: 8000
+
+  docker-build:
+    name: Docker Build & Push  
+    runs-on: ubuntu-latest
+    needs: validate-deployment
+    if: ${{ !inputs.skip-docker }}
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Docker Hub
+      if: secrets.DOCKER_USERNAME != '' && secrets.DOCKER_PASSWORD != ''
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.DOCKER_IMAGE }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=${{ env.DOCKER_TAG }}
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push Docker image
+      id: build
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: ${{ secrets.DOCKER_USERNAME != '' && secrets.DOCKER_PASSWORD != '' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        build-args: |
+          BUILD_DATE=${{ github.event.head_commit.timestamp }}
+          VCS_REF=${{ github.sha }}
+          VERSION=${{ env.DOCKER_TAG }}
+
+    - name: Test Docker image
+      run: |
+        echo "🧪 Testing Docker image..."
+        
+        # Run container and test health endpoint
+        docker run -d --name gary-zero-test -p 8080:8000 \
+          -e PORT=8000 \
+          -e PYTHONUNBUFFERED=1 \
+          ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
+          
+        # Wait for container to start
+        sleep 15
+        
+        # Test health endpoint with timeout
+        timeout 30 bash -c 'until curl -f http://localhost:8080/health; do echo "Waiting for health endpoint..."; sleep 2; done'
+        
+        echo "✅ Docker image test passed"
+        
+        # Cleanup
+        docker stop gary-zero-test
+        docker rm gary-zero-test
+
+    - name: Containerized port-binding test
+      run: |
+        echo "🔌 Running containerized port-binding test..."
+        
+        # Test that the containerized application properly binds to the PORT environment variable
+        docker run --rm -e PORT=8000 ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }} bash -c '
+        python -c "
+        import os
+        import socket
+        import sys
+        
+        # Test that PORT environment variable is available and numeric
+        port_env = os.getenv('PORT')
+        if not port_env:
+            print('❌ ERROR: PORT environment variable not set')
+            sys.exit(1)
+        
+        try:
+            port = int(port_env)
+        except ValueError:
+            print(f'❌ ERROR: PORT environment variable is not numeric: {port_env}')
+            sys.exit(1)
+        
+        # Test that we can bind to 0.0.0.0:PORT
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.bind(('0.0.0.0', port))
+            sock.close()
+            print(f'✅ Successfully bound to 0.0.0.0:{port}')
+        except Exception as e:
+            print(f'❌ ERROR: Cannot bind to 0.0.0.0:{port}: {e}')
+            sys.exit(1)
+        
+        # Test that start_uvicorn.py exists and imports properly
+        try:
+            import start_uvicorn
+            print('✅ start_uvicorn.py imports successfully')
+        except ImportError as e:
+            print(f'❌ ERROR: Cannot import start_uvicorn.py: {e}')
+            sys.exit(1)
+        
+        print('✅ Containerized port-binding validation passed')
+        "
+        '
+        
+        echo "✅ Containerized port-binding test completed"
+
+  railway-deploy:
+    name: Railway Deployment
+    runs-on: ubuntu-latest
+    needs: [validate-deployment, docker-build]
+    if: always() && needs.validate-deployment.result == 'success'
+    environment: ${{ inputs.environment }}
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+      service-id: ${{ steps.deploy.outputs.service-id }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Railway CLI
+      run: |
+        echo "🚂 Installing Railway CLI..."
+        curl -fsSL https://railway.app/install.sh | sh
+        echo "$HOME/.railway/bin" >> $GITHUB_PATH
+
+    - name: Authenticate Railway
+      run: |
+        echo "🔑 Authenticating with Railway..."
+        railway login --token ${{ secrets.RAILWAY_TOKEN }}
+
+    - name: Deploy to Railway
+      id: deploy
+      run: |
+        echo "🚀 Deploying to Railway..."
+        
+        # Set Railway service if specified
+        if [ -n "${{ inputs.railway-service }}" ]; then
+          echo "Using specified Railway service: ${{ inputs.railway-service }}"
+          railway service ${{ inputs.railway-service }}
+        fi
+        
+        # Deploy with Railway CLI
+        DEPLOYMENT_OUTPUT=$(railway up --detach 2>&1)
+        echo "$DEPLOYMENT_OUTPUT"
+        
+        # Extract deployment URL if available
+        DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep -oP 'https://[^\s]+' | head -1 || echo "")
+        if [ -n "$DEPLOYMENT_URL" ]; then
+          echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          echo "Deployment URL: $DEPLOYMENT_URL"
+        fi
+        
+        # Get service information
+        SERVICE_INFO=$(railway status --json 2>/dev/null || echo "{}")
+        SERVICE_ID=$(echo "$SERVICE_INFO" | jq -r '.serviceId // "unknown"')
+        echo "service-id=$SERVICE_ID" >> $GITHUB_OUTPUT
+        
+        echo "✅ Railway deployment initiated"
+
+    - name: Wait for deployment
+      run: |
+        echo "⏳ Waiting for deployment to complete..."
+        
+        # Wait for deployment to stabilize
+        sleep 30
+        
+        # Check deployment status
+        railway status || echo "Could not retrieve deployment status"
+
+    - name: Verify deployment
+      run: |
+        echo "🔍 Verifying deployment..."
+        
+        DEPLOYMENT_URL="${{ steps.deploy.outputs.url }}"
+        if [ -n "$DEPLOYMENT_URL" ]; then
+          echo "Testing deployment at: $DEPLOYMENT_URL"
+          
+          # Test health endpoint with retries
+          MAX_RETRIES=10
+          RETRY_COUNT=0
+          
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            if curl -f "$DEPLOYMENT_URL/health" --max-time 10; then
+              echo "✅ Deployment verification successful"
+              break
+            else
+              echo "⏳ Waiting for deployment to be ready... (attempt $((RETRY_COUNT + 1))/$MAX_RETRIES)"
+              sleep 10
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+            fi
+          done
+          
+          if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+            echo "❌ Deployment verification failed after $MAX_RETRIES attempts"
+            exit 1
+          fi
+        else
+          echo "⚠️ No deployment URL available for verification"
+        fi
+
+  deploy-summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [validate-deployment, docker-build, railway-deploy]
+    if: always()
+    outputs:
+      status: ${{ steps.summary.outputs.status }}
+    
+    steps:
+    - name: Generate deployment summary
+      id: summary
+      run: |
+        echo "🚀 Deployment Summary"
+        echo "===================="
+        echo "Validation: ${{ needs.validate-deployment.result }}"
+        echo "Docker Build: ${{ needs.docker-build.result }}"
+        echo "Railway Deploy: ${{ needs.railway-deploy.result }}"
+        echo ""
+        
+        # Check for failures
+        FAILURES=0
+        if [[ "${{ needs.validate-deployment.result }}" == "failure" ]]; then
+          FAILURES=$((FAILURES + 1))
+          echo "❌ Deployment validation failed"
+        fi
+        if [[ "${{ needs.docker-build.result }}" == "failure" && "${{ inputs.skip-docker }}" != "true" ]]; then
+          FAILURES=$((FAILURES + 1))
+          echo "❌ Docker build failed"
+        fi
+        if [[ "${{ needs.railway-deploy.result }}" == "failure" ]]; then
+          FAILURES=$((FAILURES + 1))
+          echo "❌ Railway deployment failed"
+        fi
+        
+        # Determine overall status
+        if [ $FAILURES -eq 0 ]; then
+          echo "status=success" >> $GITHUB_OUTPUT
+          echo "✅ Deployment completed successfully!"
+          
+          DEPLOYMENT_URL="${{ needs.railway-deploy.outputs.url }}"
+          if [ -n "$DEPLOYMENT_URL" ]; then
+            echo "🌐 Application URL: $DEPLOYMENT_URL"
+          fi
+        else
+          echo "status=failed" >> $GITHUB_OUTPUT
+          echo "❌ Deployment failed with $FAILURES error(s)"
+          exit 1
+        fi
+
+    - name: Post deployment notifications
+      if: steps.summary.outputs.status == 'success'
+      run: |
+        echo "📢 Deployment Notifications"
+        echo "=========================="
+        echo "Environment: ${{ inputs.environment }}"
+        echo "Docker Tag: ${{ inputs.docker-tag }}"
+        echo "Commit: ${{ github.sha }}"
+        echo "Branch: ${{ github.ref_name }}"
+        
+        DEPLOYMENT_URL="${{ needs.railway-deploy.outputs.url }}"
+        if [ -n "$DEPLOYMENT_URL" ]; then
+          echo "Application URL: $DEPLOYMENT_URL"
+        fi
+        
+        echo "✅ Gary-Zero deployment completed successfully!"

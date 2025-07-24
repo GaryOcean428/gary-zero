@@ -8,7 +8,6 @@ connection strings properly.
 """
 
 import os
-import sys
 import urllib.parse
 
 
@@ -25,7 +24,9 @@ def format_railway_env():
 
     # Create connection strings with encoded password
     internal_url = f"postgresql://postgres:{password_encoded}@postgres.railway.internal:5432/railway"
-    public_url = f"postgresql://postgres:{password_encoded}@metro.proxy.rlwy.net:20783/railway"
+    public_url = (
+        f"postgresql://postgres:{password_encoded}@metro.proxy.rlwy.net:20783/railway"
+    )
 
     # Output the formatted environment variables
     env_vars = {
@@ -60,18 +61,19 @@ def format_railway_env():
         else:
             print(f"{key}={value}")
 
+
 def check_current_env():
     """Check for existing environment variables."""
     print("\n🔍 Checking for existing environment variables...")
 
     env_vars = [
-        'DATABASE_URL',
-        'DATABASE_PUBLIC_URL',
-        'PGHOST',
-        'PGPORT',
-        'PGUSER',
-        'PGPASSWORD',
-        'PGDATABASE',
+        "DATABASE_URL",
+        "DATABASE_PUBLIC_URL",
+        "PGHOST",
+        "PGPORT",
+        "PGUSER",
+        "PGPASSWORD",
+        "PGDATABASE",
     ]
 
     env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
@@ -79,7 +81,7 @@ def check_current_env():
 
     if os.path.exists(env_path):
         print(f"Found .env file at: {env_path}")
-        with open(env_path, "r") as f:
+        with open(env_path) as f:
             for line in f:
                 for var in env_vars:
                     if line.startswith(f"{var}="):
@@ -97,9 +99,12 @@ def check_current_env():
 
     return found_vars
 
+
 def create_migration_script():
     """Create a Railway deployment script for database migration."""
-    script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "deploy_db_fix.sh")
+    script_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "deploy_db_fix.sh"
+    )
 
     script_content = """#!/bin/bash
 # Railway Database Connection Fix Deployment Script
@@ -262,6 +267,7 @@ echo -e "${YELLOW}=======================================${NC}"
     print("2. Run it during the deployment process")
     print("3. Check the logs for connection status")
 
+
 if __name__ == "__main__":
     format_railway_env()
     existing_vars = check_current_env()
@@ -270,12 +276,18 @@ if __name__ == "__main__":
     print("\n📝 Summary:")
     if existing_vars:
         print(f"Found {len(existing_vars)} existing database environment variables")
-        print("⚠️ Your existing variables may need to be updated with URL-encoded passwords")
+        print(
+            "⚠️ Your existing variables may need to be updated with URL-encoded passwords"
+        )
     else:
         print("❌ No existing database environment variables found")
         print("✅ New variables have been generated in .env.railway")
 
     print("\n✨ Solution:")
     print("1. Use the new .env.railway file for correct database variables")
-    print("2. Deploy the deploy_db_fix.sh script to Railway to fix connections automatically")
-    print("3. Update your application's database connection code to handle URL-encoded passwords")
+    print(
+        "2. Deploy the deploy_db_fix.sh script to Railway to fix connections automatically"
+    )
+    print(
+        "3. Update your application's database connection code to handle URL-encoded passwords"
+    )

@@ -6,9 +6,9 @@ This script validates the configuration and templates during application startup
 to ensure proper Railway deployment and catch issues early.
 """
 
+import logging
 import os
 import sys
-import logging
 from pathlib import Path
 
 # Config
@@ -20,10 +20,10 @@ sys.path.insert(0, str(project_root))
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+
 
 def validate_startup_config() -> bool:
     """
@@ -63,6 +63,7 @@ def validate_startup_config() -> bool:
         logger.exception("Configuration validation failed")
         return False
 
+
 def validate_template_rendering() -> bool:
     """
     Validate that templates can be rendered without placeholders.
@@ -75,7 +76,11 @@ def validate_template_rendering() -> bool:
         rendered_html = render_index_html()
 
         # Check for unresolved placeholders
-        placeholder_patterns = ["{{version_no}}", "{{version_time}}", "{{feature_flags_config}}"]
+        placeholder_patterns = [
+            "{{version_no}}",
+            "{{version_time}}",
+            "{{feature_flags_config}}",
+        ]
         found_placeholders = [p for p in placeholder_patterns if p in rendered_html]
         if found_placeholders:
             print(f"❌ Unresolved template placeholders: {found_placeholders}")
@@ -94,6 +99,7 @@ def validate_template_rendering() -> bool:
         logger.exception("Template rendering validation failed")
         return False
 
+
 def validate_environment_variables() -> bool:
     """
     Validate critical environment variables for Railway deployment.
@@ -106,7 +112,7 @@ def validate_environment_variables() -> bool:
         critical_vars = {
             "PORT": os.getenv("PORT"),
             "WEB_UI_HOST": os.getenv("WEB_UI_HOST"),
-            "RAILWAY_ENVIRONMENT": os.getenv("RAILWAY_ENVIRONMENT")
+            "RAILWAY_ENVIRONMENT": os.getenv("RAILWAY_ENVIRONMENT"),
         }
 
         issues = []
@@ -124,7 +130,7 @@ def validate_environment_variables() -> bool:
         optional_vars = {
             "SEARXNG_URL": os.getenv("SEARXNG_URL"),
             "E2B_API_KEY": os.getenv("E2B_API_KEY"),
-            "NIXPACKS_PYTHON_VERSION": os.getenv("NIXPACKS_PYTHON_VERSION")
+            "NIXPACKS_PYTHON_VERSION": os.getenv("NIXPACKS_PYTHON_VERSION"),
         }
 
         for var, value in optional_vars.items():
@@ -149,18 +155,20 @@ def validate_environment_variables() -> bool:
         logger.exception("Environment variable validation failed")
         return False
 
+
 def validate_gunicorn_setup() -> bool:
     """
     Validate that Gunicorn configuration is correct.
     Checks for 'wsgi.py' and proper template rendering.
     """
     print("🔍 Validating Gunicorn setup...")
-    if not os.path.exists('wsgi.py'):
+    if not os.path.exists("wsgi.py"):
         print("❌ wsgi.py file not found")
         return False
     # Template rendering validated in its own function above
     print("✅ Gunicorn setup validation passed")
     return True
+
 
 def validate_health_endpoint() -> bool:
     """
@@ -169,12 +177,12 @@ def validate_health_endpoint() -> bool:
     """
     print("🔍 Validating health endpoint...")
     try:
-        with open('run_ui.py') as f:
+        with open("run_ui.py") as f:
             content = f.read()
         if '@webapp.route("/health"' not in content:
             print("❌ Health endpoint route not found")
             return False
-        if 'def health_check():' not in content:
+        if "def health_check():" not in content:
             print("❌ Health check function not found")
             return False
         print("✅ Health endpoint found in code")
@@ -182,6 +190,7 @@ def validate_health_endpoint() -> bool:
     except Exception as e:
         print(f"❌ Error validating health endpoint: {e}")
         return False
+
 
 def validate_file_consistency() -> bool:
     """
@@ -193,12 +202,12 @@ def validate_file_consistency() -> bool:
         files_to_check = {
             "railway.toml": "python start_uvicorn.py",
             "nixpacks.toml": "python start_uvicorn.py",
-            "Procfile": "python start_uvicorn.py"
+            "Procfile": "python start_uvicorn.py",
         }
         consistent = True
         for file_path, expected_command in files_to_check.items():
             if os.path.exists(file_path):
-                with open(file_path, 'r') as f:
+                with open(file_path) as f:
                     content = f.read()
                 if expected_command in content:
                     print(f"✅ {file_path} uses consistent startup command")
@@ -215,6 +224,7 @@ def validate_file_consistency() -> bool:
         logger.exception("File consistency validation failed")
         return False
 
+
 def main() -> int:
     """
     Run all startup validations.
@@ -229,7 +239,7 @@ def main() -> int:
         ("Environment Variables", validate_environment_variables),
         ("Gunicorn Setup", validate_gunicorn_setup),
         ("Health Endpoint", validate_health_endpoint),
-        ("File Consistency", validate_file_consistency)
+        ("File Consistency", validate_file_consistency),
     ]
     passed = 0
     total = len(validations)
@@ -252,6 +262,7 @@ def main() -> int:
         print("⚠️  Gary-Zero may not deploy correctly on Railway")
         print("💡 Check the issues above before deploying")
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

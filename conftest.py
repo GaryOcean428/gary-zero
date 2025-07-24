@@ -32,5 +32,5 @@ def mock_tool_args():
         "name": "test_tool",
         "method": "test_method",
         "args": {},
-        "message": "test message"
+        "message": "test message",
     }

@@ -21,7 +21,7 @@ def main():
         "instruments/default/google_gemini/README.md",
         "instruments/default/google_gemini/install.sh",
         "prompts/default/fw.codex_cli.usage.md",
-        "prompts/default/fw.gemini_cli.usage.md"
+        "prompts/default/fw.gemini_cli.usage.md",
     ]
 
     for file_path in new_files:
@@ -37,7 +37,7 @@ def main():
     try:
         from framework.helpers.settings.types import DEFAULT_SETTINGS
 
-        cli_settings = [k for k in DEFAULT_SETTINGS.keys() if 'cli' in k]
+        cli_settings = [k for k in DEFAULT_SETTINGS.keys() if "cli" in k]
         print(f"✅ CLI settings added: {len(cli_settings)} new settings")
         for setting in cli_settings:
             print(f"   - {setting}: {DEFAULT_SETTINGS[setting]}")

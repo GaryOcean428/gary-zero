@@ -8,15 +8,15 @@ from pathlib import Path
 
 def validate_framework_imports():
     """Validate all framework module imports."""
-    framework_path = Path('framework')
+    framework_path = Path("framework")
     failed_imports = []
 
-    for py_file in framework_path.rglob('*.py'):
-        if py_file.name == '__init__.py':
+    for py_file in framework_path.rglob("*.py"):
+        if py_file.name == "__init__.py":
             continue
 
-        rel_path = py_file.relative_to(Path('.'))
-        module_name = str(rel_path).replace('/', '.').replace('.py', '')
+        rel_path = py_file.relative_to(Path("."))
+        module_name = str(rel_path).replace("/", ".").replace(".py", "")
 
         try:
             spec = importlib.util.spec_from_file_location(module_name, py_file)
@@ -29,12 +29,15 @@ def validate_framework_imports():
                 print(f"❌ {module_name}: {e}")
                 failed_imports.append((module_name, str(e)))
             else:
-                print(f"⚠️  {module_name}: {type(e).__name__} (likely missing dependency)")
+                print(
+                    f"⚠️  {module_name}: {type(e).__name__} (likely missing dependency)"
+                )
 
     return failed_imports
 
+
 if __name__ == "__main__":
-    sys.path.insert(0, '.')
+    sys.path.insert(0, ".")
     failed = validate_framework_imports()
 
     if failed:

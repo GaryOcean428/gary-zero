@@ -72,20 +72,19 @@ Results: Our approach shows significant improvements over baseline prompting met
 
 Conclusion: Multi-step prompting with verification represents a promising direction for enhancing LLM reasoning capabilities. Future work should explore more sophisticated verification mechanisms and their application to other cognitive tasks.""",
                     "max_length": 150,
-                    "format": "bullet_points"
+                    "format": "bullet_points",
                 },
                 expected_output={
                     "summary": "• LLMs show limitations in complex reasoning despite their general capabilities\n• New framework combines chain-of-thought prompting with self-verification\n• Method breaks reasoning into verifiable steps to reduce error propagation\n• Significant improvements: 15% on math tasks, 23% on logical reasoning\n• Self-verification mechanism catches mistakes early in reasoning chains"
                 },
                 scoring_criteria={
-                    "accuracy": 0.4,      # Factual correctness
+                    "accuracy": 0.4,  # Factual correctness
                     "completeness": 0.3,  # Coverage of key points
-                    "conciseness": 0.2,   # Appropriate length
-                    "clarity": 0.1        # Readability
+                    "conciseness": 0.2,  # Appropriate length
+                    "clarity": 0.1,  # Readability
                 },
-                timeout_seconds=120
+                timeout_seconds=120,
             ),
-
             TestCase(
                 task_id="summarize_news_article",
                 name="News Article Summarization",
@@ -102,7 +101,7 @@ The financial impact has been substantial, with companies spending billions on c
 
 Consumer advocacy groups generally support these measures, arguing that they restore some balance between corporate interests and individual privacy rights. However, some business organizations warn that overly strict regulations could stifle innovation and economic growth.""",
                     "max_length": 100,
-                    "format": "paragraph"
+                    "format": "paragraph",
                 },
                 expected_output={
                     "summary": "New privacy regulations like GDPR and CCPA are forcing tech companies to change their data practices, giving consumers more control over personal information. While compliance costs are substantial and may favor larger companies, consumer advocates support these measures as necessary for protecting privacy rights."
@@ -110,10 +109,10 @@ Consumer advocacy groups generally support these measures, arguing that they res
                 scoring_criteria={
                     "accuracy": 0.5,
                     "completeness": 0.3,
-                    "conciseness": 0.2
+                    "conciseness": 0.2,
                 },
-                timeout_seconds=90
-            )
+                timeout_seconds=90,
+            ),
         ]
 
     @staticmethod
@@ -132,12 +131,12 @@ Consumer advocacy groups generally support these measures, arguing that they res
                         "Handle empty arrays",
                         "Include input validation",
                         "Add docstring with complexity analysis",
-                        "Include at least 3 test cases"
+                        "Include at least 3 test cases",
                     ],
                     "constraints": {
                         "max_lines": 50,
-                        "must_include": ["def", "docstring", "test"]
-                    }
+                        "must_include": ["def", "docstring", "test"],
+                    },
                 },
                 expected_output={
                     "code": """def quicksort(arr):
@@ -181,17 +180,16 @@ for test in test_cases:
     print(f"Input: {test}")
     print(f"Output: {quicksort(test)}")
     print()""",
-                    "language": "python"
+                    "language": "python",
                 },
                 scoring_criteria={
-                    "correctness": 0.4,    # Algorithm works correctly
-                    "completeness": 0.3,   # Meets all requirements
-                    "code_quality": 0.2,   # Clean, readable code
-                    "documentation": 0.1   # Good docstrings/comments
+                    "correctness": 0.4,  # Algorithm works correctly
+                    "completeness": 0.3,  # Meets all requirements
+                    "code_quality": 0.2,  # Clean, readable code
+                    "documentation": 0.1,  # Good docstrings/comments
                 },
-                timeout_seconds=300
+                timeout_seconds=300,
             ),
-
             TestCase(
                 task_id="generate_api_client",
                 name="REST API Client",
@@ -204,22 +202,22 @@ for test in test_cases:
                         "Support GET, POST, PUT, DELETE methods",
                         "Include error handling",
                         "Support custom headers",
-                        "Include timeout handling"
+                        "Include timeout handling",
                     ],
                     "api_base_url": "https://api.example.com",
                     "constraints": {
                         "max_lines": 80,
-                        "libraries_allowed": ["requests", "json", "time"]
-                    }
+                        "libraries_allowed": ["requests", "json", "time"],
+                    },
                 },
                 scoring_criteria={
                     "functionality": 0.4,
                     "error_handling": 0.3,
                     "code_structure": 0.2,
-                    "documentation": 0.1
+                    "documentation": 0.1,
                 },
-                timeout_seconds=240
-            )
+                timeout_seconds=240,
+            ),
         ]
 
     @staticmethod
@@ -244,32 +242,62 @@ for test in test_cases:
                         "Case studies or examples",
                         "Cost-benefit analysis",
                         "Timeline for adoption",
-                        "Q&A preparation"
-                    ]
+                        "Q&A preparation",
+                    ],
                 },
                 expected_output={
                     "outline": {
                         "slides": [
-                            {"title": "AI in Healthcare: Transforming Patient Care", "content": "Overview and agenda"},
-                            {"title": "Executive Summary", "content": "Key benefits and ROI of AI implementation"},
-                            {"title": "Current Healthcare Challenges", "content": "Staff shortages, diagnostic errors, cost pressures"},
-                            {"title": "AI Solutions Overview", "content": "Diagnostic imaging, predictive analytics, personalized treatment"},
-                            {"title": "Benefits and Outcomes", "content": "Improved accuracy, efficiency gains, cost reduction"},
-                            {"title": "Implementation Roadmap", "content": "Phases, timeline, resource requirements"},
-                            {"title": "Case Study: Radiology AI", "content": "Real-world implementation and results"},
-                            {"title": "Cost-Benefit Analysis", "content": "Investment requirements and expected ROI"},
-                            {"title": "Next Steps", "content": "Action items and decision points"},
-                            {"title": "Q&A Discussion", "content": "Common questions and concerns"}
+                            {
+                                "title": "AI in Healthcare: Transforming Patient Care",
+                                "content": "Overview and agenda",
+                            },
+                            {
+                                "title": "Executive Summary",
+                                "content": "Key benefits and ROI of AI implementation",
+                            },
+                            {
+                                "title": "Current Healthcare Challenges",
+                                "content": "Staff shortages, diagnostic errors, cost pressures",
+                            },
+                            {
+                                "title": "AI Solutions Overview",
+                                "content": "Diagnostic imaging, predictive analytics, personalized treatment",
+                            },
+                            {
+                                "title": "Benefits and Outcomes",
+                                "content": "Improved accuracy, efficiency gains, cost reduction",
+                            },
+                            {
+                                "title": "Implementation Roadmap",
+                                "content": "Phases, timeline, resource requirements",
+                            },
+                            {
+                                "title": "Case Study: Radiology AI",
+                                "content": "Real-world implementation and results",
+                            },
+                            {
+                                "title": "Cost-Benefit Analysis",
+                                "content": "Investment requirements and expected ROI",
+                            },
+                            {
+                                "title": "Next Steps",
+                                "content": "Action items and decision points",
+                            },
+                            {
+                                "title": "Q&A Discussion",
+                                "content": "Common questions and concerns",
+                            },
                         ]
                     }
                 },
                 scoring_criteria={
-                    "relevance": 0.3,      # Appropriate for audience
-                    "completeness": 0.3,   # Covers all requirements
-                    "structure": 0.2,      # Logical flow
-                    "practicality": 0.2    # Actionable insights
+                    "relevance": 0.3,  # Appropriate for audience
+                    "completeness": 0.3,  # Covers all requirements
+                    "structure": 0.2,  # Logical flow
+                    "practicality": 0.2,  # Actionable insights
                 },
-                timeout_seconds=180
+                timeout_seconds=180,
             )
         ]
 
@@ -285,32 +313,48 @@ for test in test_cases:
                 input_data={
                     "data": {
                         "sales_data": {
-                            "Q1_2023": {"revenue": 1200000, "units": 15000, "growth": 0.12},
-                            "Q2_2023": {"revenue": 1350000, "units": 16200, "growth": 0.125},
-                            "Q3_2023": {"revenue": 1280000, "units": 15800, "growth": -0.05},
-                            "Q4_2023": {"revenue": 1450000, "units": 17500, "growth": 0.13}
+                            "Q1_2023": {
+                                "revenue": 1200000,
+                                "units": 15000,
+                                "growth": 0.12,
+                            },
+                            "Q2_2023": {
+                                "revenue": 1350000,
+                                "units": 16200,
+                                "growth": 0.125,
+                            },
+                            "Q3_2023": {
+                                "revenue": 1280000,
+                                "units": 15800,
+                                "growth": -0.05,
+                            },
+                            "Q4_2023": {
+                                "revenue": 1450000,
+                                "units": 17500,
+                                "growth": 0.13,
+                            },
                         },
                         "market_factors": [
                             "Increased competition from new entrants",
                             "Supply chain disruptions in Q3",
                             "Holiday season boost in Q4",
-                            "Economic uncertainty affecting consumer spending"
-                        ]
+                            "Economic uncertainty affecting consumer spending",
+                        ],
                     },
                     "analysis_requirements": [
                         "Identify key trends and patterns",
                         "Explain quarterly variations",
                         "Provide recommendations for next year",
-                        "Assess risk factors"
-                    ]
+                        "Assess risk factors",
+                    ],
                 },
                 scoring_criteria={
                     "insight_quality": 0.4,
                     "data_interpretation": 0.3,
                     "recommendations": 0.2,
-                    "presentation": 0.1
+                    "presentation": 0.1,
                 },
-                timeout_seconds=240
+                timeout_seconds=240,
             )
         ]
 
@@ -358,7 +402,7 @@ for test in test_cases:
                 timeout_seconds=task_data.get("timeout_seconds", 300),
                 max_retries=task_data.get("max_retries", 0),
                 scoring_criteria=task_data.get("scoring_criteria", {}),
-                metadata=task_data.get("metadata", {})
+                metadata=task_data.get("metadata", {}),
             )
 
             group = task_data.get("group")
@@ -392,11 +436,11 @@ for test in test_cases:
                 "max_retries": task.max_retries,
                 "scoring_criteria": task.scoring_criteria,
                 "metadata": task.metadata,
-                "group": group
+                "group": group,
             }
 
             data["tasks"].append(task_data)
 
         Path(file_path).parent.mkdir(parents=True, exist_ok=True)
-        with open(file_path, 'w') as f:
+        with open(file_path, "w") as f:
             json.dump(data, f, indent=2, default=str)

@@ -2,6 +2,7 @@
 Enhanced secure code execution tool using isolated environments.
 This tool replaces the existing code execution with secure sandboxed execution.
 """
+
 from dataclasses import dataclass
 
 from framework.executors.secure_manager import SecureCodeExecutionManager
@@ -44,11 +45,15 @@ class SecureCodeExecution(Tool):
         elif runtime == "install":
             package = self.args.get("package", "")
             if not package:
-                response = self.agent.read_prompt("fw.code.runtime_wrong.md", runtime="install (missing package name)")
+                response = self.agent.read_prompt(
+                    "fw.code.runtime_wrong.md", runtime="install (missing package name)"
+                )
             else:
                 response = await self.install_package(package=package, user_id=user_id)
         else:
-            response = self.agent.read_prompt("fw.code.runtime_wrong.md", runtime=runtime)
+            response = self.agent.read_prompt(
+                "fw.code.runtime_wrong.md", runtime=runtime
+            )
 
         if not response:
             response = self.agent.read_prompt(
@@ -120,11 +125,15 @@ class SecureCodeExecution(Tool):
                 if output:
                     response_parts.append(f"Output:\n{output}")
 
-                response_parts.append(f"✅ Execution completed in {execution_time:.2f}s using {result.get('executor_type', 'unknown')} executor")
+                response_parts.append(
+                    f"✅ Execution completed in {execution_time:.2f}s using {result.get('executor_type', 'unknown')} executor"
+                )
 
                 # Add any rich results if available (E2B)
                 if "results" in result and result["results"]:
-                    response_parts.append(f"Rich outputs: {len(result['results'])} items generated")
+                    response_parts.append(
+                        f"Rich outputs: {len(result['results'])} items generated"
+                    )
 
                 return "\n\n".join(response_parts)
             else:
@@ -136,7 +145,9 @@ class SecureCodeExecution(Tool):
                     error_output += f"\nStderr: {stderr}"
 
                 if "security_warning" in result:
-                    error_output += f"\n⚠️  Security Warning: {result['security_warning']}"
+                    error_output += (
+                        f"\n⚠️  Security Warning: {result['security_warning']}"
+                    )
 
                 PrintStyle.error(error_output)
                 return error_output
@@ -181,7 +192,9 @@ class SecureCodeExecution(Tool):
             PrintStyle.error(error_msg)
             return error_msg
 
-    async def execute_terminal_command(self, command: str, user_id: str = "default") -> str:
+    async def execute_terminal_command(
+        self, command: str, user_id: str = "default"
+    ) -> str:
         """Execute terminal command in secure environment."""
         try:
             session_id = self._get_or_create_session(user_id)
@@ -253,10 +266,10 @@ class SecureCodeExecution(Tool):
                 "🔒 Secure Code Execution Environment Information:",
                 f"Executor Type: {info['type']}",
                 f"Security Level: {'High' if info['secure'] == 'True' else 'Low (Host execution)'}",
-                f"Description: {info['description']}"
+                f"Description: {info['description']}",
             ]
 
-            if info['secure'] == 'True':
+            if info["secure"] == "True":
                 response_parts.append("✅ Code execution is isolated and secure")
             else:
                 response_parts.append("⚠️  Warning: Code execution may not be isolated")

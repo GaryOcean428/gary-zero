@@ -14,6 +14,7 @@ from .agent_card import get_agent_card
 
 class NegotiationStatus(str, Enum):
     """Negotiation status values"""
+
     INITIATED = "initiated"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
@@ -23,6 +24,7 @@ class NegotiationStatus(str, Enum):
 
 class ProtocolVersion(BaseModel):
     """Protocol version specification"""
+
     name: str = Field(description="Protocol name")
     version: str = Field(description="Protocol version")
     features: list[str] = Field(description="Supported features", default=[])
@@ -30,42 +32,72 @@ class ProtocolVersion(BaseModel):
 
 class NegotiationRequest(BaseModel):
     """A2A negotiation request model"""
+
     requester_id: str = Field(description="ID of the requesting agent")
     session_id: str = Field(description="Negotiation session ID")
 
     # Protocol preferences
-    preferred_protocols: list[ProtocolVersion] = Field(description="Preferred protocols in order")
-    required_capabilities: list[str] = Field(description="Required capabilities", default=[])
-    optional_capabilities: list[str] = Field(description="Optional capabilities", default=[])
+    preferred_protocols: list[ProtocolVersion] = Field(
+        description="Preferred protocols in order"
+    )
+    required_capabilities: list[str] = Field(
+        description="Required capabilities", default=[]
+    )
+    optional_capabilities: list[str] = Field(
+        description="Optional capabilities", default=[]
+    )
 
     # Communication preferences
-    preferred_format: str = Field(description="Preferred message format", default="json")
-    max_message_size: int | None = Field(description="Maximum message size in bytes", default=None)
-    timeout_seconds: int | None = Field(description="Communication timeout", default=None)
+    preferred_format: str = Field(
+        description="Preferred message format", default="json"
+    )
+    max_message_size: int | None = Field(
+        description="Maximum message size in bytes", default=None
+    )
+    timeout_seconds: int | None = Field(
+        description="Communication timeout", default=None
+    )
 
     # Security preferences
-    authentication_method: str | None = Field(description="Preferred authentication method", default=None)
-    encryption_required: bool = Field(description="Whether encryption is required", default=False)
+    authentication_method: str | None = Field(
+        description="Preferred authentication method", default=None
+    )
+    encryption_required: bool = Field(
+        description="Whether encryption is required", default=False
+    )
 
 
 class NegotiationResponse(BaseModel):
     """A2A negotiation response model"""
+
     success: bool = Field(description="Whether negotiation was successful")
     session_id: str = Field(description="Negotiation session ID")
     status: NegotiationStatus = Field(description="Negotiation status")
 
     # Agreed parameters
-    agreed_protocol: ProtocolVersion | None = Field(description="Agreed protocol", default=None)
-    supported_capabilities: list[str] = Field(description="Supported capabilities", default=[])
-    communication_params: dict[str, Any] = Field(description="Communication parameters", default={})
+    agreed_protocol: ProtocolVersion | None = Field(
+        description="Agreed protocol", default=None
+    )
+    supported_capabilities: list[str] = Field(
+        description="Supported capabilities", default=[]
+    )
+    communication_params: dict[str, Any] = Field(
+        description="Communication parameters", default={}
+    )
 
     # Session information
-    session_token: str | None = Field(description="Session authentication token", default=None)
+    session_token: str | None = Field(
+        description="Session authentication token", default=None
+    )
     expires_at: str | None = Field(description="Session expiration time", default=None)
 
     # Error information
-    error: str | None = Field(description="Error message if negotiation failed", default=None)
-    unsupported_capabilities: list[str] = Field(description="Unsupported capabilities", default=[])
+    error: str | None = Field(
+        description="Error message if negotiation failed", default=None
+    )
+    unsupported_capabilities: list[str] = Field(
+        description="Unsupported capabilities", default=[]
+    )
 
 
 class NegotiationService:
@@ -74,26 +106,40 @@ class NegotiationService:
     def __init__(self):
         self.active_sessions: dict[str, dict[str, Any]] = {}
         self.supported_protocols = {
-            "a2a": ProtocolVersion(name="a2a", version="1.0.0", features=["discovery", "negotiation", "messaging"]),
-            "mcp": ProtocolVersion(name="mcp", version="1.0.0", features=["client", "server", "tools"]),
-            "json-rpc": ProtocolVersion(name="json-rpc", version="2.0", features=["method_calls", "notifications"]),
-            "websocket": ProtocolVersion(name="websocket", version="13", features=["streaming", "real_time"])
+            "a2a": ProtocolVersion(
+                name="a2a",
+                version="1.0.0",
+                features=["discovery", "negotiation", "messaging"],
+            ),
+            "mcp": ProtocolVersion(
+                name="mcp", version="1.0.0", features=["client", "server", "tools"]
+            ),
+            "json-rpc": ProtocolVersion(
+                name="json-rpc",
+                version="2.0",
+                features=["method_calls", "notifications"],
+            ),
+            "websocket": ProtocolVersion(
+                name="websocket", version="13", features=["streaming", "real_time"]
+            ),
         }
 
     def negotiate(self, request: NegotiationRequest) -> NegotiationResponse:
         """
         Handle protocol negotiation request
-        
+
         Args:
             request: Negotiation request with protocol preferences
-            
+
         Returns:
             Negotiation response with agreed parameters
         """
         try:
             # Get current agent capabilities
             agent_card = get_agent_card()
-            available_capabilities = [cap.name for cap in agent_card.capabilities if cap.enabled]
+            available_capabilities = [
+                cap.name for cap in agent_card.capabilities if cap.enabled
+            ]
 
             # Find common protocol
             agreed_protocol = self._find_common_protocol(request.preferred_protocols)
@@ -102,7 +148,7 @@ class NegotiationService:
                     success=False,
                     session_id=request.session_id,
                     status=NegotiationStatus.FAILED,
-                    error="No compatible protocol found"
+                    error="No compatible protocol found",
                 )
 
             # Check required capabilities
@@ -122,20 +168,29 @@ class NegotiationService:
                     session_id=request.session_id,
                     status=NegotiationStatus.REJECTED,
                     error="Required capabilities not supported",
-                    unsupported_capabilities=unsupported_capabilities
+                    unsupported_capabilities=unsupported_capabilities,
                 )
 
             # Add optional capabilities that we support
             for capability in request.optional_capabilities:
-                if capability in available_capabilities and capability not in supported_capabilities:
+                if (
+                    capability in available_capabilities
+                    and capability not in supported_capabilities
+                ):
                     supported_capabilities.append(capability)
 
             # Set communication parameters
             communication_params = {
-                "format": request.preferred_format if request.preferred_format == "json" else "json",
-                "max_message_size": min(request.max_message_size or 1024*1024, 10*1024*1024),  # Max 10MB
-                "timeout_seconds": min(request.timeout_seconds or 30, 300),  # Max 5 minutes
-                "encryption_required": request.encryption_required
+                "format": request.preferred_format
+                if request.preferred_format == "json"
+                else "json",
+                "max_message_size": min(
+                    request.max_message_size or 1024 * 1024, 10 * 1024 * 1024
+                ),  # Max 10MB
+                "timeout_seconds": min(
+                    request.timeout_seconds or 30, 300
+                ),  # Max 5 minutes
+                "encryption_required": request.encryption_required,
             }
 
             # Store session information
@@ -144,7 +199,7 @@ class NegotiationService:
                 "agreed_protocol": agreed_protocol,
                 "supported_capabilities": supported_capabilities,
                 "communication_params": communication_params,
-                "created_at": self._get_current_timestamp()
+                "created_at": self._get_current_timestamp(),
             }
             self.active_sessions[request.session_id] = session_info
 
@@ -156,7 +211,7 @@ class NegotiationService:
                 supported_capabilities=supported_capabilities,
                 communication_params=communication_params,
                 session_token=self._generate_session_token(request.session_id),
-                expires_at=self._get_expiration_timestamp(3600)  # 1 hour
+                expires_at=self._get_expiration_timestamp(3600),  # 1 hour
             )
 
         except Exception as e:
@@ -164,10 +219,12 @@ class NegotiationService:
                 success=False,
                 session_id=request.session_id,
                 status=NegotiationStatus.FAILED,
-                error=f"Negotiation failed: {str(e)}"
+                error=f"Negotiation failed: {str(e)}",
             )
 
-    def _find_common_protocol(self, preferred_protocols: list[ProtocolVersion]) -> ProtocolVersion | None:
+    def _find_common_protocol(
+        self, preferred_protocols: list[ProtocolVersion]
+    ) -> ProtocolVersion | None:
         """Find the first supported protocol from the preferred list"""
         for protocol in preferred_protocols:
             if protocol.name in self.supported_protocols:
@@ -181,16 +238,21 @@ class NegotiationService:
         """Generate a session authentication token"""
         # In a real implementation, use proper cryptographic tokens
         import hashlib
-        return hashlib.sha256(f"{session_id}:gary-zero:session".encode()).hexdigest()[:32]
+
+        return hashlib.sha256(f"{session_id}:gary-zero:session".encode()).hexdigest()[
+            :32
+        ]
 
     def _get_current_timestamp(self) -> str:
         """Get current timestamp in ISO format"""
         from datetime import datetime
+
         return datetime.utcnow().isoformat() + "Z"
 
     def _get_expiration_timestamp(self, seconds_from_now: int) -> str:
         """Get expiration timestamp"""
         from datetime import datetime, timedelta
+
         expiry = datetime.utcnow() + timedelta(seconds=seconds_from_now)
         return expiry.isoformat() + "Z"
 

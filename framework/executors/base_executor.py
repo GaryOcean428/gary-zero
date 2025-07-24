@@ -1,6 +1,7 @@
 """
 Base class for secure code executors.
 """
+
 import time
 import uuid
 from abc import ABC, abstractmethod
@@ -20,7 +21,9 @@ class BaseCodeExecutor(ABC):
         pass
 
     @abstractmethod
-    def execute_code(self, session_id: str, code: str, language: str = "python") -> dict[str, Any]:
+    def execute_code(
+        self, session_id: str, code: str, language: str = "python"
+    ) -> dict[str, Any]:
         """Execute code in the specified session."""
         pass
 
@@ -56,8 +59,4 @@ class BaseCodeExecutor(ABC):
 
     def _create_session_metadata(self, session_id: str) -> dict[str, Any]:
         """Create initial session metadata."""
-        return {
-            "created_at": time.time(),
-            "execution_count": 0,
-            "package_installs": []
-        }
+        return {"created_at": time.time(), "execution_count": 0, "package_installs": []}

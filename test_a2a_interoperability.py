@@ -30,7 +30,9 @@ class A2ATestClient:
 
         if response.status_code == 200:
             agent_card = response.json()
-            print(f"✅ Found agent: {agent_card['name']} (ID: {agent_card['id'][:12]}...)")
+            print(
+                f"✅ Found agent: {agent_card['name']} (ID: {agent_card['id'][:12]}...)"
+            )
             print(f"   Capabilities: {len(agent_card['capabilities'])} available")
             print(f"   Protocols: {', '.join(agent_card['protocols'])}")
             return agent_card
@@ -44,20 +46,22 @@ class A2ATestClient:
 
         payload = {
             "requester_id": self.agent_id,
-            "capabilities_filter": target_capabilities
+            "capabilities_filter": target_capabilities,
         }
 
         response = requests.post(
             f"{self.base_url}/a2a/discover",
             json=payload,
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
 
         if response.status_code == 200:
             result = response.json()
             if result.get("success"):
                 found_capabilities = result.get("filtered_capabilities", [])
-                print(f"✅ Discovery successful! Found {len(found_capabilities)} matching capabilities:")
+                print(
+                    f"✅ Discovery successful! Found {len(found_capabilities)} matching capabilities:"
+                )
                 for cap in found_capabilities:
                     print(f"   - {cap}")
                 return result
@@ -81,25 +85,21 @@ class A2ATestClient:
                 {
                     "name": "a2a",
                     "version": "1.0.0",
-                    "features": ["discovery", "messaging"]
+                    "features": ["discovery", "messaging"],
                 },
-                {
-                    "name": "json-rpc",
-                    "version": "2.0",
-                    "features": ["method_calls"]
-                }
+                {"name": "json-rpc", "version": "2.0", "features": ["method_calls"]},
             ],
             "required_capabilities": ["code_execution"],
             "optional_capabilities": ["web_browsing", "file_management"],
             "preferred_format": "json",
             "max_message_size": 1048576,  # 1MB
-            "timeout_seconds": 60
+            "timeout_seconds": 60,
         }
 
         response = requests.post(
             f"{self.base_url}/a2a/negotiate",
             json=payload,
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
 
         if response.status_code == 200:
@@ -110,9 +110,15 @@ class A2ATestClient:
                 self.session_token = result.get("session_token")
 
                 print("✅ Negotiation successful!")
-                print(f"   Agreed protocol: {agreed_protocol.get('name')} v{agreed_protocol.get('version')}")
+                print(
+                    f"   Agreed protocol: {agreed_protocol.get('name')} v{agreed_protocol.get('version')}"
+                )
                 print(f"   Supported capabilities: {', '.join(supported_caps)}")
-                print(f"   Session token: {self.session_token[:16]}..." if self.session_token else "   No session token")
+                print(
+                    f"   Session token: {self.session_token[:16]}..."
+                    if self.session_token
+                    else "   No session token"
+                )
 
                 return result
             else:
@@ -155,15 +161,15 @@ class A2ATestClient:
             "message": "This is a test notification from the A2A test client",
             "data": {
                 "test_parameter": "test_value",
-                "timestamp": datetime.utcnow().isoformat() + "Z"
+                "timestamp": datetime.utcnow().isoformat() + "Z",
             },
-            "priority": "normal"
+            "priority": "normal",
         }
 
         response = requests.post(
             f"{self.base_url}/a2a/notify",
             json=payload,
-            headers={"Content-Type": "application/json"}
+            headers={"Content-Type": "application/json"},
         )
 
         if response.status_code == 200:
@@ -224,7 +230,7 @@ class A2ATestClient:
             ("Capability Discovery", discovery_result.get("success", False)),
             ("Protocol Negotiation", negotiation_result.get("success", False)),
             ("MCP Tools Discovery", mcp_result.get("success", False)),
-            ("Push Notification", notification_result.get("success", False))
+            ("Push Notification", notification_result.get("success", False)),
         ]
 
         passed = sum(1 for _, result in tests if result)

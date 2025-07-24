@@ -4,8 +4,9 @@ A2A API Handler for Streaming WebSocket endpoint
 Handles WebSocket connections for real-time A2A communication.
 """
 
-from fastapi import WebSocket, WebSocketDisconnect
 from typing import Any
+
+from fastapi import WebSocket, WebSocketDisconnect
 
 from framework.a2a.streaming import StreamingService
 
@@ -34,14 +35,16 @@ class A2aStream:
         """
         return {
             "success": False,
-            "error": "Use WebSocket connection for streaming endpoint"
+            "error": "Use WebSocket connection for streaming endpoint",
         }
 
 
-async def handle_websocket_connection(websocket: WebSocket, agent_id: str, session_id: str, session_token: str = None):
+async def handle_websocket_connection(
+    websocket: WebSocket, agent_id: str, session_id: str, session_token: str = None
+):
     """
     Handle WebSocket connection for A2A streaming
-    
+
     This function should be called from the FastAPI WebSocket endpoint
     """
     streaming_service = get_streaming_service()
@@ -55,7 +58,7 @@ async def handle_websocket_connection(websocket: WebSocket, agent_id: str, sessi
             websocket=websocket,
             agent_id=agent_id,
             session_id=session_id,
-            session_token=session_token
+            session_token=session_token,
         )
 
         # Handle incoming messages
@@ -72,10 +75,9 @@ async def handle_websocket_connection(websocket: WebSocket, agent_id: str, sessi
             except Exception as e:
                 # Send error message and continue
                 try:
-                    await websocket.send_json({
-                        "type": "error",
-                        "data": {"error": str(e)}
-                    })
+                    await websocket.send_json(
+                        {"type": "error", "data": {"error": str(e)}}
+                    )
                 except:
                     break
 
@@ -89,5 +91,5 @@ async def handle_websocket_connection(websocket: WebSocket, agent_id: str, sessi
 
     finally:
         # Clean up connection
-        if 'connection_id' in locals():
+        if "connection_id" in locals():
             await streaming_service.disconnect(connection_id)

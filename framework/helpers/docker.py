@@ -40,10 +40,10 @@ class DockerContainerManager:
                     if self.logger:
                         self.logger.log(
                             type="hint",
-                        content=(
-                            "Connection to Docker failed. "
-                            "Is docker or Docker Desktop running?"
-                        ),
+                            content=(
+                                "Connection to Docker failed. "
+                                "Is docker or Docker Desktop running?"
+                            ),
                         )
                     PrintStyle.error(err)
                     if self.logger:
@@ -58,7 +58,9 @@ class DockerContainerManager:
             try:
                 self.container.stop()
                 self.container.remove()
-                PrintStyle.standard(f"Stopped and removed the container: {self.container.id}")
+                PrintStyle.standard(
+                    f"Stopped and removed the container: {self.container.id}"
+                )
                 if self.logger:
                     self.logger.log(
                         type="info",
@@ -75,7 +77,9 @@ class DockerContainerManager:
     def get_image_containers(self):
         if not self.client:
             self.client = self.init_docker()
-        containers = self.client.containers.list(all=True, filters={"ancestor": self.image})
+        containers = self.client.containers.list(
+            all=True, filters={"ancestor": self.image}
+        )
         infos = []
         for container in containers:
             infos.append(
@@ -85,8 +89,12 @@ class DockerContainerManager:
                     "status": container.status,
                     "image": container.image,
                     "ports": container.ports,
-                    "web_port": (container.ports.get("80/tcp") or [{}])[0].get("HostPort"),
-                    "ssh_port": (container.ports.get("22/tcp") or [{}])[0].get("HostPort"),
+                    "web_port": (container.ports.get("80/tcp") or [{}])[0].get(
+                        "HostPort"
+                    ),
+                    "ssh_port": (container.ports.get("22/tcp") or [{}])[0].get(
+                        "HostPort"
+                    ),
                     # "volumes": container.volumes,
                     # "data_folder": container.volumes["/a0"],
                 }

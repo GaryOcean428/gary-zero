@@ -45,7 +45,7 @@ class ActivityMonitor(ApiHandler):
         else:
             return {
                 "success": False,
-                "error": f"Unknown action: {action}. Valid actions: get_status, get_activities, add_activity, set_iframe_src, get_iframe_src, clear_activities, populate_sample_data"
+                "error": f"Unknown action: {action}. Valid actions: get_status, get_activities, add_activity, set_iframe_src, get_iframe_src, clear_activities, populate_sample_data",
             }
 
     def _get_status(self) -> dict[str, Any]:
@@ -56,7 +56,7 @@ class ActivityMonitor(ApiHandler):
                 "status": "active",
                 "total_activities": len(self._activities),
                 "current_iframe_src": self._current_iframe_src,
-                "timestamp": datetime.now(UTC).isoformat()
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
     def _get_activities(self, input: Input) -> dict[str, Any]:
@@ -75,9 +75,15 @@ class ActivityMonitor(ApiHandler):
         # Filter by timestamp if specified
         if since:
             try:
-                since_dt = datetime.fromisoformat(since.replace('Z', '+00:00'))
-                activities = [a for a in activities if
-                            datetime.fromisoformat(a.get("timestamp", "").replace('Z', '+00:00')) >= since_dt]
+                since_dt = datetime.fromisoformat(since.replace("Z", "+00:00"))
+                activities = [
+                    a
+                    for a in activities
+                    if datetime.fromisoformat(
+                        a.get("timestamp", "").replace("Z", "+00:00")
+                    )
+                    >= since_dt
+                ]
             except (ValueError, AttributeError):
                 pass  # Ignore invalid timestamp
 
@@ -88,7 +94,7 @@ class ActivityMonitor(ApiHandler):
             "success": True,
             "activities": activities,
             "total": len(activities),
-            "filtered": len(activities) < len(self._activities)
+            "filtered": len(activities) < len(self._activities),
         }
 
     def _add_activity(self, input: Input) -> dict[str, Any]:
@@ -104,63 +110,50 @@ class ActivityMonitor(ApiHandler):
             "description": description,
             "url": url,
             "data": data,
-            "timestamp": datetime.now(UTC).isoformat()
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
         with self._activity_lock:
             self._activities.append(activity)
             # Keep only the most recent activities
             if len(self._activities) > self._max_activities:
-                self._activities = self._activities[-self._max_activities:]
+                self._activities = self._activities[-self._max_activities :]
 
         PrintStyle().debug(f"Activity added: {activity_type} - {description}")
 
-        return {
-            "success": True,
-            "activity": activity
-        }
+        return {"success": True, "activity": activity}
 
     def _set_iframe_src(self, input: Input) -> dict[str, Any]:
         """Set the current iframe source URL."""
         src = input.get("src")
         if not src:
-            return {
-                "success": False,
-                "error": "Missing 'src' parameter"
-            }
+            return {"success": False, "error": "Missing 'src' parameter"}
 
         with self._activity_lock:
             self._current_iframe_src = src
 
         # Add activity for iframe source change
-        self._add_activity({
-            "type": "iframe_change",
-            "description": f"Iframe source changed to: {src}",
-            "url": src
-        })
+        self._add_activity(
+            {
+                "type": "iframe_change",
+                "description": f"Iframe source changed to: {src}",
+                "url": src,
+            }
+        )
 
-        return {
-            "success": True,
-            "iframe_src": src
-        }
+        return {"success": True, "iframe_src": src}
 
     def _get_iframe_src(self) -> dict[str, Any]:
         """Get the current iframe source URL."""
         with self._activity_lock:
-            return {
-                "success": True,
-                "iframe_src": self._current_iframe_src
-            }
+            return {"success": True, "iframe_src": self._current_iframe_src}
 
     def _clear_activities(self) -> dict[str, Any]:
         """Clear all stored activities."""
         with self._activity_lock:
             self._activities.clear()
 
-        return {
-            "success": True,
-            "message": "All activities cleared"
-        }
+        return {"success": True, "message": "All activities cleared"}
 
     def _populate_sample_data(self) -> dict[str, Any]:
         """Populate with sample activities for testing."""
@@ -169,32 +162,32 @@ class ActivityMonitor(ApiHandler):
                 "type": "browser",
                 "description": "User navigated to GitHub repository",
                 "url": "https://github.com/GaryOcean428/gary-zero",
-                "data": {"action": "navigate", "referrer": "search"}
+                "data": {"action": "navigate", "referrer": "search"},
             },
             {
                 "type": "coding",
                 "description": "Opened file for editing: activity_monitor.py",
                 "url": "framework/api/activity_monitor.py",
-                "data": {"action": "open", "editor": "vscode"}
+                "data": {"action": "open", "editor": "vscode"},
             },
             {
                 "type": "browser",
                 "description": "AI performed web search for 'Flask API best practices'",
                 "url": "https://search.example.com/q=flask+api+best+practices",
-                "data": {"action": "search", "query": "Flask API best practices"}
+                "data": {"action": "search", "query": "Flask API best practices"},
             },
             {
                 "type": "coding",
                 "description": "Created new JavaScript file: activity-monitor.js",
                 "url": "webui/js/activity-monitor.js",
-                "data": {"action": "create", "fileSize": 10748}
+                "data": {"action": "create", "fileSize": 10748},
             },
             {
                 "type": "iframe_change",
                 "description": "Activity monitor iframe source changed to activity viewer",
                 "url": "./activity-monitor.html",
-                "data": {"previousSrc": "about:blank"}
-            }
+                "data": {"previousSrc": "about:blank"},
+            },
         ]
 
         with self._activity_lock:
@@ -202,54 +195,66 @@ class ActivityMonitor(ApiHandler):
                 activity = {
                     "id": f"sample_{int(time.time() * 1000)}_{len(self._activities)}",
                     "timestamp": datetime.now(UTC).isoformat(),
-                    **activity_data
+                    **activity_data,
                 }
                 self._activities.append(activity)
 
         return {
             "success": True,
             "message": f"Added {len(sample_activities)} sample activities",
-            "count": len(sample_activities)
+            "count": len(sample_activities),
         }
 
     @classmethod
-    def log_browser_activity(cls, action: str, url: str, description: str = "", data: dict[str, Any] = None):
+    def log_browser_activity(
+        cls, action: str, url: str, description: str = "", data: dict[str, Any] = None
+    ):
         """Helper method to log browser activities from other parts of the application."""
         activity = {
             "type": "browser",
             "description": description or f"Browser {action}: {url}",
             "url": url,
-            "data": data or {"action": action}
+            "data": data or {"action": action},
         }
 
         with cls._activity_lock:
-            cls._activities.append({
-                "id": f"activity_{int(time.time() * 1000)}",
-                "timestamp": datetime.now(UTC).isoformat(),
-                **activity
-            })
+            cls._activities.append(
+                {
+                    "id": f"activity_{int(time.time() * 1000)}",
+                    "timestamp": datetime.now(UTC).isoformat(),
+                    **activity,
+                }
+            )
 
             # Keep only the most recent activities
             if len(cls._activities) > cls._max_activities:
-                cls._activities = cls._activities[-cls._max_activities:]
+                cls._activities = cls._activities[-cls._max_activities :]
 
     @classmethod
-    def log_coding_activity(cls, action: str, file_path: str, description: str = "", data: dict[str, Any] = None):
+    def log_coding_activity(
+        cls,
+        action: str,
+        file_path: str,
+        description: str = "",
+        data: dict[str, Any] = None,
+    ):
         """Helper method to log coding activities from other parts of the application."""
         activity = {
             "type": "coding",
             "description": description or f"Code {action}: {file_path}",
             "url": file_path,
-            "data": data or {"action": action, "file": file_path}
+            "data": data or {"action": action, "file": file_path},
         }
 
         with cls._activity_lock:
-            cls._activities.append({
-                "id": f"activity_{int(time.time() * 1000)}",
-                "timestamp": datetime.now(UTC).isoformat(),
-                **activity
-            })
+            cls._activities.append(
+                {
+                    "id": f"activity_{int(time.time() * 1000)}",
+                    "timestamp": datetime.now(UTC).isoformat(),
+                    **activity,
+                }
+            )
 
             # Keep only the most recent activities
             if len(cls._activities) > cls._max_activities:
-                cls._activities = cls._activities[-cls._max_activities:]
+                cls._activities = cls._activities[-cls._max_activities :]

@@ -34,7 +34,11 @@ class MyFaiss(FAISS):
     # override aget_by_ids
     def get_by_ids(self, ids: Sequence[str], /) -> list[Document]:
         # return all self.docstore._dict[id] in ids
-        return [self.docstore._dict[id] for id in (ids if isinstance(ids, list) else [ids]) if id in self.docstore._dict]  # type: ignore
+        return [
+            self.docstore._dict[id]
+            for id in (ids if isinstance(ids, list) else [ids])
+            if id in self.docstore._dict
+        ]  # type: ignore
 
     async def aget_by_ids(self, ids: Sequence[str], /) -> list[Document]:
         return self.get_by_ids(ids)
@@ -44,7 +48,6 @@ class MyFaiss(FAISS):
 
 
 class Memory:
-
     class Area(Enum):
         MAIN = "main"
         FRAGMENTS = "fragments"
@@ -95,13 +98,14 @@ class Memory:
         memory_subdir: str,
         in_memory=False,
     ) -> tuple[MyFaiss, bool]:
-
         PrintStyle.standard("Initializing VectorDB...")
 
         if log_item:
             log_item.stream(progress="\nInitializing VectorDB")
 
-        em_dir = files.get_abs_path("memory/embeddings")  # just caching, no need to parameterize
+        em_dir = files.get_abs_path(
+            "memory/embeddings"
+        )  # just caching, no need to parameterize
         db_dir = Memory._abs_db_dir(memory_subdir)
 
         # make sure embeddings and database directories exist
@@ -239,7 +243,9 @@ class Memory:
             if index[file]["state"] in ["changed", "removed"] and index[file].get(
                 "ids", []
             ):  # for knowledge files that have been changed or removed and have IDs
-                await self.delete_documents_by_ids(index[file]["ids"])  # remove original version
+                await self.delete_documents_by_ids(
+                    index[file]["ids"]
+                )  # remove original version
             if index[file]["state"] == "changed":
                 index[file]["ids"] = await self.insert_documents(
                     index[file]["documents"]
@@ -290,7 +296,9 @@ class Memory:
         comparator = Memory._get_comparator(filter) if filter else None
 
         # rate limiter
-        await self.agent.rate_limiter(model_config=self.agent.config.embeddings_model, input=query)
+        await self.agent.rate_limiter(
+            model_config=self.agent.config.embeddings_model, input=query
+        )
 
         return await self.db.asearch(
             query,
@@ -300,7 +308,9 @@ class Memory:
             filter=comparator,
         )
 
-    async def delete_documents_by_query(self, query: str, threshold: float, filter: str = ""):
+    async def delete_documents_by_query(
+        self, query: str, threshold: float, filter: str = ""
+    ):
         k = 100
         tot = 0
         removed = []
@@ -334,7 +344,9 @@ class Memory:
 
     async def delete_documents_by_ids(self, ids: list[str]):
         # aget_by_ids is not yet implemented in faiss, need to do a workaround
-        rem_docs = await self.db.aget_by_ids(ids)  # existing docs to remove (prevents error)
+        rem_docs = await self.db.aget_by_ids(
+            ids
+        )  # existing docs to remove (prevents error)
         if rem_docs:
             rem_ids = [doc.metadata["id"] for doc in rem_docs]  # ids to remove
             await self.db.adelete(ids=rem_ids)
@@ -398,7 +410,9 @@ class Memory:
     @staticmethod
     def _cosine_normalizer(val: float) -> float:
         res = (1 + val) / 2
-        res = max(0, min(1, res))  # float precision can cause values like 1.0000000596046448
+        res = max(
+            0, min(1, res)
+        )  # float precision can cause values like 1.0000000596046448
         return res
 
     @staticmethod

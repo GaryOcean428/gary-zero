@@ -4,7 +4,7 @@ Test script to validate packaging dependency conflict resolution.
 
 This test ensures that:
 1. packaging module can be imported and has the correct version
-2. e2b-code-interpreter can be imported without dependency conflicts  
+2. e2b-code-interpreter can be imported without dependency conflicts
 3. Both packages are compatible with each other
 """
 
@@ -25,10 +25,14 @@ def test_packaging_version():
         print(f"✓ packaging version: {packaging.__version__}")
 
         if packaging_version >= min_required and packaging_version < max_allowed:
-            print(f"✓ packaging version {packaging.__version__} satisfies requirements (>=24.1,<25)")
+            print(
+                f"✓ packaging version {packaging.__version__} satisfies requirements (>=24.1,<25)"
+            )
             return True
         else:
-            print(f"✗ packaging version {packaging.__version__} does not satisfy requirements (>=24.1,<25)")
+            print(
+                f"✗ packaging version {packaging.__version__} does not satisfy requirements (>=24.1,<25)"
+            )
             return False
 
     except ImportError as e:
@@ -41,10 +45,12 @@ def test_e2b_import():
     try:
         # Test core e2b import
         import e2b
+
         print(f"✓ e2b imported successfully, version: {e2b.__version__}")
 
         # Test e2b-code-interpreter import
         from e2b_code_interpreter import CodeInterpreter
+
         print("✓ e2b-code-interpreter imported successfully")
         return True
 
@@ -56,9 +62,12 @@ def test_e2b_import():
 def test_dependency_compatibility():
     """Test that pip sees no dependency conflicts."""
     try:
-        result = subprocess.run([
-            sys.executable, "-m", "pip", "check"
-        ], capture_output=True, text=True, timeout=30)
+        result = subprocess.run(
+            [sys.executable, "-m", "pip", "check"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
 
         if result.returncode == 0:
             print("✓ pip check passed - no dependency conflicts detected")
@@ -85,7 +94,7 @@ def main():
     tests = [
         ("Packaging Version", test_packaging_version),
         ("E2B Import", test_e2b_import),
-        ("Dependency Compatibility", test_dependency_compatibility)
+        ("Dependency Compatibility", test_dependency_compatibility),
     ]
 
     results = []

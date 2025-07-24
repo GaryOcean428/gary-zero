@@ -13,7 +13,7 @@ from framework.interfaces import DependencyError
 
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class Container:
@@ -73,7 +73,9 @@ class Container:
     def get_by_type(self, service_type: type[T]) -> T:
         """Get an instance by type."""
         for name, registered_type in self._types.items():
-            if registered_type == service_type or issubclass(registered_type, service_type):
+            if registered_type == service_type or issubclass(
+                registered_type, service_type
+            ):
                 return self.get(name)
 
         raise DependencyError(f"No service registered for type {service_type}")
@@ -87,7 +89,7 @@ class Container:
         # Skip 'self' parameter
         args = {}
         for param_name, param in params.items():
-            if param_name == 'self':
+            if param_name == "self":
                 continue
 
             # Try to resolve dependency
@@ -114,8 +116,11 @@ class Container:
         for name in list(self._singletons.keys()) + list(self._services.keys()):
             try:
                 instance = self.get(name)
-                if (hasattr(instance, 'initialize') and hasattr(instance, 'is_initialized')
-                    and not instance.is_initialized):
+                if (
+                    hasattr(instance, "initialize")
+                    and hasattr(instance, "is_initialized")
+                    and not instance.is_initialized
+                ):
                     await instance.initialize()
                     logger.info(f"Initialized service: {name}")
             except Exception as e:
@@ -128,8 +133,11 @@ class Container:
         for name in reversed(all_services):
             try:
                 instance = self.get(name)
-                if (hasattr(instance, 'shutdown') and hasattr(instance, 'is_initialized')
-                    and instance.is_initialized):
+                if (
+                    hasattr(instance, "shutdown")
+                    and hasattr(instance, "is_initialized")
+                    and instance.is_initialized
+                ):
                     await instance.shutdown()
                     logger.info(f"Shutdown service: {name}")
             except Exception as e:

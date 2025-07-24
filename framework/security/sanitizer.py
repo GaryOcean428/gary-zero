@@ -12,11 +12,11 @@ class ContentSanitizer:
     def __init__(self):
         # Define dangerous patterns
         self.script_patterns = [
-            r'<script[^>]*>.*?</script>',
-            r'javascript:',
-            r'vbscript:',
-            r'data:text/html',
-            r'on\w+\s*=',  # Event handlers
+            r"<script[^>]*>.*?</script>",
+            r"javascript:",
+            r"vbscript:",
+            r"data:text/html",
+            r"on\w+\s*=",  # Event handlers
         ]
 
         self.sql_patterns = [
@@ -27,18 +27,35 @@ class ContentSanitizer:
         ]
 
         self.command_injection_patterns = [
-            r'[\;\|&`$\(\){}]',
-            r'(sudo|rm|mv|cp|cat|grep|awk|sed|curl|wget)',
-            r'(\.\./|\.\.\\\\)',
+            r"[\;\|&`$\(\){}]",
+            r"(sudo|rm|mv|cp|cat|grep|awk|sed|curl|wget)",
+            r"(\.\./|\.\.\\\\)",
         ]
 
         # Safe URL schemes
-        self.safe_schemes = {'http', 'https', 'ftp', 'ftps', 'mailto'}
+        self.safe_schemes = {"http", "https", "ftp", "ftps", "mailto"}
 
         # HTML tags to allow (basic formatting)
         self.allowed_tags = {
-            'b', 'i', 'u', 'em', 'strong', 'p', 'br', 'ul', 'ol', 'li',
-            'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre'
+            "b",
+            "i",
+            "u",
+            "em",
+            "strong",
+            "p",
+            "br",
+            "ul",
+            "ol",
+            "li",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "blockquote",
+            "code",
+            "pre",
         }
 
     def sanitize_text(self, text: str, allow_html: bool = False) -> str:
@@ -47,11 +64,11 @@ class ContentSanitizer:
             return str(text)
 
         # Remove null bytes
-        text = text.replace('\x00', '')
+        text = text.replace("\x00", "")
 
         # Check for script injection
         for pattern in self.script_patterns:
-            text = re.sub(pattern, '', text, flags=re.IGNORECASE | re.DOTALL)
+            text = re.sub(pattern, "", text, flags=re.IGNORECASE | re.DOTALL)
 
         if allow_html:
             # Allow basic HTML but sanitize attributes
@@ -71,7 +88,7 @@ class ContentSanitizer:
         for pattern in self.sql_patterns:
             if re.search(pattern, text, re.IGNORECASE):
                 # Replace dangerous SQL keywords and operators
-                text = re.sub(pattern, '', text, flags=re.IGNORECASE)
+                text = re.sub(pattern, "", text, flags=re.IGNORECASE)
 
         # Escape single quotes
         text = text.replace("'", "''")
@@ -85,10 +102,10 @@ class ContentSanitizer:
 
         # Check for command injection patterns
         for pattern in self.command_injection_patterns:
-            text = re.sub(pattern, '', text, flags=re.IGNORECASE)
+            text = re.sub(pattern, "", text, flags=re.IGNORECASE)
 
         # Remove path traversal attempts
-        text = text.replace('..', '')
+        text = text.replace("..", "")
 
         return text.strip()
 
@@ -105,7 +122,10 @@ class ContentSanitizer:
                 return None
 
             # Check for dangerous patterns in URL
-            if any(re.search(pattern, url, re.IGNORECASE) for pattern in self.script_patterns):
+            if any(
+                re.search(pattern, url, re.IGNORECASE)
+                for pattern in self.script_patterns
+            ):
                 return None
 
             # Reconstruct clean URL
@@ -120,17 +140,17 @@ class ContentSanitizer:
             return None
 
         # Remove dangerous path components
-        path = path.replace('..', '').replace('~', '')
+        path = path.replace("..", "").replace("~", "")
 
         # Remove leading/trailing slashes and normalize
-        path = path.strip('/')
+        path = path.strip("/")
 
         # Check for absolute paths (should be relative)
-        if path.startswith('/') or (len(path) > 1 and path[1] == ':'):
+        if path.startswith("/") or (len(path) > 1 and path[1] == ":"):
             return None
 
         # Check for dangerous characters
-        dangerous_chars = ['<', '>', '|', '&', ';', '`', '$']
+        dangerous_chars = ["<", ">", "|", "&", ";", "`", "$"]
         if any(char in path for char in dangerous_chars):
             return None
 
@@ -149,15 +169,24 @@ class ContentSanitizer:
             return self.sanitize_text(obj)
         elif isinstance(obj, dict):
             if len(obj) > 100:  # Limit dictionary size
-                return dict.fromkeys(list(obj.keys())[:10], "[TRUNCATED: Dict too large]")
+                return dict.fromkeys(
+                    list(obj.keys())[:10], "[TRUNCATED: Dict too large]"
+                )
             return {
-                self.sanitize_text(str(k)): self._sanitize_recursive(v, depth + 1, max_depth)
+                self.sanitize_text(str(k)): self._sanitize_recursive(
+                    v, depth + 1, max_depth
+                )
                 for k, v in obj.items()
             }
         elif isinstance(obj, list):
             if len(obj) > 100:  # Limit list size
-                return [self._sanitize_recursive(item, depth + 1, max_depth) for item in obj[:100]]
-            return [self._sanitize_recursive(item, depth + 1, max_depth) for item in obj]
+                return [
+                    self._sanitize_recursive(item, depth + 1, max_depth)
+                    for item in obj[:100]
+                ]
+            return [
+                self._sanitize_recursive(item, depth + 1, max_depth) for item in obj
+            ]
         elif isinstance(obj, (int, float, bool, type(None))):
             return obj
         else:
@@ -168,16 +197,34 @@ class ContentSanitizer:
         # Simple HTML sanitization - remove script tags and dangerous attributes
 
         # Remove script tags completely
-        html_content = re.sub(r'<script[^>]*>.*?</script>', '', html_content, flags=re.IGNORECASE | re.DOTALL)
+        html_content = re.sub(
+            r"<script[^>]*>.*?</script>",
+            "",
+            html_content,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
 
         # Remove dangerous attributes
-        dangerous_attrs = ['onclick', 'onload', 'onerror', 'onmouseover', 'onfocus', 'onblur']
+        dangerous_attrs = [
+            "onclick",
+            "onload",
+            "onerror",
+            "onmouseover",
+            "onfocus",
+            "onblur",
+        ]
         for attr in dangerous_attrs:
-            html_content = re.sub(f'{attr}="[^"]*"', '', html_content, flags=re.IGNORECASE)
-            html_content = re.sub(f"{attr}='[^']*'", '', html_content, flags=re.IGNORECASE)
+            html_content = re.sub(
+                f'{attr}="[^"]*"', "", html_content, flags=re.IGNORECASE
+            )
+            html_content = re.sub(
+                f"{attr}='[^']*'", "", html_content, flags=re.IGNORECASE
+            )
 
         # Remove style attributes that could contain javascript
-        html_content = re.sub(r'style="[^"]*expression[^"]*"', '', html_content, flags=re.IGNORECASE)
+        html_content = re.sub(
+            r'style="[^"]*expression[^"]*"', "", html_content, flags=re.IGNORECASE
+        )
 
         return html_content
 
@@ -191,12 +238,20 @@ class ContentSanitizer:
             return {}
 
         return {
-            'script_injection': any(re.search(pattern, text, re.IGNORECASE) for pattern in self.script_patterns),
-            'sql_injection': any(re.search(pattern, text, re.IGNORECASE) for pattern in self.sql_patterns),
-            'command_injection': any(re.search(pattern, text, re.IGNORECASE) for pattern in self.command_injection_patterns),
-            'path_traversal': '..' in text or '~' in text,
-            'excessive_length': len(text) > 10000,
-            'null_bytes': '\x00' in text,
+            "script_injection": any(
+                re.search(pattern, text, re.IGNORECASE)
+                for pattern in self.script_patterns
+            ),
+            "sql_injection": any(
+                re.search(pattern, text, re.IGNORECASE) for pattern in self.sql_patterns
+            ),
+            "command_injection": any(
+                re.search(pattern, text, re.IGNORECASE)
+                for pattern in self.command_injection_patterns
+            ),
+            "path_traversal": ".." in text or "~" in text,
+            "excessive_length": len(text) > 10000,
+            "null_bytes": "\x00" in text,
         }
 
     def sanitize_user_input(self, user_input: str, input_type: str = "text") -> str:

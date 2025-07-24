@@ -63,7 +63,7 @@ class DependencyChecker:
         imports = set()
 
         try:
-            with open(file_path, encoding='utf-8') as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             # Pattern to match various import styles
@@ -77,9 +77,9 @@ class DependencyChecker:
                 matches = re.findall(pattern, content, re.MULTILINE)
                 for match in matches:
                     # Skip relative imports and absolute paths
-                    if not match.startswith('.') and not match.startswith('/'):
+                    if not match.startswith(".") and not match.startswith("/"):
                         # Extract package name (before first slash if exists)
-                        package_name = match.split('/')[0]
+                        package_name = match.split("/")[0]
                         imports.add(package_name)
 
         except Exception as e:
@@ -133,7 +133,7 @@ class DependencyChecker:
 
         return {
             "unused_dependencies": list(unused_deps & set(dependencies.keys())),
-            "unused_dev_dependencies": list(unused_deps & set(dev_dependencies.keys()))
+            "unused_dev_dependencies": list(unused_deps & set(dev_dependencies.keys())),
         }
 
     def check_missing_dependencies(self) -> list[str]:
@@ -147,8 +147,20 @@ class DependencyChecker:
 
         # Filter out built-in Node.js modules and browser APIs
         builtin_modules = {
-            "fs", "path", "util", "crypto", "http", "https", "url", "querystring",
-            "events", "stream", "buffer", "process", "os", "child_process"
+            "fs",
+            "path",
+            "util",
+            "crypto",
+            "http",
+            "https",
+            "url",
+            "querystring",
+            "events",
+            "stream",
+            "buffer",
+            "process",
+            "os",
+            "child_process",
         }
 
         # Filter out relative/absolute imports and built-ins
@@ -165,7 +177,7 @@ class DependencyChecker:
                 ["npm", "audit", "--json"],
                 capture_output=True,
                 text=True,
-                cwd=self.project_root
+                cwd=self.project_root,
             )
 
             if result.stdout:
@@ -173,7 +185,7 @@ class DependencyChecker:
                 return {
                     "vulnerabilities": audit_data.get("vulnerabilities", {}),
                     "metadata": audit_data.get("metadata", {}),
-                    "audit_summary": audit_data.get("metadata", {})
+                    "audit_summary": audit_data.get("metadata", {}),
                 }
         except Exception as e:
             print(f"Warning: npm audit failed: {e}")
@@ -187,7 +199,7 @@ class DependencyChecker:
                 ["npm", "outdated", "--json"],
                 capture_output=True,
                 text=True,
-                cwd=self.project_root
+                cwd=self.project_root,
             )
 
             if result.stdout:
@@ -222,17 +234,19 @@ class DependencyChecker:
         return {
             "project": {
                 "name": package_json.get("name", "unknown"),
-                "version": package_json.get("version", "unknown")
+                "version": package_json.get("version", "unknown"),
             },
             "dependencies": {
                 "total_dependencies": len(package_json.get("dependencies", {})),
                 "total_dev_dependencies": len(package_json.get("devDependencies", {})),
                 "unused": unused,
-                "missing": missing
+                "missing": missing,
             },
             "security": audit,
             "outdated": outdated,
-            "recommendations": self.generate_recommendations(unused, missing, audit, outdated)
+            "recommendations": self.generate_recommendations(
+                unused, missing, audit, outdated
+            ),
         }
 
     def generate_recommendations(self, unused, missing, audit, outdated) -> list[str]:
@@ -241,19 +255,30 @@ class DependencyChecker:
 
         # Unused dependencies
         if unused["unused_dependencies"]:
-            recommendations.append(f"📦 Remove {len(unused['unused_dependencies'])} unused dependencies: {', '.join(unused['unused_dependencies'][:3])}{'...' if len(unused['unused_dependencies']) > 3 else ''}")
+            recommendations.append(
+                f"📦 Remove {len(unused['unused_dependencies'])} unused dependencies: {', '.join(unused['unused_dependencies'][:3])}{'...' if len(unused['unused_dependencies']) > 3 else ''}"
+            )
 
         if unused["unused_dev_dependencies"]:
-            recommendations.append(f"🛠️ Remove {len(unused['unused_dev_dependencies'])} unused dev dependencies: {', '.join(unused['unused_dev_dependencies'][:3])}{'...' if len(unused['unused_dev_dependencies']) > 3 else ''}")
+            recommendations.append(
+                f"🛠️ Remove {len(unused['unused_dev_dependencies'])} unused dev dependencies: {', '.join(unused['unused_dev_dependencies'][:3])}{'...' if len(unused['unused_dev_dependencies']) > 3 else ''}"
+            )
 
         # Missing dependencies
         if missing:
-            recommendations.append(f"⚠️ Add {len(missing)} missing dependencies: {', '.join(missing[:3])}{'...' if len(missing) > 3 else ''}")
+            recommendations.append(
+                f"⚠️ Add {len(missing)} missing dependencies: {', '.join(missing[:3])}{'...' if len(missing) > 3 else ''}"
+            )
 
         # Security issues
-        if "metadata" in audit and audit["metadata"].get("vulnerabilities", {}).get("total", 0) > 0:
+        if (
+            "metadata" in audit
+            and audit["metadata"].get("vulnerabilities", {}).get("total", 0) > 0
+        ):
             total_vulns = audit["metadata"]["vulnerabilities"]["total"]
-            recommendations.append(f"🔒 Fix {total_vulns} security vulnerabilities with 'npm audit fix'")
+            recommendations.append(
+                f"🔒 Fix {total_vulns} security vulnerabilities with 'npm audit fix'"
+            )
 
         # Outdated packages
         if outdated:
@@ -266,9 +291,9 @@ class DependencyChecker:
 
     def print_results(self, results: dict[str, Any]):
         """Print formatted results"""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("📦 DEPENDENCY CHECK RESULTS")
-        print("="*60)
+        print("=" * 60)
 
         # Project info
         project = results["project"]
@@ -287,7 +312,9 @@ class DependencyChecker:
             if unused["unused_dependencies"]:
                 print(f"   Dependencies: {', '.join(unused['unused_dependencies'])}")
             if unused["unused_dev_dependencies"]:
-                print(f"   Dev Dependencies: {', '.join(unused['unused_dev_dependencies'])}")
+                print(
+                    f"   Dev Dependencies: {', '.join(unused['unused_dev_dependencies'])}"
+                )
 
         # Missing dependencies
         if deps["missing"]:
@@ -310,6 +337,7 @@ class DependencyChecker:
         for rec in results["recommendations"]:
             print(f"   {rec}")
 
+
 def main():
     checker = DependencyChecker()
 
@@ -325,10 +353,16 @@ def main():
 
         # Exit with error if there are issues
         has_issues = (
-            results["dependencies"]["unused"]["unused_dependencies"] or
-            results["dependencies"]["unused"]["unused_dev_dependencies"] or
-            results["dependencies"]["missing"] or
-            (results["security"].get("metadata", {}).get("vulnerabilities", {}).get("total", 0) > 0)
+            results["dependencies"]["unused"]["unused_dependencies"]
+            or results["dependencies"]["unused"]["unused_dev_dependencies"]
+            or results["dependencies"]["missing"]
+            or (
+                results["security"]
+                .get("metadata", {})
+                .get("vulnerabilities", {})
+                .get("total", 0)
+                > 0
+            )
         )
 
         sys.exit(1 if has_issues else 0)
@@ -336,6 +370,7 @@ def main():
     except Exception as e:
         print(f"💥 Dependency check failed: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

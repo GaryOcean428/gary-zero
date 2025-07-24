@@ -11,12 +11,13 @@ class GetSettings(ApiHandler):
 
             settings_data = settings.convert_out(current_settings)
             print(f"DEBUG: Generated {len(settings_data['sections'])} sections")
-            for section in settings_data['sections']:
+            for section in settings_data["sections"]:
                 print(f"DEBUG: Section: {section['id']} - {section['title']}")
 
             return {"settings": settings_data}
         except Exception as e:
             print(f"ERROR in GetSettings: {e}")
             import traceback
+
             traceback.print_exc()
             raise

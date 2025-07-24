@@ -28,7 +28,7 @@ class SystemHealthChecker:
             return {
                 "status": "fail",
                 "message": "Error boundary file not found",
-                "coverage": 0
+                "coverage": 0,
             }
 
         # Read error boundary file and check implementation
@@ -55,9 +55,11 @@ class SystemHealthChecker:
             "status": "pass" if coverage >= 80 else "partial",
             "coverage": coverage,
             "implemented_features": implemented_features,
-            "missing_features": [f for f in required_features if f not in implemented_features],
+            "missing_features": [
+                f for f in required_features if f not in implemented_features
+            ],
             "file_size": len(content),
-            "global_initialization": "globalErrorBoundary" in content
+            "global_initialization": "globalErrorBoundary" in content,
         }
 
     def check_route_health(self) -> dict[str, Any]:
@@ -89,7 +91,7 @@ class SystemHealthChecker:
             "total_routes": static_routes + api_count,
             "security_middleware": "add_security_headers" in app_content,
             "authentication": "requires_auth" in app_content,
-            "health_endpoint": "/health" in app_content
+            "health_endpoint": "/health" in app_content,
         }
 
     def check_testing_coverage(self) -> dict[str, Any]:
@@ -117,7 +119,7 @@ class SystemHealthChecker:
             "test_categories": test_categories,
             "coverage_percentage": coverage_percentage,
             "vitest_config": Path("vitest.config.js").exists(),
-            "test_setup": Path("tests/setup.js").exists()
+            "test_setup": Path("tests/setup.js").exists(),
         }
 
     def check_code_quality(self) -> dict[str, Any]:
@@ -127,10 +129,7 @@ class SystemHealthChecker:
         # Run ESLint check
         try:
             result = subprocess.run(
-                ["npm", "run", "lint:clean"],
-                capture_output=True,
-                text=True,
-                timeout=60
+                ["npm", "run", "lint:clean"], capture_output=True, text=True, timeout=60
             )
 
             lint_output = result.stdout + result.stderr
@@ -138,7 +137,7 @@ class SystemHealthChecker:
             # Parse ESLint output
             if "✖" in lint_output:
                 # Extract error/warning counts
-                lines = lint_output.split('\n')
+                lines = lint_output.split("\n")
                 for line in lines:
                     if "problems" in line:
                         if "error" in line and "warning" in line:
@@ -168,7 +167,7 @@ class SystemHealthChecker:
             "typescript_config": ts_config_exists,
             "prettier_config": Path(".prettierrc").exists(),
             "biome_config": Path("biome.json").exists(),
-            "lint_output_sample": lint_output[:500] if lint_output else ""
+            "lint_output_sample": lint_output[:500] if lint_output else "",
         }
 
     def check_security_status(self) -> dict[str, Any]:
@@ -178,15 +177,14 @@ class SystemHealthChecker:
         try:
             # Run npm audit
             result = subprocess.run(
-                ["npm", "audit", "--json"],
-                capture_output=True,
-                text=True,
-                timeout=30
+                ["npm", "audit", "--json"], capture_output=True, text=True, timeout=30
             )
 
             if result.stdout:
                 audit_data = json.loads(result.stdout)
-                vulnerabilities = audit_data.get("metadata", {}).get("vulnerabilities", {})
+                vulnerabilities = audit_data.get("metadata", {}).get(
+                    "vulnerabilities", {}
+                )
                 total_vulns = vulnerabilities.get("total", 0)
 
                 return {
@@ -196,14 +194,10 @@ class SystemHealthChecker:
                     "high": vulnerabilities.get("high", 0),
                     "moderate": vulnerabilities.get("moderate", 0),
                     "low": vulnerabilities.get("low", 0),
-                    "audit_available": True
+                    "audit_available": True,
                 }
         except Exception as e:
-            return {
-                "status": "error",
-                "message": str(e),
-                "audit_available": False
-            }
+            return {"status": "error", "message": str(e), "audit_available": False}
 
     def check_dependencies(self) -> dict[str, Any]:
         """Check dependency health"""
@@ -225,8 +219,10 @@ class SystemHealthChecker:
             "dev_dependencies": len(dev_dependencies),
             "package_name": package_data.get("name", "unknown"),
             "version": package_data.get("version", "unknown"),
-            "node_version_required": package_data.get("engines", {}).get("node", "unknown"),
-            "scripts_count": len(package_data.get("scripts", {}))
+            "node_version_required": package_data.get("engines", {}).get(
+                "node", "unknown"
+            ),
+            "scripts_count": len(package_data.get("scripts", {})),
         }
 
     async def run_comprehensive_check(self) -> dict[str, Any]:
@@ -239,7 +235,7 @@ class SystemHealthChecker:
             "testing": self.check_testing_coverage(),
             "code_quality": self.check_code_quality(),
             "security": self.check_security_status(),
-            "dependencies": self.check_dependencies()
+            "dependencies": self.check_dependencies(),
         }
 
         # Calculate overall health score
@@ -249,13 +245,21 @@ class SystemHealthChecker:
                 health_scores.append(100)
             elif check_result.get("status") == "partial":
                 # Use coverage percentage if available
-                score = check_result.get("coverage", check_result.get("coverage_percentage", 50))
+                score = check_result.get(
+                    "coverage", check_result.get("coverage_percentage", 50)
+                )
                 health_scores.append(score)
             else:
                 health_scores.append(0)
 
         overall_score = sum(health_scores) / len(health_scores) if health_scores else 0
-        overall_status = "healthy" if overall_score >= 80 else "unhealthy" if overall_score < 50 else "warning"
+        overall_status = (
+            "healthy"
+            if overall_score >= 80
+            else "unhealthy"
+            if overall_score < 50
+            else "warning"
+        )
 
         return {
             "timestamp": time.time(),
@@ -263,11 +267,13 @@ class SystemHealthChecker:
             "overall": {
                 "status": overall_status,
                 "score": overall_score,
-                "checks_passed": sum(1 for c in checks.values() if c.get("status") == "pass"),
-                "total_checks": len(checks)
+                "checks_passed": sum(
+                    1 for c in checks.values() if c.get("status") == "pass"
+                ),
+                "total_checks": len(checks),
             },
             "checks": checks,
-            "recommendations": self.generate_recommendations(checks)
+            "recommendations": self.generate_recommendations(checks),
         }
 
     def generate_recommendations(self, checks: dict[str, Any]) -> list[str]:
@@ -278,17 +284,23 @@ class SystemHealthChecker:
         error_boundary = checks.get("error_boundaries", {})
         if error_boundary.get("coverage", 0) < 100:
             missing = error_boundary.get("missing_features", [])
-            recommendations.append(f"🛡️ Improve error boundary coverage: implement {', '.join(missing[:3])}")
+            recommendations.append(
+                f"🛡️ Improve error boundary coverage: implement {', '.join(missing[:3])}"
+            )
 
         # Code quality recommendations
         code_quality = checks.get("code_quality", {})
         if code_quality.get("eslint_errors", 0) > 0:
-            recommendations.append(f"🔧 Fix {code_quality['eslint_errors']} ESLint errors")
+            recommendations.append(
+                f"🔧 Fix {code_quality['eslint_errors']} ESLint errors"
+            )
 
         # Security recommendations
         security = checks.get("security", {})
         if security.get("total_vulnerabilities", 0) > 0:
-            recommendations.append(f"🔒 Fix {security['total_vulnerabilities']} security vulnerabilities")
+            recommendations.append(
+                f"🔒 Fix {security['total_vulnerabilities']} security vulnerabilities"
+            )
 
         # Testing recommendations
         testing = checks.get("testing", {})
@@ -304,12 +316,18 @@ class SystemHealthChecker:
         """Print formatted health check results"""
         overall = results["overall"]
 
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("🏥 SYSTEM HEALTH CHECK RESULTS")
-        print("="*60)
+        print("=" * 60)
 
         # Overall status
-        status_emoji = "🟢" if overall["status"] == "healthy" else "🟡" if overall["status"] == "warning" else "🔴"
+        status_emoji = (
+            "🟢"
+            if overall["status"] == "healthy"
+            else "🟡"
+            if overall["status"] == "warning"
+            else "🔴"
+        )
         print(f"{status_emoji} Overall Status: {overall['status'].upper()}")
         print(f"📊 Health Score: {overall['score']:.1f}/100")
         print(f"✅ Checks Passed: {overall['checks_passed']}/{overall['total_checks']}")
@@ -343,6 +361,7 @@ class SystemHealthChecker:
         for rec in results["recommendations"]:
             print(f"   {rec}")
 
+
 async def main():
     checker = SystemHealthChecker()
 
@@ -363,6 +382,7 @@ async def main():
     except Exception as e:
         print(f"💥 Health check failed: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

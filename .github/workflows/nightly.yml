@@ -1,0 +1,455 @@
+# Nightly Maintenance Workflow
+# Runs dependency freshness checks and full security audit
+# Posts comments if critical security issues are found
+
+name: Nightly Maintenance
+
+on:
+  schedule:
+    # Run at 2 AM UTC every day
+    - cron: '0 2 * * *'
+  workflow_dispatch:  # Allow manual triggering
+    inputs:
+      force-comment:
+        description: 'Force posting comment even if no critical issues'
+        type: boolean
+        default: false
+      skip-dependency-check:
+        description: 'Skip dependency freshness checks'
+        type: boolean
+        default: false
+
+env:
+  PYTHON_VERSION: "3.13"
+  NODE_VERSION: "22"
+
+jobs:
+  dependency-freshness:
+    name: Check Dependency Freshness
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.skip-dependency-check }}
+    outputs:
+      python-outdated: ${{ steps.python-check.outputs.outdated-count }}
+      npm-outdated: ${{ steps.npm-check.outputs.outdated-count }}
+      needs-update: ${{ steps.summary.outputs.needs-update }}
+      report-summary: ${{ steps.summary.outputs.summary }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Set up Node.js ${{ env.NODE_VERSION }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then
+          pip install -r requirements.txt
+        fi
+
+    - name: Install Node.js dependencies
+      run: |
+        if [ -f package.json ]; then
+          npm ci
+        fi
+
+    - name: Check Python dependency freshness
+      id: python-check
+      run: |
+        echo "🐍 Checking Python dependency freshness..."
+        
+        # Get outdated packages
+        pip list --outdated --format=json > python-outdated.json || echo "[]" > python-outdated.json
+        
+        # Count outdated packages
+        OUTDATED_COUNT=$(python3 -c "
+        import json
+        try:
+            with open('python-outdated.json', 'r') as f:
+                data = json.load(f)
+            print(len(data))
+        except:
+            print('0')
+        ")
+        
+        echo "outdated-count=$OUTDATED_COUNT" >> $GITHUB_OUTPUT
+        echo "Found $OUTDATED_COUNT outdated Python packages"
+        
+        # Display outdated packages in human-readable format
+        if [ "$OUTDATED_COUNT" -gt 0 ]; then
+          echo "📦 Outdated Python packages:"
+          pip list --outdated
+          
+          # Generate detailed report
+          pip list --outdated --format=json | python3 -c "
+        import json, sys
+        data = json.loads(sys.stdin.read())
+        print('\n## Python Dependency Updates Available\n')
+        if data:
+            print('| Package | Current | Latest | Type |')
+            print('|---------|---------|--------|------|')
+            for pkg in data:
+                print(f\"| {pkg['name']} | {pkg['version']} | {pkg['latest_version']} | {pkg.get('latest_filetype', 'wheel')} |\")
+        else:
+            print('All Python packages are up to date! ✅')
+        " > python-update-report.md
+        else
+          echo "✅ All Python packages are up to date!"
+          echo "All Python packages are up to date! ✅" > python-update-report.md
+        fi
+
+    - name: Check Node.js dependency freshness
+      id: npm-check
+      run: |
+        echo "📦 Checking Node.js dependency freshness..."
+        
+        # Get outdated packages (npm outdated returns non-zero if packages are outdated)
+        npm outdated --json > npm-outdated.json || echo "{}" > npm-outdated.json
+        
+        # Count outdated packages
+        OUTDATED_COUNT=$(node -e "
+        try {
+          const data = require('./npm-outdated.json');
+          console.log(Object.keys(data).length);
+        } catch (e) {
+          console.log('0');
+        }
+        ")
+        
+        echo "outdated-count=$OUTDATED_COUNT" >> $GITHUB_OUTPUT
+        echo "Found $OUTDATED_COUNT outdated Node.js packages"
+        
+        # Display outdated packages
+        if [ "$OUTDATED_COUNT" -gt 0 ]; then
+          echo "📦 Outdated Node.js packages:"
+          npm outdated || true
+          
+          # Generate detailed report
+          node -e "
+        try {
+          const data = require('./npm-outdated.json');
+          console.log('\n## Node.js Dependency Updates Available\n');
+          if (Object.keys(data).length > 0) {
+            console.log('| Package | Current | Wanted | Latest | Location |');
+            console.log('|---------|---------|--------|--------|----------|');
+            for (const [name, info] of Object.entries(data)) {
+              console.log(\`| \${name} | \${info.current || 'N/A'} | \${info.wanted || 'N/A'} | \${info.latest || 'N/A'} | \${info.location || 'N/A'} |\`);
+            }
+          } else {
+            console.log('All Node.js packages are up to date! ✅');
+          }
+        } catch (e) {
+          console.log('All Node.js packages are up to date! ✅');
+        }
+        " > npm-update-report.md
+        else
+          echo "✅ All Node.js packages are up to date!"
+          echo "All Node.js packages are up to date! ✅" > npm-update-report.md
+        fi
+
+    - name: Generate dependency summary
+      id: summary
+      run: |
+        PYTHON_OUTDATED=${{ steps.python-check.outputs.outdated-count }}
+        NPM_OUTDATED=${{ steps.npm-check.outputs.outdated-count }}
+        TOTAL_OUTDATED=$((PYTHON_OUTDATED + NPM_OUTDATED))
+        
+        echo "needs-update=$([[ $TOTAL_OUTDATED -gt 0 ]] && echo true || echo false)" >> $GITHUB_OUTPUT
+        
+        # Create combined summary
+        {
+          echo "# 🔄 Nightly Dependency Freshness Report"
+          echo ""
+          echo "**Report generated:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo ""
+          echo "## Summary"
+          echo "- 🐍 Python packages outdated: **$PYTHON_OUTDATED**"
+          echo "- 📦 Node.js packages outdated: **$NPM_OUTDATED**"
+          echo "- 📊 Total packages needing updates: **$TOTAL_OUTDATED**"
+          echo ""
+          
+          if [ $TOTAL_OUTDATED -gt 0 ]; then
+            echo "## 🚨 Action Required"
+            echo "Dependencies are outdated and should be reviewed for updates."
+            echo ""
+          else
+            echo "## ✅ All Dependencies Current"
+            echo "All dependencies are up to date!"
+            echo ""
+          fi
+          
+          cat python-update-report.md
+          echo ""
+          cat npm-update-report.md
+          echo ""
+          echo "---"
+          echo "*Automated report from nightly maintenance workflow*"
+        } > dependency-summary.md
+        
+        # Set summary for output (first 1000 chars to avoid GitHub limits)
+        SUMMARY=$(head -c 1000 dependency-summary.md)
+        echo "summary<<EOF" >> $GITHUB_OUTPUT
+        echo "$SUMMARY" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Upload dependency reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: dependency-freshness-reports
+        path: |
+          python-outdated.json
+          npm-outdated.json
+          python-update-report.md
+          npm-update-report.md
+          dependency-summary.md
+        retention-days: 30
+
+  security-audit:
+    name: Full Security Audit
+    uses: ./.github/workflows/_security-audit.yml
+    with:
+      python-version: "3.13"
+      node-version: "22"
+      fail-on-security-issues: false  # Don't fail the workflow, just report
+      ossf-scorecard: true
+    secrets: inherit
+
+  create-issue-comment:
+    name: Create Maintenance Report
+    runs-on: ubuntu-latest
+    needs: [dependency-freshness, security-audit]
+    if: always() && (needs.security-audit.outputs.critical-issues > 0 || needs.dependency-freshness.outputs.needs-update == 'true' || inputs.force-comment)
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Find or create maintenance issue
+      id: maintenance-issue
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const title = '🔧 Nightly Maintenance Report';
+          const label = 'maintenance';
+          
+          // Look for existing maintenance issue
+          const issues = await github.rest.issues.listForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            labels: label,
+            state: 'open'
+          });
+          
+          let issue = issues.data.find(issue => issue.title === title);
+          
+          if (!issue) {
+            // Create new maintenance issue
+            const response = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              labels: [label, 'automated'],
+              body: `# 🔧 Nightly Maintenance Reports
+
+          This issue tracks nightly maintenance reports including dependency updates and security audit results.
+
+          **This issue is automatically managed by the nightly maintenance workflow.**
+
+          ---
+
+          *Reports will be posted as comments below.*`
+            });
+            issue = response.data;
+            console.log('Created new maintenance issue:', issue.number);
+          } else {
+            console.log('Found existing maintenance issue:', issue.number);
+          }
+          
+          return issue.number;
+
+    - name: Download dependency reports
+      if: needs.dependency-freshness.result != 'skipped'
+      uses: actions/download-artifact@v4
+      with:
+        name: dependency-freshness-reports
+        path: ./reports
+
+    - name: Post maintenance comment
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const issueNumber = ${{ steps.maintenance-issue.outputs.result }};
+          
+          // Build comment content
+          let comment = `## 🌙 Nightly Maintenance Report - ${new Date().toISOString().split('T')[0]}
+
+          **Workflow Run:** [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          **Commit:** [\`${{ github.sha }}\`](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})
+
+          ---
+
+          `;
+
+          // Add dependency freshness results
+          const dependencyStatus = '${{ needs.dependency-freshness.result }}';
+          if (dependencyStatus !== 'skipped') {
+            const pythonOutdated = '${{ needs.dependency-freshness.outputs.python-outdated }}' || '0';
+            const npmOutdated = '${{ needs.dependency-freshness.outputs.npm-outdated }}' || '0';
+            const needsUpdate = '${{ needs.dependency-freshness.outputs.needs-update }}' === 'true';
+            
+            comment += `### 📦 Dependency Freshness Check
+
+            `;
+            
+            if (needsUpdate) {
+              comment += `🚨 **Dependencies need updates:**
+              - Python packages outdated: **${pythonOutdated}**
+              - Node.js packages outdated: **${npmOutdated}**
+
+              `;
+              
+              // Add detailed dependency report if available
+              try {
+                if (fs.existsSync('./reports/dependency-summary.md')) {
+                  const summary = fs.readFileSync('./reports/dependency-summary.md', 'utf8');
+                  comment += `<details>
+          <summary>📋 Detailed Dependency Report</summary>
+
+          ${summary}
+
+          </details>
+
+          `;
+                }
+              } catch (e) {
+                console.log('Could not read dependency summary:', e.message);
+              }
+            } else {
+              comment += `✅ **All dependencies are up to date!**
+
+              `;
+            }
+          } else {
+            comment += `### 📦 Dependency Freshness Check
+
+            ⏭️ **Skipped** (as requested)
+
+            `;
+          }
+
+          // Add security audit results
+          const securityStatus = '${{ needs.security-audit.outputs.security-status }}';
+          const criticalIssues = '${{ needs.security-audit.outputs.critical-issues }}' || '0';
+          
+          comment += `### 🔒 Security Audit Results
+
+          `;
+          
+          if (criticalIssues > 0) {
+            comment += `🚨 **Critical security issues found: ${criticalIssues}**
+
+            **Status:** ${securityStatus}
+
+            ⚠️ **Action Required:** Review the security audit results and address critical issues.
+
+            **View Details:** [Security Audit Workflow](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+            `;
+          } else if (securityStatus === 'warning') {
+            comment += `⚠️ **Security audit completed with warnings**
+
+            **Status:** ${securityStatus}
+
+            💡 **Recommendation:** Review the security audit results for potential improvements.
+
+            `;
+          } else {
+            comment += `✅ **Security audit passed successfully!**
+
+            **Status:** ${securityStatus}
+
+            `;
+          }
+
+          // Add recommendations section
+          const hasIssues = criticalIssues > 0 || '${{ needs.dependency-freshness.outputs.needs-update }}' === 'true';
+          
+          if (hasIssues) {
+            comment += `---
+
+          ### 🎯 Recommended Actions
+
+          `;
+            
+            if ('${{ needs.dependency-freshness.outputs.needs-update }}' === 'true') {
+              comment += `- [ ] **Update Dependencies:** Review and update outdated packages
+              - [ ] **Test Updates:** Ensure updated dependencies don't break functionality
+              `;
+            }
+            
+            if (criticalIssues > 0) {
+              comment += `- [ ] **Security Review:** Address ${criticalIssues} critical security issues
+              - [ ] **Vulnerability Assessment:** Review and remediate security vulnerabilities
+              `;
+            }
+            
+            comment += `- [ ] **Validation:** Run full test suite after any updates
+            - [ ] **Documentation:** Update any relevant documentation
+
+            `;
+          }
+
+          comment += `---
+          
+          *🤖 This comment was automatically generated by the nightly maintenance workflow.*
+          *Next scheduled run: $(date -d 'tomorrow 02:00' -u '+%Y-%m-%d 02:00 UTC')*`;
+
+          // Post the comment
+          await github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: issueNumber,
+            body: comment
+          });
+          
+          console.log(`Posted maintenance report to issue #${issueNumber}`);
+
+  notify-status:
+    name: Workflow Status Notification
+    runs-on: ubuntu-latest
+    needs: [dependency-freshness, security-audit, create-issue-comment]
+    if: always() && (failure() || needs.security-audit.outputs.critical-issues > 0)
+    
+    steps:
+    - name: Report workflow status
+      run: |
+        echo "📊 Nightly Maintenance Workflow Summary"
+        echo "======================================"
+        echo "Dependency Check: ${{ needs.dependency-freshness.result }}"
+        echo "Security Audit: ${{ needs.security-audit.result }}"
+        echo "Issue Comment: ${{ needs.create-issue-comment.result }}"
+        echo ""
+        
+        CRITICAL_ISSUES="${{ needs.security-audit.outputs.critical-issues }}"
+        if [ "$CRITICAL_ISSUES" -gt 0 ]; then
+          echo "🚨 ATTENTION: $CRITICAL_ISSUES critical security issues found!"
+          echo "Review the maintenance issue for details and take action promptly."
+        fi
+        
+        if [[ "${{ needs.dependency-freshness.result }}" == "failure" ]] || [[ "${{ needs.security-audit.result }}" == "failure" ]]; then
+          echo "❌ Some maintenance checks failed. Review the workflow logs."
+          exit 1
+        fi
+        
+        echo "✅ Nightly maintenance completed successfully."

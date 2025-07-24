@@ -45,7 +45,9 @@ class PluginLoader:
             print(f"Failed to load plugin {name}: {e}")
             return None
 
-    def _load_plugin_module(self, name: str, plugin_path: str, metadata: PluginMetadata) -> type[Any] | None:
+    def _load_plugin_module(
+        self, name: str, plugin_path: str, metadata: PluginMetadata
+    ) -> type[Any] | None:
         """Load a plugin module and extract the tool class."""
         entry_file = os.path.join(plugin_path, metadata.entry_point)
 
@@ -84,10 +86,12 @@ class PluginLoader:
         for attr_name in dir(module):
             attr = getattr(module, attr_name)
 
-            if (isinstance(attr, type) and
-                hasattr(attr, 'execute') and
-                callable(attr.execute) and
-                attr_name not in ['Tool', 'PluginTool', 'BaseClass']):
+            if (
+                isinstance(attr, type)
+                and hasattr(attr, "execute")
+                and callable(attr.execute)
+                and attr_name not in ["Tool", "PluginTool", "BaseClass"]
+            ):
                 candidates.append((attr_name, attr))
 
         print(f"Plugin {plugin_name} candidates: {[name for name, _ in candidates]}")
@@ -99,6 +103,7 @@ class PluginLoader:
         # Prefer classes that inherit from Tool if available
         try:
             from framework.helpers.tool import Tool
+
             for name, candidate in candidates:
                 if issubclass(candidate, Tool):
                     print(f"Selected Tool subclass: {name}")

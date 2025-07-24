@@ -54,12 +54,17 @@ class SettingsManager:
             The current settings, loaded from file or default if not set.
         """
         if self._settings is None:
-            from .settings import get_default_settings, normalize_settings  # type: ignore
+            from .settings import (  # type: ignore
+                get_default_settings,
+                normalize_settings,
+            )
 
             default_settings = get_default_settings()
             loaded_settings = self._read_settings_file()
             self._settings = (
-                normalize_settings(loaded_settings) if loaded_settings else default_settings
+                normalize_settings(loaded_settings)
+                if loaded_settings
+                else default_settings
             )
         return self._settings  # type: ignore[return-value]
 

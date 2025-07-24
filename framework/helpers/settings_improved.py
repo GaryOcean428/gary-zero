@@ -43,7 +43,9 @@ class BackgroundTaskManager:
         self._tasks: dict[str, BackgroundTask] = {}
         self._lock = asyncio.Lock()
 
-    async def schedule_task(self, coro, task_name: str, on_error=None) -> BackgroundTask:
+    async def schedule_task(
+        self, coro, task_name: str, on_error=None
+    ) -> BackgroundTask:
         """Schedule a background task with proper error handling.
 
         Args:
@@ -83,9 +85,9 @@ class BackgroundTaskManager:
                     bg_task.error = e
 
                     # Log error
-                    PrintStyle(background_color="red", font_color="white", padding=True).print(
-                        f"Background task '{task_name}' failed: {e}"
-                    )
+                    PrintStyle(
+                        background_color="red", font_color="white", padding=True
+                    ).print(f"Background task '{task_name}' failed: {e}")
 
                     # Call custom error handler if provided
                     if on_error:
@@ -94,7 +96,9 @@ class BackgroundTaskManager:
                         except Exception as handler_error:  # pylint: disable=broad-except
                             PrintStyle(
                                 background_color="red", font_color="white", padding=True
-                            ).print(f"Error handler for '{task_name}' failed: {handler_error}")
+                            ).print(
+                                f"Error handler for '{task_name}' failed: {handler_error}"
+                            )
 
             task.add_done_callback(handle_completion)
             bg_task.status = TaskStatus.RUNNING
@@ -173,7 +177,9 @@ class EnvParser:
     """Improved environment variable parser with better pattern matching."""
 
     # Compiled regex patterns for better performance
-    LINE_PATTERN = re.compile(r"^\s*(?P<key>[^#\s=][^=]*?)\s*=\s*(?P<value>.*?)\s*$", re.MULTILINE)
+    LINE_PATTERN = re.compile(
+        r"^\s*(?P<key>[^#\s=][^=]*?)\s*=\s*(?P<value>.*?)\s*$", re.MULTILINE
+    )
 
     # Pattern to detect quoted values
     QUOTED_VALUE_PATTERN = re.compile(r'^(["\'])(.*)(\1)$', re.DOTALL)
@@ -241,7 +247,12 @@ class EnvParser:
     @staticmethod
     def _needs_quotes(value: str) -> bool:
         """Check if a value needs to be quoted."""
-        return "\n" in value or " " in value or value == "" or any(c in value for c in "\"'=")
+        return (
+            "\n" in value
+            or " " in value
+            or value == ""
+            or any(c in value for c in "\"'=")
+        )
 
 
 # Example usage of the improved code:

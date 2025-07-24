@@ -7,6 +7,7 @@ from typing import Any, TypedDict, Union
 from flask import Flask, Request, Response
 
 from agent import AgentContext
+from framework.helpers.custom_json_encoder import CustomJSONEncoder
 from framework.helpers.errors import format_error
 from framework.helpers.print_style import PrintStyle
 from initialize import initialize_agent
@@ -83,8 +84,10 @@ class ApiHandler:
             if isinstance(output, Response):
                 return output
             else:
-                response_json = json.dumps(output)
-                return Response(response=response_json, status=200, mimetype="application/json")
+                response_json = json.dumps(output, cls=CustomJSONEncoder)
+                return Response(
+                    response=response_json, status=200, mimetype="application/json"
+                )
 
             # return exceptions with structured error response
         except Exception as e:
@@ -97,7 +100,8 @@ class ApiHandler:
                         "message": "An unexpected error occurred while processing the request",
                         "details": str(e) if hasattr(e, "__str__") else "Unknown error",
                         "timestamp": time.time(),
-                    }
+                    },
+                    cls=CustomJSONEncoder,
                 ),
                 status=500,
                 mimetype="application/json",

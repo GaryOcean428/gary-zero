@@ -25,6 +25,7 @@ class TestBasicFramework:
         class TestTool(Tool):
             async def execute(self, **kwargs):
                 from framework.helpers.tool import Response
+
                 return Response(message="test executed", break_loop=False)
 
         mock_agent = MagicMock()
@@ -36,7 +37,7 @@ class TestBasicFramework:
             name="test_tool",
             method="test_method",
             args={},
-            message="test message"
+            message="test message",
         )
 
         assert tool.name == "test_tool"
@@ -64,7 +65,7 @@ class TestBasicFramework:
             name="test_tool",
             method="test_method",
             args={},
-            message="test message"
+            message="test message",
         )
 
         result = await tool.execute()

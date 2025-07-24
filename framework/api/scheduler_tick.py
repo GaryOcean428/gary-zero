@@ -31,7 +31,9 @@ class SchedulerTick(ApiHandler):
         printer.print(f"Scheduler has {tasks_count} task(s)")
         if tasks_count > 0:
             for task in tasks:
-                printer.print(f"Task: {task.name} (UUID: {task.uuid}, State: {task.state})")
+                printer.print(
+                    f"Task: {task.name} (UUID: {task.uuid}, State: {task.state})"
+                )
 
         # Run the scheduler tick
         await scheduler.tick()

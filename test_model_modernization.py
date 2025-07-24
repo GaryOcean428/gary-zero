@@ -35,6 +35,7 @@ def test_model_catalog_loading():
     assert "OPENAI" in MODEL_CATALOG, "OPENAI should be in catalog"
     print("✓ Model catalog loaded successfully")
 
+
 def test_modern_vs_deprecated_categorization():
     """Test that models are properly categorized as modern (no deprecated models remain)."""
     print("\nTesting modern vs deprecated categorization...")
@@ -44,24 +45,35 @@ def test_modern_vs_deprecated_categorization():
     openai_deprecated = get_deprecated_models_for_provider("OPENAI")
 
     assert len(openai_modern) > 0, "OpenAI should have modern models"
-    assert len(openai_deprecated) == 0, "OpenAI should have no deprecated models (all removed)"
+    assert len(openai_deprecated) == 0, (
+        "OpenAI should have no deprecated models (all removed)"
+    )
 
     # Check specific models
     assert is_model_modern("OPENAI", "o3"), "o3 should be modern"
-    assert not is_model_deprecated("OPENAI", "gpt-3.5-turbo"), "gpt-3.5-turbo should no longer exist"
+    assert not is_model_deprecated("OPENAI", "gpt-3.5-turbo"), (
+        "gpt-3.5-turbo should no longer exist"
+    )
 
     # Test Anthropic models
     anthropic_modern = get_modern_models_for_provider("ANTHROPIC")
     anthropic_deprecated = get_deprecated_models_for_provider("ANTHROPIC")
 
     assert len(anthropic_modern) > 0, "Anthropic should have modern models"
-    assert len(anthropic_deprecated) == 0, "Anthropic should have no deprecated models (all removed)"
+    assert len(anthropic_deprecated) == 0, (
+        "Anthropic should have no deprecated models (all removed)"
+    )
 
     # Check specific models
-    assert is_model_modern("ANTHROPIC", "claude-sonnet-4-20250514"), "Claude 4 should be modern"
-    assert not is_model_deprecated("ANTHROPIC", "claude-2.0"), "Claude 2.0 should no longer exist"
+    assert is_model_modern("ANTHROPIC", "claude-sonnet-4-20250514"), (
+        "Claude 4 should be modern"
+    )
+    assert not is_model_deprecated("ANTHROPIC", "claude-2.0"), (
+        "Claude 2.0 should no longer exist"
+    )
 
     print("✓ Models properly categorized as modern only (deprecated models removed)")
+
 
 def test_recommended_models():
     """Test that recommended models are modern when available."""
@@ -78,7 +90,10 @@ def test_recommended_models():
         elif is_model_deprecated(provider, model_name):
             print(f"⚠ {provider} recommended model '{model_name}' is deprecated")
         else:
-            print(f"? {provider} recommended model '{model_name}' has no modern/deprecated flag")
+            print(
+                f"? {provider} recommended model '{model_name}' has no modern/deprecated flag"
+            )
+
 
 def test_release_dates():
     """Test that release dates are properly set for modern models."""
@@ -94,8 +109,11 @@ def test_release_dates():
 
     for provider, model, expected_date in test_cases:
         actual_date = get_model_release_date(provider, model)
-        assert actual_date == expected_date, f"{provider}/{model} should have release date {expected_date}, got {actual_date}"
+        assert actual_date == expected_date, (
+            f"{provider}/{model} should have release date {expected_date}, got {actual_date}"
+        )
         print(f"✓ {provider}/{model} release date: {actual_date}")
+
 
 def test_modern_models_prioritized():
     """Test that modern models appear first in provider lists."""
@@ -111,9 +129,14 @@ def test_modern_models_prioritized():
             if first_model.get("modern", False):
                 print(f"✓ {provider} first model '{first_model_name}' is modern")
             elif not first_model.get("deprecated", False):
-                print(f"? {provider} first model '{first_model_name}' is not flagged as modern or deprecated")
+                print(
+                    f"? {provider} first model '{first_model_name}' is not flagged as modern or deprecated"
+                )
             else:
-                print(f"⚠ {provider} first model '{first_model_name}' is deprecated (should be reordered)")
+                print(
+                    f"⚠ {provider} first model '{first_model_name}' is deprecated (should be reordered)"
+                )
+
 
 def test_statistics():
     """Print statistics about modern vs deprecated models."""
@@ -133,7 +156,10 @@ def test_statistics():
         deprecated_count = len(get_deprecated_models_for_provider(provider))
         total_count = len(MODEL_CATALOG[provider])
         uncategorized = total_count - modern_count - deprecated_count
-        print(f"  {provider}: {modern_count} modern, {deprecated_count} deprecated, {uncategorized} uncategorized")
+        print(
+            f"  {provider}: {modern_count} modern, {deprecated_count} deprecated, {uncategorized} uncategorized"
+        )
+
 
 def main():
     """Run all tests."""
@@ -153,8 +179,10 @@ def main():
     except Exception as e:
         print(f"\n❌ Test failed: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

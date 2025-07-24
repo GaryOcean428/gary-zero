@@ -4,7 +4,7 @@ Demo script for OpenAI Agents SDK integration in Gary-Zero.
 
 This script demonstrates the key features of the SDK integration:
 - Guardrails system
-- Tracing and monitoring  
+- Tracing and monitoring
 - Agent orchestration
 - Safety evaluation
 """
@@ -19,6 +19,7 @@ def demo_sdk_integration():
     print("\n1. Testing SDK Availability")
     try:
         from framework.helpers.sdk_integration import get_sdk_version, is_sdk_available
+
         available = is_sdk_available()
         version = get_sdk_version()
         print(f"   ✓ SDK Available: {available}")
@@ -31,10 +32,10 @@ def demo_sdk_integration():
     print("\n2. Initializing SDK Integration")
     try:
         from framework.helpers.sdk_integration import initialize_sdk_integration
-        results = initialize_sdk_integration({
-            "enable_tracing": True,
-            "strict_mode": False
-        })
+
+        results = initialize_sdk_integration(
+            {"enable_tracing": True, "strict_mode": False}
+        )
 
         success_count = sum(1 for v in results.values() if isinstance(v, bool) and v)
         print(f"   ✓ Initialized {success_count}/4 components")
@@ -78,10 +79,11 @@ def demo_sdk_integration():
 
         # Add an event
         from framework.helpers.agent_tracing import TraceEventType
+
         tracer.add_trace_event(
             trace_id,
             TraceEventType.TOOL_CALL,
-            {"tool": "demo_tool", "status": "success"}
+            {"tool": "demo_tool", "status": "success"},
         )
         print("   ✓ Added trace event")
 
@@ -105,8 +107,8 @@ def demo_sdk_integration():
         status = get_sdk_status()
         print(f"   ✓ Overall Status: {status['overall_status']}")
 
-        for component, details in status['components'].items():
-            comp_status = details['status']
+        for component, details in status["components"].items():
+            comp_status = details["status"]
             print(f"   ✓ {component}: {comp_status}")
 
     except Exception as e:
@@ -127,7 +129,7 @@ def demo_sdk_integration():
             if isinstance(items, dict):
                 for item, result in items.items():
                     total_count += 1
-                    if isinstance(result, str) and 'success' in result:
+                    if isinstance(result, str) and "success" in result:
                         success_count += 1
 
         print(f"   ✓ Test Results: {success_count}/{total_count} tests passed")

@@ -8,14 +8,15 @@ import time
 from functools import wraps
 
 from flask import Flask, Response, request
-from flask_basicauth import BasicAuth
+from werkzeug.security import check_password_hash, generate_password_hash
 
 import initialize
-from framework.helpers import dotenv, files, git, mcp_server, process, runtime
+from framework.helpers import dotenv, files, mcp_server, process, runtime
 from framework.helpers.api import ApiHandler
 from framework.helpers.extract_tools import load_classes_from_folder
 from framework.helpers.files import get_abs_path
 from framework.helpers.print_style import PrintStyle
+from framework.security.db_auth import DatabaseAuth
 
 # Set the new timezone to 'UTC'
 os.environ["TZ"] = "UTC"
@@ -32,15 +33,34 @@ webapp._startup_time = _startup_time  # Store startup time on app instance
 
 lock = threading.Lock()
 
-# Set up basic authentication for UI and API but not MCP
-basic_auth = BasicAuth(webapp)
+# Initialize database authentication system with secure fallback
+try:
+    db_auth = DatabaseAuth()
+    PrintStyle().success("Database authentication initialized successfully")
+except Exception as e:
+    PrintStyle().error(f"Failed to initialize database authentication: {e}")
+    # CRITICAL: Abort startup if using insecure default credentials
+    auth_login = dotenv.get_dotenv_value("AUTH_LOGIN", "admin")
+    auth_password = dotenv.get_dotenv_value("AUTH_PASSWORD", "admin")
+
+    if auth_login == "admin" and auth_password == "admin":
+        raise RuntimeError(
+            "SECURITY CRITICAL: Default insecure credentials detected (admin/admin) and database authentication failed. "
+            "Cannot start server with insecure credentials. Please set secure AUTH_LOGIN and AUTH_PASSWORD environment variables "
+            "or fix database connection issues."
+        )
+    db_auth = None  # Will use fallback authentication
+
 
 # Add request logging middleware for debugging
 @webapp.before_request
 def log_request_info():
     """Log request details for debugging."""
     # Only log for settings-related endpoints to avoid spam
-    if '/settings' in request.path or request.path in ['/settings_get', '/settings_set']:
+    if "/settings" in request.path or request.path in [
+        "/settings_get",
+        "/settings_set",
+    ]:
         PrintStyle().debug(f"Settings request: {request.method} {request.path}")
         PrintStyle().debug(f"Headers: {dict(request.headers)}")
         if request.is_json and request.data:
@@ -49,14 +69,22 @@ def log_request_info():
             except Exception as e:
                 PrintStyle().debug(f"Invalid JSON data: {e}")
 
+
 @webapp.after_request
 def log_response_info(response):
     """Log response details for debugging."""
     # Only log for settings-related endpoints to avoid spam
-    if '/settings' in request.path or request.path in ['/settings_get', '/settings_set']:
-        PrintStyle().debug(f"Settings response: {response.status_code} {response.status}")
+    if "/settings" in request.path or request.path in [
+        "/settings_get",
+        "/settings_set",
+    ]:
+        PrintStyle().debug(
+            f"Settings response: {response.status_code} {response.status}"
+        )
         if response.status_code >= 400:
-            PrintStyle().error(f"Settings error response: {response.get_data(as_text=True)[:200]}")
+            PrintStyle().error(
+                f"Settings error response: {response.get_data(as_text=True)[:200]}"
+            )
     return response
 
 
@@ -68,7 +96,9 @@ def add_security_headers(response):
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     # Only add HSTS if using HTTPS
     if request.is_secure:
-        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["Strict-Transport-Security"] = (
+            "max-age=31536000; includeSubDomains"
+        )
     # CSP configured for Alpine.js and external resources with blob: support for dynamic imports
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
@@ -92,22 +122,35 @@ webapp.after_request(add_security_headers)
 def handle_404(e):
     """Handle 404 errors with enhanced diagnostics."""
     from flask import jsonify
-    
+
     # Log the 404 for debugging
     PrintStyle().error(f"404 Error: {request.method} {request.path} not found")
-    
+
     # Check if it's an API request (JSON or starts with /api)
-    is_api_request = request.is_json or request.path.startswith('/api') or 'application/json' in request.headers.get('Accept', '')
-    
+    is_api_request = (
+        request.is_json
+        or request.path.startswith("/api")
+        or "application/json" in request.headers.get("Accept", "")
+    )
+
     if is_api_request:
-        return jsonify({
-            "error": "Not Found",
-            "method": request.method,
-            "path": request.path,
-            "message": "The requested endpoint does not exist",
-            "timestamp": time.time(),
-            "available_endpoints": ["/", "/health", "/ready", "/privacy", "/terms", "/favicon.ico"]
-        }), 404
+        return jsonify(
+            {
+                "error": "Not Found",
+                "method": request.method,
+                "path": request.path,
+                "message": "The requested endpoint does not exist",
+                "timestamp": time.time(),
+                "available_endpoints": [
+                    "/",
+                    "/health",
+                    "/ready",
+                    "/privacy",
+                    "/terms",
+                    "/favicon.ico",
+                ],
+            }
+        ), 404
     else:
         try:
             return files.read_file("./webui/404.html"), 404
@@ -119,33 +162,39 @@ def handle_404(e):
 def handle_405(e):
     """Handle 405 Method Not Allowed errors with detailed diagnostics."""
     from flask import jsonify
-    
+
     # Log the 405 for debugging with enhanced information
     PrintStyle().error(f"405 Error: {request.method} {request.path} method not allowed")
     PrintStyle().error(f"Request headers: {dict(request.headers)}")
     PrintStyle().error(f"Request args: {dict(request.args)}")
-    if request.method == 'POST':
+    if request.method == "POST":
         PrintStyle().error(f"Form data: {dict(request.form)}")
         if request.is_json:
             try:
                 PrintStyle().error(f"JSON data: {request.get_json()}")
             except Exception as json_err:
                 PrintStyle().error(f"JSON parse error: {json_err}")
-    
+
     # Get allowed methods for this endpoint
     allowed_methods = []
     if request.url_rule:
-        allowed_methods = list(request.url_rule.methods - {'HEAD', 'OPTIONS'})
+        allowed_methods = list(request.url_rule.methods - {"HEAD", "OPTIONS"})
     else:
         # Try to find matching routes
         for rule in webapp.url_map.iter_rules():
-            if rule.rule == request.path or (hasattr(rule, 'match') and rule.match(request.path)):
-                allowed_methods.extend(list(rule.methods - {'HEAD', 'OPTIONS'}))
+            if rule.rule == request.path or (
+                hasattr(rule, "match") and rule.match(request.path)
+            ):
+                allowed_methods.extend(list(rule.methods - {"HEAD", "OPTIONS"}))
         allowed_methods = list(set(allowed_methods))
-    
+
     # Check if it's an API request
-    is_api_request = request.is_json or request.path.startswith('/api') or 'application/json' in request.headers.get('Accept', '')
-    
+    is_api_request = (
+        request.is_json
+        or request.path.startswith("/api")
+        or "application/json" in request.headers.get("Accept", "")
+    )
+
     error_response = {
         "error": "Method Not Allowed",
         "method": request.method,
@@ -155,28 +204,32 @@ def handle_405(e):
         "timestamp": time.time(),
         "suggestion": "Check the allowed methods or use a different endpoint",
         "debug_info": {
-            "user_agent": request.headers.get('User-Agent', 'unknown'),
+            "user_agent": request.headers.get("User-Agent", "unknown"),
             "remote_addr": request.remote_addr,
-            "referrer": request.headers.get('Referer', 'none'),
-            "content_type": request.headers.get('Content-Type', 'none')
-        }
+            "referrer": request.headers.get("Referer", "none"),
+            "content_type": request.headers.get("Content-Type", "none"),
+        },
     }
-    
+
     if is_api_request:
         return jsonify(error_response), 405
     else:
-        return Response(f"""
+        return Response(
+            f"""
         <h1>405 Method Not Allowed</h1>
         <p><strong>Method:</strong> {request.method}</p>
         <p><strong>Path:</strong> {request.path}</p>
-        <p><strong>Allowed Methods:</strong> {', '.join(allowed_methods)}</p>
+        <p><strong>Allowed Methods:</strong> {", ".join(allowed_methods)}</p>
         <p><strong>Timestamp:</strong> {time.time()}</p>
-        <p><strong>Suggestion:</strong> {error_response['suggestion']}</p>
+        <p><strong>Suggestion:</strong> {error_response["suggestion"]}</p>
         <details>
             <summary>Debug Information</summary>
-            <pre>{error_response['debug_info']}</pre>
+            <pre>{error_response["debug_info"]}</pre>
         </details>
-        """, 405, mimetype="text/html")
+        """,
+            405,
+            mimetype="text/html",
+        )
 
 
 @webapp.errorhandler(500)
@@ -207,15 +260,21 @@ def handle_preflight():
     if request.method == "OPTIONS":
         response = Response()
         response.headers.add("Access-Control-Allow-Origin", "*")
-        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
-        response.headers.add("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS")
+        response.headers.add(
+            "Access-Control-Allow-Headers", "Content-Type,Authorization"
+        )
+        response.headers.add(
+            "Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS"
+        )
         return response
 
 
 def is_loopback_address(address):
     """Check if the given address is a loopback address."""
     loopback_checker = {
-        socket.AF_INET: lambda x: struct.unpack("!I", socket.inet_aton(x))[0] >> (32 - 8) == 127,
+        socket.AF_INET: lambda x: struct.unpack("!I", socket.inet_aton(x))[0]
+        >> (32 - 8)
+        == 127,
         socket.AF_INET6: lambda x: x == "::1",
     }
     address_type = "hostname"
@@ -286,17 +345,45 @@ def requires_auth(f):
 
     @wraps(f)
     async def decorated(*args, **kwargs):
-        user = dotenv.get_dotenv_value("AUTH_LOGIN")
-        password = dotenv.get_dotenv_value("AUTH_PASSWORD")
-        if user and password:
-            auth = request.authorization
-            if not auth or not (auth.username == user and auth.password == password):
-                return Response(
-                    "Could not verify your access level for that URL.\n"
-                    "You have to login with proper credentials",
-                    401,
-                    {"WWW-Authenticate": 'Basic realm="Login Required"'},
+        auth = request.authorization
+        success, user_data = False, None
+
+        if auth:
+            if db_auth:
+                # Use database-backed authentication
+                success, user_data = db_auth.authenticate_user(
+                    auth.username, auth.password, ip_address=request.remote_addr
                 )
+            else:
+                # Fallback to environment-based authentication with security checks
+                user = dotenv.get_dotenv_value("AUTH_LOGIN")
+                password = dotenv.get_dotenv_value("AUTH_PASSWORD")
+
+                # Critical: Block insecure default credentials
+                if user == "admin" and password == "admin":
+                    PrintStyle().error("SECURITY VIOLATION: Attempt to use insecure default credentials admin/admin")
+                    return Response(
+                        "SECURITY ERROR: Default credentials are not allowed. Please contact administrator.",
+                        403,
+                        {"WWW-Authenticate": 'Basic realm="Secure Authentication Required"'},
+                    )
+
+                if user and password:
+                    # Use secure password comparison
+                    if auth.username == user and check_password_hash(generate_password_hash(password), auth.password):
+                        success = True
+                        PrintStyle().success(f"User '{auth.username}' authenticated via fallback method from {request.remote_addr}")
+                    else:
+                        PrintStyle().warning(f"Authentication failed for '{auth.username}' via fallback method from {request.remote_addr}")
+
+        if not auth or not success:
+            return Response(
+                "Could not verify your access level for that URL.\n"
+                "You have to login with proper credentials",
+                401,
+                {"WWW-Authenticate": 'Basic realm="Login Required"'},
+            )
+
         return await f(*args, **kwargs)
 
     return decorated
@@ -310,14 +397,16 @@ async def serve_index():
     if request.method == "OPTIONS":
         response = Response()
         response.headers.add("Access-Control-Allow-Origin", "*")
-        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add(
+            "Access-Control-Allow-Headers", "Content-Type,Authorization"
+        )
         response.headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
         return response
-    
+
     if request.method == "POST":
         # Handle form submissions or API requests to root
         PrintStyle().debug(f"POST request to root: {request.form}")
-        
+
         # Check if it's JSON data
         if request.is_json:
             data = request.get_json()
@@ -325,20 +414,21 @@ async def serve_index():
                 "status": "success",
                 "message": "JSON data received",
                 "data": data,
-                "timestamp": time.time()
+                "timestamp": time.time(),
             }
         else:
             # Handle form data
             form_data = dict(request.form)
             return {
-                "status": "success", 
+                "status": "success",
                 "message": "Form submission received",
                 "data": form_data,
-                "timestamp": time.time()
+                "timestamp": time.time(),
             }
-    
+
     # GET request - serve the main page
     from framework.helpers.template_helper import render_index_html
+
     return render_index_html()
 
 
@@ -350,11 +440,14 @@ def serve_privacy():
     if request.method == "OPTIONS":
         response = Response()
         response.headers.add("Access-Control-Allow-Origin", "*")
-        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add(
+            "Access-Control-Allow-Headers", "Content-Type,Authorization"
+        )
         response.headers.add("Access-Control-Allow-Methods", "GET,OPTIONS")
         return response
-    
+
     from framework.helpers.template_helper import render_template
+
     return render_template("./webui/privacy.html")
 
 
@@ -366,11 +459,14 @@ def serve_terms():
     if request.method == "OPTIONS":
         response = Response()
         response.headers.add("Access-Control-Allow-Origin", "*")
-        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add(
+            "Access-Control-Allow-Headers", "Content-Type,Authorization"
+        )
         response.headers.add("Access-Control-Allow-Methods", "GET,OPTIONS")
         return response
-    
+
     from framework.helpers.template_helper import render_template
+
     return render_template("./webui/terms.html")
 
 
@@ -382,20 +478,28 @@ def health_check():
     if request.method == "OPTIONS":
         response = Response()
         response.headers.add("Access-Control-Allow-Origin", "*")
-        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add(
+            "Access-Control-Allow-Headers", "Content-Type,Authorization"
+        )
         response.headers.add("Access-Control-Allow-Methods", "GET,OPTIONS")
         return response
-    
+
     import psutil
+
     try:
         # Get basic system metrics
         memory_percent = psutil.virtual_memory().percent
-        startup_time = getattr(webapp, '_startup_time', None)
+        startup_time = getattr(webapp, "_startup_time", None)
         uptime = time.time() - startup_time if startup_time else 0
 
         # Check environment configuration
-        langchain_stream_disabled = dotenv.get_dotenv_value("LANGCHAIN_ANTHROPIC_STREAM_USAGE", "true").lower() == "false"
-        enable_dev_features = dotenv.get_dotenv_value("ENABLE_DEV_FEATURES", "true").lower() == "true"
+        langchain_stream_disabled = (
+            dotenv.get_dotenv_value("LANGCHAIN_ANTHROPIC_STREAM_USAGE", "true").lower()
+            == "false"
+        )
+        enable_dev_features = (
+            dotenv.get_dotenv_value("ENABLE_DEV_FEATURES", "true").lower() == "true"
+        )
         node_env = dotenv.get_dotenv_value("NODE_ENV", "development")
 
         return {
@@ -404,13 +508,15 @@ def health_check():
             "version": "1.0.0",
             "memory_percent": memory_percent,
             "uptime_seconds": uptime,
-            "server": "gunicorn" if "gunicorn" in os.environ.get("SERVER_SOFTWARE", "") else "development",
+            "server": "gunicorn"
+            if "gunicorn" in os.environ.get("SERVER_SOFTWARE", "")
+            else "development",
             "environment": {
                 "node_env": node_env,
                 "langchain_stream_disabled": langchain_stream_disabled,
                 "dev_features_enabled": enable_dev_features,
-                "production_mode": node_env == "production" or not enable_dev_features
-            }
+                "production_mode": node_env == "production" or not enable_dev_features,
+            },
         }
     except Exception as e:
         # Fallback to basic health check if psutil fails
@@ -421,8 +527,11 @@ def health_check():
             "error": str(e),
             "environment": {
                 "node_env": dotenv.get_dotenv_value("NODE_ENV", "development"),
-                "langchain_stream_disabled": dotenv.get_dotenv_value("LANGCHAIN_ANTHROPIC_STREAM_USAGE", "true").lower() == "false"
-            }
+                "langchain_stream_disabled": dotenv.get_dotenv_value(
+                    "LANGCHAIN_ANTHROPIC_STREAM_USAGE", "true"
+                ).lower()
+                == "false",
+            },
         }
 
 
@@ -434,11 +543,82 @@ def readiness_check():
     if request.method == "OPTIONS":
         response = Response()
         response.headers.add("Access-Control-Allow-Origin", "*")
-        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add(
+            "Access-Control-Allow-Headers", "Content-Type,Authorization"
+        )
         response.headers.add("Access-Control-Allow-Methods", "GET,OPTIONS")
         return response
-    
+
     return {"status": "ready", "service": "gary-zero", "timestamp": time.time()}
+
+
+# Railway health check endpoint
+@webapp.route("/healthz", methods=["GET", "OPTIONS"])
+def health_check_railway():
+    """Railway-specific health check endpoint (GET /healthz)."""
+    # Handle OPTIONS request for CORS
+    if request.method == "OPTIONS":
+        response = Response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add(
+            "Access-Control-Allow-Headers", "Content-Type,Authorization"
+        )
+        response.headers.add("Access-Control-Allow-Methods", "GET,OPTIONS")
+        return response
+
+    import psutil
+
+    try:
+        # Get basic system metrics
+        memory_percent = psutil.virtual_memory().percent
+        startup_time = getattr(webapp, "_startup_time", None)
+        uptime = time.time() - startup_time if startup_time else 0
+
+        # Check environment configuration
+        langchain_stream_disabled = (
+            dotenv.get_dotenv_value("LANGCHAIN_ANTHROPIC_STREAM_USAGE", "true").lower()
+            == "false"
+        )
+        enable_dev_features = (
+            dotenv.get_dotenv_value("ENABLE_DEV_FEATURES", "true").lower() == "true"
+        )
+        node_env = dotenv.get_dotenv_value("NODE_ENV", "development")
+
+        return {
+            "status": "healthy",
+            "timestamp": time.time(),
+            "version": "1.0.0",
+            "memory_percent": memory_percent,
+            "uptime_seconds": uptime,
+            "server": "gunicorn"
+            if "gunicorn" in os.environ.get("SERVER_SOFTWARE", "")
+            else "development",
+            "service": "gary-zero",
+            "environment": {
+                "node_env": node_env,
+                "langchain_stream_disabled": langchain_stream_disabled,
+                "dev_features_enabled": enable_dev_features,
+                "production_mode": node_env == "production" or not enable_dev_features,
+                "railway_environment": os.environ.get("RAILWAY_ENVIRONMENT", "local"),
+            },
+        }
+    except Exception as e:
+        # Fallback to basic health check if psutil fails
+        return {
+            "status": "healthy",
+            "timestamp": time.time(),
+            "version": "1.0.0",
+            "error": str(e),
+            "service": "gary-zero",
+            "environment": {
+                "node_env": dotenv.get_dotenv_value("NODE_ENV", "development"),
+                "langchain_stream_disabled": dotenv.get_dotenv_value(
+                    "LANGCHAIN_ANTHROPIC_STREAM_USAGE", "true"
+                ).lower()
+                == "false",
+                "railway_environment": os.environ.get("RAILWAY_ENVIRONMENT", "local"),
+            },
+        }
 
 
 # API endpoints for compatibility
@@ -450,20 +630,22 @@ async def api_endpoint():
     if request.method == "OPTIONS":
         response = Response()
         response.headers.add("Access-Control-Allow-Origin", "*")
-        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add(
+            "Access-Control-Allow-Headers", "Content-Type,Authorization"
+        )
         response.headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
         return response
-    
+
     if request.method == "POST":
         PrintStyle().debug(f"API POST request: {request.form or request.get_json()}")
-        
+
         if request.is_json:
             data = request.get_json()
             message = data.get("message", "")
             return {
                 "status": "success",
                 "response": f"Received message: {message}",
-                "timestamp": time.time()
+                "timestamp": time.time(),
             }
         else:
             # Handle form data
@@ -471,7 +653,7 @@ async def api_endpoint():
                 "status": "success",
                 "response": "API form submission received",
                 "data": dict(request.form),
-                "timestamp": time.time()
+                "timestamp": time.time(),
             }
     else:
         # GET request
@@ -480,7 +662,7 @@ async def api_endpoint():
             "version": "1.0.0",
             "status": "running",
             "timestamp": time.time(),
-            "methods": ["GET", "POST"]
+            "methods": ["GET", "POST"],
         }
 
 
@@ -493,49 +675,51 @@ async def error_report():
     if request.method == "OPTIONS":
         response = Response()
         response.headers.add("Access-Control-Allow-Origin", "*")
-        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add(
+            "Access-Control-Allow-Headers", "Content-Type,Authorization"
+        )
         response.headers.add("Access-Control-Allow-Methods", "POST,OPTIONS")
         return response
-    
+
     try:
         # Get error data from request
         if request.is_json:
             error_data = request.get_json()
         else:
             error_data = dict(request.form)
-        
+
         # Log error data for debugging and monitoring
         PrintStyle().error(f"Frontend Error Report: {error_data}")
-        
+
         # Extract key information for structured logging
-        error_type = error_data.get('type', 'unknown')
-        error_message = error_data.get('message', 'No message')
-        error_url = error_data.get('url', 'unknown')
-        timestamp = error_data.get('timestamp', time.time())
-        
+        error_type = error_data.get("type", "unknown")
+        error_message = error_data.get("message", "No message")
+        error_url = error_data.get("url", "unknown")
+        timestamp = error_data.get("timestamp", time.time())
+
         # Enhanced logging with context
         PrintStyle().error(f"Error Type: {error_type}")
         PrintStyle().error(f"Error Message: {error_message}")
         PrintStyle().error(f"Error URL: {error_url}")
         PrintStyle().error(f"Timestamp: {timestamp}")
-        
+
         # Store or forward to external logging service if needed
         # This could be extended to send to services like Sentry, LogRocket, etc.
-        
+
         return {
-            "status": "success", 
+            "status": "success",
             "message": "Error report received and logged",
             "timestamp": time.time(),
-            "error_id": f"err_{int(time.time())}"
+            "error_id": f"err_{int(time.time())}",
         }
-        
+
     except Exception as e:
         PrintStyle().error(f"Failed to process error report: {str(e)}")
         return {
-            "status": "error", 
+            "status": "error",
             "message": "Failed to process error report",
             "error": str(e),
-            "timestamp": time.time()
+            "timestamp": time.time(),
         }, 500
 
 
@@ -548,23 +732,75 @@ async def debug_routes():
     if request.method == "OPTIONS":
         response = Response()
         response.headers.add("Access-Control-Allow-Origin", "*")
-        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add(
+            "Access-Control-Allow-Headers", "Content-Type,Authorization"
+        )
         response.headers.add("Access-Control-Allow-Methods", "GET,OPTIONS")
         return response
-    
+
     routes = []
     for rule in webapp.url_map.iter_rules():
-        routes.append({
-            "endpoint": rule.endpoint,
-            "methods": list(rule.methods - {'HEAD', 'OPTIONS'}),
-            "rule": rule.rule
-        })
+        routes.append(
+            {
+                "endpoint": rule.endpoint,
+                "methods": list(rule.methods - {"HEAD", "OPTIONS"}),
+                "rule": rule.rule,
+            }
+        )
+
+    return {"total_routes": len(routes), "routes": routes, "timestamp": time.time()}
+
+
+# Credential rotation endpoint for Railway production
+@webapp.route("/api/rotate_credentials", methods=["POST", "OPTIONS"])
+@requires_auth
+async def rotate_credentials():
+    """Rotate credentials immediately for security."""
+    # Handle OPTIONS request for CORS
+    if request.method == "OPTIONS":
+        response = Response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add(
+            "Access-Control-Allow-Headers", "Content-Type,Authorization"
+        )
+        response.headers.add("Access-Control-Allow-Methods", "POST,OPTIONS")
+        return response
     
-    return {
-        "total_routes": len(routes),
-        "routes": routes,
-        "timestamp": time.time()
-    }
+    try:
+        if db_auth:
+            # Use database-backed credential rotation
+            auth_user = request.authorization.username if request.authorization else "admin"
+            new_password = db_auth.rotate_credentials(auth_user)
+            
+            if new_password:
+                return {
+                    "status": "success",
+                    "message": "Credentials rotated successfully",
+                    "new_password": new_password,
+                    "timestamp": time.time(),
+                    "warning": "Please update your AUTH_PASSWORD environment variable with the new password"
+                }
+            else:
+                return {
+                    "status": "error", 
+                    "message": "Failed to rotate credentials",
+                    "timestamp": time.time()
+                }, 500
+        else:
+            return {
+                "status": "error",
+                "message": "Database authentication not available - cannot rotate credentials",
+                "timestamp": time.time()
+            }, 503
+            
+    except Exception as e:
+        PrintStyle().error(f"Credential rotation failed: {str(e)}")
+        return {
+            "status": "error",
+            "message": "Credential rotation failed",
+            "error": str(e),
+            "timestamp": time.time()
+        }, 500
 
 
 # handle favicon requests
@@ -575,10 +811,12 @@ def serve_favicon():
     if request.method == "OPTIONS":
         response = Response()
         response.headers.add("Access-Control-Allow-Origin", "*")
-        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add(
+            "Access-Control-Allow-Headers", "Content-Type,Authorization"
+        )
         response.headers.add("Access-Control-Allow-Methods", "GET,OPTIONS")
         return response
-    
+
     try:
         # Try to serve the SVG favicon as ICO (browsers will handle it)
         favicon_path = get_abs_path("./webui/public/favicon.svg")
@@ -616,7 +854,9 @@ def run():
 
     # Get configuration from environment
     port = runtime.get_web_ui_port()
-    host = runtime.get_arg("host") or dotenv.get_dotenv_value("WEB_UI_HOST") or "localhost"
+    host = (
+        runtime.get_arg("host") or dotenv.get_dotenv_value("WEB_UI_HOST") or "0.0.0.0"
+    )
     server = None
 
     def register_api_handler(app, handler: type[ApiHandler]):

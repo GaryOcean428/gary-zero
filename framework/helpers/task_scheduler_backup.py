@@ -541,7 +541,10 @@ class SchedulerTaskList(BaseModel):
         with self._lock:
             # Debug: check for AdHocTasks with null tokens before saving
             for task in self.tasks:
-                if not (isinstance(task, AdHocTask) and (task.token is None or task.token == "")):
+                if not (
+                    isinstance(task, AdHocTask)
+                    and (task.token is None or task.token == "")
+                ):
                     continue
 
                 # Handle missing or empty token
@@ -648,11 +651,15 @@ class SchedulerTaskList(BaseModel):
         with self._lock:
             return next((task for task in self.tasks if task.uuid == task_uuid), None)
 
-    def get_task_by_name(self, name: str) -> ScheduledTask | AdHocTask | PlannedTask | None:
+    def get_task_by_name(
+        self, name: str
+    ) -> ScheduledTask | AdHocTask | PlannedTask | None:
         with self._lock:
             return next((task for task in self.tasks if task.name == name), None)
 
-    def find_task_by_name(self, name: str) -> list[ScheduledTask | AdHocTask | PlannedTask]:
+    def find_task_by_name(
+        self, name: str
+    ) -> list[ScheduledTask | AdHocTask | PlannedTask]:
         with self._lock:
             return [task for task in self.tasks if name.lower() in task.name.lower()]
 
@@ -670,7 +677,6 @@ class SchedulerTaskList(BaseModel):
 
 
 class TaskScheduler:
-
     _tasks: SchedulerTaskList
     _printer: PrintStyle
     _instance = None
@@ -699,7 +705,9 @@ class TaskScheduler:
     ) -> list[ScheduledTask | AdHocTask | PlannedTask]:
         return self._tasks.get_tasks_by_context_id(context_id, only_running)
 
-    async def add_task(self, task: ScheduledTask | AdHocTask | PlannedTask) -> "TaskScheduler":
+    async def add_task(
+        self, task: ScheduledTask | AdHocTask | PlannedTask
+    ) -> "TaskScheduler":
         await self._tasks.add_task(task)
         await self._get_chat_context(task)  # invoke context creation
         return self
@@ -717,10 +725,14 @@ class TaskScheduler:
     ) -> ScheduledTask | AdHocTask | PlannedTask | None:
         return self._tasks.get_task_by_uuid(task_uuid)
 
-    def get_task_by_name(self, name: str) -> ScheduledTask | AdHocTask | PlannedTask | None:
+    def get_task_by_name(
+        self, name: str
+    ) -> ScheduledTask | AdHocTask | PlannedTask | None:
         return self._tasks.get_task_by_name(name)
 
-    def find_task_by_name(self, name: str) -> list[ScheduledTask | AdHocTask | PlannedTask]:
+    def find_task_by_name(
+        self, name: str
+    ) -> list[ScheduledTask | AdHocTask | PlannedTask]:
         return self._tasks.find_task_by_name(name)
 
     async def tick(self):
@@ -754,7 +766,9 @@ class TaskScheduler:
             await self._tasks.reload()
             task = self.get_task_by_uuid(task_uuid)
             if not task:
-                raise ValueError(f"Task with UUID '{task_uuid}' not found after state reset")
+                raise ValueError(
+                    f"Task with UUID '{task_uuid}' not found after state reset"
+                )
 
         # Run the task
         await self._run_task(task, task_context)
@@ -786,12 +800,16 @@ class TaskScheduler:
         def _update_task(task):
             task.update(**update_params)
 
-        return await self._tasks.update_task_by_uuid(task_uuid, _update_task, verify_func)
+        return await self._tasks.update_task_by_uuid(
+            task_uuid, _update_task, verify_func
+        )
 
     async def update_task(
         self, task_uuid: str, **update_params
     ) -> ScheduledTask | AdHocTask | PlannedTask | None:
-        return await self.update_task_checked(task_uuid, lambda task: True, **update_params)
+        return await self.update_task_checked(
+            task_uuid, lambda task: True, **update_params
+        )
 
     async def __new_context(
         self, task: ScheduledTask | AdHocTask | PlannedTask
@@ -842,9 +860,7 @@ class TaskScheduler:
         task: ScheduledTask | AdHocTask | PlannedTask,
         task_context: str | None = None,
     ):
-
         async def _run_task_wrapper(task_uuid: str, task_context: str | None = None):
-
             # preflight checks with a snapshot of the task
             task_snapshot: ScheduledTask | AdHocTask | PlannedTask | None = (
                 self.get_task_by_uuid(task_uuid)
@@ -913,15 +929,17 @@ class TaskScheduler:
                                     attachment_filenames.append(attachment)
                                 else:
                                     self._printer.print(
-                                        f"Skipping attachment: " f"[{attachment}]: Not a valid URL"
+                                        f"Skipping attachment: "
+                                        f"[{attachment}]: Not a valid URL"
                                     )
                             except (ValueError, AttributeError) as e:
                                 self._printer.print(
-                                    f"Skipping invalid URL attachment " f"[{attachment}]: {e}"
+                                    f"Skipping invalid URL attachment "
+                                    f"[{attachment}]: {e}"
                                 )
                             except Exception as e:
                                 self._printer.print(
-                                    f"Error processing attachment " f"[{attachment}]: {e}"
+                                    f"Error processing attachment [{attachment}]: {e}"
                                 )
                                 raise
 
@@ -932,9 +950,7 @@ class TaskScheduler:
                     for filename in attachment_filenames:
                         self._printer.print(f"- {filename}")
 
-                task_prompt = (
-                    f"# Starting scheduler task '{current_task.name}' ({current_task.uuid})"
-                )
+                task_prompt = f"# Starting scheduler task '{current_task.name}' ({current_task.uuid})"
                 if task_context:
                     task_prompt = f"## Context:\n{task_context}\n\n## Task:\n{current_task.prompt}"
                 else:
@@ -964,7 +980,9 @@ class TaskScheduler:
                 result = await agent.monologue()
 
                 # Success
-                self._printer.print(f"Scheduler Task '{current_task.name}' completed: {result}")
+                self._printer.print(
+                    f"Scheduler Task '{current_task.name}' completed: {result}"
+                )
                 await self._persist_chat(current_task, context)
                 await current_task.on_success(result)
 
@@ -992,19 +1010,27 @@ class TaskScheduler:
                 await current_task.on_error(str(e))
             except AttributeError as e:
                 # Catch other common exceptions that might occur during task execution
-                self._printer.print(f"Scheduler Task '{current_task.name}' unexpected error: {e}")
+                self._printer.print(
+                    f"Scheduler Task '{current_task.name}' unexpected error: {e}"
+                )
                 await current_task.on_error(str(e))
             except TypeError as e:
                 # Catch other common exceptions that might occur during task execution
-                self._printer.print(f"Scheduler Task '{current_task.name}' unexpected error: {e}")
+                self._printer.print(
+                    f"Scheduler Task '{current_task.name}' unexpected error: {e}"
+                )
                 await current_task.on_error(str(e))
             except ImportError as e:
                 # Catch other common exceptions that might occur during task execution
-                self._printer.print(f"Scheduler Task '{current_task.name}' unexpected error: {e}")
+                self._printer.print(
+                    f"Scheduler Task '{current_task.name}' unexpected error: {e}"
+                )
                 await current_task.on_error(str(e))
             except KeyError as e:
                 # Catch other common exceptions that might occur during task execution
-                self._printer.print(f"Scheduler Task '{current_task.name}' unexpected error: {e}")
+                self._printer.print(
+                    f"Scheduler Task '{current_task.name}' unexpected error: {e}"
+                )
                 await current_task.on_error(str(e))
             finally:
                 # Call on_finish for task-specific cleanup
@@ -1108,7 +1134,9 @@ def serialize_task_plan(plan: TaskPlan) -> dict[str, Any]:
     """Convert TaskPlan to a standardized dictionary format."""
     return {
         "todo": [serialize_datetime(dt) for dt in plan.todo],
-        "in_progress": (serialize_datetime(plan.in_progress) if plan.in_progress else None),
+        "in_progress": (
+            serialize_datetime(plan.in_progress) if plan.in_progress else None
+        ),
         "done": [serialize_datetime(dt) for dt in plan.done],
     }
 
@@ -1158,7 +1186,9 @@ def parse_task_plan(plan_data: dict[str, Any]) -> TaskPlan:
         todo_dates_cast: list[datetime] = cast(list[datetime], todo_dates)
         done_dates_cast: list[datetime] = cast(list[datetime], done_dates)
 
-        return TaskPlan.create(todo=todo_dates_cast, in_progress=in_progress, done=done_dates_cast)
+        return TaskPlan.create(
+            todo=todo_dates_cast, in_progress=in_progress, done=done_dates_cast
+        )
     except (KeyError, ValueError, TypeError) as e:
         PrintStyle(italic=True, font_color="red", padding=False).print(
             f"Error parsing task plan: {e}"

@@ -3,7 +3,6 @@ from framework.helpers.api import ApiHandler, Input, Output, Request
 
 
 class HealthCheck(ApiHandler):
-
     async def process(self, input_data: Input, request: Request) -> Output:
         gitinfo = None
         error = None

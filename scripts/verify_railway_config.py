@@ -16,25 +16,25 @@ def check_railway_toml():
     print("🔧 Checking railway.toml configuration...")
 
     try:
-        with open('railway.toml') as f:
+        with open("railway.toml") as f:
             config = toml.load(f)
 
-        build_config = config.get('build', {})
-        deploy_config = config.get('deploy', {})
+        build_config = config.get("build", {})
+        deploy_config = config.get("deploy", {})
 
         # Check build configuration
-        timeout = build_config.get('timeout')
-        retries = build_config.get('retries')
-        build_command = build_config.get('buildCommand', '')
+        timeout = build_config.get("timeout")
+        retries = build_config.get("retries")
+        build_command = build_config.get("buildCommand", "")
 
-        print(f"  ⏱️  Build Timeout: {timeout}s ({timeout/60:.1f} minutes)")
+        print(f"  ⏱️  Build Timeout: {timeout}s ({timeout / 60:.1f} minutes)")
         print(f"  🔄 Build Retries: {retries}")
         print(f"  📦 Build Command: {build_command}")
 
         # Check deploy configuration
-        restart_retries = deploy_config.get('restartPolicyMaxRetries')
-        restart_policy = deploy_config.get('restartPolicyType')
-        replicas = deploy_config.get('replicas')
+        restart_retries = deploy_config.get("restartPolicyMaxRetries")
+        restart_policy = deploy_config.get("restartPolicyType")
+        replicas = deploy_config.get("replicas")
 
         print(f"  🚀 Deploy Restart Policy: {restart_policy}")
         print(f"  🔁 Deploy Max Retries: {restart_retries}")
@@ -46,7 +46,7 @@ def check_railway_toml():
             issues.append(f"❌ Build timeout should be 1800s, got {timeout}s")
         if retries != 3:
             issues.append(f"❌ Build retries should be 3, got {retries}")
-        if 'uv sync --locked' not in build_command:
+        if "uv sync --locked" not in build_command:
             issues.append("❌ Build command should use 'uv sync --locked'")
         if restart_retries != 3:
             issues.append(f"❌ Restart retries should be 3, got {restart_retries}")
@@ -65,20 +65,21 @@ def check_railway_toml():
         print(f"  ❌ Error reading railway.toml: {e}")
         return False
 
+
 def check_dockerfile():
     """Verify Dockerfile optimizations"""
     print("\n🐳 Checking Dockerfile optimizations...")
 
     try:
-        with open('Dockerfile') as f:
+        with open("Dockerfile") as f:
             dockerfile_content = f.read()
 
         # Check for UV environment variables
         uv_vars = [
-            'UV_CACHE_DIR=/root/.cache/uv',
-            'PIP_CACHE_DIR=/root/.cache/pip',
-            'UV_COMPILE_BYTECODE=1',
-            'UV_NO_SYNC=1'
+            "UV_CACHE_DIR=/root/.cache/uv",
+            "PIP_CACHE_DIR=/root/.cache/pip",
+            "UV_COMPILE_BYTECODE=1",
+            "UV_NO_SYNC=1",
         ]
 
         missing_vars = []
@@ -93,21 +94,21 @@ def check_dockerfile():
             print("  ✅ UV environment variables configured")
 
         # Check for cache mounts
-        if '--mount=type=cache,target=/root/.cache/uv' in dockerfile_content:
+        if "--mount=type=cache,target=/root/.cache/uv" in dockerfile_content:
             print("  ✅ UV cache mount configured")
         else:
             print("  ❌ UV cache mount missing")
             return False
 
         # Check for UV usage
-        if 'uv sync' in dockerfile_content:
+        if "uv sync" in dockerfile_content:
             print("  ✅ UV sync command found")
         else:
             print("  ❌ UV sync command missing")
             return False
 
         # Check for fallback mechanism
-        if 'pip install --no-cache-dir -r requirements.txt' in dockerfile_content:
+        if "pip install --no-cache-dir -r requirements.txt" in dockerfile_content:
             print("  ✅ Fallback to pip configured")
         else:
             print("  ❌ Fallback mechanism missing")
@@ -119,30 +120,33 @@ def check_dockerfile():
         print(f"  ❌ Error reading Dockerfile: {e}")
         return False
 
+
 def check_build_monitor():
     """Verify build monitor script"""
     print("\n📊 Checking build monitor script...")
 
-    if not os.path.exists('scripts/build_monitor.py'):
+    if not os.path.exists("scripts/build_monitor.py"):
         print("  ❌ Build monitor script missing")
         return False
 
     try:
         # Test the script's check functionality
         result = subprocess.run(
-            ['python', 'scripts/build_monitor.py', '--check-only'],
-            capture_output=True, text=True, timeout=30
+            ["python", "scripts/build_monitor.py", "--check-only"],
+            capture_output=True,
+            text=True,
+            timeout=30,
         )
 
-        if 'Railway timeout and retry configuration looks good' in result.stdout:
+        if "Railway timeout and retry configuration looks good" in result.stdout:
             print("  ✅ Build monitor validates Railway config")
         else:
             print("  ⚠️  Build monitor configuration check issues")
 
-        if 'UV not found in PATH' in result.stdout:
+        if "UV not found in PATH" in result.stdout:
             print("  ⚠️  UV not available (expected in some environments)")
 
-        if os.access('scripts/build_monitor.py', os.X_OK):
+        if os.access("scripts/build_monitor.py", os.X_OK):
             print("  ✅ Build monitor script is executable")
         else:
             print("  ❌ Build monitor script not executable")
@@ -154,16 +158,17 @@ def check_build_monitor():
         print(f"  ❌ Error testing build monitor: {e}")
         return False
 
+
 def check_files_exist():
     """Check that all required files exist"""
     print("\n📁 Checking required files...")
 
     required_files = [
-        'railway.toml',
-        'Dockerfile',
-        'requirements.txt',
-        'uv.lock',
-        'scripts/build_monitor.py'
+        "railway.toml",
+        "Dockerfile",
+        "requirements.txt",
+        "uv.lock",
+        "scripts/build_monitor.py",
     ]
 
     missing_files = []
@@ -176,6 +181,7 @@ def check_files_exist():
 
     return len(missing_files) == 0
 
+
 def main():
     """Run all verification checks"""
     print("🚀 Railway Build Configuration Verification")
@@ -185,7 +191,7 @@ def main():
         ("Required Files", check_files_exist),
         ("Railway TOML", check_railway_toml),
         ("Dockerfile", check_dockerfile),
-        ("Build Monitor", check_build_monitor)
+        ("Build Monitor", check_build_monitor),
     ]
 
     results = []
@@ -211,6 +217,7 @@ def main():
         print("\n⚠️  Some verification checks failed.")
         print("Please review the issues above before deploying.")
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -108,14 +108,17 @@ class BaseService(ABC):
 
 class ConfigurationError(Exception):
     """Raised when there are configuration issues."""
+
     pass
 
 
 class ServiceError(Exception):
     """Raised when there are service-related errors."""
+
     pass
 
 
 class DependencyError(Exception):
     """Raised when there are dependency injection issues."""
+
     pass
