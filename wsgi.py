@@ -173,6 +173,19 @@ def create_app():
                 }
             )
 
+        # Railway health check endpoint
+        @emergency_app.route("/healthz", methods=["GET"])
+        def emergency_healthz():
+            return jsonify(
+                {
+                    "status": "error",
+                    "error": error_message,
+                    "timestamp": time.time(),
+                    "startup_failed": True,
+                    "service": "gary-zero",
+                }
+            )
+
         PrintStyle().print("⚠️  Emergency mode: basic health check only")
         return emergency_app
 
