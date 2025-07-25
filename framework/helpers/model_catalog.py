@@ -116,12 +116,6 @@ MODEL_CATALOG: ModelCollection = {
             "release_date": "2024-12-01",
         },
         {
-            "value": "gpt-4.1-mini",
-            "label": "GPT-4.1 Mini",
-            "modern": True,
-            "release_date": "2024-12-01",
-        },
-        {
             "value": "gpt-4.1-nano",
             "label": "GPT-4.1 Nano",
             "modern": True,
