@@ -47,3 +47,28 @@
 | **Moderation** | | | | | | | | |
 | omni-moderation | omni-moderation | Not specified | Identify potentially harmful content in text and images | Text, Images | Scores | Not specified | N/A | Content moderation |
 | text-moderation | text-moderation | Not specified | Previous generation text-only moderation model | Text | Scores | Not specified | N/A | Content moderation |
+Of course. Here is the table with the information updated based on the images you provided.
+
+---
+
+### **Updated Model Information**
+
+| Model Name | Model Code for API | Last Updated | Description | Inputs | Outputs | Input Token Limit | Output Token Limit | Key Features |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Reasoning Models** | | | | | | | | |
+| o4-mini | o4-mini | Jan 15, 2024 | Faster, more affordable reasoning model. **Price: $1.10 - $4.40 per 1M tokens.** | Text, Image | Text | **200,000** | **16,384** | Streaming, Function calling, Structured outputs, Reasoning |
+| o3 | o3 | Jan 15, 2024 | Our most powerful reasoning model. **Price: $2.00 - $8.00 per 1M tokens.** | Text, Image | Text | **200,000** | **16,384** | Streaming, Function calling, Structured outputs |
+| o3-pro | o3-pro | Jan 15, 2024 | Version of o3 with more compute for better responses. **Price: $20.00 - $80.00 per 1M tokens.** | Text, Image | Text | **200,000** | **16,384** | Streaming, Function calling, Structured outputs |
+| o3-mini | o3-mini | Not specified | A small model alternative to o3. | Text | Text | Not specified | Not specified | Deprecated |
+| **Flagship Chat Models** | | | | | | | | |
+| GPT-4.1 | gpt-4.1 | Jan 15, 2024 | Flagship GPT model for complex tasks. **Price: $2.00 - $8.00 per 1M tokens.** | Text, Image | Text | **1,047,576** | **16,384** | Streaming, Function calling, Structured outputs, Predicted outputs |
+| GPT-4o | gpt-4o | Not specified | Fast, intelligent, flexible GPT model. | Text, Image | Text | Not specified | Not specified | Versatile, high-intelligence |
+| GPT-4o Audio | gpt-4o-audio-preview | Not specified | GPT-4o models capable of audio inputs and outputs. | Audio | Audio, Text | Not specified | Not specified | Audio I/O |
+| ChatGPT-4o | chatgpt-4o-latest | Not specified | GPT-4o model used in ChatGPT. | Text, Image | Text | Not specified | Not specified | Powers ChatGPT |
+| **Cost-Optimized Models** | | | | | | | | |
+| o4-mini | o4-mini | Jan 15, 2024 | Faster, more affordable reasoning model. **Price: $1.10 - $4.40 per 1M tokens.** | Text, Image | Text | **200,000** | **16,384** | Streaming, Function calling, Structured outputs, Reasoning |
+| GPT-4.1 mini | gpt-4.1-mini | Not specified | Balanced for intelligence, speed, and cost. | Text, Image | Text | Not specified | Not specified | Balanced for speed and cost |
+| GPT-4.1 nano | gpt-4.1-nano | Not specified | Fastest, most cost-effective GPT-4.1 model. | Text, Image | Text | Not specified | Not specified | Optimized for speed and cost |
+| o3-mini | o3-mini | Not specified | A small model alternative to o3. | Text | Text | Not specified | Not specified | Deprecated |
+
+*(Remaining models from the original list are unchanged as no new information was provided for them.)*
