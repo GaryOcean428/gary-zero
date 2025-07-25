@@ -1,4 +1,4 @@
-Of course. Here is the data from the provided text, extracted and organized into a table that corresponds with your requested format.
+# OpenAI Models as at 25 June 2025
 
 | Model Name | Model Code for API | Last Updated | Description | Inputs | Outputs | Input Token Limit | Output Token Limit | Key Features |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
