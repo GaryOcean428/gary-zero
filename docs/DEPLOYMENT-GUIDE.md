@@ -150,7 +150,9 @@ WEB_UI_HOST = { default = "0.0.0.0" }
 - Binds to `0.0.0.0` for Railway compatibility
 - Health endpoint at `/health`
 
+
 ## 📊 Monitoring & Reporting
+
 
 ### GitHub Integration
 
