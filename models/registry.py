@@ -116,8 +116,8 @@ class ModelRegistry:
         self.register_model(
             ModelConfig(
                 provider=ModelProvider.OPENAI,
-                model_name="gpt-4.1-mini",
-                display_name="GPT-4.1 Mini",
+                model_name="gpt-4o-mini",
+                display_name="GPT-4o Mini",
                 max_tokens=16384,
                 context_window=128000,
                 cost_per_1k_input_tokens=0.00015,
@@ -130,7 +130,7 @@ class ModelRegistry:
                     ModelCapability.JSON_MODE,
                 ],
                 recommended_for=["fast", "cost-effective", "simple tasks", "real-time"],
-                description="Faster, more cost-effective version of GPT-4.1",
+                description="Faster, more cost-effective version of GPT-4o",
                 rate_limit_rpm=10000,
                 rate_limit_tpm=2000000,
             )
@@ -483,7 +483,7 @@ class ModelRegistry:
     
     def get_model(self, model_name: str) -> ModelConfig | None:
         """Get a model configuration by name."""
-        return self.models.get(model.model_name)
+        return self.models.get(model_name)
     
     def list_models(self, provider: ModelProvider | None = None) -> list[ModelConfig]:
         """List all models, optionally filtered by provider."""
