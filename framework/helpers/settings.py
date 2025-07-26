@@ -550,7 +550,9 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "supervisor_agent_enabled",
             "title": "Enable supervisor agent",
-            "description": "Enable supervisor agent for task orchestration and long-running processes",
+            "description": (
+                "Enable supervisor agent for task orchestration and long-running processes"
+            ),
             "type": "switch",
             "value": settings.get("supervisor_agent_enabled", True),
         }
@@ -595,7 +597,9 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "task_handoff_enabled",
             "title": "Enable task handoff",
-            "description": "Allow tasks to be handed off between agents for long-running operations",
+            "description": (
+                "Allow tasks to be handed off between agents for long-running operations"
+            ),
             "type": "switch",
             "value": settings.get("task_handoff_enabled", True),
         }
@@ -626,7 +630,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
     supervisor_agent_section: SettingsSection = {
         "id": "supervisor_agent",
         "title": "Supervisor Agent",
-        "description": "Orchestration agent for managing long-running tasks and coordinating multiple agents",
+        "description": (
+            "Orchestration agent for managing long-running tasks and "
+            "coordinating multiple agents"
+        ),
         "fields": supervisor_agent_fields,
         "tab": "orchestration",
     }
@@ -811,7 +818,8 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "title": "Agent Role & Prompts",
             "description": (
                 "Select the agent role and prompt templates that define the agent's behavior, "
-                "specialization, and communication style. Different roles are optimized for specific task types: "
+                "specialization, and communication style. Different roles are "
+                "optimized for specific task types: "
                 "'default' for general tasks, 'research_agent' for deep research and analysis, "
                 "'hacker' for cybersecurity and penetration testing."
             ),
@@ -845,7 +853,8 @@ def convert_out(settings: Settings) -> SettingsOutput:
             "title": "Knowledge Domain",
             "description": (
                 "Select specialized knowledge domain to preload into the agent's knowledge base. "
-                "This supplements the default framework knowledge with domain-specific information, "
+                "This supplements the default framework knowledge with "
+                "domain-specific information, "
                 "examples, and best practices. Custom knowledge can include industry standards, "
                 "company policies, technical documentation, or specialized methodologies."
             ),
@@ -871,7 +880,8 @@ def convert_out(settings: Settings) -> SettingsOutput:
         "title": "Agent Configuration",
         "description": (
             "Configure the agent's core behavior, specialization, and knowledge domains. "
-            "These settings determine how the agent approaches tasks, what knowledge it has access to, "
+            "These settings determine how the agent approaches tasks, "
+            "what knowledge it has access to, "
             "and how it maintains context between conversations. Choose configurations that align "
             "with your primary use cases for optimal performance."
         ),
@@ -886,7 +896,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         #     {
         #         "id": "rfc_auto_docker",
         #         "title": "RFC Auto Docker Management",
-        #         "description": "Automatically create dockerized instance of A0 for RFCs using this instance's code base and, settings and .env.",
+        #         "description": (
+        #             "Automatically create dockerized instance of A0 for RFCs using "
+        #             "this instance's code base and, settings and .env."
+        #         ),
         #         "type": "text",
         #         "value": settings["rfc_auto_docker"],
         #     }
@@ -962,7 +975,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "computer_use_enabled",
             "title": "Enable Computer Use",
-            "description": "Enable Anthropic Computer Use tool for desktop automation (keyboard, mouse, window control)",
+            "description": (
+                "Enable Anthropic Computer Use tool for desktop automation "
+                "(keyboard, mouse, window control)"
+            ),
             "type": "switch",
             "value": settings.get("computer_use_enabled", False),
         }
@@ -1006,7 +1022,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
     computer_use_section: SettingsSection = {
         "id": "computer_use",
         "title": "Computer Use",
-        "description": "Anthropic Computer Use tool for desktop automation via keyboard, mouse, and window control",
+        "description": (
+            "Anthropic Computer Use tool for desktop automation via "
+            "keyboard, mouse, and window control"
+        ),
         "fields": computer_use_fields,
         "tab": "tools",
     }
@@ -1018,7 +1037,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "claude_code_enabled",
             "title": "Enable Claude Code",
-            "description": "Enable Claude Code tool for advanced code editing, Git operations, and terminal commands",
+            "description": (
+                "Enable Claude Code tool for advanced code editing, "
+                "Git operations, and terminal commands"
+            ),
             "type": "switch",
             "value": settings.get("claude_code_enabled", False),
         }
@@ -1040,7 +1062,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "claude_code_enable_git_ops",
             "title": "Enable Git Operations",
-            "description": "Allow Claude Code to perform Git operations (status, add, commit, push, pull)",
+            "description": (
+                "Allow Claude Code to perform Git operations "
+                "(status, add, commit, push, pull)"
+            ),
             "type": "switch",
             "value": settings.get("claude_code_enable_git_ops", True),
         }
@@ -1059,7 +1084,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
     claude_code_section: SettingsSection = {
         "id": "claude_code",
         "title": "Claude Code",
-        "description": "Claude Code tool for context-aware multi-file editing, Git operations, and terminal commands",
+        "description": (
+            "Claude Code tool for context-aware multi-file editing, "
+            "Git operations, and terminal commands"
+        ),
         "fields": claude_code_fields,
         "tab": "tools",
     }
@@ -1251,7 +1279,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "codex_cli_enabled",
             "title": "Enable OpenAI Codex CLI",
-            "description": "Enable integration with OpenAI Codex CLI for context-aware code editing and terminal commands.",
+            "description": (
+                "Enable integration with OpenAI Codex CLI for "
+                "context-aware code editing and terminal commands."
+            ),
             "type": "switch",
             "value": settings.get("codex_cli_enabled", False),
         }
@@ -1269,7 +1300,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "codex_cli_approval_mode",
             "title": "Approval Mode",
-            "description": "Set approval mode for Codex CLI operations: suggest (ask for approval), auto (automatic), block (block all).",
+            "description": (
+                "Set approval mode for Codex CLI operations: "
+                "suggest (ask for approval), auto (automatic), block (block all)."
+            ),
             "type": "select",
             "value": settings.get("codex_cli_approval_mode", "suggest"),
             "options": [
@@ -1292,7 +1326,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
     codex_cli_section: SettingsSection = {
         "id": "codex_cli",
         "title": "OpenAI Codex CLI",
-        "description": "Integration with OpenAI Codex CLI for context-aware code editing and terminal commands.",
+        "description": (
+            "Integration with OpenAI Codex CLI for context-aware code editing "
+            "and terminal commands."
+        ),
         "fields": codex_cli_fields,
         "tab": "tools",
     }
@@ -1303,7 +1340,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "gemini_cli_enabled",
             "title": "Enable Google Gemini CLI",
-            "description": "Enable integration with Google Gemini CLI for local model interaction and code assistance.",
+            "description": (
+                "Enable integration with Google Gemini CLI for "
+                "local model interaction and code assistance."
+            ),
             "type": "switch",
             "value": settings.get("gemini_cli_enabled", False),
         }
@@ -1321,7 +1361,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
         {
             "id": "gemini_cli_approval_mode",
             "title": "Approval Mode",
-            "description": "Set approval mode for Gemini CLI operations: suggest (ask for approval), auto (automatic), block (block all).",
+            "description": (
+                "Set approval mode for Gemini CLI operations: "
+                "suggest (ask for approval), auto (automatic), block (block all)."
+            ),
             "type": "select",
             "value": settings.get("gemini_cli_approval_mode", "suggest"),
             "options": [
@@ -1344,7 +1387,10 @@ def convert_out(settings: Settings) -> SettingsOutput:
     gemini_cli_section: SettingsSection = {
         "id": "gemini_cli",
         "title": "Google Gemini CLI",
-        "description": "Integration with Google Gemini CLI for local model interaction and code assistance.",
+        "description": (
+            "Integration with Google Gemini CLI for local model interaction "
+            "and code assistance."
+        ),
         "fields": gemini_cli_fields,
         "tab": "tools",
     }

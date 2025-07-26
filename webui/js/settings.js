@@ -1,3 +1,13 @@
+/* global Logger */
+
+// Create logger instance for settings module
+const logger = window.Logger ? new Logger('Settings') : { 
+    debug: console.log, 
+    info: console.info, 
+    warn: console.warn, 
+    error: console.error 
+};
+
 const settingsModalProxy = {
     isOpen: false,
     settings: {},
@@ -30,7 +40,7 @@ const settingsModalProxy = {
             if (store) {
                 store.activeTab = tabName;
             } else {
-                console.warn("Root store not available during tab switch, will retry");
+                logger.warn("Root store not available during tab switch, will retry");
                 // Retry after a short delay if store not ready
                 setTimeout(() => {
                     const retryStore = Alpine.store("root");
@@ -40,7 +50,7 @@ const settingsModalProxy = {
                 }, 100);
             }
         } catch (error) {
-            console.warn("Error accessing Alpine store during tab switch:", error);
+            logger.warn("Error accessing Alpine store during tab switch:", error);
         }
 
         localStorage.setItem("settingsActiveTab", tabName);
@@ -54,7 +64,7 @@ const settingsModalProxy = {
 
             // When switching to the scheduler tab, initialize Flatpickr components
             if (tabName === "scheduler") {
-                console.log("Switching to scheduler tab, initializing Flatpickr");
+                logger.info("Switching to scheduler tab, initializing Flatpickr");
                 const schedulerElement = document.querySelector('[x-data="schedulerSettings"]');
                 if (schedulerElement) {
                     const schedulerData = Alpine.$data(schedulerElement);
@@ -84,7 +94,7 @@ const settingsModalProxy = {
 
             // When switching to the tunnel tab, initialize tunnelSettings
             if (tabName === "tunnel") {
-                console.log("Switching to tunnel tab, initializing tunnelSettings");
+                logger.info("Switching to tunnel tab, initializing tunnelSettings");
                 const tunnelElement = document.querySelector('[x-data="tunnelSettings"]');
                 if (tunnelElement) {
                     const tunnelData = Alpine.$data(tunnelElement);
@@ -98,16 +108,16 @@ const settingsModalProxy = {
     },
 
     async openModal() {
-        console.log("Settings modal opening");
+        logger.info("Settings modal opening");
         const modalEl = document.getElementById("settingsModal");
         if (!modalEl) {
-            console.error("Settings modal element not found");
+            logger.error("Settings modal element not found");
             return;
         }
 
         // Wait for Alpine to be ready and ensure component is initialized
         if (typeof Alpine === "undefined") {
-            console.error("Alpine.js not available");
+            logger.error("Alpine.js not available");
             return;
         }
 
@@ -122,18 +132,18 @@ const settingsModalProxy = {
                         break;
                     }
                 } catch (dataError) {
-                    console.warn(`Attempt ${i + 1}: Error getting Alpine data:`, dataError.message);
+                    logger.warn(`Attempt ${i + 1}: Error getting Alpine data:`, dataError.message);
                 }
                 // Wait progressively longer
                 await new Promise((resolve) => setTimeout(resolve, 100 * (i + 1)));
             }
 
             if (!modalAD) {
-                console.error("Settings modal not properly initialized with Alpine.js");
+                logger.error("Settings modal not properly initialized with Alpine.js");
                 return;
             }
         } catch (error) {
-            console.error("Error accessing Alpine data:", error);
+            logger.error("Error accessing Alpine data:", error);
             return;
         }
 
@@ -142,7 +152,7 @@ const settingsModalProxy = {
         try {
             // Wait for Alpine to be fully ready
             if (typeof Alpine === 'undefined') {
-                console.warn("Alpine.js not yet loaded, delaying settings modal open");
+                logger.warn("Alpine.js not yet loaded, delaying settings modal open");
                 setTimeout(() => this.openSettings(), 100);
                 return new Promise((resolve) => { this.resolvePromise = resolve; });
             }
@@ -152,7 +162,7 @@ const settingsModalProxy = {
                 // Set isOpen first to ensure proper state
                 store.isOpen = true;
             } else {
-                console.warn("Root store not found, will retry initialization");
+                logger.warn("Root store not found, will retry initialization");
                 // Retry after Alpine is fully ready
                 setTimeout(() => {
                     const retryStore = Alpine.store("root");
@@ -162,14 +172,14 @@ const settingsModalProxy = {
                 }, 100);
             }
         } catch (error) {
-            console.error("Error accessing Alpine store:", error);
+            logger.error("Error accessing Alpine store:", error);
         }
 
         //get settings from backend
         try {
-            console.log("Fetching settings from /settings_get endpoint");
+            logger.info("Fetching settings from /settings_get endpoint");
             const set = await sendJsonData("/settings_get", {});
-            console.log("Settings fetch successful:", set);
+            logger.info("Settings fetch successful:", set);
 
             // First load the settings data without setting the active tab
             const settings = {
@@ -199,7 +209,7 @@ const settingsModalProxy = {
             setTimeout(() => {
                 // Get stored tab or default to 'agent'
                 const savedTab = localStorage.getItem("settingsActiveTab") || "agent";
-                console.log(`Setting initial tab to: ${savedTab}`);
+                logger.info(`Setting initial tab to: ${savedTab}`);
 
                 // Directly set the active tab
                 modalAD.activeTab = savedTab;
@@ -219,15 +229,15 @@ const settingsModalProxy = {
                     }
                     // Debug log
                     const schedulerTab = document.querySelector('.settings-tab[title="Task Scheduler"]');
-                    console.log(`Current active tab after direct set: ${modalAD.activeTab}`);
-                    console.log(
+                    logger.debug(`Current active tab after direct set: ${modalAD.activeTab}`);
+                    logger.debug(
                         "Scheduler tab active after direct initialization?",
                         schedulerTab && schedulerTab.classList.contains("active")
                     );
 
                     // Explicitly start polling if we're on the scheduler tab
                     if (modalAD.activeTab === "scheduler") {
-                        console.log("Settings opened directly to scheduler tab, initializing polling");
+                        logger.info("Settings opened directly to scheduler tab, initializing polling");
                         const schedulerElement = document.querySelector('[x-data="schedulerSettings"]');
                         if (schedulerElement) {
                             const schedulerData = Alpine.$data(schedulerElement);
@@ -350,14 +360,14 @@ const settingsModalProxy = {
         if (schedulerElement) {
             const schedulerData = Alpine.$data(schedulerElement);
             if (schedulerData && typeof schedulerData.stopPolling === "function") {
-                console.log("Stopping scheduler polling on modal close");
+                logger.info("Stopping scheduler polling on modal close");
                 schedulerData.stopPolling();
             }
         }
     },
 
     async handleFieldButton(field) {
-        console.log(`Button clicked: ${field.id}`);
+        logger.debug(`Button clicked: ${field.id}`);
 
         if (field.id === "mcp_servers_config") {
             openModal("settings/mcp/client/mcp-servers.html");
@@ -365,22 +375,24 @@ const settingsModalProxy = {
     },
 
     // Handle provider change for model filtering
-    async handleProviderChange(providerId, newProvider) {
-        try {
-            console.log(`Provider changed: ${providerId} to ${newProvider}`);
-            
-            // Get the new models for this provider
-            const response = await fetch("/get_models_for_provider", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ provider: newProvider }),
-            });
+            async handleProviderChange(providerId, newProvider) {
+                try {
+                    logger.info(`Provider changed: ${providerId} to ${newProvider}`);
+                    
+                    const showDeprecated = localStorage.getItem('showDeprecated') === 'true';
 
-                            if (response.ok) {
-                                const data = await response.json();
-                                const models = data.models || [];
+                    // Get the new models for this provider
+                    const response = await fetch("/get_models_for_provider", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ provider: newProvider, show_deprecated: showDeprecated }),
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const models = data.models || [];
                                 
                                 // Add release date tooltips to model options
                                 const enhancedModels = models.map(model => {
@@ -411,7 +423,7 @@ const settingsModalProxy = {
                                                         // Auto-update model parameters when model changes
                                                         await this.handleModelChange(modelFieldId, field.value, newProvider);
                                                     }
-                                                    console.log(`Updated ${modelFieldId} with ${enhancedModels.length} models`);
+                                                    logger.info(`Updated ${modelFieldId} with ${enhancedModels.length} models`);
                                                     break;
                                                 }
                                             }
@@ -419,17 +431,17 @@ const settingsModalProxy = {
                                     }
                                 }
             } else {
-                console.error("Failed to fetch models for provider:", response.status);
+                logger.error("Failed to fetch models for provider:", response.status);
             }
         } catch (error) {
-            console.error("Error handling provider change:", error);
+            logger.error("Error handling provider change:", error);
         }
     },
 
     // Handle model change for automatic parameter updates
     async handleModelChange(modelFieldId, newModel, provider) {
         try {
-            console.log(`Model changed: ${modelFieldId} to ${newModel} (provider: ${provider})`);
+            logger.info(`Model changed: ${modelFieldId} to ${newModel} (provider: ${provider})`);
             
             // Get parameters for this model
             const response = await fetch("/get_model_parameters", {
@@ -447,7 +459,7 @@ const settingsModalProxy = {
                 const data = await response.json();
                 const parameters = data.parameters || {};
                 
-                console.log(`Received parameters for ${newModel}:`, parameters);
+                logger.debug(`Received parameters for ${newModel}:`, parameters);
                 
                 // Update related parameter fields
                 const modalEl = document.getElementById("settingsModal");
@@ -472,7 +484,7 @@ const settingsModalProxy = {
                                     if (field.id === baseId + fieldSuffix && Object.prototype.hasOwnProperty.call(parameters, paramKey)) {
                                         const oldValue = field.value;
                                         field.value = parameters[paramKey];
-                                        console.log(`Updated ${field.id}: ${oldValue} → ${field.value}`);
+                                        logger.debug(`Updated ${field.id}: ${oldValue} → ${field.value}`);
                                     }
                                 }
                             }
@@ -480,10 +492,10 @@ const settingsModalProxy = {
                     }
                 }
             } else {
-                console.error("Failed to fetch model parameters:", response.status);
+                logger.error("Failed to fetch model parameters:", response.status);
             }
         } catch (error) {
-            console.error("Error handling model change:", error);
+            logger.error("Error handling model change:", error);
         }
     },
 };
@@ -521,12 +533,17 @@ document.addEventListener("alpine:init", () => {
                     let retryCount = 0;
                     const maxRetries = 10;
                     
+                    // Add listener for deprecated toggle
+                    document.addEventListener('deprecated-toggle-changed', () => {
+                        this.refreshAllModels();
+                    });
+                    
                     while (!rootStore && retryCount < maxRetries) {
                         try {
                             rootStore = Alpine.store("root");
                             if (rootStore) break;
-                        } catch (error) {
-                            console.warn(`Retry ${retryCount + 1}: Root store not ready yet`);
+                        } catch {
+                            logger.warn(`Retry ${retryCount + 1}: Root store not ready yet`);
                         }
                         await new Promise(resolve => setTimeout(resolve, 50));
                         retryCount++;
@@ -535,13 +552,13 @@ document.addEventListener("alpine:init", () => {
                     if (rootStore) {
                         this.activeTab = rootStore.activeTab || "agent";
                     } else {
-                        console.warn("Root store not available after retries, using default");
+                        logger.warn("Root store not available after retries, using default");
                         this.activeTab = "agent";
                     }
                     if (rootStore) {
                         this.activeTab = rootStore.activeTab || "agent";
                     } else {
-                        console.warn("Root store not available after retries, using default");
+                        logger.warn("Root store not available after retries, using default");
                         this.activeTab = "agent";
                     }
 
@@ -558,7 +575,7 @@ document.addEventListener("alpine:init", () => {
                     await this.fetchSettings();
                     this.updateFilteredSections();
                 } catch (error) {
-                    console.error("Error in settingsModal init:", error);
+                    logger.error("Error in settingsModal init:", error);
                     // Set fallback state
                     this.activeTab = "agent";
                     this.isLoading = false;
@@ -576,7 +593,7 @@ document.addEventListener("alpine:init", () => {
                         if (store) {
                             store.activeTab = tab;
                         } else {
-                            console.warn("Root store not available during tab switch, will retry");
+                            logger.warn("Root store not available during tab switch, will retry");
                             // Retry after a short delay if store not ready
                             setTimeout(() => {
                                 const retryStore = Alpine.store("root");
@@ -586,7 +603,7 @@ document.addEventListener("alpine:init", () => {
                             }, 100);
                         }
                     } catch (error) {
-                        console.warn("Error accessing Alpine store during tab switch:", error);
+                        logger.warn("Error accessing Alpine store during tab switch:", error);
                     }
 
                     // Save to localStorage
@@ -595,14 +612,14 @@ document.addEventListener("alpine:init", () => {
                     // Update filtered sections
                     this.updateFilteredSections();
                 } catch (error) {
-                    console.error("Error switching tab:", error);
+                    logger.error("Error switching tab:", error);
                 }
             },
 
             async fetchSettings() {
                 try {
                     this.isLoading = true;
-                    console.log("Fetching settings from /settings_get endpoint");
+                    logger.info("Fetching settings from /settings_get endpoint");
                     const response = await fetch("/settings_get", {
                         method: "POST",
                         headers: {
@@ -611,21 +628,21 @@ document.addEventListener("alpine:init", () => {
                         body: JSON.stringify({}),
                     });
 
-                    console.log("Settings response status:", response.status, response.statusText);
+                    logger.info("Settings response status:", response.status, response.statusText);
                     if (response.ok) {
                         const data = await response.json();
-                        console.log("Settings data received:", data);
+                        logger.info("Settings data received:", data);
                         if (data && data.settings) {
                             this.settingsData = data.settings;
                         } else {
-                            console.error("Invalid settings data format:", data);
+                            logger.error("Invalid settings data format:", data);
                         }
                     } else {
                         const errorText = await response.text();
-                        console.error("Failed to fetch settings:", response.status, response.statusText, errorText);
+                        logger.error("Failed to fetch settings:", response.status, response.statusText, errorText);
                     }
                 } catch (error) {
-                    console.error("Error fetching settings:", error);
+                    logger.error("Error fetching settings:", error);
                 } finally {
                     this.isLoading = false;
                 }
@@ -689,7 +706,7 @@ document.addEventListener("alpine:init", () => {
                         throw new Error(errorData.error || "Failed to save settings");
                     }
                 } catch (error) {
-                    console.error("Error saving settings:", error);
+                    logger.error("Error saving settings:", error);
                     showToast("Failed to save settings: " + error.message, "error");
                 }
             },
@@ -697,7 +714,7 @@ document.addEventListener("alpine:init", () => {
             // Handle provider change for model filtering
             async handleProviderChange(providerId, newProvider) {
                 try {
-                    console.log(`Provider changed to: ${newProvider}`);
+                    logger.info(`Provider changed to: ${newProvider}`);
                     
                     // Get the new models for this provider
                     const response = await fetch("/get_models_for_provider", {
@@ -740,17 +757,17 @@ document.addEventListener("alpine:init", () => {
                             }
                         }
                     } else {
-                        console.error("Failed to fetch models for provider:", response.status);
+                        logger.error("Failed to fetch models for provider:", response.status);
                     }
                 } catch (error) {
-                    console.error("Error handling provider change:", error);
+                    logger.error("Error handling provider change:", error);
                 }
             },
 
             // Handle model change for automatic parameter updates
             async handleModelChange(modelFieldId, newModel, provider) {
                 try {
-                    console.log(`Model changed: ${modelFieldId} to ${newModel} (provider: ${provider})`);
+                    logger.info(`Model changed: ${modelFieldId} to ${newModel} (provider: ${provider})`);
                     
                     // Get parameters for this model
                     const response = await fetch("/get_model_parameters", {
@@ -768,7 +785,7 @@ document.addEventListener("alpine:init", () => {
                         const data = await response.json();
                         const parameters = data.parameters || {};
                         
-                        console.log(`Received parameters for ${newModel}:`, parameters);
+                        logger.debug(`Received parameters for ${newModel}:`, parameters);
                         
                         // Update related parameter fields
                         const baseId = modelFieldId.replace('_name', '');
@@ -789,16 +806,31 @@ document.addEventListener("alpine:init", () => {
                                     if (field.id === baseId + fieldSuffix && Object.prototype.hasOwnProperty.call(parameters, paramKey)) {
                                         const oldValue = field.value;
                                         field.value = parameters[paramKey];
-                                        console.log(`Updated ${field.id}: ${oldValue} → ${field.value}`);
+                                        logger.debug(`Updated ${field.id}: ${oldValue} → ${field.value}`);
                                     }
                                 }
                             }
                         }
                     } else {
-                        console.error("Failed to fetch model parameters:", response.status);
+                        logger.error("Failed to fetch model parameters:", response.status);
                     }
                 } catch (error) {
-                    console.error("Error handling model change:", error);
+                    logger.error("Error handling model change:", error);
+                }
+            },
+
+            async refreshAllModels() {
+                logger.info('Refreshing all model lists due to deprecated toggle change');
+                
+                // Find all provider selects
+                const providerSelects = document.querySelectorAll('select[id$="_provider"]');
+                
+                for (const select of providerSelects) {
+                    const providerId = select.id;
+                    const currentProvider = select.value;
+                    if (currentProvider) {
+                        await this.handleProviderChange(providerId, currentProvider);
+                    }
                 }
             },
 
@@ -811,7 +843,7 @@ document.addEventListener("alpine:init", () => {
                 } else if (field.action === "generate_token") {
                     this.generateToken(field);
                 } else {
-                    console.warn("Unknown button action:", field.action);
+                    logger.warn("Unknown button action:", field.action);
                 }
             },
 
@@ -857,7 +889,7 @@ document.addEventListener("alpine:init", () => {
                         throw new Error(data.error || "Connection failed");
                     }
                 } catch (error) {
-                    console.error("Connection test failed:", error);
+                    logger.error("Connection test failed:", error);
                     field.testResult = `Failed: ${error.message}`;
                     field.testStatus = "error";
                 }
@@ -908,7 +940,7 @@ document.addEventListener("alpine:init", () => {
                 if (schedulerElement) {
                     const schedulerData = Alpine.$data(schedulerElement);
                     if (schedulerData && typeof schedulerData.stopPolling === "function") {
-                        console.log("Stopping scheduler polling on modal close");
+                        logger.info("Stopping scheduler polling on modal close");
                         schedulerData.stopPolling();
                     }
                 }
@@ -916,7 +948,7 @@ document.addEventListener("alpine:init", () => {
                 this.$store.root.isOpen = false;
             },
         }));
-        console.log("✅ Alpine settingsModal component registered via Component Manager");
+        logger.info("✅ Alpine settingsModal component registered via Component Manager");
     } else {
         // Fallback to direct registration if Component Manager not available
         try {
@@ -928,9 +960,9 @@ document.addEventListener("alpine:init", () => {
                 isLoading: true,
                 // ... rest of the component implementation
             }));
-            console.log("✅ Alpine settingsModal component registered (fallback method)");
+            logger.info("✅ Alpine settingsModal component registered (fallback method)");
         } catch (error) {
-            console.error("❌ Error registering Alpine settingsModal component:", error);
+            logger.error("❌ Error registering Alpine settingsModal component:", error);
         }
     }
 });

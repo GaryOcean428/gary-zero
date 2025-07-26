@@ -1,0 +1,80 @@
+/* Styles extracted from inline styles in index.html */
+
+/* Line 436 - Hide button styles */
+#hide-button {
+    /* Add specific styles here once we identify the inline styles */
+}
+
+/* Line 473 - Chat list button styles */
+.chat-list-button {
+    /* Add specific styles here once we identify the inline styles */
+}
+
+/* Line 489 - Edit button styles */
+.edit-button {
+    /* Add specific styles here once we identify the inline styles */
+}
+
+/* Line 503 - Task container styles */
+.task-container {
+    /* Add specific styles here once we identify the inline styles */
+}
+
+/* Line 1114 - Footer styles */
+footer {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    padding: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--color-muted);
+    background: var(--bg-primary);
+    border-top: 1px solid var(--border-color);
+    z-index: 1000;
+}
+
+/* Line 1115 - Footer link styles */
+footer a {
+    color: var(--color-muted);
+    text-decoration: none;
+    margin-right: 1rem;
+}
+
+/* Line 1116 - Footer link styles (last child) */
+footer a:last-child {
+    margin-right: 0;
+}
+
+/* Line 617 - iframe[loading] browser compatibility fix */
+@supports not (loading: lazy) {
+    /* Fallback for browsers that don't support loading attribute */
+    iframe {
+        /* Apply any necessary fallback styles */
+    }
+}
+
+/* Additional extracted styles from other inline occurrences */
+.dragdrop-overlay {
+    /* Styles for drag and drop overlay */
+}
+
+.task-info-line .edit-button {
+    margin-left: auto;
+    margin-right: 5px;
+}
+
+#file-input {
+    display: none;
+}
+
+#char-count {
+    display: none;
+}
+
+#voice-button {
+    display: none;
+}
+
+#progress-bar {
+    display: none;
+}

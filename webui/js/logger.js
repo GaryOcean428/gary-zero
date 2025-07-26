@@ -1,78 +1,120 @@
 /**
- * Logging utility for Gary-Zero
- * Replaces direct console usage with configurable logging
+ * Logger utility for Gary-Zero web UI
+ * Provides structured logging with different levels and optional production filtering
  */
-class Logger {
-    constructor(context = 'App') {
-        this.context = context;
-        this.logLevel = this.getLogLevel();
-        this.isDevelopment = this.isDevelopmentMode();
-    }
+(function() {
+    'use strict';
 
-    getLogLevel() {
-        // Check for log level in localStorage or default to 'info'
-        try {
-            return localStorage.getItem('logLevel') || 'info';
-        } catch {
-            return 'info';
+    // Check if we're in production mode
+    const isProduction = window.location.hostname.includes('railway.app') || 
+                       window.location.hostname.includes('herokuapp.com') || 
+                       window.location.hostname.includes('vercel.app') || 
+                       window.location.hostname.includes('netlify.app');
+
+    // Log levels
+    const LogLevel = {
+        DEBUG: 0,
+        INFO: 1,
+        WARN: 2,
+        ERROR: 3
+    };
+
+    // Current log level (can be configured)
+    const currentLogLevel = isProduction ? LogLevel.WARN : LogLevel.DEBUG;
+
+    /**
+     * Logger class
+     */
+    class Logger {
+        constructor(module = 'Gary-Zero') {
+            this.module = module;
+        }
+
+        /**
+         * Log a debug message
+         */
+        debug(...args) {
+            if (currentLogLevel <= LogLevel.DEBUG) {
+                console.log(`[${this.module}] DEBUG:`, ...args);
+            }
+        }
+
+        /**
+         * Log an info message
+         */
+        info(...args) {
+            if (currentLogLevel <= LogLevel.INFO) {
+                console.info(`[${this.module}] INFO:`, ...args);
+            }
+        }
+
+        /**
+         * Log a warning
+         */
+        warn(...args) {
+            if (currentLogLevel <= LogLevel.WARN) {
+                console.warn(`[${this.module}] WARN:`, ...args);
+            }
+        }
+
+        /**
+         * Log an error
+         */
+        error(...args) {
+            if (currentLogLevel <= LogLevel.ERROR) {
+                console.error(`[${this.module}] ERROR:`, ...args);
+            }
+        }
+
+        /**
+         * Log a group of messages
+         */
+        group(label) {
+            if (currentLogLevel <= LogLevel.DEBUG) {
+                console.group(`[${this.module}] ${label}`);
+            }
+        }
+
+        /**
+         * End a group
+         */
+        groupEnd() {
+            if (currentLogLevel <= LogLevel.DEBUG) {
+                console.groupEnd();
+            }
+        }
+
+        /**
+         * Log a table
+         */
+        table(data) {
+            if (currentLogLevel <= LogLevel.DEBUG) {
+                console.table(data);
+            }
+        }
+
+        /**
+         * Time a section of code
+         */
+        time(label) {
+            if (currentLogLevel <= LogLevel.DEBUG) {
+                console.time(`[${this.module}] ${label}`);
+            }
+        }
+
+        /**
+         * End timing
+         */
+        timeEnd(label) {
+            if (currentLogLevel <= LogLevel.DEBUG) {
+                console.timeEnd(`[${this.module}] ${label}`);
+            }
         }
     }
 
-    isDevelopmentMode() {
-        // Check if we're in development mode
-        return window.location.hostname === 'localhost' || 
-               window.location.hostname === '127.0.0.1' ||
-               window.location.search.includes('debug=true');
-    }
-
-    shouldLog(level) {
-        const levels = { error: 0, warn: 1, info: 2, debug: 3 };
-        return levels[level] <= levels[this.logLevel];
-    }
-
-    formatMessage(level, message, ...args) {
-        const timestamp = new Date().toISOString().slice(11, 23);
-        const prefix = `[${timestamp}] ${level.toUpperCase()} [${this.context}]`;
-        return [prefix, message, ...args];
-    }
-
-    error(message, ...args) {
-        if (this.shouldLog('error')) {
-            console.error(...this.formatMessage('error', message, ...args));
-        }
-    }
-
-    warn(message, ...args) {
-        if (this.shouldLog('warn')) {
-            console.warn(...this.formatMessage('warn', message, ...args));
-        }
-    }
-
-    info(message, ...args) {
-        if (this.shouldLog('info') && this.isDevelopment) {
-            console.info(...this.formatMessage('info', message, ...args));
-        }
-    }
-
-    debug(message, ...args) {
-        if (this.shouldLog('debug') && this.isDevelopment) {
-            console.debug(...this.formatMessage('debug', message, ...args));
-        }
-    }
-
-    log(message, ...args) {
-        // Alias for info
-        this.info(message, ...args);
-    }
-}
-
-// Create default logger instance
-const logger = new Logger();
-
-// Export for use in other modules
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { Logger, logger };
-} else {
+    // Export to window
     window.Logger = Logger;
-    window.logger = logger;
-}
+    
+    // Create a default logger instance
+    window.logger = new Logger();
+})();

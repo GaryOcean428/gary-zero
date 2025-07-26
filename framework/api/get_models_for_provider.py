@@ -18,14 +18,17 @@ class GetModelsForProvider(ApiHandler):
             Dictionary containing the list of models for the provider
         """
         provider = input_data.get("provider", "")
+        show_deprecated = input_data.get("show_deprecated", False)
 
         if not provider:
             return {"error": "Provider parameter is required", "models": []}
 
-        # Prioritize modern models first, fallback to all models if none available
-        models = model_catalog.get_modern_models_for_provider(provider)
-        if not models:
+        if show_deprecated:
             models = model_catalog.get_models_for_provider(provider)
+        else:
+            models = model_catalog.get_modern_models_for_provider(provider)
+            if not models:
+                models = model_catalog.get_models_for_provider(provider)
 
         return {
             "provider": provider,
@@ -35,4 +38,5 @@ class GetModelsForProvider(ApiHandler):
             "deprecated_count": len(
                 model_catalog.get_deprecated_models_for_provider(provider)
             ),
+            "show_deprecated": show_deprecated
         }
