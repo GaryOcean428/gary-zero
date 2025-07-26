@@ -24,7 +24,7 @@ MODEL_PARAMS_DESCRIPTION = (
     """Any other parameters supported by the model. Format is KEY=VALUE """
     """on individual lines, just like .env file."""
 )
-PASSWORD_PLACEHOLDER = "****PSWD****"
+PASSWORD_PLACEHOLDER = "****PSWD****"  # nosec B105 - This is a placeholder, not a real password
 
 
 def _dict_to_env(data_dict):
@@ -79,6 +79,15 @@ def get_settings() -> Settings:
     try:
         with open(SETTINGS_FILE, encoding="utf-8") as f:
             settings_data = json.load(f)
+
+        # Migrate settings if needed
+        from framework.helpers.settings.migrate import migrate_settings, needs_migration
+
+        if needs_migration(settings_data):
+            settings_data = migrate_settings(settings_data)
+            # Save the migrated settings
+            set_settings(cast(Settings, settings_data), apply=False)
+
         return cast(Settings, settings_data)
     except (json.JSONDecodeError, OSError):
         # If there's an error reading the file, return defaults
@@ -177,14 +186,16 @@ def convert_in(settings_data: dict[str, Any]) -> Settings:
                     if field_value != PASSWORD_PLACEHOLDER and field_id:
                         if field_id.endswith("_kwargs"):
                             # Convert environment-style string to dictionary
-                            current[field_id] = _env_to_dict(field_value)
+                            setattr(current, field_id, _env_to_dict(field_value))
                         elif field_id.startswith("api_key_"):
                             # Handle API keys specially - store in api_keys dict
                             provider = field_id.replace("api_key_", "")
                             current["api_keys"][provider] = field_value
                         else:
                             # Regular field - store directly
-                            current[field_id] = field_value
+                            # Using cast to work around TypedDict limitations
+                            current_dict = cast(dict[str, Any], current)
+                            current_dict[field_id] = field_value
 
     return cast(Settings, current)
 
