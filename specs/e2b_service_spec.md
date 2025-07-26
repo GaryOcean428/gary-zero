@@ -7,6 +7,7 @@
 - **Network access control**: Managed connectivity for external resources
 
 ## Reference Variable Schemas
+
 ```toml
 # Railway Environment Variables
 E2B_API_KEY="e2b_your_api_key_here"
@@ -22,6 +23,7 @@ E2B_TEMPLATE="python3"  # Default sandbox template
 
 ## Sample SDK Snippets
 ### Python
+
 ```python
 from e2b import Sandbox
 
@@ -33,6 +35,7 @@ sandbox.close()
 ```
 
 ### TypeScript
+
 ```typescript
 import { Sandbox } from 'e2b';
 

@@ -1,6 +1,5 @@
 # Deployment Guide
 
-
 ## Railway Deployment
 
 ### Prerequisites
@@ -42,7 +41,6 @@ Ensure the following environment variables are set in Railway:
 3. Deploy using the `railway.toml` configuration
 4. Monitor logs for successful startup
 
-
 ## Docker Deployment
 
 The project includes a comprehensive `Dockerfile` for containerized deployment:
@@ -54,7 +52,6 @@ docker build -t gary-zero .
 # Run with environment file
 docker run -p 50001:50001 --env-file .env gary-zero
 ```
-
 
 ## Local Development
 

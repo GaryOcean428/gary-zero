@@ -1,10 +1,8 @@
 # Approval Workflow System Documentation
 
-
 ## Overview
 
 The Gary Zero approval workflow system provides robust permissioning and approval frameworks that require explicit user confirmation for sensitive or irreversible operations. The system includes detailed audit logging, role-based access control, and flexible configuration options.
-
 
 ## Key Features
 
@@ -15,7 +13,6 @@ The Gary Zero approval workflow system provides robust permissioning and approva
 - **Timeout Management**: Configurable timeouts for approval requests
 - **Runtime Configuration**: Policies can be updated without restart
 - **Multiple Interface Support**: CLI and Web UI interfaces
-
 
 ## Quick Start
 
@@ -63,7 +60,6 @@ else:
     print("Action was not approved")
 ```
 
-
 ## High-Risk Actions
 
 The system includes pre-configured high-risk actions:
@@ -84,7 +80,6 @@ The system includes pre-configured high-risk actions:
 - **external_api_call** (MEDIUM): Make external API calls
 - **computer_control** (CRITICAL): Desktop/GUI automation
 - **payment_transaction** (CRITICAL): Financial transactions
-
 
 ## Role-Based Permissions
 
@@ -109,7 +104,6 @@ role_permissions = {
     "subordinate_agent": []
 }
 ```
-
 
 ## Approval Policies
 
@@ -144,7 +138,6 @@ Uses role-based rules for approval decisions.
 ```python
 workflow.configure_action("admin_action", approval_policy=ApprovalPolicy.ROLE_BASED)
 ```
-
 
 ## Configuration Management
 
@@ -215,7 +208,6 @@ config_manager.register_custom_action({
 })
 ```
 
-
 ## User Interfaces
 
 ### CLI Interface
@@ -251,7 +243,6 @@ success = await web_interface.handle_ui_response(
     reason="Approved for maintenance"
 )
 ```
-
 
 ## Integration with Tools
 
@@ -298,7 +289,6 @@ class ShellTool:
         return subprocess.run(command, shell=True)
 ```
 
-
 ## Audit Logging
 
 All approval activities are automatically logged:
@@ -320,7 +310,6 @@ print(f"Approval rate: {summary.get('approval_rate', 0):.2%}")
 - **APPROVAL_REQUEST**: When approval is requested
 - **APPROVAL_DECISION**: When approval is granted/denied
 - **SECURITY_VIOLATION**: When unauthorized access is attempted
-
 
 ## Security Considerations
 
@@ -346,7 +335,6 @@ The system avoids exposing sensitive environment variables:
 - API keys and credentials are filtered from logs
 - Parameter values are truncated in audit logs
 
-
 ## Statistics and Monitoring
 
 ```python
@@ -361,7 +349,6 @@ print(f"Average response time: {stats['average_response_time']:.1f}s")
 for action, count in stats['requests_by_action_type'].items():
     print(f"{action}: {count} requests")
 ```
-
 
 ## Testing
 
@@ -406,7 +393,6 @@ async def test_decorator_integration():
     assert result == "success"
 ```
 
-
 ## Best Practices
 
 ### 1. Risk Level Assignment
@@ -442,7 +428,6 @@ async def test_decorator_integration():
 - Show relevant parameters (but sanitize sensitive data)
 - Implement timeout warnings
 - Log all approval decisions with reasoning
-
 
 ## Troubleshooting
 

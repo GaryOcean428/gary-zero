@@ -60,7 +60,7 @@ class SettingsOutput(TypedDict):
 
 PASSWORD_PLACEHOLDER = "****PSWD****"
 
-SETTINGS_FILE = files.get_abs_path("tmp/settings.json")
+SETTINGS_FILE = files.get_data_path("settings.json")
 
 
 def convert_out(settings: Settings) -> SettingsOutput:
@@ -1562,6 +1562,10 @@ def get_default_settings() -> Settings:
         A copy of the default settings with additional default values.
     """
     default_settings = DEFAULT_SETTINGS.copy()
+
+    # Override database_url from environment if available
+    if database_url := os.getenv("DATABASE_URL"):
+        default_settings["database_url"] = database_url
     # Add additional default settings that aren't in the base Settings type
     default_settings.update(
         {
@@ -1761,7 +1765,14 @@ def _dict_to_env(data_dict):
 def set_root_password(password: str):
     if not runtime.is_dockerized():
         raise RuntimeError("root password can only be set in dockerized environments")
-    subprocess.run(f"echo 'root:{password}' | chpasswd", shell=True, check=True)
+    # Use safer subprocess approach instead of shell=True
+    cmd = ["chpasswd"]
+    process = subprocess.Popen(cmd, stdin=subprocess.PIPE, text=True)
+    process.communicate(input=f"root:{password}")
+    if process.returncode != 0:
+        raise RuntimeError(
+            f"Failed to set root password, exit code: {process.returncode}"
+        )
     dotenv.save_dotenv_value(dotenv.KEY_ROOT_PASSWORD, password)
 
 

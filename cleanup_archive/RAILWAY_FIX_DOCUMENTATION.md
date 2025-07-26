@@ -1,6 +1,5 @@
 # Railway Deployment Fix - Complete Solution
 
-
 ## Problem Summary
 
 Railway deployment had multiple issues:
@@ -8,7 +7,6 @@ Railway deployment had multiple issues:
 2. UI template placeholders not being substituted (`{{version_no}}`, `{{version_time}}`, `{{feature_flags_config}}`)
 3. Inconsistent startup commands across configuration files
 4. No validation of configuration during deployment
-
 
 ## Solution Implemented
 
@@ -73,7 +71,6 @@ SEARCH_PROVIDER = "searxng"
 
 **Integration**: `start_uvicorn.py` runs quick validation checks during startup.
 
-
 ## Required Environment Variables
 
 ### Critical Variables (Railway manages these automatically)
@@ -93,7 +90,6 @@ SEARCH_PROVIDER = "searxng"
 - `VSCODE_INTEGRATION_ENABLED` - VSCode integration (default: "false")
 - `CHAT_AUTO_RESIZE_ENABLED` - Auto-resize chat (default: "true")
 
-
 ## Testing Results
 
 ✅ **All tests passed** - Updated test suites covering:
@@ -102,7 +98,6 @@ SEARCH_PROVIDER = "searxng"
 - Environment variable validation
 - Configuration file consistency
 - Template placeholder detection and resolution
-
 
 ## Deployment Commands
 
@@ -126,7 +121,6 @@ python startup_validation.py
 python test_railway_deployment.py
 ```
 
-
 ## Health Check
 
 The application provides health endpoints:
@@ -146,7 +140,6 @@ The application provides health endpoints:
 
 **`/ready`** - Simple readiness check for Railway
 
-
 ## Template Variables
 
 The following placeholders are automatically substituted in HTML templates:
@@ -161,7 +154,6 @@ Example usage in HTML:
 <span>Version {{version_no}} {{version_time}}</span>
 {{feature_flags_config}}
 ```
-
 
 ## Troubleshooting
 
@@ -201,14 +193,12 @@ python test_railway_deployment.py
 python -c "from framework.helpers.config_loader import get_config_loader; get_config_loader().log_startup_config()"
 ```
 
-
 ## Technical Details
 
 - **Backwards Compatible**: Existing deployments continue to work
 - **Performance Impact**: Minimal, only affects startup and template rendering
 - **Security**: No security implications, only configuration management
 - **Dependencies**: Added python-dotenv and GitPython for environment and version handling
-
 
 ## Important Notes for Contributors
 

@@ -17,7 +17,9 @@ class TunnelProxy(ApiHandler):
         service_ok = False
         try:
             response = requests.post(
-                f"http://localhost:{tunnel_api_port}/", json={"action": "health"}
+                f"http://localhost:{tunnel_api_port}/",
+                json={"action": "health"},
+                timeout=10,
             )
             if response.status_code == 200:
                 service_ok = True
@@ -28,7 +30,7 @@ class TunnelProxy(ApiHandler):
         if service_ok:
             try:
                 response = requests.post(
-                    f"http://localhost:{tunnel_api_port}/", json=input
+                    f"http://localhost:{tunnel_api_port}/", json=input, timeout=30
                 )
                 return response.json()
             except Exception as e:

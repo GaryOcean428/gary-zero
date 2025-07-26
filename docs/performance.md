@@ -2,7 +2,6 @@
 
 The Gary-Zero Performance Framework provides comprehensive performance optimization tools for high-performance applications.
 
-
 ## Overview
 
 The framework includes four main components:
@@ -11,7 +10,6 @@ The framework includes four main components:
 - **Async Utilities**: Enhanced async patterns and background task management
 - **Performance Monitoring**: Real-time metrics collection and resource tracking
 - **Resource Optimization**: Automatic memory and CPU optimization
-
 
 ## Quick Start
 
@@ -43,7 +41,6 @@ def memory_intensive_task():
     # Memory-intensive operation
     return result
 ```
-
 
 ## Caching System
 
@@ -139,7 +136,6 @@ pickle_cache = PersistentCache(
 cache.set("model", trained_model, ttl=86400)  # Cache for 24 hours
 ```
 
-
 ## Async Utilities
 
 ### Background Task Management
@@ -215,7 +211,6 @@ async def flaky_operation():
     return response.data
 ```
 
-
 ## Performance Monitoring
 
 ### Real-Time Metrics Collection
@@ -287,7 +282,6 @@ monitor = get_performance_monitor()
 avg_time = monitor.metrics.get_average("operation_duration_user_lookup", duration_seconds=3600)
 print(f"Average user lookup time: {avg_time:.3f} seconds")
 ```
-
 
 ## Resource Optimization
 
@@ -379,7 +373,6 @@ for recommendation in report['recommendations']:
     print(f"  - {recommendation}")
 ```
 
-
 ## Integration Example
 
 Here's a complete example integrating all performance components:
@@ -456,7 +449,6 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-
 ## Configuration
 
 ### Environment Variables
@@ -507,7 +499,6 @@ optimizer = ResourceOptimizer(
 )
 ```
 
-
 ## Best Practices
 
 ### Caching
@@ -537,7 +528,6 @@ optimizer = ResourceOptimizer(
 2. **Monitor optimization effectiveness** through metrics
 3. **Register cleanup functions** for custom caches and resources
 4. **Use auto-optimization** for production environments
-
 
 ## Troubleshooting
 

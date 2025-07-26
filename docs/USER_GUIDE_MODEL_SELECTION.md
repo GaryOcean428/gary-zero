@@ -1,10 +1,8 @@
 # Gary-Zero Model Selection Guide
 
-
 ## Overview
 
 Gary-Zero now features an advanced model catalog that prioritizes the latest and most capable AI models. This guide explains the new model selection features and how to get the best performance from your AI assistant.
-
 
 ## What's New
 
@@ -38,13 +36,11 @@ For analyzing images, documents, and visual content:
 - **Claude 4 Sonnet** - Advanced vision capabilities
 - **GPT-4o** - Multimodal understanding
 
-
 ## How to Access Model Settings
 
 1. **Open Settings**: Click the ⚙️ Settings button in the sidebar
 2. **Navigate to Agent Settings**: Click the "Agent Settings" tab
 3. **Find Model Sections**: Scroll to find different model configuration sections
-
 
 ## Model Configuration Sections
 
@@ -99,7 +95,6 @@ For web automation and visual web page analysis.
 - Web element recognition
 - Complex page analysis
 
-
 ## Getting Started
 
 ### Quick Setup (Recommended)
@@ -120,7 +115,6 @@ To customize your model selection:
 3. **Select your preferred model** from the filtered list
 4. **Adjust advanced settings** if needed (context length, rate limits)
 5. **Click Apply** to save changes
-
 
 ## Understanding Model Types
 
@@ -146,7 +140,6 @@ Different models support different context sizes:
 - **Large Context** (200K+ tokens): Complex documents, long conversations
 - **Medium Context** (32K-128K tokens): Standard conversations, documents
 - **Standard Context** (8K-32K tokens): Quick tasks, simple queries
-
 
 ## Voice Model Setup
 
@@ -176,7 +169,6 @@ Different models support different context sizes:
 - Lower latency
 - Advanced option for optimal performance
 
-
 ## Code Model Configuration
 
 ### When to Use Code Models
@@ -194,7 +186,6 @@ Different models support different context sizes:
 - **Code completion** and suggestions
 - **Bug detection** and fixes
 - **Documentation generation**
-
 
 ## Best Practices
 
@@ -228,7 +219,6 @@ Different models support different context sizes:
 4. **Set rate limits** if using API quotas
 5. **Test voice settings** for optimal audio quality
 
-
 ## Troubleshooting
 
 ### Common Issues
@@ -257,7 +247,6 @@ If you encounter issues:
 3. **Review your API key configuration**
 4. **Check the model's availability status**
 
-
 ## API Keys Required
 
 To use different providers, you'll need API keys:
@@ -268,7 +257,6 @@ To use different providers, you'll need API keys:
 - **DeepSeek**: For DeepSeek Coder
 
 Add your API keys in **Settings** → **External Services** → **API Keys**.
-
 
 ## Advanced Features
 
@@ -293,7 +281,6 @@ Optimize context usage:
 - **History allocation**: Portion reserved for chat history
 - **Auto-optimization**: Automatic history summarization
 
-
 ## What's Coming Next
 
 Future enhancements planned:
@@ -304,7 +291,6 @@ Future enhancements planned:
 - **Multi-model conversations**
 
 ---
-
 
 ## Quick Reference
 

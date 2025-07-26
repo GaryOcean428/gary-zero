@@ -1,10 +1,8 @@
 # Create Specification - Gary-Zero Agent Framework
 
-
 ## Context
 
 This instruction guides the creation of detailed technical specifications for Gary-Zero features, ensuring alignment with Railway cloud architecture and agent framework principles.
-
 
 ## Specification Standards
 
@@ -30,7 +28,6 @@ This instruction guides the creation of detailed technical specifications for Ga
 - **Researchers**: Framework for studying multi-agent interactions
 - **Business Users**: Workflow automation without coding expertise
 - **Security Professionals**: Cybersecurity tools and penetration testing
-
 
 ## Specification Template
 
@@ -78,7 +75,6 @@ This instruction guides the creation of detailed technical specifications for Ga
 - **Edge Cases**: Error handling and boundary conditions
 - **Compatibility**: Railway environment and version requirements
 
-
 ## Quality Gates
 
 ### Technical Review
@@ -95,14 +91,12 @@ This instruction guides the creation of detailed technical specifications for Ga
 - Documentation requirements
 - Community contribution potential
 
-
 ## Output Location
 
 Specifications should be created in:
 - `.agent-os/specs/` directory (not committed to git)
 - Named with feature-date format: `feature-name-YYYY-MM-DD.md`
 - Include version tracking for iterations
-
 
 ## Next Steps
 

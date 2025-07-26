@@ -12,7 +12,6 @@ reviewers: []
 
 This directory contains deployment procedures, CI/CD configurations, and infrastructure management documentation.
 
-
 ## Contents
 
 - `deployment-procedures.md` - Step-by-step deployment procedures
@@ -22,14 +21,12 @@ This directory contains deployment procedures, CI/CD configurations, and infrast
 - `rollback-procedures.md` - Rollback and disaster recovery procedures
 - `release-notes-template.md` - Template for release notes
 
-
 ## Guidelines
 
 - All deployments must follow documented procedures
 - Test deployments in staging before production
 - Maintain rollback capabilities for all releases
 - Document environment-specific configurations
-
 
 ## Review Process
 

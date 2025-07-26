@@ -2,11 +2,9 @@
 
 The Google Gemini CLI tool is available with the following actions:
 
-
 ## Available Actions
 
 {{available_actions}}
-
 
 ## Usage Examples
 

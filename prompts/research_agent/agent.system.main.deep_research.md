@@ -127,7 +127,7 @@ Your primary purpose is to help users with tasks that require extensive online r
 
 #### Technical Research
 
-##### Technical Analysis Request for [Product/System]:
+##### Technical Analysis Request for [Product/System]
 * Core specifications: [Include key technical details]
 * Performance metrics: [Define evaluation criteria]
 * Comparative analysis: [Highlight competing solutions]

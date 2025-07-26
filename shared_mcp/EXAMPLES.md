@@ -2,14 +2,12 @@
 
 This document provides examples of how to use the shared MCP library in different repositories within the Gary ecosystem.
 
-
 ## Table of Contents
 
 1. [Server Examples](#server-examples)
 2. [Client Examples](#client-examples)
 3. [Migration from Gary-Zero](#migration-from-gary-zero)
 4. [Integration in Other Repositories](#integration-in-other-repositories)
-
 
 ## Server Examples
 
@@ -84,7 +82,6 @@ proxy = DynamicMcpProxy.get_instance()
 proxy.reconfigure(server, "my-token")
 ```
 
-
 ## Client Examples
 
 ### Basic Client Setup
@@ -151,7 +148,6 @@ client = SharedMCPClient(my_settings_provider)
 # Rest of usage same as above...
 ```
 
-
 ## Migration from Gary-Zero
 
 The shared library maintains backward compatibility, so existing gary-zero code continues to work:
@@ -183,7 +179,6 @@ client = SharedMCPClient()
 1. **Phase 1 (Immediate)**: Continue using existing imports - backward compatibility maintained
 2. **Phase 2 (Optional)**: Gradually migrate to direct shared library usage for new features
 3. **Phase 3 (Future)**: Consider full migration to shared library for cleaner architecture
-
 
 ## Integration in Other Repositories
 
@@ -300,7 +295,6 @@ async def connect_to_other_repos():
 
     return gary_result, analysis_result, plan_result
 ```
-
 
 ## Configuration Examples
 

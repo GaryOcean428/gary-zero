@@ -1,10 +1,8 @@
 # Railway Platform Operations Guide
 
-
 ## Overview
 
 This guide helps AI agents understand how to operate effectively in the Railway cloud environment with E2B integration.
-
 
 ## Key Differences from Local Development
 
@@ -41,7 +39,6 @@ This guide helps AI agents understand how to operate effectively in the Railway 
 - Network access is available from sandboxes
 - Railway env vars are accessible in sandboxes
 
-
 ## Working with MCP Servers
 
 MCP (Model Context Protocol) servers extend agent capabilities:
@@ -53,7 +50,6 @@ MCP (Model Context Protocol) servers extend agent capabilities:
    - Google Drive for document access
    - Slack for team communication
    - Database connectors
-
 
 ## Best Practices for Railway
 
@@ -91,7 +87,6 @@ api_url = "http://localhost:3001"
 - Use Railway's static file serving for small assets
 - Consider object storage for large files
 
-
 ## Security Considerations
 
 1. **Secrets Management**
@@ -111,14 +106,12 @@ api_url = "http://localhost:3001"
    - Resource limits enforced
    - Automatic cleanup after execution
 
-
 ## Debugging in Railway
 
 1. **Logs**: Available in Railway dashboard
 2. **Metrics**: CPU, Memory, Network monitored
 3. **Health Checks**: Configure in railway.toml
 4. **Deployment Status**: Check build and deploy logs
-
 
 ## Common Patterns
 
@@ -162,7 +155,6 @@ def process_task(data):
     return {'processed': data, 'env': os.getenv('RAILWAY_ENVIRONMENT')}
 ```
 
-
 ## Docker Hub Integration
 
 Connecting Docker Hub provides:
@@ -180,7 +172,6 @@ To connect:
    [build]
    image = "yourdockerhub/image:tag"
    ```
-
 
 ## Troubleshooting
 

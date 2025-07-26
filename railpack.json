@@ -11,11 +11,20 @@
     "PORT": "${PORT}",
     "WEB_UI_HOST": "0.0.0.0",
     "PYTHONUNBUFFERED": "1",
-    "TOKENIZERS_PARALLELISM": "false"
+    "TOKENIZERS_PARALLELISM": "false",
+    "DATA_DIR": "/app/data",
+    "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+    "REDIS_URL": "${{redis.REDIS_URL}}"
+  },
+  "volumes": {
+    "gary-zero-data": {
+      "mountPath": "/app/data",
+      "size": 10
+    }
   },
   "services": {
-    "web": {
-      "source": "."
-    }
+    "postgres": { "source": "postgres" },
+    "redis": { "source": "redis" },
+    "web": { "source": "." }
   }
 }

@@ -2,7 +2,6 @@
 
 This directory contains the integration files for the Claude Code CLI tool, which provides advanced code editing and terminal operations using Anthropic's Claude language model.
 
-
 ## Installation
 
 ### Automatic Installation
@@ -23,7 +22,6 @@ Or run the installation script:
 ./install.sh
 ```
 
-
 ## Configuration
 
 After installation, authenticate with your Anthropic API key:
@@ -38,7 +36,6 @@ Or set the API key directly:
 export ANTHROPIC_API_KEY=your_api_key_here
 ```
 
-
 ## Features
 
 - **Context-Aware Editing**: Multi-file editing with project context
@@ -47,7 +44,6 @@ export ANTHROPIC_API_KEY=your_api_key_here
 - **File Operations**: Read, write, create, and delete files safely
 - **Workspace Management**: Project-wide operations and insights
 - **Code Review**: Automated code review and suggestions
-
 
 ## Usage Examples
 
@@ -84,7 +80,6 @@ claude-code workspace search --pattern "TODO"
 claude-code workspace tree --max-depth 3
 ```
 
-
 ## Agent Integration
 
 The Claude Code CLI is integrated into the Zero Agent framework through:
@@ -96,7 +91,6 @@ The Claude Code CLI is integrated into the Zero Agent framework through:
 5. **Approval workflow**: High-risk operations require approval for security
 6. **Sandboxed execution**: All operations run in controlled environment
 
-
 ## Configuration Options
 
 In agent settings:
@@ -104,7 +98,6 @@ In agent settings:
 - `claude_cli_path`: Path to the CLI binary (default: "claude-code")
 - `claude_cli_approval_mode`: Approval mode ("auto", "suggest", "manual")
 - `claude_cli_auto_install`: Enable automatic installation if CLI is missing
-
 
 ## Security Features
 
@@ -114,7 +107,6 @@ In agent settings:
 - **Backup Creation**: Automatic backups before file modifications
 - **Risk Assessment**: Operations categorized by risk level
 
-
 ## Requirements
 
 - Node.js 16 or higher
@@ -122,7 +114,6 @@ In agent settings:
 - Anthropic API key
 - Git (for Git operations)
 - Internet connection for API requests
-
 
 ## Troubleshooting
 
@@ -157,7 +148,6 @@ If Git operations fail:
 2. Check Git configuration and credentials
 3. Verify repository remote settings
 4. Ensure working directory is clean for certain operations
-
 
 ## Links
 

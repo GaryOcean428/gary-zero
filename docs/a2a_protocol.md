@@ -1,10 +1,8 @@
 # Agent2Agent (A2A) Protocol Implementation
 
-
 ## Overview
 
 The Agent2Agent (A2A) protocol enables standardized communication between AI agents across different vendors and platforms. This document outlines Gary-Zero's implementation of A2A protocol compliance.
-
 
 ## A2A Protocol Components
 
@@ -58,7 +56,6 @@ A2A protocol integrates with Gary-Zero's existing MCP implementation:
 - A2A agents can expose MCP tools to other agents
 - Cross-protocol communication is supported
 
-
 ## Implementation Architecture
 
 ```
@@ -86,7 +83,6 @@ A2A protocol integrates with Gary-Zero's existing MCP implementation:
     └── a2a_setup.md           # Setup documentation
 ```
 
-
 ## Configuration
 
 A2A agents are configured through Gary-Zero's settings system:
@@ -113,7 +109,6 @@ A2A agents are configured through Gary-Zero's settings system:
 }
 ```
 
-
 ## Security Considerations
 
 - Agent authentication via API keys or OAuth
@@ -121,7 +116,6 @@ A2A agents are configured through Gary-Zero's settings system:
 - Rate limiting and request validation
 - Secure communication channels (HTTPS/WSS)
 - Input sanitization and validation
-
 
 ## Interoperability Testing
 

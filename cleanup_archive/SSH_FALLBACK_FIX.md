@@ -2,7 +2,6 @@
 
 This document describes the fix for SSH connection failures in Gary-Zero deployments.
 
-
 ## Problem
 
 Gary-Zero was failing with `NoValidConnectionsError` when trying to connect to SSH on port 55022, particularly in Railway deployments where no SSH server is available.
@@ -11,11 +10,9 @@ Gary-Zero was failing with `NoValidConnectionsError` when trying to connect to S
 NoValidConnectionsError: [Errno None] Unable to connect to port 55022 on 127.0.0.1 or ::1
 ```
 
-
 ## Root Cause
 
 The default configuration enabled SSH execution (`code_exec_ssh_enabled: bool = True`) but no SSH server was running on the expected port 55022, causing the application to crash during code execution tool initialization.
-
 
 ## Solution
 
@@ -25,7 +22,6 @@ Implemented a graceful fallback mechanism that:
 2. **Attempts SSH First**: When configured, tries SSH connection as before
 3. **Falls Back Gracefully**: If SSH fails, automatically falls back to local execution
 4. **Provides Configuration**: Allows explicit control via environment variables
-
 
 ## Configuration
 
@@ -59,7 +55,6 @@ export CODE_EXECUTION_MODE=direct
 export DISABLE_SSH_EXECUTION=true
 ```
 
-
 ## Implementation Details
 
 ### New Files
@@ -92,7 +87,6 @@ if use_ssh:
         shell = LocalInteractiveSession()
 ```
 
-
 ## Testing
 
 The fix includes comprehensive tests:
@@ -100,14 +94,12 @@ The fix includes comprehensive tests:
 - `test_ssh_fallback.py` - Tests environment detection and fallback logic
 - `test_ssh_issue_fix.py` - Simulates the original failure scenario
 
-
 ## Backward Compatibility
 
 - ✅ Existing SSH functionality is preserved when SSH is available
 - ✅ No configuration changes required for working SSH setups
 - ✅ Secure execution framework integration maintained
 - ✅ Docker container execution continues to work
-
 
 ## Verification
 
@@ -117,7 +109,6 @@ The fix ensures:
 2. **Railway Compatibility**: Automatic detection and configuration for Railway deployments
 3. **Flexibility**: Environment variables allow override of default behavior
 4. **Clear Logging**: Users can see when fallback occurs and why
-
 
 ## Example Output
 

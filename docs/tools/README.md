@@ -2,7 +2,6 @@
 
 This directory contains documentation for Gary-Zero's tools and instruments.
 
-
 ## Available Tools
 
 ### Core Tools
@@ -31,7 +30,6 @@ This directory contains documentation for Gary-Zero's tools and instruments.
 
 - **Knowledge Tool**: Access to knowledge base and documentation (existing)
 - **Memory Tools**: Save, load, and manage agent memory (existing)
-
 
 ## Tool Development
 
@@ -82,7 +80,6 @@ tool_max_actions: int
 "tool_max_actions": 100,
 ```
 
-
 ## Security Considerations
 
 ### Tool Safety
@@ -104,7 +101,6 @@ tool_max_actions: int
 - Provide clear feedback to users
 - Enable monitoring of tool usage
 
-
 ## Contributing
 
 When contributing new tools:
@@ -114,7 +110,6 @@ When contributing new tools:
 3. Include comprehensive tests
 4. Document usage and configuration
 5. Consider backwards compatibility
-
 
 ## See Also
 

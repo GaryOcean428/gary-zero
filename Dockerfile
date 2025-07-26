@@ -130,6 +130,7 @@ RUN if [ ! -f /app/.env ] && [ -f /app/example.env ]; then \
 # Create necessary directories, volume mount point, and set up entrypoint script
 RUN mkdir -p logs work_dir tmp memory tmp/scheduler /app/data && \
     echo '[]' > /app/tmp/scheduler/tasks.json && \
+    chmod 755 /app/data && \
     chmod +x /app/docker-entrypoint.sh && \
     chmod +x /app/scripts/init_volumes.py
 

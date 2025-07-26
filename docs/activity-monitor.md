@@ -2,7 +2,6 @@
 
 The Live Activity Monitor provides real-time tracking of browser activities, coding operations, and user interactions within the Gary-Zero application.
 
-
 ## Features
 
 ### 🔄 Real-Time Monitoring
@@ -25,7 +24,6 @@ The Live Activity Monitor provides real-time tracking of browser activities, cod
 - Responsive layout that works on desktop and mobile
 - Smooth animations and transitions
 - Dark mode compatible styling
-
 
 ## Usage
 
@@ -98,7 +96,6 @@ const activities = await window.activityMonitor.getActivities(25, 'coding');
 await window.activityMonitor.clearActivities();
 ```
 
-
 ## Integration Points
 
 ### Automatic Activity Logging
@@ -122,7 +119,6 @@ window.logCodingActivity('upload', 'path/to/file.txt', 'User uploaded new file')
 window.logCodingActivity('delete', 'old/file.js', 'User deleted obsolete file');
 ```
 
-
 ## Testing
 
 ### Test Page
@@ -136,7 +132,6 @@ Visit `/activity-monitor-test.html` for a standalone test interface with:
 ### Sample Data
 
 Use the "Populate Sample Data" feature to add realistic test activities for development and demonstration purposes.
-
 
 ## Configuration
 
@@ -153,14 +148,12 @@ The activity monitor automatically adapts to different screen sizes:
 - **Tablet**: Stacked layout with preserved functionality
 - **Mobile**: Simplified controls and compressed iframe height
 
-
 ## Security
 
 - Activities are stored in-memory only
 - API endpoints require authentication
 - iframe uses sandbox restrictions for security
 - External URL loading requires user confirmation
-
 
 ## Browser Compatibility
 

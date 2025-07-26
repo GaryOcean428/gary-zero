@@ -2,14 +2,12 @@
 
 This guide explains how to configure and utilize external tool providers through the Model Context Protocol (MCP) with Gary-Zero. This allows Gary-Zero to leverage tools hosted by separate local or remote MCP-compliant servers.
 
-
 ## What are MCP Servers?
 
 MCP servers are external processes or services that expose a set of tools that Gary-Zero can use. Gary-Zero acts as an MCP *client*, consuming tools made available by these servers. The integration supports two main types of MCP servers:
 
 1. **Local Stdio Servers**: These are typically local executables that Gary-Zero communicates with via standard input/output (stdio).
 2. **Remote SSE Servers**: These are servers, often accessible over a network, that Gary-Zero communicates with using Server-Sent Events (SSE), usually over HTTP/S.
-
 
 ## How Gary-Zero Consumes MCP Tools
 
@@ -21,7 +19,6 @@ Gary-Zero discovers and integrates MCP tools dynamically:
 4. **Tool Discovery**: Upon initialization (or when settings are updated), Gary-Zero connects to each configured and enabled MCP server and queries it for the list of available tools, their descriptions, and expected parameters.
 5. **Dynamic Prompting**: The information about these discovered tools is then dynamically injected into the agent's system prompt. A placeholder like `{{tools}}` in a system prompt template (e.g., `prompts/default/agent.system.mcp_tools.md`) is replaced with a formatted list of all available MCP tools. This allows the agent's underlying Language Model (LLM) to know which external tools it can request.
 6. **Tool Invocation**: When the LLM decides to use an MCP tool, Gary-Zero's `process_tools` method (handled by `mcp_handler.py`) identifies it as an MCP tool and routes the request to the appropriate `MCPConfig` helper, which then communicates with the designated MCP server to execute the tool.
-
 
 ## Configuration
 
@@ -116,7 +113,6 @@ Here are templates for configuring individual servers within the `mcp_servers` J
 * `"command"`: **Required for Local Stdio Servers.** The executable command.
 * `"args"`: Optional list of arguments for local Stdio servers.
 * Other fields are specific to the server type and mostly optional with defaults.
-
 
 ## Using MCP Tools
 

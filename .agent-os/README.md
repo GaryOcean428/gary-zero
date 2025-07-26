@@ -12,7 +12,6 @@ reviewers: []
 
 This directory contains comprehensive documentation for the Agent-OS platform, organized by functional areas.
 
-
 ## Directory Structure
 
 ### 📐 Architecture (`architecture/`)
@@ -51,7 +50,6 @@ Product documentation including mission, roadmap, technical decisions, and tech 
 
 Input documents, requirements, and external references used in documentation development.
 
-
 ## Documentation Standards
 
 All documentation in this directory follows the BuilderMethods Agent-OS template structure with:
@@ -61,14 +59,12 @@ All documentation in this directory follows the BuilderMethods Agent-OS template
 - **Review process:** Defined approval workflows
 - **Categorization:** Clear taxonomy and tagging
 
-
 ## Getting Started
 
 1. **For Developers:** Start with `development-standards/` and `architecture/`
 2. **For Operations:** Begin with `deployment/` and `monitoring/`
 3. **For Security:** Review `security/` policies and procedures
 4. **For Product:** Check `product/` for mission and roadmap
-
 
 ## Contributing
 

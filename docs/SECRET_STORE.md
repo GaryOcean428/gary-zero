@@ -1,10 +1,8 @@
 # Secret Store Documentation
 
-
 ## Overview
 
 The Gary-Zero Internal Secret Store provides secure, encrypted storage for API keys, passwords, and other sensitive information. It replaces hard-coded secrets and insecure environment variable usage with a centralized, auditable secret management system.
-
 
 ## Features
 
@@ -17,7 +15,6 @@ The Gary-Zero Internal Secret Store provides secure, encrypted storage for API k
 - **🔌 Easy Integration**: Helper functions for seamless component integration
 - **⚡ Thread Safe**: Concurrent access with proper locking
 - **🔙 Backward Compatible**: Automatic fallback to environment variables
-
 
 ## Quick Start
 
@@ -59,7 +56,6 @@ class MyTool:
         self.secrets = SecretStoreIntegration("my_tool")
         self.api_key = self.secrets.get_api_key("openai", required=True)
 ```
-
 
 ## Core Components
 
@@ -126,7 +122,6 @@ db_url = get_database_url()
 # Authentication credentials
 creds = get_auth_credentials("kali")  # {"username": "...", "password": "..."}
 ```
-
 
 ## CLI Reference
 
@@ -210,7 +205,6 @@ python -m framework.security.secret_cli cleanup
 python -m framework.security.secret_cli rotation
 ```
 
-
 ## Integration Patterns
 
 ### Pattern 1: SecretStoreIntegration Class
@@ -277,7 +271,6 @@ def setup_services():
         "database": Database(db_url)
     }
 ```
-
 
 ## Migration Guide
 
@@ -353,7 +346,6 @@ python -m framework.security.secret_cli add api_key --rotation 30 --expires 90
 python -m framework.security.secret_cli rotation
 ```
 
-
 ## Security Considerations
 
 ### Encryption
@@ -386,7 +378,6 @@ All secret operations are logged with:
 - Timestamp and success/failure status
 - IP address and user agent (when available)
 
-
 ## Configuration
 
 ### Environment Variables
@@ -408,7 +399,6 @@ config = SecretStoreConfig(
     max_secrets=1000                            # Maximum number of secrets
 )
 ```
-
 
 ## Troubleshooting
 
@@ -439,7 +429,6 @@ import logging
 logging.getLogger('framework.security.secret_store').setLevel(logging.DEBUG)
 ```
 
-
 ## Best Practices
 
 1. **Use descriptive secret names**: `openai_api_key` not `key1`
@@ -451,7 +440,6 @@ logging.getLogger('framework.security.secret_store').setLevel(logging.DEBUG)
 7. **Use environment fallback**: Maintain backward compatibility
 8. **Validate inputs**: Always check if secrets are found before using
 
-
 ## Future Enhancements
 
 - **Remote storage backends**: Support for cloud key management services
@@ -461,7 +449,6 @@ logging.getLogger('framework.security.secret_store').setLevel(logging.DEBUG)
 - **Secret scanning**: Integration with GitGuardian and similar tools
 - **Multi-tenant support**: Namespace isolation for different components
 - **Secret sharing**: Secure sharing between components with permissions
-
 
 ## Examples
 

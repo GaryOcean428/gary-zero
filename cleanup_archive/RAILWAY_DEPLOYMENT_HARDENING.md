@@ -1,10 +1,8 @@
 # Railway Deployment Hardening Guide
 
-
 ## Overview
 
 This document outlines the security hardening measures implemented for Gary-Zero deployment on Railway.app, following security best practices and Railway deployment standards.
-
 
 ## Implemented Security Measures
 
@@ -102,7 +100,6 @@ API_KEY=your_api_key_here
 - **500 Errors**: Custom error pages with logging
 - **Global Exception Handler**: Centralized error handling
 
-
 ## Railway Deployment Checklist
 
 ### Pre-Deployment Security Verification
@@ -161,7 +158,6 @@ API_KEY=your_api_key_here
 - [ ] **Error Handling**: Confirm error pages don't leak sensitive information
 - [ ] **HTTPS**: Ensure all traffic uses HTTPS (Railway auto-provides)
 
-
 ## Security Best Practices
 
 ### 1. Password Security
@@ -191,7 +187,6 @@ API_KEY=your_api_key_here
 - **Error Logging**: Monitor application logs for security events
 - **Access Logs**: Review authentication attempts
 - **Performance**: Monitor resource usage through health endpoint
-
 
 ## Troubleshooting
 
@@ -235,7 +230,6 @@ For security issues or questions:
 - Review logs: `railway logs`
 - Check service status: `https://your-app.up.railway.app/healthz`
 - Debug routes: `https://your-app.up.railway.app/debug/routes`
-
 
 ## Version History
 

@@ -1,10 +1,8 @@
 # Model Catalog Framework Documentation
 
-
 ## Overview
 
 The Gary-Zero framework features a comprehensive model catalog system that prioritizes modern AI models while maintaining backward compatibility. This system supports multiple model types including chat, utility, voice, code, and browser models.
-
 
 ## Architecture
 
@@ -34,7 +32,6 @@ MODEL_CATALOG: dict[str, list[dict[str, str]]] = {
     ]
 }
 ```
-
 
 ## API Functions
 
@@ -88,7 +85,6 @@ Checks if a specific model is flagged as deprecated.
 
 Validates that a model exists for the given provider.
 
-
 ## API Endpoints
 
 ### `/get_models_for_provider`
@@ -125,7 +121,6 @@ Validates that a model exists for the given provider.
 
 **POST** endpoint returning current active model information with capabilities.
 
-
 ## Settings Integration
 
 ### Model Types Supported
@@ -159,7 +154,6 @@ Voice models support additional settings:
 - **Architecture**: `speech_to_speech` (realtime) or `chained` (transcribe → LLM → TTS)
 - **Transport**: `websocket` or `webrtc` for realtime connections
 
-
 ## UI Integration
 
 ### Model Prioritization
@@ -188,7 +182,6 @@ Voice and code models have dedicated UI sections:
 
 - **Voice Model Section**: Architecture and transport configuration
 - **Code Model Section**: Development-specific model selection
-
 
 ## Adding New Models
 
@@ -225,7 +218,6 @@ Run tests to ensure proper integration:
 python test_model_modernization.py
 ```
 
-
 ## Best Practices
 
 ### Model Flagging
@@ -248,7 +240,6 @@ python test_model_modernization.py
 - **Clear version indicators** when multiple versions exist
 - **Provider suffixes** for clarity in cross-provider contexts
 
-
 ## Migration Guide
 
 ### From Legacy Models
@@ -263,7 +254,6 @@ When updating from deprecated models:
 ### Configuration Updates
 
 Existing configurations automatically benefit from modern model prioritization without breaking changes.
-
 
 ## Troubleshooting
 
@@ -286,7 +276,6 @@ print(f"Found {len(models)} modern OpenAI models")
 is_valid = is_valid_model_for_provider("OPENAI", "o3")
 print(f"Model valid: {is_valid}")
 ```
-
 
 ## Future Enhancements
 

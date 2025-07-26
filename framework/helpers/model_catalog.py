@@ -5,10 +5,7 @@ for each provider, used to populate dropdown selections in the UI.
 Modern models (released after June 2024) are prioritized first in each provider's list.
 """
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from framework.helpers.settings import FieldOption
+from typing import Any
 
 # A dictionary representing a single model's metadata.
 # The values can be strings or booleans.
@@ -18,7 +15,6 @@ ModelInfo = dict[str, str | bool]
 ModelCollection = dict[str, list[ModelInfo]]
 
 # For runtime, we'll use the actual type
-from typing import Any
 FieldOptionRuntime = dict[str, Any]
 
 # The main catalog of all models.
@@ -64,20 +60,26 @@ MODEL_CATALOG: ModelCollection = {
         },
     ],
     "OPENAI": [
-        # Modern models (post-June 2024)
+        # Core Models
+        {
+            "value": "gpt-4.1",
+            "label": "GPT-4.1",
+            "modern": True,
+            "release_date": "2025-01-01",
+        },
+        {
+            "value": "gpt-4.1-mini",
+            "label": "GPT-4.1 Mini",
+            "modern": True,
+            "release_date": "2025-01-01",
+        },
+        {
+            "value": "gpt-4.1-nano",
+            "label": "GPT-4.1 Nano",
+            "modern": True,
+            "release_date": "2025-01-01",
+        },
         {"value": "o3", "label": "o3", "modern": True, "release_date": "2025-01-31"},
-        {
-            "value": "o3-mini",
-            "label": "o3 Mini",
-            "modern": True,
-            "release_date": "2025-01-31",
-        },
-        {
-            "value": "o3-mini-2025-01-31",
-            "label": "o3 Mini (2025-01-31)",
-            "modern": True,
-            "release_date": "2025-01-31",
-        },
         {
             "value": "o3-pro",
             "label": "o3 Pro",
@@ -90,48 +92,11 @@ MODEL_CATALOG: ModelCollection = {
             "modern": True,
             "release_date": "2025-03-01",
         },
-        {"value": "o1", "label": "o1", "modern": True, "release_date": "2024-09-12"},
         {
-            "value": "o1-mini",
-            "label": "o1 Mini",
+            "value": "gpt-4o",
+            "label": "GPT-4o",
             "modern": True,
-            "release_date": "2024-09-12",
-        },
-        {
-            "value": "o1-pro",
-            "label": "o1 Pro",
-            "modern": True,
-            "release_date": "2024-12-05",
-        },
-        {
-            "value": "chatgpt-4.1",
-            "label": "ChatGPT-4.1",
-            "modern": True,
-            "release_date": "2024-12-01",
-        },
-        {
-            "value": "gpt-4.1",
-            "label": "GPT-4.1",
-            "modern": True,
-            "release_date": "2024-12-01",
-        },
-        {
-            "value": "gpt-4.1-mini",
-            "label": "GPT-4.1 Mini",
-            "modern": True,
-            "release_date": "2024-12-01",
-        },
-        {
-            "value": "gpt-4.1-nano",
-            "label": "GPT-4.1 Nano",
-            "modern": True,
-            "release_date": "2024-12-01",
-        },
-        {
-            "value": "gpt-4.1-vision",
-            "label": "GPT-4.1 Vision",
-            "modern": True,
-            "release_date": "2024-12-01",
+            "release_date": "2024-05-13",
         },
         {
             "value": "gpt-4o-mini",
@@ -139,33 +104,26 @@ MODEL_CATALOG: ModelCollection = {
             "modern": True,
             "release_date": "2024-07-18",
         },
+        # Transcription Models
         {
-            "value": "computer-use-preview",
-            "label": "Computer Use Preview",
+            "value": "gpt-4o-transcribe",
+            "label": "GPT-4o Transcribe",
             "modern": True,
             "release_date": "2024-10-01",
         },
         {
-            "value": "gpt-4o-realtime-preview",
-            "label": "GPT-4o Realtime Preview",
+            "value": "gpt-4o-mini-transcribe",
+            "label": "GPT-4o Mini Transcribe",
             "modern": True,
             "release_date": "2024-10-01",
-            "voice": True,
         },
         {
-            "value": "gpt-4o-audio",
-            "label": "GPT-4o Audio",
+            "value": "whisper-1",
+            "label": "Whisper 1",
             "modern": True,
-            "release_date": "2024-10-01",
-            "voice": True,
+            "release_date": "2022-09-21",
         },
-        {
-            "value": "gpt-4o-mini-audio",
-            "label": "GPT-4o Mini Audio",
-            "modern": True,
-            "release_date": "2024-10-01",
-            "voice": True,
-        },
+        # Tool-Specific Models
         {
             "value": "gpt-4o-search-preview",
             "label": "GPT-4o Search Preview",
@@ -178,7 +136,20 @@ MODEL_CATALOG: ModelCollection = {
             "modern": True,
             "release_date": "2024-10-01",
         },
-        # Embedding models - modern and widely used
+        {
+            "value": "codex-mini-latest",
+            "label": "Codex Mini Latest",
+            "modern": True,
+            "release_date": "2024-10-01",
+            "code": True,
+        },
+        # Embedding Models
+        {
+            "value": "text-embedding-3-small",
+            "label": "Text Embedding 3 Small",
+            "modern": True,
+            "release_date": "2024-01-25",
+        },
         {
             "value": "text-embedding-3-large",
             "label": "Text Embedding 3 Large",
@@ -186,45 +157,37 @@ MODEL_CATALOG: ModelCollection = {
             "release_date": "2024-01-25",
         },
         {
-            "value": "text-embedding-3-small",
-            "label": "Text Embedding 3 Small",
+            "value": "text-embedding-ada-002",
+            "label": "Text Embedding Ada 002",
             "modern": True,
-            "release_date": "2024-01-25",
+            "release_date": "2022-12-15",
         },
     ],
     "GOOGLE": [
-        # Modern models (post-June 2024)
+        # Core Models (2.0 and above only)
         {
-            "value": "gemini-2.5-pro-preview-06-05",
-            "label": "Gemini 2.5 Pro Preview (06-05)",
+            "value": "gemini-2.5-pro",
+            "label": "Gemini 2.5 Pro",
             "modern": True,
-            "release_date": "2025-06-05",
+            "release_date": "2025-01-01",
         },
         {
-            "value": "gemini-2.5-flash-preview-05-20",
-            "label": "Gemini 2.5 Flash Preview (05-20)",
+            "value": "gemini-2.5-pro-latest",
+            "label": "Gemini 2.5 Pro Latest",
             "modern": True,
-            "release_date": "2025-05-20",
+            "release_date": "2025-01-01",
         },
         {
-            "value": "gemini-2.5-flash-preview-tts",
-            "label": "Gemini 2.5 Flash Preview TTS",
+            "value": "gemini-2.5-flash",
+            "label": "Gemini 2.5 Flash",
             "modern": True,
-            "release_date": "2025-05-20",
-            "voice": True,
+            "release_date": "2025-01-01",
         },
         {
-            "value": "gemini-2.5-pro-preview-tts",
-            "label": "Gemini 2.5 Pro Preview TTS",
+            "value": "gemini-2.5-flash-latest",
+            "label": "Gemini 2.5 Flash Latest",
             "modern": True,
-            "release_date": "2025-06-05",
-            "voice": True,
-        },
-        {
-            "value": "gemini-2.5-pro-exp-03-25",
-            "label": "Gemini 2.5 Pro Exp (03-25)",
-            "modern": True,
-            "release_date": "2025-03-25",
+            "release_date": "2025-01-01",
         },
         {
             "value": "gemini-2.0-flash",
@@ -233,29 +196,12 @@ MODEL_CATALOG: ModelCollection = {
             "release_date": "2024-12-11",
         },
         {
-            "value": "gemini-2.0-flash-preview-image-generation",
-            "label": "Gemini 2.0 Flash Preview Image Generation",
+            "value": "gemini-2.0-flash-latest",
+            "label": "Gemini 2.0 Flash Latest",
             "modern": True,
             "release_date": "2024-12-11",
         },
-        {
-            "value": "gemini-2.0-flash-thinking-exp",
-            "label": "Gemini 2.0 Flash Thinking Exp",
-            "modern": True,
-            "release_date": "2024-12-11",
-        },
-        {
-            "value": "gemini-2.0-pro-experimental",
-            "label": "Gemini 2.0 Pro Experimental",
-            "modern": True,
-            "release_date": "2024-12-11",
-        },
-        {
-            "value": "gemini-2.0-flash-lite",
-            "label": "Gemini 2.0 Flash Lite",
-            "modern": True,
-            "release_date": "2024-12-11",
-        },
+        # CLI Models
         {
             "value": "gemini-cli-chat",
             "label": "Gemini CLI Chat",
@@ -271,18 +217,11 @@ MODEL_CATALOG: ModelCollection = {
         },
     ],
     "GROQ": [
-        # Modern models (post-June 2024)
         {
-            "value": "compound-beta",
-            "label": "Compound Beta",
+            "value": "llama-3.1-8b-instant",
+            "label": "Llama 3.1 8B Instant",
             "modern": True,
-            "release_date": "2024-10-01",
-        },
-        {
-            "value": "kimi-k2-instruct",
-            "label": "Kimi K2 Instruct",
-            "modern": True,
-            "release_date": "2024-10-01",
+            "release_date": "2024-07-23",
         },
         {
             "value": "llama-3.3-70b-versatile",
@@ -291,16 +230,16 @@ MODEL_CATALOG: ModelCollection = {
             "release_date": "2024-12-06",
         },
         {
-            "value": "llama-3.1-70b-versatile",
-            "label": "Llama 3.1 70B Versatile",
+            "value": "moonshotai/kimi-k2-instruct",
+            "label": "Kimi K2 Instruct (Moonshot AI)",
             "modern": True,
-            "release_date": "2024-07-23",
+            "release_date": "2024-10-01",
         },
         {
-            "value": "llama-3.1-8b-instant",
-            "label": "Llama 3.1 8B Instant",
+            "value": "qwen/qwen3-32b",
+            "label": "Qwen 3 32B",
             "modern": True,
-            "release_date": "2024-07-23",
+            "release_date": "2024-10-01",
         },
         {
             "value": "gemma2-9b-it",
@@ -424,12 +363,11 @@ MODEL_CATALOG: ModelCollection = {
         },
     ],
     "PERPLEXITY": [
-        # Modern models (post-June 2024)
         {
-            "value": "sonar-reasoning-pro",
-            "label": "Sonar Reasoning Pro",
+            "value": "sonar",
+            "label": "Sonar",
             "modern": True,
-            "release_date": "2025-02-11",
+            "release_date": "2024-08-01",
         },
         {
             "value": "sonar-pro",
@@ -438,22 +376,22 @@ MODEL_CATALOG: ModelCollection = {
             "release_date": "2025-02-11",
         },
         {
-            "value": "llama-3.1-sonar-small-128k-online",
-            "label": "Llama 3.1 Sonar Small 128K",
+            "value": "sonar-reasoning",
+            "label": "Sonar Reasoning",
             "modern": True,
-            "release_date": "2024-07-23",
+            "release_date": "2024-12-01",
         },
         {
-            "value": "llama-3.1-sonar-large-128k-online",
-            "label": "Llama 3.1 Sonar Large 128K",
+            "value": "sonar-reasoning-pro",
+            "label": "Sonar Reasoning Pro",
             "modern": True,
-            "release_date": "2024-07-23",
+            "release_date": "2025-02-11",
         },
         {
-            "value": "llama-3.1-sonar-huge-128k-online",
-            "label": "Llama 3.1 Sonar Huge 128K",
+            "value": "sonar-deep-research",
+            "label": "Sonar Deep Research",
             "modern": True,
-            "release_date": "2024-07-23",
+            "release_date": "2024-12-01",
         },
     ],
     "HUGGINGFACE": [
@@ -538,33 +476,11 @@ MODEL_CATALOG: ModelCollection = {
         },
     ],
     "QWEN": [
-        # Modern models (post-June 2024)
         {
-            "value": "qwen-3-coder",
-            "label": "Qwen 3 Coder",
+            "value": "qwen-coder",
+            "label": "Qwen Coder",
             "modern": True,
-            "release_date": "2024-11-15",
-            "code": True,
-        },
-        {
-            "value": "qwen-2.5-coder-32b-instruct",
-            "label": "Qwen 2.5 Coder 32B Instruct",
-            "modern": True,
-            "release_date": "2024-09-19",
-            "code": True,
-        },
-        {
-            "value": "qwen-2.5-coder-14b-instruct",
-            "label": "Qwen 2.5 Coder 14B Instruct",
-            "modern": True,
-            "release_date": "2024-09-19",
-            "code": True,
-        },
-        {
-            "value": "qwen-2.5-coder-7b-instruct",
-            "label": "Qwen 2.5 Coder 7B Instruct",
-            "modern": True,
-            "release_date": "2024-09-19",
+            "release_date": "2024-10-01",
             "code": True,
         },
     ],
@@ -627,7 +543,7 @@ def get_all_models() -> list[FieldOptionRuntime]:
 
 def get_all_modern_models() -> list[FieldOptionRuntime]:
     """Get all modern models (post-June 2024) across all providers.
-    
+
     This includes both models released after June 2024 and approved embedding models
     (text-embedding-3-large/small) which remain supported and maintained.
 
@@ -636,16 +552,16 @@ def get_all_modern_models() -> list[FieldOptionRuntime]:
     """
     all_models = get_all_models()
     modern_models = []
-    
+
     for model in all_models:
-        # Include models marked as modern
-        if model.get("modern", False):
+        # Include models marked as modern or approved embedding models
+        # (exception to date rule)
+        if model.get("modern", False) or (
+            model.get("value") in ["text-embedding-3-large", "text-embedding-3-small"]
+            and "embedding" in model.get("value", "").lower()
+        ):
             modern_models.append(model)
-        # Also include approved embedding models (exception to date rule)
-        elif (model.get("value") in ["text-embedding-3-large", "text-embedding-3-small"] 
-              and "embedding" in model.get("value", "").lower()):
-            modern_models.append(model)
-    
+
     return modern_models
 
 
@@ -666,7 +582,8 @@ def get_recommended_model_for_provider(provider_name: str) -> FieldOptionRuntime
         provider_name: The name of the provider
 
     Returns:
-        The first modern model for the provider, or the first model if no modern models exist
+        The first modern model for the provider, or the first model if no modern
+        models exist
     """
     modern_models = get_modern_models_for_provider(provider_name)
     if modern_models:
@@ -704,7 +621,8 @@ def is_model_deprecated(provider_name: str, model_name: str) -> bool:
     provider_models = get_models_for_provider(provider_name)
     for model in provider_models:
         if model["value"] == model_name:
-            return model.get("deprecated", False)
+            deprecated = model.get("deprecated", False)
+            return bool(deprecated)
     return False
 
 
@@ -740,7 +658,8 @@ def is_model_modern(provider_name: str, model_name: str) -> bool:
     provider_models = get_models_for_provider(provider_name)
     for model in provider_models:
         if model["value"] == model_name:
-            return model.get("modern", False)
+            modern = model.get("modern", False)
+            return bool(modern)
     return False
 
 

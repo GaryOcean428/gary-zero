@@ -1,10 +1,8 @@
 # Analyze Product - Gary-Zero Agent Framework
 
-
 ## Context
 
 This instruction guides the analysis of Gary-Zero's current state, architecture, and roadmap to inform strategic decisions and identify optimization opportunities.
-
 
 ## Analysis Framework
 
@@ -29,7 +27,6 @@ This instruction guides the analysis of Gary-Zero's current state, architecture,
 - **Market Gaps**: Specialized security tooling, cloud-native agent frameworks
 - **Technology Trends**: Multi-agent systems, visual AI, cloud-first deployment
 - **User Feedback**: Community needs and enterprise requirements
-
 
 ## Analysis Categories
 
@@ -65,7 +62,6 @@ This instruction guides the analysis of Gary-Zero's current state, architecture,
 - **Documentation**: Completeness, clarity, examples
 - **Support**: Community help, issue resolution, learning resources
 
-
 ## Analysis Methods
 
 ### Quantitative Assessment
@@ -88,7 +84,6 @@ This instruction guides the analysis of Gary-Zero's current state, architecture,
 - **Performance Profiling**: Bottleneck identification, optimization opportunities
 - **Security Audit**: Vulnerability assessment, compliance review
 - **Integration Testing**: Service communication, reliability testing
-
 
 ## Analysis Deliverables
 
@@ -113,7 +108,6 @@ This instruction guides the analysis of Gary-Zero's current state, architecture,
 - **Market Strategy**: Positioning, messaging, target segment focus
 - **Development Process**: Workflow improvements, quality assurance
 
-
 ## Railway Cloud Considerations
 
 ### Platform Optimization
@@ -129,7 +123,6 @@ This instruction guides the analysis of Gary-Zero's current state, architecture,
 - **Cost Efficiency**: Service usage optimization
 - **Integration Quality**: Communication patterns, error handling
 - **Future Roadmap**: New service opportunities and enhancements
-
 
 ## Action Planning
 
@@ -160,7 +153,6 @@ This instruction guides the analysis of Gary-Zero's current state, architecture,
 - AI innovation roadmap execution
 - Global market positioning
 - Research partnership development
-
 
 ## Output Format
 

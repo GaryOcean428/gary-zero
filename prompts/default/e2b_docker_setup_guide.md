@@ -1,6 +1,5 @@
 # E2B and Docker Hub Configuration Guide
 
-
 ## E2B Setup (Required for Secure Code Execution)
 
 ### 1. Get E2B API Key
@@ -31,7 +30,6 @@ Run this in the agent:
 ```
 
 Should return: `Execution environment: E2B Cloud Sandbox`
-
 
 ## Docker Hub Access for Enhanced Sandbox Capabilities
 
@@ -97,7 +95,6 @@ With Docker Hub access, Gary-Zero can:
 3. **Resource Limits**: Gary-Zero respects Railway's resource constraints
 4. **Image Verification**: Only pulls from trusted sources
 
-
 ## E2B + Docker Hub Synergy
 
 ### Primary Execution Path
@@ -128,7 +125,6 @@ User asks Gary-Zero to: "Analyze this image using specialized computer vision to
 2. If not, pulls `opencv/opencv-python` from Docker Hub
 3. Runs analysis in the Docker container
 4. Returns results to user
-
 
 ## Best Practices
 
@@ -162,7 +158,6 @@ Gary-Zero automatically:
 - Respects memory limits
 - Handles timeouts gracefully
 
-
 ## Troubleshooting
 
 ### Docker Hub Access Issues
@@ -195,7 +190,6 @@ Gary-Zero will:
 2. List accessible images
 3. Report any issues
 
-
 ## Advanced Configuration
 
 ### Custom Registry
@@ -221,7 +215,6 @@ Gary-Zero can chain containers:
 1. Data prep in one container
 2. Analysis in another
 3. Visualization in a third
-
 
 ## Summary
 

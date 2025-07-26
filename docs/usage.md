@@ -4,7 +4,6 @@ This guide explores usage and configuration scenarios for Gary-Zero. You can con
 
 ![Utility Message with Solutions](res/memory-man.png)
 
-
 ## Basic Operations
 
 Gary-Zero provides several basic operations through its interface:
@@ -111,13 +110,11 @@ Gary-Zero supports direct file attachments in the chat interface for seamless fi
 > [!TIP]
 > When working with multiple files, you can attach them all at once and then give instructions about what to do with them. The agent will handle them as a batch while keeping you informed of the progress.
 
-
 ## Tool Usage
 
 Gary-Zero's power comes from its ability to use [tools](architecture.md#tools). Here's how to leverage them effectively:
 
 * **Understand Tools:** Gary-Zero includes default tools like knowledge (powered by SearXNG), webpage content, code execution, and communication. Understand the capabilities of these tools and how to invoke them.
-
 
 ## Example of Tools Usage: Web Search and Code Execution
 
@@ -137,7 +134,6 @@ Gary-Zero might then:
 
 This example demonstrates how to combine multiple tools to achieve an analysis task. By mastering prompt engineering and tool usage, you can unlock the full potential of Gary-Zero to solve complex problems.
 
-
 ## Multi-Agent Cooperation
 
 One of Gary-Zero's unique features is multi-agent cooperation.
@@ -149,7 +145,6 @@ One of Gary-Zero's unique features is multi-agent cooperation.
 ![](res/physics.png)
 ![](res/physics-2.png)
 
-
 ## Prompt Engineering
 
 Effective prompt engineering is crucial for getting the most out of Gary-Zero. Here are some tips and techniques:
@@ -158,7 +153,6 @@ Effective prompt engineering is crucial for getting the most out of Gary-Zero. H
 * **Provide Context:** If necessary, provide background information or context to help the agent understand the task better. This might include relevant details, constraints, or desired format for the response.
 * **Break Down Complex Tasks:**  For complex tasks, break them down into smaller, more manageable sub-tasks.  This makes it easier for the agent to reason through the problem and generate a solution.
 * **Iterative Refinement:** Don't expect perfect results on the first try.  Experiment with different prompts, refine your instructions based on the agent's responses, and iterate until you achieve the desired outcome. To achieve a full-stack, web-app development task, for example, you might need to iterate for a few hours for 100% success.
-
 
 ## Voice Interface
 

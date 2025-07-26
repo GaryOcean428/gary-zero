@@ -1,165 +1,254 @@
 # AI Models - Gary-Zero Model Catalog
 
-
 ## Overview
 
-Gary-Zero's AI model catalog provides access to verified AI models from the following specified sources:
-- **Abacus AI** (ai1docs.abacusai.app)
-- **Google Gemini** (ai.google.dev/gemini-api/docs/models)
-- **OpenAI GPT-4.1** (platform.openai.com/docs/models/gpt-4.1)
-- **OpenAI Models** (platform.openai.com/docs/api-reference/models)
-- **Groq** (console.groq.com/docs/models)
+Gary-Zero provides access to modern AI models from verified providers. This catalog includes models
+released after June 2024, with a focus on performance, capabilities, and reliability.
 
-All models are verified against these sources as of January 2025.
+⚠️ **Important**: "Computer use" is NOT a model - it's a tool capability. See
+[Model Capabilities Guide](./model-capabilities.md) for details.
 
+## Quick Reference
 
-## Current Model Status (January 2025)
+### Default Models (Recommended)
+- **Chat**: Claude Sonnet 4 (`claude-sonnet-4-0`)
+- **Code**: Claude Sonnet 4 (`claude-sonnet-4-0`)
+- **Utility**: GPT-4.1 Mini (`gpt-4.1-mini`)
+- **Embeddings**: Text Embedding 3 Large (`text-embedding-3-large`)
+- **Browser**: Claude 3.5 Sonnet (`claude-3-5-sonnet-20241022`)
+- **Voice**: GPT-4o (`gpt-4o`)
 
-### 📊 Verified Model Statistics
+### Model Statistics
+- **Total Models**: 47 active models
+- **Providers**: 7 verified providers
+- **Last Updated**: January 2025
 
-- **Total Models**: 19 active models
-- **Supported Providers**: 4 verified providers
-- **Source Verification**: All models verified against specified websites
+## Providers and Models
 
+### 🤖 Anthropic (5 models)
 
-## Verified Model Allow-List
+#### Claude 4 Series (Latest)
+- `claude-sonnet-4-0` - Claude 4 Sonnet ⭐ *Recommended for most tasks*
+  - Supports computer use via Anthropic API
+  - Excellent at code, analysis, and creative tasks
+- `claude-opus-4-0` - Claude 4 Opus
+  - Most powerful Claude model
+  - Best for complex reasoning
 
-### 🤖 OpenAI Models (4 total)
+#### Claude 3.5 Series
+- `claude-3-5-sonnet-latest` - Claude 3.5 Sonnet (Latest)
+- `claude-3-5-haiku-latest` - Claude 3.5 Haiku (Latest)
+  - Fast and cost-effective
 
-**GPT-4.1 Series:**
-- `gpt-4.1` - Latest GPT-4.1 model with enhanced reasoning and vision
-- `gpt-4.1-mini` - Faster, cost-effective version of GPT-4.1
-- `gpt-4.1-nano` - Most cost-effective GPT-4.1 variant for basic tasks
+#### Specialized
+- `claude-code` - Claude Code (CLI optimized)
 
-**Reasoning Models:**
-- `o3` - Advanced reasoning model with enhanced problem-solving
-- `o4-mini` - Efficient reasoning model with strong performance
+### 🔷 OpenAI (18 models)
 
-### 🔍 Google Gemini Models (4 total)
+#### GPT-4.1 Series (Newest)
+- `gpt-4.1` - Latest GPT-4.1 model
+- `gpt-4.1-mini` - Cost-effective GPT-4.1 ⭐ *Recommended utility model*
+- `gpt-4.1-nano` - Ultra-low cost variant
 
-**Gemini 2.0 Series:**
-- `gemini-2.0-flash` - Latest Gemini with multimodal and voice capabilities
-- `gemini-2.0-flash-lite` - Ultra-low-cost Gemini variant
+#### Reasoning Models
+- `o3` - Advanced reasoning
+- `o3-pro` - Enhanced o3 with more compute ⭐ *Best for complex problems*
+- `o4-mini` - Efficient reasoning model
 
-**Gemini 2.5 Series:**
-- `gemini-2.5-pro` - Advanced Gemini Pro with enhanced reasoning
-- `gemini-2.5-pro-exp-03-25` - Experimental Gemini 2.5 Pro
+#### GPT-4o Series
+- `gpt-4o` - GPT-4o with vision
+  - Supports computer use via tools
+- `gpt-4o-mini` - Cost-effective GPT-4o
 
-### ⚡ Groq Models (4 total)
+#### Transcription Models
+- `gpt-4o-transcribe` - Speech-to-text powered by GPT-4o
+- `gpt-4o-mini-transcribe` - Lightweight transcription
+- `whisper-1` - General-purpose speech recognition
 
-**Llama Series:**
-- `llama-3.3-70b-versatile` - High-performance Llama on Groq hardware
-- `llama-3.1-8b-instant` - Lightning-fast Llama for basic tasks
+#### Tool-Specific Models
+- `gpt-4o-search-preview` - Web search in Chat Completions
+- `gpt-4o-mini-search-preview` - Fast web search
+- `codex-mini-latest` - Fast code reasoning (CLI)
 
-**Specialized Models:**
-- `mixtral-8x7b-32768` - Mixture-of-experts model with large context
-- `gemma2-9b-it` - Google's Gemma 2 optimized for instruction following
+#### Embedding Models
+- `text-embedding-3-small` - Efficient embeddings
+- `text-embedding-3-large` - High-quality embeddings ⭐ *Recommended*
+- `text-embedding-ada-002` - Legacy embeddings
 
-### 🧠 Abacus AI Models (7 total)
+### 🔍 Google (8 models)
 
-**Claude Series:**
-- `claude-3-7-sonnet-20250219` - Latest Claude 3.7 Sonnet
-- `claude-3-5-haiku-20241022` - Fast Claude 3.5 Haiku
+#### Gemini 2.5 Series (Latest)
+- `gemini-2.5-pro` - Advanced reasoning
+- `gemini-2.5-pro-latest` - Latest 2.5 Pro
+- `gemini-2.5-flash` - Fast and efficient
+- `gemini-2.5-flash-latest` - Latest 2.5 Flash
 
-**OpenAI Models:**
-- `gpt-4o` - GPT-4O with vision and function calling
-- `gpt-4o-mini` - Cost-effective GPT-4O variant
+#### Gemini 2.0 Series
+- `gemini-2.0-flash` - Multimodal capabilities
+- `gemini-2.0-flash-latest` - Latest 2.0 Flash
 
+#### CLI Models
+- `gemini-cli-chat` - CLI-optimized chat
+- `gemini-cli-code` - CLI-optimized code generation
 
-## Model Categories
+### ⚡ Groq (5 models)
 
-### 🎤 Voice & Multimodal Models
+Fast inference hardware-accelerated models:
+- `llama-3.1-8b-instant` - Lightning-fast Llama ⭐ *Fastest inference*
+- `llama-3.3-70b-versatile` - High-performance Llama
+- `moonshotai/kimi-k2-instruct` - Moonshot AI's Kimi
+- `qwen/qwen3-32b` - Qwen 3 32B
+- `gemma2-9b-it` - Google's Gemma 2
 
-- `gemini-2.0-flash` (Google) - Voice and multimodal capabilities
-- `gpt-4.1` (OpenAI) - Vision and multimodal support
+### 🌐 Perplexity (5 models)
 
-### 💻 Code & Reasoning Models
+All models include built-in web search:
+- `sonar` - Lightweight search
+- `sonar-pro` - Enhanced search
+- `sonar-reasoning` - Real-time reasoning with search
+- `sonar-reasoning-pro` - Advanced reasoning ⭐ *Best for research*
+- `sonar-deep-research` - Expert-level research
 
-- `o3` (OpenAI) - Advanced reasoning for complex problems
-- `claude-3-7-sonnet-20250219` (Abacus AI) - Enhanced coding capabilities
-- `gemini-2.5-pro` (Google) - Advanced reasoning and coding
+### 🚀 xAI (8 models)
 
-### ⚡ Fast & Cost-Effective Models
+#### Grok 4 Series (Latest)
+- `grok-4-latest` - Latest Grok 4
+- `grok-4-0709` - Grok 4 stable
 
-- `gpt-4.1-nano` (OpenAI) - Ultra-fast and low-cost
-- `llama-3.1-8b-instant` (Groq) - Lightning-fast inference
-- `gemini-2.0-flash-lite` (Google) - Ultra-low-cost Gemini
+#### Grok 3 Series
+- `grok-3` - Grok 3 base
+- `grok-3-fast` - Fast variant
+- `grok-3-mini` - Smaller model
+- `grok-3-mini-fast` - Fast mini
 
+#### Grok 2 Series
+- `grok-2-1212` - Grok 2
+- `grok-2-vision-1212` - Grok 2 with vision
+
+### 📝 Qwen (1 model)
+
+- `qwen-coder` - Specialized code generation (CLI)
+
+## Model Selection by Use Case
+
+### 🖥️ Computer Use & Automation
+**Best**: Claude Sonnet 4 (`claude-sonnet-4-0`)
+- Native computer use support
+- Screenshot analysis
+- Desktop control
+
+**Alternative**: GPT-4o (`gpt-4o`)
+- Browser automation
+- Tool integration
+
+### 🔍 Web Search & Research
+**Best**: Perplexity Sonar models
+- `sonar-reasoning-pro` - For complex research
+- `sonar-deep-research` - For comprehensive analysis
+
+**Alternative**: OpenAI search preview models
+- `gpt-4o-search-preview`
+- `gpt-4o-mini-search-preview`
+
+### 💻 Code Generation
+**Best**: Claude Sonnet 4 (`claude-sonnet-4-0`)
+**Alternatives**:
+- `claude-code` - CLI optimized
+- `codex-mini-latest` - Fast code reasoning
+- `gemini-cli-code` - Google's code model
+
+### 👁️ Vision & Multimodal
+**Best Options**:
+- `gpt-4o` - OpenAI's multimodal
+- `claude-sonnet-4-0` - Anthropic's vision
+- `gemini-2.5-pro` - Google's multimodal
+- `grok-2-vision-1212` - xAI's vision model
+
+### ⚡ Fast Inference
+**Fastest**: `llama-3.1-8b-instant` (Groq)
+**Alternatives**:
+- `gpt-4.1-nano` - OpenAI's fastest
+- `claude-3-5-haiku-latest` - Anthropic's fast model
+- `grok-3-mini-fast` - xAI's fast variant
+
+### 🎯 Complex Reasoning
+**Best**: `o3-pro` (OpenAI)
+**Alternatives**:
+- `o3` - Standard advanced reasoning
+- `claude-opus-4-0` - Anthropic's most powerful
+- `sonar-reasoning-pro` - With web search
+
+## Important Notes
+
+### Computer Use is a Tool, Not a Model
+
+⚠️ **Common Misconception**: "computer-use-preview" is NOT a model name.
+
+**Computer use** is a capability available with:
+- Claude Sonnet 4 (via Anthropic's Computer Use API)
+- GPT-4o models (via tool integrations)
+
+See [Computer Use Guide](./computer-use-guide.md) for implementation details.
+
+### Model Capabilities vs Models
+
+**Models** are the AI language models (e.g., `claude-sonnet-4-0`)
+
+**Capabilities** are what models can do:
+- Computer use
+- Web search
+- Code execution
+- MCP integration
+- Vision processing
+- Voice transcription
+
+See [Model Capabilities Guide](./model-capabilities.md) for full details.
 
 ## Provider Configuration
 
-### API Key Requirements
-
-Each provider requires appropriate API keys configured via environment variables:
+### API Key Setup
 
 ```bash
+# Anthropic
+export ANTHROPIC_API_KEY="sk-ant-..."
+
 # OpenAI
-export OPENAI_API_KEY="your-openai-key"
+export OPENAI_API_KEY="sk-..."
 
 # Google
-export GOOGLE_API_KEY="your-google-key"
+export GOOGLE_API_KEY="AIza..."
 
 # Groq
-export GROQ_API_KEY="your-groq-key"
+export GROQ_API_KEY="gsk_..."
 
-# Abacus AI
-export ABACUS_AI_API_KEY="your-abacus-ai-key"
+# Perplexity
+export PERPLEXITY_API_KEY="pplx-..."
+
+# xAI
+export XAI_API_KEY="xai-..."
+
+# Qwen
+export QWEN_API_KEY="qwen-..."
 ```
 
-### Rate Limits and Quotas
+### Gary-Zero Configuration
 
-- **OpenAI**: Tier-based rate limits based on API usage
-- **Google**: Daily quotas and per-minute limits
-- **Groq**: High rate limits optimized for speed
-- **Abacus AI**: Provider-specific rate limits
+In `framework/helpers/settings/types.py`:
 
+```python
+# Recommended defaults
+"chat_model_provider": "ANTHROPIC",
+"chat_model_name": "claude-sonnet-4-0",
 
-## API Documentation Reference
+"code_model_provider": "ANTHROPIC",
+"code_model_name": "claude-sonnet-4-0",
 
-### 🔗 Primary Provider API Documentation
+"util_model_provider": "OPENAI",
+"util_model_name": "gpt-4.1-mini",
 
-#### OpenAI
-
-- **Models**: https://platform.openai.com/docs/models/gpt-4.1
-- **API Reference**: https://platform.openai.com/docs/api-reference/models
-- **Chat Completions**: https://platform.openai.com/docs/api-reference/chat
-- **Vision**: https://platform.openai.com/docs/guides/vision
-
-#### Google Gemini
-
-- **Models**: https://ai.google.dev/gemini-api/docs/models
-- **API Reference**: https://ai.google.dev/api/rest
-- **Multimodal**: https://ai.google.dev/gemini-api/docs/vision
-- **Voice**: https://ai.google.dev/gemini-api/docs/voice
-
-#### Groq
-
-- **Models**: https://console.groq.com/docs/models
-- **API Reference**: https://console.groq.com/docs/api-reference
-- **Rate Limits**: https://console.groq.com/docs/rate-limits
-
-#### Abacus AI
-
-- **Documentation**: https://ai1docs.abacusai.app/
-- **Models**: Refer to Abacus AI model catalog
-
-
-## Migration from Legacy Models
-
-### Removed Providers
-
-The following providers have been removed as they are not from the specified sources:
-- **Mistral AI** - Not in specified sources
-- **Cohere** - Not in specified sources  
-- **Ollama** - Not in specified sources
-- **Anthropic** (direct) - Using Abacus AI proxy instead
-
-### Updated Model Names
-
-- `gpt-4o` → Still supported via Abacus AI
-- `claude-3-5-sonnet` → Updated to `claude-3-7-sonnet-20250219`
-- `gemini-2.0-flash` → Verified and retained
-
+"embed_model_provider": "OPENAI",
+"embed_model_name": "text-embedding-3-large",
+```
 
 ## Usage Examples
 
@@ -194,7 +283,6 @@ openai_models = list_models(ModelProvider.OPENAI)
 google_models = list_models(ModelProvider.GOOGLE)
 ```
 
-
 ## Cost Comparison
 
 | Model | Provider | Input Cost | Output Cost | Best For |
@@ -204,7 +292,6 @@ google_models = list_models(ModelProvider.GOOGLE)
 | llama-3.1-8b-instant | Groq | $0.00005 | $0.00008 | Fastest inference |
 | gpt-4.1 | OpenAI | $0.0025 | $0.01 | Balanced performance |
 | o3 | OpenAI | $0.01 | $0.04 | Complex reasoning |
-
 
 ## Troubleshooting
 
@@ -221,7 +308,6 @@ If you encounter "Model not found" errors, ensure:
 - **Google**: Monitor daily quotas
 - **Groq**: Take advantage of high rate limits
 - **Abacus AI**: Check provider-specific limits
-
 
 ## Related Documentation
 

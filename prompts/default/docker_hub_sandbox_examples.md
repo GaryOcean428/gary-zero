@@ -2,7 +2,6 @@
 
 Now that you've configured Docker Hub credentials in Railway, Gary-Zero can pull and use Docker images to enhance its execution capabilities. Here are practical examples of how to leverage this.
 
-
 ## Available Docker Hub Features
 
 With Docker Hub credentials configured, Gary-Zero can:
@@ -11,7 +10,6 @@ With Docker Hub credentials configured, Gary-Zero can:
 2. **Access your private Docker images** for proprietary tools
 3. **Use official images** from verified publishers
 4. **Create custom execution environments** on-demand
-
 
 ## Usage Examples
 
@@ -88,7 +86,6 @@ model = company_ml_toolkit.load_model('production')
 }
 ```
 
-
 ## Best Practices
 
 ### 1. Image Selection
@@ -111,7 +108,6 @@ model = company_ml_toolkit.load_model('production')
 - Pre-built images are faster than building on-demand
 - Consider creating custom images for repeated tasks
 - Use multi-stage builds for optimization
-
 
 ## Common Use Cases
 
@@ -159,7 +155,6 @@ console.log('Express available:', !!express);
 }
 ```
 
-
 ## Integration with E2B
 
 Docker images work alongside E2B:
@@ -173,7 +168,6 @@ The execution flow:
 3. Docker image is pulled using your credentials
 4. Code runs in Docker container within E2B sandbox
 5. Results returned to Gary-Zero
-
 
 ## Troubleshooting
 
@@ -197,7 +191,6 @@ The execution flow:
 - Check private repository access
 - Ensure credentials have pull permissions
 - Test with public images first
-
 
 ## Next Steps
 

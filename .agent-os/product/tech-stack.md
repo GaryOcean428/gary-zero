@@ -1,6 +1,5 @@
 # Technology Stack - Gary-Zero
 
-
 ## Core Architecture
 
 ### Runtime Environment
@@ -182,7 +181,6 @@
 - **Development Tools**: VSCode, Git, GitHub
 - **Cloud Services**: Railway, Docker Hub, various APIs
 
-
 ## Performance & Scalability
 
 ### Optimization Features
@@ -198,7 +196,6 @@
 - **Logging System**: Structured logging with multiple levels
 - **Health Endpoints**: Application health monitoring
 - **Resource Tracking**: Memory and CPU usage monitoring
-
 
 ## Architecture Principles
 

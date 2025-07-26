@@ -1,6 +1,5 @@
 # Agent Guidelines - Table of Contents
 
-
 ## 1. Critical Execution Rules
 
 ### 1.1 Task Execution Framework
@@ -23,7 +22,6 @@
 - Clarification procedures
 - User interaction boundaries
 - Persona consistency verification
-
 
 ## 2. Model Usage Guidelines
 
@@ -48,7 +46,6 @@
 - Citation and sourcing requirements
 - Persona voice consistency
 
-
 ## 3. Agent Behavior Standards
 
 ### 3.1 Interaction Patterns
@@ -71,7 +68,6 @@
 - Recovery and retry strategies
 - User notification protocols
 - Persona-consistent error communication
-
 
 ## 4. Code Quality & Testing
 
@@ -96,7 +92,6 @@
 - Rollback procedures
 - Persona knowledge base updates
 
-
 ## 5. Security Framework
 
 ### 5.1 Access Control
@@ -119,7 +114,6 @@
 - Threat identification protocols
 - Incident response procedures
 - Persona security awareness
-
 
 ## 6. Deployment and Operations
 
@@ -146,7 +140,6 @@
 
 ---
 
-
 ## Embedded Persona Validation Framework
 
 Each section incorporates persona validation through:
@@ -156,7 +149,6 @@ Each section incorporates persona validation through:
 - **Behavioral Consistency**: Verifying actions align with persona characteristics
 - **Knowledge Boundaries**: Respecting persona limitations and specializations
 - **Ethical Alignment**: Ensuring persona values guide decision-making
-
 
 ## Priority Implementation Order
 

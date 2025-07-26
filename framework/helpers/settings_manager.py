@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 from typing import TYPE_CHECKING
 
 from . import files
@@ -31,7 +32,11 @@ class SettingsManager:
 
     _instance: SettingsManager | None = None
     _settings: Settings | None = None
-    _settings_file: str = files.get_abs_path("tmp/settings.json")
+
+    @property
+    def _settings_file(self) -> str:
+        """Get the settings file path, evaluating DATA_DIR at runtime."""
+        return files.get_data_path("settings.json")
 
     def __new__(cls) -> SettingsManager:
         """Ensure only one instance of SettingsManager exists."""
@@ -54,10 +59,21 @@ class SettingsManager:
             The current settings, loaded from file or default if not set.
         """
         if self._settings is None:
-            from .settings import (  # type: ignore
-                get_default_settings,
-                normalize_settings,
+            # Import from the settings.py file directly using importlib
+            import importlib.util
+            import os
+
+            settings_file_path = os.path.join(os.path.dirname(__file__), "settings.py")
+            spec = importlib.util.spec_from_file_location(
+                "settings", settings_file_path
             )
+            if spec and spec.loader:
+                settings_module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(settings_module)
+                get_default_settings = settings_module.get_default_settings
+                normalize_settings = settings_module.normalize_settings
+            else:
+                raise ImportError("Could not import settings module")
 
             default_settings = get_default_settings()
             loaded_settings = self._read_settings_file()
@@ -75,7 +91,18 @@ class SettingsManager:
             settings: The new settings to apply
             apply: If True, apply the settings immediately
         """
-        from .settings import normalize_settings  # type: ignore
+        # Import from the settings.py file directly
+        import importlib.util
+        import os
+
+        settings_file_path = os.path.join(os.path.dirname(__file__), "settings.py")
+        spec = importlib.util.spec_from_file_location("settings", settings_file_path)
+        if spec and spec.loader:
+            settings_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(settings_module)
+            normalize_settings = settings_module.normalize_settings
+        else:
+            raise ImportError("Could not import settings module")
 
         previous = self._settings
         self._settings = normalize_settings(settings)  # type: ignore[assignment]
@@ -92,6 +119,9 @@ class SettingsManager:
         Returns:
             The loaded settings if successful, None otherwise.
         """
+        # Check for migration from legacy location
+        self._migrate_legacy_settings()
+
         if not os.path.exists(self._settings_file):
             return None
 
@@ -103,6 +133,30 @@ class SettingsManager:
                 return normalize_settings(settings)  # type: ignore[return-value]
         except (json.JSONDecodeError, OSError):
             return None
+
+    def _migrate_legacy_settings(self) -> None:
+        """Migrate settings from legacy location if needed."""
+        legacy_settings_file = files.get_abs_path("tmp/settings.json")
+
+        # Only migrate if new file doesn't exist but legacy file does
+        if not os.path.exists(self._settings_file) and os.path.exists(
+            legacy_settings_file
+        ):
+            try:
+                # Create the new directory structure
+                os.makedirs(os.path.dirname(self._settings_file), exist_ok=True)
+
+                # Copy the legacy file to the new location
+                shutil.copy2(legacy_settings_file, self._settings_file)
+
+                # Log the migration
+                print(
+                    f"Settings migrated from {legacy_settings_file} to {self._settings_file}"
+                )
+
+            except OSError as e:
+                # If migration fails, log the error but don't raise it
+                print(f"Warning: Failed to migrate settings from legacy location: {e}")
 
     def _write_settings_file(self, settings: Settings) -> None:
         """Write settings to the settings file."""

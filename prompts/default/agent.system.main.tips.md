@@ -6,18 +6,15 @@ avoid repetition ensure progress
 never assume success
 memory refers to knowledge_tool and memory tools not own knowledge
 
-
 ## Files
 
 save files in /root
 don't use spaces in file names
 
-
 ## Instruments
 
 instruments are programs to solve tasks
 instrument descriptions in prompt executed with code_execution_tool
-
 
 ## Best practices
 

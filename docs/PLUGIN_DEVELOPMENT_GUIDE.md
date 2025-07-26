@@ -1,10 +1,8 @@
 # Plugin Development Guide
 
-
 ## Overview
 
 Gary-Zero now supports a dynamic plugin system that allows you to create, install, and manage tools at runtime without modifying the core codebase.
-
 
 ## Plugin Structure
 
@@ -23,7 +21,6 @@ plugins/
     ├── plugin.py           # Plugin implementation
     └── README.md           # Optional documentation
 ```
-
 
 ## Plugin Metadata (plugin.json)
 
@@ -48,7 +45,6 @@ plugins/
 - `capabilities`: List of capabilities provided
 - `dependencies`: Python modules required (must be whitelisted)
 - `entry_point`: Main Python file (default: "plugin.py")
-
 
 ## Plugin Implementation
 
@@ -114,7 +110,6 @@ Response(
 )
 ```
 
-
 ## Plugin Management CLI
 
 Use the `plugin_manager.py` script to manage plugins:
@@ -161,7 +156,6 @@ python plugin_manager.py validate plugin_name  # Check dependencies
 python plugin_manager.py capabilities     # List all capabilities
 ```
 
-
 ## Security Considerations
 
 ### Whitelisted Dependencies
@@ -182,7 +176,6 @@ Plugins cannot use:
 
 - `gary-zero-official`: Official Gary-Zero plugins
 - `system`: System-level plugins
-
 
 ## Example Plugins
 
@@ -214,7 +207,6 @@ Plugins cannot use:
 }
 ```
 
-
 ## Usage in Agent
 
 Once installed and enabled, plugins can be called like any other tool:
@@ -229,7 +221,6 @@ Once installed and enabled, plugins can be called like any other tool:
 }
 ```
 
-
 ## Best Practices
 
 1. **Use semantic versioning** for plugin versions
@@ -239,7 +230,6 @@ Once installed and enabled, plugins can be called like any other tool:
 5. **Use meaningful capability names** to help users discover functionality
 6. **Keep dependencies minimal** to avoid conflicts
 7. **Test your plugin thoroughly** before distribution
-
 
 ## Troubleshooting
 

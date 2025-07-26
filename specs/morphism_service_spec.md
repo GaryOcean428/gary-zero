@@ -8,6 +8,7 @@
 - **Screenshot generation**: Capture web page images
 
 ## Reference Variable Schemas
+
 ```toml
 # Railway Environment Variables
 MORPHISM_BROWSER_URL="https://${{morphism-browser.RAILWAY_PUBLIC_DOMAIN}}"
@@ -24,6 +25,7 @@ MORPHISM_USER_AGENT="Gary-Zero-Agent/1.0"
 
 ## Sample SDK Snippets
 ### Python
+
 ```python
 import requests
 
@@ -50,6 +52,7 @@ js_result = requests.post(f"{morphism_url}/execute", json={
 ```
 
 ### TypeScript
+
 ```typescript
 interface MorphismConfig {
   baseUrl: string;

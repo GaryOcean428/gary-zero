@@ -15,7 +15,6 @@
 
 <https://github.com/user-attachments/assets/c168759d-57d8-4b43-b62a-1026afcf52e6>
 
-
 ## A personal agentic framework that grows and learns with you
 
 - Gary-Zero is not a predefined agentic framework. It is designed to be dynamic, organically growing, and learning as you use it.
@@ -66,7 +65,6 @@
 - The terminal interface is real-time streamed and interactive. You can stop and intervene at any point. If you see your agent heading in the wrong direction, just stop and tell it right away.
 - There is a lot of freedom in this framework. You can instruct your agents to regularly report back to superiors asking for permission to continue. You can instruct them to use point-scoring systems when deciding when to delegate subtasks. Superiors can double-check subordinates' results and dispute. The possibilities are endless.
 
-
 ## 🚀 Things you can build with Gary-Zero
 
 - **Development Projects** - `"Create a React dashboard with real-time data visualization"`
@@ -100,7 +98,6 @@ docker run -p 50001:80 frdel/gary-zero-run
 
 - Developers and contributors: download the full binaries for your system from the [releases page](https://github.com/frdel/gary-zero/releases) and then follow the instructions [provided here](./docs/installation.md#in-depth-guide-for-full-binaries-installation).
 
-
 ## 🐳 Fully Dockerized, with Speech-to-Text and TTS
 
 ![Settings](docs/res/settings-page-ui.png)
@@ -115,7 +112,6 @@ docker run -p 50001:80 frdel/gary-zero-run
 - Agent output is streamed in real-time, allowing users to read along and intervene at any time.
 - No coding is required; only prompting and communication skills are necessary.
 - With a solid system prompt, the framework is reliable even with small models, including precise tool usage.
-
 
 ## 👀 Keep in Mind
 
@@ -137,7 +133,6 @@ docker run -p 50001:80 frdel/gary-zero-run
 2. The agent may inadvertently alter its operating environment; cleaning up the `work_dir` often fixes this.
 3. Agents might loop in multi-agentic interactions, leading to unexpected behaviors.
 
-
 ## 📚 Read the Documentation
 
 | Page | Description |
@@ -147,7 +142,6 @@ docker run -p 50001:80 frdel/gary-zero-run
 | [Architecture](./docs/architecture.md) | System design and components |
 | [Contributing](./docs/contributing.md) | How to contribute |
 | [Troubleshooting](./docs/troubleshooting.md) | Common issues and their solutions |
-
 
 ## 🎯 Changelog
 
@@ -182,7 +176,6 @@ docker run -p 50001:80 frdel/gary-zero-run
 - **Extensions Framework**
 - **Reflection Prompts**
 - **Bug Fixes**
-
 
 ## 🤝 Community and Support
 

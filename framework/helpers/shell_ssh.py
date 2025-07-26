@@ -22,7 +22,19 @@ class SSHInteractiveSession:
         self.username = username
         self.password = password
         self.client = paramiko.SSHClient()
-        self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        # Use RejectPolicy as default for better security
+        # In development environments, this can be overridden to AutoAddPolicy
+        import os
+
+        if os.getenv("SSH_ALLOW_UNKNOWN_HOSTS", "false").lower() == "true":
+            # Only allow auto-add in development/testing environments
+            self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        else:
+            # Load system host keys for security
+            self.client.load_system_host_keys()
+            self.client.load_host_keys(os.path.expanduser("~/.ssh/known_hosts"))
+            # Use RejectPolicy for production security
+            self.client.set_missing_host_key_policy(paramiko.RejectPolicy())
         self.shell = None
         self.full_output = b""
         self.last_command = b""

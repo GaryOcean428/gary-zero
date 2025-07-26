@@ -30,6 +30,7 @@ graph TD
 
 ### Service Discovery
 All services use Railway's private networking with standardized reference variables:
+
 ```toml
 SERVICE_URL="http://${{service-name.RAILWAY_PRIVATE_DOMAIN}}:${{service-name.PORT}}"
 ```
@@ -65,6 +66,7 @@ SERVICE_URL="http://${{service-name.RAILWAY_PRIVATE_DOMAIN}}:${{service-name.POR
 2. **Anthropic** (Computer Use API)
 
 ### Environment Variables Summary
+
 ```toml
 # Core Application
 PORT="8000"

@@ -11,6 +11,7 @@
 
 3. **Volume Creation**
    - Use Railway volumes for persistent data storage:
+
      ```bash
      railway volumes create gary-zero-data --size 10
      ```
@@ -19,6 +20,7 @@
 
 - Ensure all sensitive configurations are passed as environment variables.
 - For example, when using Python with FastAPI:
+
   ```python
   import os
   from fastapi import FastAPI
@@ -37,6 +39,7 @@
 ## Port Binding
 
 - Bind to the port provided by Railway environment:
+
   ```bash
   PORT=${PORT-8000}
   ```
@@ -52,6 +55,7 @@
 
 2. **Automatic Rollback**
    - Configure retry and rollback policies in `railpack.json`:
+
      ```json
      "restartPolicyType": "ON_FAILURE",
      "restartPolicyMaxRetries": 3
@@ -113,6 +117,7 @@ jobs:
 ## Smoke-Test Scripts
 
 - Example Python script to smoke test a deployment:
+
   ```python
   import requests
 

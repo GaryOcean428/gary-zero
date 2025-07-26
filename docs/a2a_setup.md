@@ -2,7 +2,6 @@
 
 This guide explains how to configure and use the Agent2Agent (A2A) protocol implementation in Gary-Zero for multi-agent interoperability.
 
-
 ## What is A2A Protocol?
 
 The Agent2Agent (A2A) protocol enables standardized communication between AI agents across different vendors and platforms. Gary-Zero's A2A implementation allows it to:
@@ -13,7 +12,6 @@ The Agent2Agent (A2A) protocol enables standardized communication between AI age
 - **Share MCP tools** and resources
 - **Receive push notifications** from other agents
 - **Stream real-time data** via WebSocket connections
-
 
 ## A2A Protocol Components
 
@@ -56,7 +54,6 @@ Gary-Zero exposes its capabilities and endpoints through a standardized agent ca
 | `/a2a/mcp/tools` | GET | MCP tools discovery |
 | `/a2a/mcp/execute` | POST | MCP tool execution |
 
-
 ## Configuration
 
 ### Method 1: Web UI Configuration
@@ -94,7 +91,6 @@ Add A2A configuration to your `tmp/settings.json`:
   }
 }
 ```
-
 
 ## Usage Examples
 
@@ -195,7 +191,6 @@ ws.onmessage = function(event) {
 };
 ```
 
-
 ## Testing A2A Implementation
 
 ### Built-in Interoperability Test
@@ -221,7 +216,6 @@ This test verifies:
 3. **Test discovery**: Use the web UI's "Test A2A Interoperability" button
 4. **Check endpoints**: Visit `http://localhost:8000/docs` for API documentation
 
-
 ## Security Considerations
 
 ### Authentication
@@ -237,7 +231,6 @@ This test verifies:
 3. **Rate Limiting**: Implement rate limiting for A2A endpoints
 4. **Audit Logging**: Monitor A2A communication for security events
 
-
 ## Integration with MCP
 
 Gary-Zero's A2A implementation seamlessly integrates with its MCP capabilities:
@@ -245,7 +238,6 @@ Gary-Zero's A2A implementation seamlessly integrates with its MCP capabilities:
 - **MCP Server Mode**: Gary-Zero can expose its tools to other agents via A2A
 - **MCP Client Mode**: Gary-Zero can discover and use tools from other MCP servers
 - **Cross-Protocol**: A2A agents can discover and execute MCP tools
-
 
 ## Troubleshooting
 
@@ -277,7 +269,6 @@ Enable debug logging to troubleshoot A2A issues:
 import logging
 logging.getLogger('framework.a2a').setLevel(logging.DEBUG)
 ```
-
 
 ## Advanced Configuration
 
@@ -315,7 +306,6 @@ async def custom_a2a_endpoint(request_data: dict):
     return {"success": True, "message": "Custom endpoint works!"}
 ```
 
-
 ## Production Deployment
 
 ### Environment Variables
@@ -347,7 +337,6 @@ Monitor A2A endpoints with standard web monitoring tools:
 - **Metrics**: Track request counts and response times for A2A endpoints
 - **Logging**: Monitor A2A communication patterns and errors
 
-
 ## Contributing
 
 To contribute to A2A protocol development:
@@ -356,7 +345,6 @@ To contribute to A2A protocol development:
 2. Add tests for new features in the test suite
 3. Update documentation for any API changes
 4. Ensure backward compatibility with existing A2A agents
-
 
 ## Resources
 

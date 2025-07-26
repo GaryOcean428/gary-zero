@@ -186,8 +186,8 @@ class PersistentCache(CacheBackend):
 
     def _get_path(self, key: str) -> Path:
         """Get file path for cache key."""
-        # Hash the key to create a safe filename
-        key_hash = hashlib.md5(key.encode()).hexdigest()
+        # Hash the key to create a safe filename using SHA256
+        key_hash = hashlib.sha256(key.encode()).hexdigest()
         return self.cache_dir / f"{key_hash}.cache"
 
     def _serialize(self, data: Any) -> bytes:
@@ -362,11 +362,11 @@ class CacheManager:
                 if key_func:
                     cache_key = key_func(*args, **kwargs)
                 else:
-                    # Default key generation
+                    # Default key generation using SHA256 for security
                     key_parts = [func.__name__]
                     key_parts.extend(str(arg) for arg in args)
                     key_parts.extend(f"{k}={v}" for k, v in sorted(kwargs.items()))
-                    cache_key = hashlib.md5("|".join(key_parts).encode()).hexdigest()
+                    cache_key = hashlib.sha256("|".join(key_parts).encode()).hexdigest()
 
                 # Try to get from cache
                 cached_result = self.get(cache_key)

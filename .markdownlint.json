@@ -14,10 +14,7 @@
         "headers": false,
         "stern": false
     },
-    "MD022": {
-        "lines_above": [1, 2, 1],
-        "lines_below": [1, 1, 1]
-    },
+    "MD022": false,
     "MD024": {
         "siblings_only": true
     },

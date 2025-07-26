@@ -2,7 +2,6 @@
 
 This page addresses frequently asked questions (FAQ) and provides troubleshooting steps for common issues encountered while using Gary-Zero.
 
-
 ## Frequently Asked Questions
 
 **1. How do I ask Gary-Zero to work directly on my files or dirs?**
@@ -32,7 +31,6 @@ Modify the `rate_limit_seconds` and `rate_limit_requests` parameters in the `Age
 
 **10. Can Gary-Zero interact with external APIs or services (e.g., WhatsApp)?**
 Extending Gary-Zero to interact with external APIs is possible by creating custom tools or solutions. Refer to the documentation on creating them.
-
 
 ## Troubleshooting
 

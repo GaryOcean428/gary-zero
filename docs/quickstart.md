@@ -2,7 +2,6 @@
 
 This guide provides a quick introduction to using Gary-Zero. We'll cover launching the web UI, starting a new chat, and running a simple task.
 
-
 ## Launching the Web UI
 
 1. Make sure you have Gary-Zero installed and your environment set up correctly (refer to the [Installation guide](installation.md) if needed).
@@ -29,7 +28,6 @@ python run_ui.py
 
     ![Chat Management](res/ui_chat_management.png)
 
-
 ## Running a Simple Task
 
 Let's ask Gary-Zero to download a YouTube video. Here's how:
@@ -40,12 +38,10 @@ Let's ask Gary-Zero to download a YouTube video. Here's how:
 
 3. The agent will then ask you for the URL of the YouTube video you want to download.
 
-
 ## Example Interaction
 
 Here's an example of what you might see in the Web UI at step 3:
 ![1](res/image-24.png)
-
 
 ## Next Steps
 

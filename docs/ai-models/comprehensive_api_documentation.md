@@ -37,6 +37,7 @@ This document provides detailed technical specifications and implementation guid
 - **WebSocket**: `wss://api.openai.com/v1/realtime`
 
 ### Authentication
+
 ```bash
 Authorization: Bearer YOUR_API_KEY
 Content-Type: application/json
@@ -45,6 +46,7 @@ Content-Type: application/json
 ### Request/Response Formats
 
 #### Chat Completions Example
+
 ```python
 from openai import OpenAI
 client = OpenAI()
@@ -61,6 +63,7 @@ response = client.chat.completions.create(
 ```
 
 #### Responses API Example (New)
+
 ```python
 response = client.responses.create(
     model="gpt-4.1",
@@ -71,6 +74,7 @@ print(response.output_text)
 ```
 
 #### cURL Example
+
 ```bash
 curl "https://api.openai.com/v1/chat/completions" \
   -H "Content-Type: application/json" \
@@ -106,6 +110,7 @@ curl "https://api.openai.com/v1/chat/completions" \
 ### Pricing (USD per 1M tokens)
 
 #### Latest Models
+
 | Model | Input | Cached Input | Output |
 |-------|-------|--------------|--------|
 | GPT-4.1 | $2.00 | $0.50 | $8.00 |
@@ -115,6 +120,7 @@ curl "https://api.openai.com/v1/chat/completions" \
 | OpenAI o4-mini | $1.10 | $0.275 | $4.40 |
 
 #### Realtime API
+
 | Model | Text Input | Text Output | Audio Input | Audio Output |
 |-------|------------|-------------|-------------|--------------|
 | GPT-4o | $5.00 | $20.00 | $40.00 | $80.00 |
@@ -137,6 +143,7 @@ curl "https://api.openai.com/v1/chat/completions" \
 ### Code Examples
 
 #### Streaming Response
+
 ```python
 stream = client.chat.completions.create(
     model="gpt-4.1",
@@ -150,6 +157,7 @@ for chunk in stream:
 ```
 
 #### Function Calling
+
 ```python
 tools = [
     {
@@ -194,6 +202,7 @@ response = client.chat.completions.create(
 - **WebSocket**: Real-time audio/video streaming
 
 ### Authentication
+
 ```bash
 x-goog-api-key: YOUR_API_KEY
 Content-Type: application/json
@@ -202,6 +211,7 @@ Content-Type: application/json
 ### Request/Response Formats
 
 #### Python Example
+
 ```python
 from google import genai
 
@@ -214,6 +224,7 @@ print(response.text)
 ```
 
 #### JavaScript Example
+
 ```javascript
 import { GoogleGenAI } from "@google/genai";
 
@@ -226,6 +237,7 @@ console.log(response.text);
 ```
 
 #### cURL Example
+
 ```bash
 curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent" \
   -H "x-goog-api-key: $GEMINI_API_KEY" \
@@ -240,6 +252,7 @@ curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:g
 ### Rate Limits
 
 #### Free Tier
+
 | Model | RPM | TPM | RPD |
 |-------|-----|-----|-----|
 | Gemini 2.5 Pro | 5 | 250,000 | 100 |
@@ -248,6 +261,7 @@ curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:g
 | Gemini 2.0 Flash | 15 | 1,000,000 | 200 |
 
 #### Tier 1 (Paid)
+
 | Model | RPM | TPM | RPD |
 |-------|-----|-----|-----|
 | Gemini 2.5 Pro | 150 | 2,000,000 | 10,000 |
@@ -271,18 +285,21 @@ curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:g
 ### Pricing (USD per 1M tokens)
 
 #### Gemini 2.5 Pro
+
 | Tier | Input (≤200k) | Input (>200k) | Output (≤200k) | Output (>200k) |
 |------|---------------|---------------|----------------|----------------|
 | Free | Free | Free | Free | Free |
 | Paid | $1.25 | $2.50 | $10.00 | $15.00 |
 
 #### Gemini 2.5 Flash
+
 | Tier | Text/Image/Video Input | Audio Input | Output |
 |------|------------------------|-------------|--------|
 | Free | Free | Free | Free |
 | Paid | $0.30 | $1.00 | $2.50 |
 
 #### Gemini 2.5 Flash-Lite
+
 | Tier | Text/Image/Video Input | Audio Input | Output |
 |------|------------------------|-------------|--------|
 | Free | Free | Free | Free |
@@ -307,6 +324,7 @@ curl "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:g
 ### Code Examples
 
 #### Multimodal Input
+
 ```python
 response = client.models.generate_content(
     model="gemini-2.5-flash",
@@ -326,6 +344,7 @@ response = client.models.generate_content(
 ```
 
 #### Streaming Response
+
 ```python
 stream = client.models.generate_content(
     model="gemini-2.5-flash",
@@ -357,6 +376,7 @@ for chunk in stream:
 - **API Keys**: `POST /api-key`, `GET /api-key`, `DELETE /api-key/{key_id}`
 
 ### Authentication
+
 ```bash
 Authorization: Bearer YOUR_XAI_API_KEY
 Content-Type: application/json
@@ -365,6 +385,7 @@ Content-Type: application/json
 ### Request/Response Formats
 
 #### Chat Completions Example
+
 ```bash
 curl "https://api.x.ai/v1/chat/completions" \
   -H "Authorization: Bearer $XAI_API_KEY" \
@@ -379,6 +400,7 @@ curl "https://api.x.ai/v1/chat/completions" \
 ```
 
 #### Response Format
+
 ```json
 {
   "id": "chatcmpl-...",
@@ -404,6 +426,7 @@ curl "https://api.x.ai/v1/chat/completions" \
 ```
 
 #### Image Generation Example
+
 ```bash
 curl "https://cdn.pixabay.com/photo/2022/11/17/09/09/cat-in-tree-7597653_1280.jpg" \
   -H "Authorization: Bearer $XAI_API_KEY" \
@@ -448,6 +471,7 @@ curl "https://cdn.pixabay.com/photo/2022/11/17/09/09/cat-in-tree-7597653_1280.jp
 ### Code Examples
 
 #### Python with OpenAI SDK
+
 ```python
 from openai import OpenAI
 
@@ -465,6 +489,7 @@ response = client.chat.completions.create(
 ```
 
 #### Function Calling
+
 ```python
 tools = [
     {
@@ -505,6 +530,7 @@ response = client.chat.completions.create(
 - **Files**: `POST /files`, `GET /files`, `GET /files/{file_id}`, `DELETE /files/{file_id}`
 
 ### Authentication
+
 ```bash
 Authorization: Bearer YOUR_GROQ_API_KEY
 Content-Type: application/json
@@ -513,6 +539,7 @@ Content-Type: application/json
 ### Request/Response Formats
 
 #### Chat Completions Example
+
 ```bash
 curl "https://api.groq.com/openai/v1/chat/completions" \
   -H "Content-Type: application/json" \
@@ -526,6 +553,7 @@ curl "https://api.groq.com/openai/v1/chat/completions" \
 ```
 
 #### Response Format
+
 ```json
 {
   "id": "chatcmpl-f51b2cd2-bef7-417e-964e-a08f0b513c22",
@@ -552,6 +580,7 @@ curl "https://api.groq.com/openai/v1/chat/completions" \
 ```
 
 #### Audio Transcription Example
+
 ```bash
 curl "https://api.groq.com/openai/v1/audio/transcriptions" \
   -H "Authorization: Bearer $GROQ_API_KEY" \
@@ -578,6 +607,7 @@ curl "https://api.groq.com/openai/v1/audio/transcriptions" \
 ### Pricing (USD per 1M tokens)
 
 #### Language Models (Examples)
+
 | Model | Input | Output |
 |-------|-------|--------|
 | Llama 3.1 8B Instant | $0.05 | $0.08 |
@@ -585,12 +615,14 @@ curl "https://api.groq.com/openai/v1/audio/transcriptions" \
 | Kimi K2 1T | $1.00 | $3.00 |
 
 #### Audio Models
+
 | Model | Price |
 |-------|-------|
 | Whisper Large v3 Turbo | $0.04/hour |
 | Distil-Whisper | $0.02/hour |
 
 #### Text-to-Speech
+
 | Model | Price |
 |-------|-------|
 | PlayAI Dialog v1.0 | $50/1M characters |
@@ -605,6 +637,7 @@ curl "https://api.groq.com/openai/v1/audio/transcriptions" \
 ### Code Examples
 
 #### Python Example
+
 ```python
 from groq import Groq
 
@@ -621,6 +654,7 @@ print(chat_completion.choices[0].message.content)
 ```
 
 #### Streaming Response
+
 ```python
 stream = client.chat.completions.create(
     messages=[{"role": "user", "content": "Tell me a story"}],
@@ -646,6 +680,7 @@ for chunk in stream:
 - **Models**: Information available through console
 
 ### Authentication
+
 ```bash
 x-api-key: YOUR_ANTHROPIC_API_KEY
 Content-Type: application/json
@@ -655,6 +690,7 @@ anthropic-version: 2023-06-01
 ### Request/Response Formats
 
 #### Messages Example
+
 ```bash
 curl "https://api.anthropic.com/v1/messages" \
   -H "x-api-key: $ANTHROPIC_API_KEY" \
@@ -670,6 +706,7 @@ curl "https://api.anthropic.com/v1/messages" \
 ```
 
 #### Python Example
+
 ```python
 import anthropic
 
@@ -704,6 +741,7 @@ print(message.content)
 ### Pricing (USD per 1M tokens)
 
 #### Claude Models
+
 | Model | Input | Output | Cached Input | Cached Read |
 |-------|-------|--------|--------------|-------------|
 | Claude Opus 4 | $15.00 | $75.00 | $18.75 | $1.50 |
@@ -725,6 +763,7 @@ print(message.content)
 ### Code Examples
 
 #### Streaming Response
+
 ```python
 with client.messages.stream(
     model="claude-3-5-sonnet-20241022",
@@ -736,6 +775,7 @@ with client.messages.stream(
 ```
 
 #### Vision Example
+
 ```python
 message = client.messages.create(
     model="claude-3-5-sonnet-20241022",
@@ -770,6 +810,7 @@ message = client.messages.create(
 - **Chat Completions**: `POST /chat/completions`
 
 ### Authentication
+
 ```bash
 Authorization: Bearer YOUR_API_KEY
 Content-Type: application/json
@@ -778,6 +819,7 @@ Content-Type: application/json
 ### Request/Response Formats
 
 #### Chat Completions Example
+
 ```bash
 curl "https://api.perplexity.ai/chat/completions" \
   -H "Authorization: Bearer $PERPLEXITY_API_KEY" \
@@ -793,6 +835,7 @@ curl "https://api.perplexity.ai/chat/completions" \
 ```
 
 #### Python Example
+
 ```python
 import requests
 
@@ -815,6 +858,7 @@ print(response.json())
 ```
 
 #### Response Format
+
 ```json
 {
   "id": "unique-request-id",
@@ -869,6 +913,7 @@ print(response.json())
 ### Code Examples
 
 #### Streaming Response
+
 ```python
 payload = {
     "model": "sonar-pro",
@@ -883,6 +928,7 @@ for line in response.iter_lines():
 ```
 
 #### Domain-Specific Search
+
 ```python
 payload = {
     "model": "sonar-pro",
@@ -905,6 +951,7 @@ payload = {
 - **Context Caching**: `POST /cache/contexts`
 
 ### Authentication
+
 ```bash
 Authorization: Bearer YOUR_MOONSHOT_API_KEY
 Content-Type: application/json
@@ -913,6 +960,7 @@ Content-Type: application/json
 ### Request/Response Formats
 
 #### Chat Completions Example
+
 ```python
 from openai import OpenAI
 
@@ -933,6 +981,7 @@ print(completion.choices[0].message.content)
 ```
 
 #### cURL Example
+
 ```bash
 curl "https://api.moonshot.ai/v1/chat/completions" \
   -H "Content-Type: application/json" \
@@ -946,6 +995,7 @@ curl "https://api.moonshot.ai/v1/chat/completions" \
 ```
 
 #### Response Format
+
 ```json
 {
   "id": "cmpl-04ea926191a14749b7f2c7a48a68abc6",
@@ -990,6 +1040,7 @@ curl "https://api.moonshot.ai/v1/chat/completions" \
 ### Pricing
 
 #### Tool Calling
+
 | Tool | Price |
 |------|-------|
 | Web Search | $0.005 per call |
@@ -1011,6 +1062,7 @@ curl "https://api.moonshot.ai/v1/chat/completions" \
 ### Code Examples
 
 #### Multi-turn Conversation
+
 ```python
 def chat(query, history):
     history.append({"role": "user", "content": query})
@@ -1025,6 +1077,7 @@ def chat(query, history):
 ```
 
 #### Vision Model Example
+
 ```python
 response = client.chat.completions.create(
     model="moonshot-v1-8k-vision-preview",
@@ -1041,6 +1094,7 @@ response = client.chat.completions.create(
 ```
 
 #### Web Search Tool
+
 ```python
 tools = [
     {
@@ -1076,12 +1130,14 @@ response = client.chat.completions.create(
 ### Authentication
 
 #### OpenAI-Compatible
+
 ```bash
 Authorization: Bearer YOUR_DASHSCOPE_API_KEY
 Content-Type: application/json
 ```
 
 #### DashScope Native
+
 ```bash
 Authorization: Bearer YOUR_DASHSCOPE_API_KEY
 X-DashScope-SSE: enable  # for streaming
@@ -1090,6 +1146,7 @@ X-DashScope-SSE: enable  # for streaming
 ### Request/Response Formats
 
 #### OpenAI-Compatible Example
+
 ```python
 import os
 from openai import OpenAI
@@ -1110,6 +1167,7 @@ print(completion.model_dump_json())
 ```
 
 #### cURL Example
+
 ```bash
 curl "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions" \
   -H "Authorization: Bearer $DASHSCOPE_API_KEY" \
@@ -1124,6 +1182,7 @@ curl "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions" \
 ```
 
 #### DashScope Native Example
+
 ```python
 import dashscope
 
@@ -1140,6 +1199,7 @@ print(response)
 ```
 
 #### Response Format
+
 ```json
 {
   "id": "chatcmpl-6ada9ed2-7f33-9de2-8bb0-78bd4035025a",
@@ -1177,6 +1237,7 @@ print(response)
 ### Pricing (CNY per 1K tokens)
 
 #### Qwen3-Coder Series
+
 | Model | Context | Input | Output |
 |-------|---------|-------|--------|
 | Qwen3-Coder-Plus | 1M tokens | ¥0.004-¥0.01 | ¥0.016-¥0.1 |
@@ -1198,6 +1259,7 @@ print(response)
 ### Code Examples
 
 #### Multimodal Input (Image)
+
 ```bash
 curl "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions" \
   -H "Authorization: Bearer $DASHSCOPE_API_KEY" \
@@ -1215,6 +1277,7 @@ curl "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions" \
 ```
 
 #### Streaming Response
+
 ```python
 stream = client.chat.completions.create(
     model="qwen-plus",
@@ -1231,6 +1294,7 @@ for chunk in stream:
 ```
 
 #### Tool Calling Example
+
 ```json
 {
   "tools": [
@@ -1251,6 +1315,7 @@ for chunk in stream:
 ```
 
 #### Qwen3 Thinking Mode
+
 ```python
 completion = client.chat.completions.create(
     model="qwen3-plus",
@@ -1286,6 +1351,7 @@ completion = client.chat.completions.create(
 5. **Monitoring**: Track usage, costs, and performance metrics
 
 ### Code Example: Universal Error Handling
+
 ```python
 import time
 import random
@@ -1299,15 +1365,16 @@ def api_call_with_retry(api_func, max_retries=3, base_delay=1):
         except Exception as e:
             if attempt == max_retries - 1:
                 raise e
-            
+
             # Exponential backoff with jitter
             delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
             time.sleep(delay)
-    
+
     return None
 ```
 
 ### Environment Setup Example
+
 ```bash
 # .env file
 OPENAI_API_KEY=sk-...
@@ -1322,5 +1389,5 @@ DASHSCOPE_API_KEY=sk-...
 
 ---
 
-*Last updated: July 24, 2025*  
+*Last updated: July 24, 2025*
 *Sources: Official API documentation from each provider*

@@ -83,7 +83,6 @@
 - The terminal interface is real-time streamed and interactive. You can stop and intervene at any point. If you see your agent heading in the wrong direction, just stop and tell it right away.
 - There is a lot of freedom in this framework. You can instruct your agents to regularly report back to superiors asking for permission to continue. You can instruct them to use point-scoring systems when deciding when to delegate subtasks. Superiors can double-check subordinates' results and dispute. The possibilities are endless.
 
-
 ## 🚀 Things you can build with Gary-Zero
 
 - **Development Projects** - `"Create a React dashboard with real-time data visualization"`
@@ -117,10 +116,13 @@ A detailed setup guide for Windows, macOS, and Linux with a video can be found i
 
 docker pull frdel/gary-zero-run
 # Use Warp 2.0 frontend port range (5675-5699)
+# Note: For Railway deployment, persistent volume is required
 docker run -p 5675:80 frdel/gary-zero-run
 
 # Visit http://localhost:5675 to start
 ```
+
+**⚠️ Railway Deployment Note**: Railway deployments require a persistent volume for data storage. See [Volume Setup Guide](./docs/VOLUME_SETUP.md) for complete instructions.
 
 ### 🚄 Railway Deployment Quick-Check
 
@@ -152,6 +154,11 @@ grep -A5 "\[environment\]" railway.toml
 ```bash
 # Ensure no hardcoded secrets in .env.example
 grep -i "password\|secret\|key" .env.example | grep -v "your_"
+
+# Verify DATA_DIR is configured and matches volume mount path
+grep "DATA_DIR" railpack.json
+# Should show: "DATA_DIR": "/app/data"
+# Note: DATA_DIR must match the volume mountPath in railpack.json
 ```
 
 #### 5. Inter-Service URLs Check
@@ -186,7 +193,6 @@ curl -f https://your-service.up.railway.app/healthz
 
 > **Pro Tip:** Use `npm run dev` (port 5675) for frontend development and `npm run dev:backend` (port 8765) for backend services.
 
-
 ## 🐳 Fully Dockerized, with Speech-to-Text and TTS
 
 ![Settings](docs/res/settings-page-ui.png)
@@ -201,7 +207,6 @@ curl -f https://your-service.up.railway.app/healthz
 - Agent output is streamed in real-time, allowing users to read along and intervene at any time.
 - No coding is required; only prompting and communication skills are necessary.
 - With a solid system prompt, the framework is reliable even with small models, including precise tool usage.
-
 
 ## 👀 Keep in Mind
 
@@ -251,7 +256,6 @@ graph LR
 
 📖 **[View Complete CI/CD Architecture Documentation](./docs/ci-cd-architecture.md)**
 
-
 ## 🏗️ Agent-OS Specifications
 
 Gary-Zero is built on the **Agent-OS** specification framework, providing standardized patterns for agent coordination, cloud service integration, and scalable architecture.
@@ -293,12 +297,10 @@ Gary-Zero is built on the **Agent-OS** specification framework, providing standa
 | [Contributing](./docs/contribution.md) | How to contribute |
 | [Troubleshooting](./docs/troubleshooting.md) | Common issues and their solutions |
 
-
 ## Coming soon
 
 - **MCP**
 - **Knowledge and RAG Tools**
-
 
 ## 🎯 Changelog
 
@@ -379,7 +381,6 @@ Default models set to gpt-4.1
 - **Reflection Prompts**
 - **Bug Fixes**
 
-
 ## 🎯 Quality Metrics
 
 Gary-Zero maintains high code quality standards through automated testing and continuous improvement:
@@ -407,7 +408,6 @@ npm run security         # Security audit
 npm run lint:clean       # JavaScript linting
 python lint.py check     # Python linting
 ```
-
 
 ## 🤝 Community and Support
 

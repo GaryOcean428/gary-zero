@@ -17,7 +17,7 @@ This document provides comprehensive information about AI models from major prov
 Google has released several advanced models in their Gemini 2.5 and 2.0 series, along with specialized models for image and video generation.
 
 ### Gemini 2.5 Pro
-**Release**: After June 2024  
+**Release**: After June 2024
 **Model Code**: `gemini-2.5-pro`
 
 **Specifications**:
@@ -42,7 +42,7 @@ Google has released several advanced models in their Gemini 2.5 and 2.0 series, 
 **Use Cases**: Complex reasoning tasks, advanced coding, long-context analysis, multimodal understanding
 
 ### Gemini 2.5 Flash
-**Release**: After June 2024  
+**Release**: After June 2024
 **Model Code**: `gemini-2.5-flash`
 
 **Specifications**:
@@ -66,7 +66,7 @@ Google has released several advanced models in their Gemini 2.5 and 2.0 series, 
 **Use Cases**: High-throughput tasks, real-time applications, cost-effective multimodal processing
 
 ### Gemini 2.5 Flash-Lite
-**Release**: After June 2024  
+**Release**: After June 2024
 **Model Code**: `gemini-2.5-flash-lite`
 
 **Specifications**:
@@ -88,8 +88,8 @@ Google has released several advanced models in their Gemini 2.5 and 2.0 series, 
 **Use Cases**: High-volume processing, cost-sensitive applications, basic multimodal tasks
 
 ### Gemini 2.5 Flash Native Audio
-**Release**: After June 2024  
-**Model Codes**: 
+**Release**: After June 2024
+**Model Codes**:
 - `gemini-2.5-flash-preview-native-audio-dialog`
 - `gemini-2.5-flash-exp-native-audio-thinking-dialog`
 
@@ -125,8 +125,8 @@ Google has released several advanced models in their Gemini 2.5 and 2.0 series, 
 - **Use Case**: High-quality text-to-speech
 
 ### Imagen 4 (Image Generation)
-**Release**: After June 2024  
-**Model Codes**: 
+**Release**: After June 2024
+**Model Codes**:
 - `imagen-4.0-generate-preview-06-06` (Standard)
 - `imagen-4.0-ultra-generate-preview-06-06` (Ultra)
 
@@ -142,7 +142,7 @@ Google has released several advanced models in their Gemini 2.5 and 2.0 series, 
 **Use Cases**: High-quality image generation, text rendering in images, creative content
 
 ### Veo 3 Preview (Video Generation)
-**Release**: After June 2024  
+**Release**: After June 2024
 **Model Code**: `veo-3.0-generate-preview`
 
 **Specifications**:
@@ -159,6 +159,7 @@ Google has released several advanced models in their Gemini 2.5 and 2.0 series, 
 ### Implementation Examples
 
 #### Basic Text Generation
+
 ```python
 import google.generativeai as genai
 
@@ -170,6 +171,7 @@ print(response.text)
 ```
 
 #### Multimodal Processing
+
 ```python
 import PIL.Image
 
@@ -184,6 +186,7 @@ print(response.text)
 ```
 
 #### Audio Processing
+
 ```python
 model = genai.GenerativeModel('gemini-2.5-flash')
 
@@ -204,7 +207,7 @@ print(response.text)
 xAI has released Grok 4, their most advanced reasoning model with enhanced capabilities.
 
 ### Grok 4 (grok-4-0709)
-**Release**: July 2024  
+**Release**: July 2024
 **Model Code**: `grok-4-0709`
 
 **Specifications**:
@@ -233,6 +236,7 @@ xAI has released Grok 4, their most advanced reasoning model with enhanced capab
 ### Implementation Examples
 
 #### Basic Reasoning
+
 ```python
 import openai
 
@@ -252,6 +256,7 @@ print(response.choices[0].message.content)
 ```
 
 #### Function Calling
+
 ```python
 tools = [
     {
@@ -285,7 +290,7 @@ Groq has released numerous models after June 2024, focusing on high-performance 
 ### Speech-to-Text Models
 
 #### Whisper Large V3
-**Release**: June 24, 2024  
+**Release**: June 24, 2024
 **Model Code**: `whisper-large-v3`
 
 **Specifications**:
@@ -301,7 +306,7 @@ Groq has released numerous models after June 2024, focusing on high-performance 
 - ASD: 28800 audio seconds per day
 
 #### Whisper Large V3 Turbo
-**Release**: October 9, 2024  
+**Release**: October 9, 2024
 **Model Code**: `whisper-large-v3-turbo`
 
 **Specifications**:
@@ -309,7 +314,7 @@ Groq has released numerous models after June 2024, focusing on high-performance 
 - **Optimized For**: Faster inference than standard Whisper Large V3
 
 #### Distil-Whisper Large V3 EN
-**Release**: August 20, 2024  
+**Release**: August 20, 2024
 **Model Code**: `distil-whisper-large-v3-en`
 
 **Specifications**:
@@ -437,6 +442,7 @@ Groq has released numerous models after June 2024, focusing on high-performance 
 ### Implementation Examples
 
 #### Speech-to-Text
+
 ```python
 from groq import Groq
 
@@ -454,6 +460,7 @@ print(transcription.text)
 ```
 
 #### Text Generation
+
 ```python
 completion = client.chat.completions.create(
     model="llama-3.3-70b-versatile",
@@ -468,6 +475,7 @@ print(completion.choices[0].message.content)
 ```
 
 #### Vision Model
+
 ```python
 import base64
 
@@ -501,7 +509,7 @@ completion = client.chat.completions.create(
 Anthropic has released several advanced Claude models with enhanced reasoning capabilities and computer use features.
 
 ### Claude 3.5 Sonnet (October 2024 Upgrade)
-**Release**: October 22, 2024  
+**Release**: October 22, 2024
 **Model Code**: `claude-3-5-sonnet-20241022` (alias: `claude-3-5-sonnet-latest`)
 
 **Specifications**:
@@ -537,7 +545,7 @@ Anthropic has released several advanced Claude models with enhanced reasoning ca
 - **Actions**: `screenshot`, `left_click`, `type`, `key`, `mouse_move`
 
 ### Claude Haiku 3.5
-**Release**: October 22, 2024  
+**Release**: October 22, 2024
 **Model Code**: `claude-3-haiku-20241022`
 
 **Specifications**:
@@ -547,7 +555,7 @@ Anthropic has released several advanced Claude models with enhanced reasoning ca
 - **Capabilities**: Fastest model in the Claude family
 
 ### Claude Sonnet 3.7
-**Release**: February 19, 2025  
+**Release**: February 19, 2025
 **Model Code**: `claude-3-sonnet-20250219`
 
 **Specifications**:
@@ -557,7 +565,7 @@ Anthropic has released several advanced Claude models with enhanced reasoning ca
 - **Added to claude.ai**: February 24, 2025
 
 ### Claude Sonnet 4
-**Release**: May 14, 2025  
+**Release**: May 14, 2025
 **Model Code**: `claude-4-sonnet-20250514`
 
 **Specifications**:
@@ -567,7 +575,7 @@ Anthropic has released several advanced Claude models with enhanced reasoning ca
 - **Added to claude.ai**: May 22, 2025
 
 ### Claude Opus 4
-**Release**: May 14, 2025  
+**Release**: May 14, 2025
 **Model Code**: `claude-4-opus-20250514`
 
 **Specifications**:
@@ -579,6 +587,7 @@ Anthropic has released several advanced Claude models with enhanced reasoning ca
 ### Implementation Examples
 
 #### Basic Text Generation
+
 ```python
 import anthropic
 
@@ -596,6 +605,7 @@ print(message.content[0].text)
 ```
 
 #### Vision Processing
+
 ```python
 import base64
 
@@ -631,6 +641,7 @@ message = client.messages.create(
 ```
 
 #### Computer Use Tool
+
 ```python
 message = client.messages.create(
     model="claude-3-5-sonnet-20241022",
@@ -655,6 +666,7 @@ message = client.messages.create(
 ```
 
 #### Function Calling
+
 ```python
 tools = [
     {

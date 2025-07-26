@@ -2,7 +2,6 @@
 
 This document provides comprehensive guidance for running, writing, and maintaining tests in the Gary-Zero project.
 
-
 ## Table of Contents
 
 1. [Test Structure](#test-structure)
@@ -14,7 +13,6 @@ This document provides comprehensive guidance for running, writing, and maintain
 7. [Performance Testing](#performance-testing)
 8. [Security Testing](#security-testing)
 9. [Troubleshooting](#troubleshooting)
-
 
 ## Test Structure
 
@@ -52,7 +50,6 @@ Tests are organized using pytest markers:
 - `@pytest.mark.security` - Security-related tests
 - `@pytest.mark.slow` - Tests that take longer than 1 second
 - `@pytest.mark.mock_external` - Tests that mock external services
-
 
 ## Running Tests
 
@@ -127,7 +124,6 @@ npm run test:coverage  # Run with coverage
 npm run test:ui        # Run with UI
 npm run test:watch     # Watch mode
 ```
-
 
 ## Writing Tests
 
@@ -230,7 +226,6 @@ def test_api_call_with_mock(mock_openai_api):
     assert response.choices[0].message.content == "This is a mock response from OpenAI API"
 ```
 
-
 ## Environment Configuration
 
 ### Environment Variables
@@ -281,7 +276,6 @@ def test_with_custom_config(custom_test_config):
         pass
 ```
 
-
 ## CI/CD Pipeline
 
 ### GitHub Actions Workflow
@@ -327,7 +321,6 @@ python -m bandit -r framework/ api/ security/
 python -m pytest --cov=framework --cov-fail-under=80
 ```
 
-
 ## Coverage and Quality
 
 ### Coverage Requirements
@@ -370,7 +363,6 @@ Run hooks manually:
 ```bash
 pre-commit run --all-files
 ```
-
 
 ## Performance Testing
 
@@ -416,7 +408,6 @@ def test_operation_performance():
     assert result is not None
 ```
 
-
 ## Security Testing
 
 ### Security Test Categories
@@ -445,7 +436,6 @@ def test_code_injection_prevention(code_validator, malicious_code_samples):
 - **Bandit**: Scans for security vulnerabilities in Python code
 - **Safety**: Checks dependencies for known security issues
 - **Detect-secrets**: Prevents secrets from being committed
-
 
 ## Troubleshooting
 

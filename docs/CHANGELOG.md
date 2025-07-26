@@ -5,8 +5,13 @@ All notable changes to Gary-Zero will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-
 ## [Unreleased]
+
+### Breaking Changes
+
+- **BREAKING**: Settings path migration from `/app/tmp/settings.json` to `/app/data/settings.json`
+- **BREAKING**: New default model changed to `gpt-4.1-mini` (was `gpt-4`)
+- **BREAKING**: Volume requirement for Railway deployments - persistent storage now mandatory
 
 ### Removed
 
@@ -84,6 +89,50 @@ export ANTHROPIC_API_KEY="sk-ant-your-anthropic-key"
 
 **Documentation**: See [docs/credential-rotation-guide.md](docs/credential-rotation-guide.md) for complete migration instructions
 
+#### Settings Path Migration & Volume Requirement
+
+**Date**: January 2025
+**Impact**: BREAKING CHANGE for existing deployments
+
+**What Changed:**
+- **Settings path moved** from `/app/tmp/settings.json` to `/app/data/settings.json`
+- **Volume mount required** for Railway deployments to ensure data persistence
+- **Automatic migration** implemented for seamless transition
+- **New default model** changed to `gpt-4.1-mini` for improved performance
+
+**Why This Change:**
+1. **Data Persistence**: Settings now survive deployment restarts and container rebuilds
+2. **Volume Integration**: Aligned with Railway volume structure for consistent storage
+3. **Modern Model Default**: `gpt-4.1-mini` provides better performance and cost efficiency
+4. **Future-Proofing**: Prepares for upcoming knowledge base and RAG features
+
+**Action Required:**
+- **⚠️ IMPORTANT**: Ensure Railway volume is configured before deployment
+- **Environment Variable**: Verify `DATA_DIR=/app/data` matches volume mountPath
+- **Model Configuration**: Review and update model settings if using hardcoded `gpt-4`
+- **No Manual Migration**: System automatically migrates existing settings
+
+**Volume Configuration (Railway):**
+
+```bash
+# Create volume via Railway CLI
+railway volumes create gary-zero-data --size 10
+
+# Or via Railway Dashboard → Project → Volumes → Create
+```
+
+**Environment Variables:**
+
+```bash
+# Required for persistent storage
+DATA_DIR=/app/data  # Must match volume mountPath
+
+# Optional: Override default model
+DEFAULT_MODEL=gpt-4.1-mini  # New default
+```
+
+**Documentation**: See [docs/VOLUME_SETUP.md](docs/VOLUME_SETUP.md) for complete setup guide
+
 #### Railway Deployment Configuration Migration
 
 **Date**: 2024-07-24
@@ -129,7 +178,6 @@ After this change, monitor Railway deployment logs to confirm seamless operation
 2. Confirm proper startup via `scripts/start.sh`
 3. Check health endpoint accessibility at `/health`
 4. Validate port binding on Railway-assigned PORT environment variable
-
 
 ## [0.9.0] - 2024-07-24
 

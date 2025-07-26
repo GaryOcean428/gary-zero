@@ -2,7 +2,6 @@
 
 This document explains the Railway deployment configuration for the gary-zero project.
 
-
 ## Configuration Files
 
 ### nixpacks.toml
@@ -43,13 +42,11 @@ Updated build command to focus on Python dependencies only:
 buildCommand = "pip install -r requirements.txt"
 ```
 
-
 ## Issues Resolved
 
 1. **Missing Procfile**: Added Procfile to specify application startup command
 2. **Incorrect Project Detection**: Added nixpacks.toml to explicitly specify Python provider
 3. **Missing Gunicorn**: Added gunicorn to requirements.txt for production WSGI server
-
 
 ## Deployment Process
 
@@ -57,7 +54,6 @@ buildCommand = "pip install -r requirements.txt"
 2. Railway runs `pip install -r requirements.txt` to install dependencies including gunicorn
 3. Railway starts the application using the Procfile command: `gunicorn app:app --bind 0.0.0.0:$PORT`
 4. Gunicorn imports the Flask app from app.py and serves it on the Railway-provided port
-
 
 ## Testing Locally
 

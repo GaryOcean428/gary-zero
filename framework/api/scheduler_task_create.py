@@ -1,4 +1,4 @@
-import random
+import secrets
 
 from framework.helpers.api import ApiHandler, Input, Output, Request
 from framework.helpers.localization import Localization
@@ -48,9 +48,12 @@ class SchedulerTaskCreate(ApiHandler):
             f"(type: {type(token)}, length: {token_length})"
         )
 
-        # Generate a random token if empty or not provided
+        # Generate a cryptographically secure random token if empty or not provided
         if not token:
-            token = str(random.randint(1000000000000000000, 9999999999999999999))
+            token = str(
+                secrets.randbelow(9999999999999999999 - 1000000000000000000)
+                + 1000000000000000000
+            )
             printer.print(f"Generated new token: '{token}'")
 
         plan = input.get("plan", {})

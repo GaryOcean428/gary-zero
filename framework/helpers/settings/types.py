@@ -3,6 +3,7 @@
 This module contains all type definitions used across the settings system.
 """
 
+import os
 from typing import Any, Literal, TypedDict
 
 
@@ -194,9 +195,9 @@ class Settings(TypedDict):
 
 # Default settings values that can be used across modules
 DEFAULT_SETTINGS: Settings = {
-    # Chat model settings - using Claude 3.5 Sonnet (reliable and available)
+    # Chat model settings - using Claude Sonnet 4 (preferred)
     "chat_model_provider": "ANTHROPIC",
-    "chat_model_name": "claude-3-5-sonnet-20241022",
+    "chat_model_name": "claude-sonnet-4-0",
     "chat_model_kwargs": {},
     "chat_model_ctx_length": 200000,  # 200K tokens
     "chat_model_ctx_history": 0.9,
@@ -204,11 +205,11 @@ DEFAULT_SETTINGS: Settings = {
     "chat_model_rl_requests": 0,
     "chat_model_rl_input": 0,
     "chat_model_rl_output": 0,
-    # Utility model settings - using GPT-4o-mini (available and efficient)
+    # Utility model settings - using GPT-4.1-mini (latest available and efficient)
     "util_model_provider": "OPENAI",
-    "util_model_name": "gpt-4o-mini",
+    "util_model_name": "gpt-4.1-mini",
     "util_model_kwargs": {},
-    "util_model_ctx_length": 128000,  # 128K tokens (actual limit)
+    "util_model_ctx_length": 1047576,  # 1M+ tokens (from model parameters)
     "util_model_ctx_history": 0.9,
     "util_model_vision": False,
     "util_model_rl_requests": 0,
@@ -238,9 +239,9 @@ DEFAULT_SETTINGS: Settings = {
     "voice_model_rl_output": 0,
     "voice_architecture": "speech_to_speech",
     "voice_transport": "websocket",
-    # Code model settings - using Claude 3.5 Sonnet for code tasks
+    # Code model settings - using Claude Sonnet 4 (preferred for code)
     "code_model_provider": "ANTHROPIC",
-    "code_model_name": "claude-3-5-sonnet-20241022",
+    "code_model_name": "claude-sonnet-4-0",
     "code_model_kwargs": {},
     "code_model_rl_requests": 0,
     "code_model_rl_input": 0,
@@ -263,12 +264,12 @@ DEFAULT_SETTINGS: Settings = {
     "mcp_client_init_timeout": 30,
     "mcp_client_tool_timeout": 300,
     # Database settings
-    "database_url": "sqlite:///./zero.db",
-    "database_name": "zero",
-    "database_username": "",
-    "database_password": "",
-    "database_host": "localhost",
-    "database_port": 5432,
+    "database_url": os.getenv("DATABASE_URL", "sqlite:///./zero.db"),
+    "database_name": os.getenv("DATABASE_NAME", "zero"),
+    "database_username": os.getenv("DATABASE_USERNAME", ""),
+    "database_password": os.getenv("DATABASE_PASSWORD", ""),
+    "database_host": os.getenv("DATABASE_HOST", "localhost"),
+    "database_port": int(os.getenv("DATABASE_PORT", "5432")),
     "database_ssl": False,
     "database_ssl_ca": "",
     "database_ssl_cert": "",
@@ -276,10 +277,10 @@ DEFAULT_SETTINGS: Settings = {
     "database_ssl_verify_cert": True,
     # MCP Server settings
     "mcp_server_enabled": True,
-    "mcp_server_token": "mcp-token-12345",
+    "mcp_server_token": os.getenv("MCP_SERVER_TOKEN", ""),
     # RFC settings
-    "rfc_url": "http://localhost:8000",
-    "rfc_password": "",
+    "rfc_url": os.getenv("RFC_URL", "http://localhost:8000"),
+    "rfc_password": os.getenv("RFC_PASSWORD", ""),
     "rfc_auto_docker": True,
     "rfc_port_http": 8000,
     "rfc_port_ssh": 22,
@@ -316,7 +317,7 @@ DEFAULT_SETTINGS: Settings = {
     # API Keys (initially empty dict)
     "api_keys": {},
     # Auth settings
-    "auth_login": "admin",
-    "auth_password": "",
-    "root_password": "",
+    "auth_login": os.getenv("AUTH_LOGIN", ""),
+    "auth_password": os.getenv("AUTH_PASSWORD", ""),
+    "root_password": os.getenv("ROOT_PASSWORD", ""),
 }

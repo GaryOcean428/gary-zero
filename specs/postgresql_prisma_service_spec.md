@@ -8,6 +8,7 @@
 - **ORM integration**: Type-safe database operations via Prisma
 
 ## Reference Variable Schemas
+
 ```toml
 # Railway Environment Variables
 DATABASE_URL="postgresql://postgres:${{POSTGRES_PASSWORD}}@postgres.railway.internal:5432/railway"
@@ -31,6 +32,7 @@ DATABASE_TIMEOUT="30"
 
 ## Sample SDK Snippets
 ### Python
+
 ```python
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -50,6 +52,7 @@ with get_db_connection() as conn:
 ```
 
 ### TypeScript
+
 ```typescript
 import { PrismaClient } from '@prisma/client';
 

@@ -12,7 +12,6 @@ reviewers: []
 
 This directory contains coding standards, best practices, and development guidelines.
 
-
 ## Contents
 
 - `coding-standards.md` - Language-specific coding standards and conventions
@@ -22,14 +21,12 @@ This directory contains coding standards, best practices, and development guidel
 - `git-workflow.md` - Git branching strategy and commit conventions
 - `performance-guidelines.md` - Performance optimization best practices
 
-
 ## Guidelines
 
 - All code must adhere to established coding standards
 - Peer code reviews are mandatory for all changes
 - Maintain high test coverage (minimum 80%)
 - Document all public APIs and complex logic
-
 
 ## Review Process
 

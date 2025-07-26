@@ -2,7 +2,6 @@
 
 This directory contains the integration files for the Qwen Coder CLI tool, which provides AI-powered code assistance and generation capabilities using Alibaba's Qwen language model.
 
-
 ## Installation
 
 ### Automatic Installation
@@ -23,7 +22,6 @@ Or run the installation script:
 ./install.sh
 ```
 
-
 ## Configuration
 
 After installation, configure your API key:
@@ -34,7 +32,6 @@ qwen-coder config set api_key YOUR_QWEN_API_KEY
 
 Get your API key from: <https://dashscope.aliyun.com/>
 
-
 ## Features
 
 - **Code Generation**: Generate code from natural language descriptions
@@ -42,7 +39,6 @@ Get your API key from: <https://dashscope.aliyun.com/>
 - **Code Completion**: Auto-complete code at specific locations
 - **Code Explanation**: Get detailed explanations of code functionality
 - **Code Refactoring**: Modernize and optimize existing code
-
 
 ## Usage Examples
 
@@ -76,7 +72,6 @@ qwen-coder explain --code "def fibonacci(n): return n if n <= 1 else fibonacci(n
 qwen-coder refactor --file legacy_code.py --type modernize
 ```
 
-
 ## Agent Integration
 
 The Qwen Coder CLI is integrated into the Zero Agent framework through:
@@ -87,7 +82,6 @@ The Qwen Coder CLI is integrated into the Zero Agent framework through:
 4. **Tool wrapper**: Provides `qwen_coder_cli` tool for agent use
 5. **Approval workflow**: Respects configured approval modes for security
 
-
 ## Configuration Options
 
 In agent settings:
@@ -96,14 +90,12 @@ In agent settings:
 - `qwen_cli_approval_mode`: Approval mode ("auto", "suggest", "manual")
 - `qwen_cli_auto_install`: Enable automatic installation if CLI is missing
 
-
 ## Requirements
 
 - Python 3.8 or higher
 - pip package manager
 - Qwen API key from Alibaba DashScope
 - Internet connection for API requests
-
 
 ## Troubleshooting
 
@@ -129,7 +121,6 @@ If installation fails due to permissions:
 1. Use `pip install --user qwen-coder-cli` for user installation
 2. Or use virtual environments
 3. Check write permissions in installation directory
-
 
 ## Links
 

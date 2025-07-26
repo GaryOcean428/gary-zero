@@ -1,6 +1,5 @@
 # CLAUDE.md
 
-
 ## Gary-Zero Agent OS Project Overview
 
 Gary-Zero is an autonomous AI agent framework that enables users to build, deploy, and orchestrate intelligent agents for complex task automation. The project follows Agent OS principles with comprehensive product documentation.

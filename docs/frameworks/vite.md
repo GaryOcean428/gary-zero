@@ -1,10 +1,8 @@
 # Vite Build Tool Documentation
 
-
 ## Overview
 
 Vite is a fast build tool and development server for modern web projects.
-
 
 ## Key Resources
 
@@ -12,11 +10,9 @@ Vite is a fast build tool and development server for modern web projects.
 - [Vite Config](https://vitejs.dev/config/) - Configuration reference
 - [Vite Troubleshooting](https://vitejs.dev/guide/troubleshooting) - Common issues and solutions
 
-
 ## Project Integration
 
 Check `vitest.config.js` for current Vite configuration in this project.
-
 
 ## Quick Commands
 
@@ -30,7 +26,6 @@ npm run build
 # Preview production build
 npm run preview
 ```
-
 
 ## Common Issues
 

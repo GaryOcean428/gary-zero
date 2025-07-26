@@ -2,7 +2,6 @@
 
 This document provides guidance on using the OpenAI Agents SDK integration in Gary-Zero, which adds standardized agent loops, guardrails, handoffs, and tracing capabilities.
 
-
 ## Overview
 
 The OpenAI Agents SDK integration provides:
@@ -13,7 +12,6 @@ The OpenAI Agents SDK integration provides:
 - **Agent Handoffs**: Coordinated task delegation between agents
 - **Tool Compatibility**: Wrapper system for existing Gary-Zero tools
 - **Backward Compatibility**: Graceful fallback to traditional Gary-Zero functionality
-
 
 ## Quick Start
 
@@ -70,7 +68,6 @@ results = migrate_existing_agent_to_sdk(
     }
 )
 ```
-
 
 ## Features
 
@@ -150,7 +147,6 @@ success = await orchestrator.coordinate_handoff(
 )
 ```
 
-
 ## Configuration
 
 ### SDK Integration Settings
@@ -198,7 +194,6 @@ input_validator = manager.input_validator
 output_validator = manager.output_validator
 safety_evaluator = manager.safety_evaluator
 ```
-
 
 ## API Reference
 
@@ -248,7 +243,6 @@ from framework.helpers.sdk_integration import test_sdk_integration
 results = test_sdk_integration()  # Comprehensive test results
 ```
 
-
 ## Error Handling
 
 The SDK integration includes comprehensive error handling:
@@ -269,7 +263,6 @@ if error_record["retry_suggested"]:
     delay = error_record.get("retry_delay", 5)
     # Implement retry logic
 ```
-
 
 ## Monitoring and Debugging
 
@@ -312,7 +305,6 @@ print(f"Recent input violations: {len(input_violations)}")
 print(f"Recent output violations: {len(output_violations)}")
 ```
 
-
 ## Best Practices
 
 ### 1. Gradual Migration
@@ -338,7 +330,6 @@ print(f"Recent output violations: {len(output_violations)}")
 - Start with strict guardrails in production
 - Regularly review safety evaluation results
 - Implement custom guardrails for domain-specific risks
-
 
 ## Troubleshooting
 
@@ -384,7 +375,6 @@ results = test_sdk_integration()
 print(json.dumps(results, indent=2))
 ```
 
-
 ## Migration from Legacy System
 
 ### Step 1: Enable SDK Integration
@@ -424,7 +414,6 @@ if len(violations) > threshold:
     pass
 ```
 
-
 ## Advanced Usage
 
 ### Custom Guardrails
@@ -461,7 +450,6 @@ tracer.add_trace_event(
     }
 )
 ```
-
 
 ## Support
 

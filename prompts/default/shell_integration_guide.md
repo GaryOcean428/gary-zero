@@ -1,6 +1,5 @@
 # Kali Shell Access Guide
 
-
 ## Available Shell Service
 
 You have access to a dedicated Kali Linux shell environment for advanced security testing and analysis:
@@ -10,7 +9,6 @@ You have access to a dedicated Kali Linux shell environment for advanced securit
 - **Authentication**: HTTP Basic Auth (credentials automatically configured via Railway env vars)
 - **Access Methods**: Both private Railway network and public endpoints available
 - **Real-time UI**: Shell operations are automatically displayed to users via dynamic iframe
-
 
 ## Shell Access Methods
 
@@ -94,7 +92,6 @@ await shell_file_download(
 )
 ```
 
-
 ## When to Use Shell vs E2B
 
 **Use Kali Shell for:**
@@ -114,7 +111,6 @@ await shell_file_download(
 - Quick script execution
 - File manipulation and parsing
 
-
 ## Security Considerations
 
 - **Isolation**: All shell operations run in isolated Kali Linux container
@@ -123,7 +119,6 @@ await shell_file_download(
 - **Network**: Uses Railway private network for internal communication
 - **Transparency**: Real-time iframe displays all shell operations to users
 - **Timeout**: Commands have reasonable timeouts to prevent resource abuse
-
 
 ## User Visibility & Transparency
 
@@ -136,7 +131,6 @@ When you execute shell commands, users automatically see:
 - **Session Management**: Clear indication of active shell sessions
 
 This ensures complete transparency for all security operations and builds user trust.
-
 
 ## Common Usage Patterns
 
@@ -192,7 +186,6 @@ sql_test = await shell_execute(
 )
 ```
 
-
 ## Error Handling
 
 The shell service includes robust error handling:
@@ -201,7 +194,6 @@ The shell service includes robust error handling:
 - **Command Timeout**: Automatic termination of long-running commands
 - **Authentication Errors**: Clear error messages for configuration issues
 - **Network Issues**: Retry logic for temporary connectivity problems
-
 
 ## Best Practices
 

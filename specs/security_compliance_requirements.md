@@ -10,6 +10,7 @@
 Embed the user's reference variable checklist:
 
 ### 1. Pull the latest code
+
 ```bash
 git pull origin main
 ```

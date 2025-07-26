@@ -8,6 +8,7 @@
 - **Queue management**: Background job processing with Redis queues
 
 ## Reference Variable Schemas
+
 ```toml
 # Railway Environment Variables
 REDIS_URL="redis://:${{REDIS_PASSWORD}}@redis.railway.internal:6379"
@@ -30,6 +31,7 @@ REDIS_RETRY_ATTEMPTS="3"
 
 ## Sample SDK Snippets
 ### Python
+
 ```python
 import redis
 from redis.connection import ConnectionPool
@@ -61,6 +63,7 @@ def cache_set(key: str, value: any, ttl: int = 300):
 ```
 
 ### TypeScript
+
 ```typescript
 import Redis from 'ioredis';
 

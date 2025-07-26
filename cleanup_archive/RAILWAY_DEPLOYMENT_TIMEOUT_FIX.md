@@ -1,6 +1,5 @@
 # Railway Deployment Timeout Fix - Issue #64
 
-
 ## Problem Resolved
 
 Railway deployment was failing with Docker registry timeout:
@@ -9,11 +8,9 @@ Railway deployment was failing with Docker registry timeout:
 failed to do request: Head "https://registry-1.docker.io/v2/library/python/manifests/3.11-slim": dial tcp: lookup registry-1.docker.io: i/o timeout
 ```
 
-
 ## Root Cause
 
 Railway was attempting to use Docker for builds instead of the intended Nixpacks configuration, causing dependency on Docker Hub registry which experienced connectivity issues.
-
 
 ## Solution Implemented
 
@@ -54,7 +51,6 @@ NIXPACKS_PYTHON_VERSION = "3.11"
 3. **Faster Builds** - Nixpacks typically builds faster than Docker
 4. **Better Railway Integration** - Uses Railway's preferred build system
 
-
 ## Deployment Instructions
 
 ### For New Deployments
@@ -83,7 +79,6 @@ railway variables list
 curl https://your-app.railway.app/health
 ```
 
-
 ## Health Check Verification
 
 The application provides a health endpoint at `/health`:
@@ -101,7 +96,6 @@ Test it with:
 ```bash
 curl https://your-railway-app.railway.app/health
 ```
-
 
 ## Troubleshooting
 
@@ -146,7 +140,6 @@ curl https://your-railway-app.railway.app/health
 **Issue**: "Port binding failed"
 **Solution**: Ensure health endpoint is accessible and app binds to `0.0.0.0:$PORT`
 
-
 ## Validation Commands
 
 Check configuration validity:
@@ -162,7 +155,6 @@ ls -la | grep -i docker
 python run_ui.py --port 8080 --host 127.0.0.1
 ```
 
-
 ## Prevention
 
 To prevent this issue in future:
@@ -170,7 +162,6 @@ To prevent this issue in future:
 2. Keep Docker files named with `.local` or `.dev` suffix
 3. Maintain `.railway-ignore` to exclude build artifacts
 4. Test deployments in Railway's staging environment first
-
 
 ## Additional Resources
 

@@ -1,6 +1,5 @@
 # Architecture & Design Decisions - Gary-Zero
 
-
 ## Decision Log Format
 
 Each decision includes:
@@ -12,7 +11,6 @@ Each decision includes:
 - **Decision**: What was decided
 - **Consequences**: Positive and negative outcomes
 - **Alternatives**: Options considered but rejected
-
 
 ## Authoritative Persona Rules Overrides
 
@@ -26,7 +24,6 @@ The following personas provide authoritative rule-checking and validation, super
 These roles should be consulted where their expertise applies, and their recommendations should be incorporated into decision logs as authoritative advice.
 
 ---
-
 
 ## D001: Railway-Managed Containerization
 
@@ -67,7 +64,6 @@ Adopt Railway's managed containerization with Nixpacks/Railpack for automatic co
 
 ---
 
-
 ## D002: FastAPI Over Flask
 
 **Date**: 2024-11-15
@@ -103,7 +99,6 @@ Use FastAPI as primary web framework with Flask maintained for legacy compatibil
 - Django with async support
 
 ---
-
 
 ## D003: Hierarchical Agent Structure
 
@@ -141,7 +136,6 @@ Implement hierarchical agent structure where superior agents delegate to subordi
 
 ---
 
-
 ## D004: MCP Protocol Integration
 
 **Date**: 2024-11-01
@@ -177,7 +171,6 @@ Implement both MCP server and client capabilities for full ecosystem integration
 - GraphQL-based communication
 
 ---
-
 
 ## D005: Transparent Prompt System
 
@@ -215,7 +208,6 @@ Store all prompts in accessible files within `/prompts` directory structure.
 
 ---
 
-
 ## D006: Memory System Architecture
 
 **Date**: 2024-10-01
@@ -251,7 +243,6 @@ Implement hybrid memory system with automatic and manual components using vector
 - Cloud-based memory services
 
 ---
-
 
 ## D007: Python 3.13+ Requirement
 
@@ -289,7 +280,6 @@ Require Python 3.13+ as minimum version for optimal performance and feature avai
 
 ---
 
-
 ## D008: Railway Cloud Deployment
 
 **Date**: 2024-11-25
@@ -325,7 +315,6 @@ Standardize on Railway as primary cloud deployment platform.
 - Self-hosted solutions
 
 ---
-
 
 ## D009: WebSocket Real-time Communication
 
@@ -363,7 +352,6 @@ Implement WebSocket-based communication for real-time updates and interactions.
 
 ---
 
-
 ## D010: Plugin Architecture
 
 **Date**: 2024-09-30
@@ -399,7 +387,6 @@ Implement dynamic plugin system with Python module loading and configuration-dri
 - Microservice-based extensions
 
 ---
-
 
 ## D011: Security-First Design
 
@@ -437,7 +424,6 @@ Implement multi-layer security with Railway's managed isolation, E2B sandboxing,
 
 ---
 
-
 ## D012: Open Source MIT License
 
 **Date**: 2024-08-01
@@ -473,7 +459,6 @@ Release under MIT license for maximum permissive use and contribution.
 - Dual licensing model
 
 ---
-
 
 ## D013: Test-Driven Quality Assurance
 
@@ -511,7 +496,6 @@ Implement comprehensive test suite with unit, integration, and end-to-end testin
 
 ---
 
-
 ## Future Decisions Under Consideration
 
 ### FD001: Multi-Model Support Strategy
@@ -539,7 +523,6 @@ Investigating potential for blockchain-based agent identity and transaction reco
 Determining approach for horizontal scaling and performance optimization.
 
 ---
-
 
 ## DEC-002: Agent OS as Coordination Layer
 
@@ -579,7 +562,6 @@ Adopt Agent OS as the primary coordination layer for Gary8D multi-agent workflow
 
 ---
 
-
 ## D014: Multi-Persona System Integration
 
 **Date**: 2025-01-27
@@ -615,7 +597,6 @@ Integrate persona rules from .clinerules as authoritative overrides in Agent OS 
 - Use only Agent OS roles without .clinerules personas
 
 ---
-
 
 ## Decision Review Process
 

@@ -2,13 +2,13 @@
 
 ## Short Version (Discord/Slack Message)
 
-🎉 **BIG NEWS: Agent-OS Specifications v1.0.0 is here!** 
+🎉 **BIG NEWS: Agent-OS Specifications v1.0.0 is here!**
 
-We've just released the first version of Gary-Zero's **Agent-OS specification framework** - establishing standardized patterns for agent coordination, cloud services, and scalable architecture! 
+We've just released the first version of Gary-Zero's **Agent-OS specification framework** - establishing standardized patterns for agent coordination, cloud services, and scalable architecture!
 
 🏗️ **What's included:**
 ✅ Cloud Services Integration patterns
-✅ Morphism Browser Service specs  
+✅ Morphism Browser Service specs
 ✅ Database & Redis integration specs
 ✅ Security compliance framework
 ✅ Performance monitoring standards
@@ -24,7 +24,7 @@ We've just released the first version of Gary-Zero's **Agent-OS specification fr
 📋 **For Contributors:**
 All PRs that modify core functionality now require specification updates - automated CI will guide you!
 
-🔗 **Get Started:** 
+🔗 **Get Started:**
 • Browse specs: `/specs/` folder
 • Templates: `.agent-os/instructions/create-spec.md`
 • Guidelines: `.agent-os/specs/README.md`
@@ -32,7 +32,7 @@ All PRs that modify core functionality now require specification updates - autom
 This is a foundational release that standardizes how we build agent-based systems. Excited to see what the community builds with these specifications! 🚀
 
 **Release tag:** `agent-os-specs-v1.0.0`
-**Full announcement:** https://github.com/frdel/gary-zero/blob/main/docs/AGENT_OS_SPECS_ANNOUNCEMENT.md
+**Full announcement:** <https://github.com/frdel/gary-zero/blob/main/docs/AGENT_OS_SPECS_ANNOUNCEMENT.md>
 
 Questions? Drop them here! 👇
 

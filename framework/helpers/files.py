@@ -217,14 +217,16 @@ def delete_dir(relative_path: str):
         # if directory still exists, try more aggressive methods
         if os.path.exists(abs_path):
             try:
-                # try to change permissions and delete again
+                # try to change permissions and delete again (using safer permissions)
                 for root, dirs, files in os.walk(abs_path, topdown=False):
                     for name in files:
                         file_path = os.path.join(root, name)
-                        os.chmod(file_path, 0o777)
+                        # Use 0o755 instead of 0o777 for better security
+                        os.chmod(file_path, 0o755)
                     for name in dirs:
                         dir_path = os.path.join(root, name)
-                        os.chmod(dir_path, 0o777)
+                        # Use 0o755 instead of 0o777 for better security
+                        os.chmod(dir_path, 0o755)
 
                 # try again after changing permissions
                 shutil.rmtree(abs_path, ignore_errors=True)
@@ -308,6 +310,22 @@ def move_file(relative_path: str, new_path: str):
     new_abs_path = get_abs_path(new_path)
     os.makedirs(os.path.dirname(new_abs_path), exist_ok=True)
     os.rename(abs_path, new_abs_path)
+
+
+def get_data_path(rel: str = "") -> str:
+    """Get path within the data directory.
+
+    Args:
+        rel: Relative path within the data directory
+
+    Returns:
+        Absolute path within the data directory
+    """
+    base = os.getenv("DATA_DIR", "/app/data")
+    if rel:
+        return os.path.join(base, rel)
+    else:
+        return base
 
 
 def safe_file_name(filename: str) -> str:

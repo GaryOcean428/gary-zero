@@ -1,6 +1,5 @@
 # Docker Hub Setup for Gary-Zero
 
-
 ## Important Notes
 
 Your project structure has the git repository in `/home/braden/Desktop/Dev/zero/agent-zero/`

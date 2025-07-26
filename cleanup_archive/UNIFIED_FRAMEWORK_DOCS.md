@@ -1,10 +1,8 @@
 # Unified Logging, Monitoring & Benchmarking Framework
 
-
 ## Overview
 
 This framework provides a comprehensive unified approach to logging, monitoring, and benchmarking that integrates with existing Gary-Zero components while providing enhanced capabilities for data-driven improvements and GAIA-style evaluation.
-
 
 ## Architecture
 
@@ -44,7 +42,6 @@ This framework provides a comprehensive unified approach to logging, monitoring,
    - REST API for accessing logs and metrics
    - Health checks and system status
    - Performance metrics export
-
 
 ## Event Schema
 
@@ -89,7 +86,6 @@ This framework provides a comprehensive unified approach to logging, monitoring,
 - **Security**: `authentication`, `authorization`, `security_violation`, `rate_limit`
 - **Planning**: `agent_decision`, `task_created`, `task_completed`, `task_failed`
 - **Diagnostics**: `error`, `exception`
-
 
 ## Usage Examples
 
@@ -183,7 +179,6 @@ reporter = BenchmarkReporter()
 report_file = reporter.generate_summary_report(results)
 ```
 
-
 ## API Endpoints
 
 The framework exposes REST API endpoints for accessing logs and metrics:
@@ -211,7 +206,6 @@ curl "http://localhost:8000/api/v1/monitoring/performance?duration_seconds=3600"
 # Health check
 curl "http://localhost:8000/api/v1/monitoring/health"
 ```
-
 
 ## Integration Guide
 
@@ -266,7 +260,6 @@ custom_task = TestCase(
 harness.register_test_case(custom_task)
 ```
 
-
 ## Configuration
 
 ### Environment Variables
@@ -288,7 +281,6 @@ storage = SqliteStorage("./logs/events.db")
 deleted_count = await storage.cleanup_old_events(days_to_keep=30)
 ```
 
-
 ## Privacy and Security
 
 ### Data Sanitization
@@ -306,7 +298,6 @@ The framework automatically sanitizes sensitive data:
 - Audit trail for all system operations
 - Role-based access control for API endpoints
 
-
 ## Testing
 
 Run the comprehensive test suite:
@@ -321,7 +312,6 @@ python integration_demo.py
 # Run with pytest (if available)
 python -m pytest tests/ -v
 ```
-
 
 ## Performance Considerations
 
@@ -339,7 +329,6 @@ python -m pytest tests/ -v
 3. **Configure retention periods** to manage storage
 4. **Enable parallel benchmarking** for faster execution
 5. **Use filtering** in API queries to reduce response times
-
 
 ## Troubleshooting
 
@@ -359,7 +348,6 @@ import logging
 logging.getLogger("gary_zero.unified_logger").setLevel(logging.DEBUG)
 ```
 
-
 ## Future Enhancements
 
 ### Planned Features
@@ -378,11 +366,9 @@ logging.getLogger("gary_zero.unified_logger").setLevel(logging.DEBUG)
 - **Custom scoring functions**: Extend benchmark analysis
 - **Custom event types**: Add domain-specific event categories
 
-
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on extending the framework.
-
 
 ## License
 

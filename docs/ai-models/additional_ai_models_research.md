@@ -54,15 +54,15 @@
 
 ### Expected Documentation (Based on URLs Found)
 - Claude Code overview and capabilities
-- Installation and setup instructions  
+- Installation and setup instructions
 - Common workflows and best practices
 - General Claude models information
 
 ### Official Sources (Currently Inaccessible)
-- https://docs.anthropic.com/en/docs/claude-code/overview
-- https://docs.anthropic.com/en/docs/claude-code/setup
-- https://docs.anthropic.com/en/docs/claude-code/common-workflows
-- https://docs.anthropic.com/en/docs/about-claude/models/overview
+- <https://docs.anthropic.com/en/docs/claude-code/overview>
+- <https://docs.anthropic.com/en/docs/claude-code/setup>
+- <https://docs.anthropic.com/en/docs/claude-code/common-workflows>
+- <https://docs.anthropic.com/en/docs/about-claude/models/overview>
 
 *Note: Research will need to be updated once Anthropic's documentation is restored.*
 
@@ -119,11 +119,11 @@
 
 **Best Suited For**:
 - Quick factual queries
-- Topic summaries  
+- Topic summaries
 - Product comparisons
 - Current events
 
-#### Reasoning Models  
+#### Reasoning Models
 **Purpose**: Complex, multi-step analytical tasks
 - **Sonar Reasoning**: Fast, real-time reasoning model for problem-solving with search
 - **Sonar Reasoning Pro**: Precise reasoning powered by DeepSeek-R1 with Chain of Thought (CoT)
@@ -167,7 +167,7 @@ While not explicitly coding-focused, the reasoning models (particularly Sonar Re
 
 #### Generation Models (moonshot-v1 series)
 - **moonshot-v1-8k**: 8k context length for short text generation
-- **moonshot-v1-32k**: 32k context length for longer text generation  
+- **moonshot-v1-32k**: 32k context length for longer text generation
 - **moonshot-v1-128k**: 128k context length for very long text generation
 - **Vision Models**: 8k, 32k, and 128k vision variants with image understanding capabilities
 
@@ -222,7 +222,7 @@ While not explicitly coding-focused, the reasoning models (particularly Sonar Re
 - **Architecture Types**: Both standard dense models and MoE variants available
 
 ### Coding-Specific Features
-- **Dual Mode Operation**: 
+- **Dual Mode Operation**:
   - *Thinking Mode*: For complex logical reasoning, mathematics, and coding
   - *Non-thinking Mode*: For standard generation tasks
 - **Seamless Mode Switching**: Single model can switch between thinking and non-thinking modes
@@ -236,7 +236,7 @@ While not explicitly coding-focused, the reasoning models (particularly Sonar Re
 - **Flexible Operation**: Mode switching allows optimization for different coding task types
 
 ### Documentation Access
-- **Official Documentation**: https://qwen.readthedocs.io/
+- **Official Documentation**: <https://qwen.readthedocs.io/>
 - **Additional Resources**: GitHub, Hugging Face, and Quickstart guides referenced
 - **API Information**: Detailed usage instructions available in official documentation
 
@@ -262,7 +262,7 @@ While not explicitly coding-focused, the reasoning models (particularly Sonar Re
 
 ### Next Steps for Implementation
 1. Test OpenAI Codex integration for repository-based development workflows
-2. Evaluate Google Gemini CLI for terminal-based development assistance  
+2. Evaluate Google Gemini CLI for terminal-based development assistance
 3. Assess Moonshot kimi-k2 for Agent-based coding tasks
 4. Monitor Anthropic documentation restoration for Claude Code capabilities
 5. Deep-dive into Qwen3 official documentation for complete specifications

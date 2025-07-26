@@ -2,7 +2,6 @@
 
 This document describes the newly integrated Anthropic Computer Use and Claude Code tools that enable desktop automation and advanced code editing capabilities in Gary-Zero.
 
-
 ## Table of Contents
 
 1. [Overview](#overview)
@@ -13,7 +12,6 @@ This document describes the newly integrated Anthropic Computer Use and Claude C
 6. [Usage Examples](#usage-examples)
 7. [Troubleshooting](#troubleshooting)
 
-
 ## Overview
 
 Gary-Zero now supports two powerful new tools that extend its capabilities beyond text-based interactions:
@@ -22,7 +20,6 @@ Gary-Zero now supports two powerful new tools that extend its capabilities beyon
 - **Claude Code Tool**: Provides context-aware multi-file editing, Git operations, and terminal command execution
 
 Both tools are designed with security in mind and are disabled by default. They require explicit user configuration and, in the case of Computer Use, approval for sensitive operations.
-
 
 ## Anthropic Computer Use Tool
 
@@ -76,7 +73,6 @@ Access settings via the **Tools** tab in the Gary-Zero settings panel:
 # Scrolling
 {"action": "scroll", "x": 500, "y": 600, "direction": "up", "clicks": 3}
 ```
-
 
 ## Claude Code Tool
 
@@ -167,7 +163,6 @@ Access settings via the **Tools** tab in the Gary-Zero settings panel:
 {"operation_type": "workspace", "operation": "tree", "max_depth": 3}
 ```
 
-
 ## Settings Configuration
 
 ### Enabling the Tools
@@ -187,7 +182,6 @@ For production use, consider these security practices:
 - Limit Claude Code file size restrictions
 - Review allowed file extensions for Claude Code
 - Monitor terminal command execution logs
-
 
 ## Security Considerations
 
@@ -211,7 +205,6 @@ For production use, consider these security practices:
 - Tools respect workspace boundaries
 - Comprehensive logging of all actions
 - Error handling prevents crashes from affecting the main system
-
 
 ## Usage Examples
 
@@ -266,7 +259,6 @@ await claude_code_tool.execute(
 await claude_code_tool.execute(operation_type="git", operation="push")
 ```
 
-
 ## Troubleshooting
 
 ### Computer Use Tool
@@ -302,7 +294,6 @@ await claude_code_tool.execute(operation_type="git", operation="push")
 **Problem**: Permission errors
 - **Solution**: Check file/directory permissions and workspace configuration.
 
-
 ## API Reference
 
 Both tools inherit from the base `Tool` class and implement the standard Gary-Zero tool interface:
@@ -326,7 +317,6 @@ class Response:
     break_loop: bool  # Whether to stop agent execution
 ```
 
-
 ## Contributing
 
 To extend these tools:
@@ -336,7 +326,6 @@ To extend these tools:
 3. Update settings configuration if needed
 4. Ensure security considerations are addressed
 5. Update documentation
-
 
 ## See Also
 

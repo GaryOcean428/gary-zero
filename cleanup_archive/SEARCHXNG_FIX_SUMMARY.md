@@ -2,13 +2,11 @@
 
 This document summarizes the code updates made to fix SearchXNG integration issues in Gary-Zero on Railway.
 
-
 ## Issues Identified
 
 1. **Unresolved Reference Variables**: `SEARXNG_URL` contained unresolved Railway reference variables (`${{searchxng.PORT}}`)
 2. **405 Method Not Allowed**: Health check endpoints were receiving incorrect HTTP methods
 3. **Missing Diagnostics**: No easy way to test SearchXNG connectivity from deployed application
-
 
 ## Code Updates Made
 
@@ -64,7 +62,6 @@ This document summarizes the code updates made to fix SearchXNG integration issu
 - Manual configuration options
 - Verification steps
 
-
 ## Environment Variables Required
 
 ### On SearchXNG Service
@@ -85,7 +82,6 @@ SEARXNG_URL=http://searchxng.railway.internal:8080
 # Search provider
 SEARCH_PROVIDER=searxng
 ```
-
 
 ## Testing
 
@@ -114,14 +110,12 @@ SEARCH_PROVIDER=searxng
    {"test": "searchxng"}
    ```
 
-
 ## Next Steps
 
 1. Ensure SearchXNG service has `PORT=8080` environment variable
 2. Redeploy both services to pick up latest changes
 3. Verify connectivity using the test scripts
 4. Monitor logs for any remaining issues
-
 
 ## Troubleshooting
 

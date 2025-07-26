@@ -2,7 +2,6 @@
 
 Gary-Zero now includes a powerful hierarchical planning engine that can decompose complex objectives into actionable subtasks with intelligent tool assignment and automatic evaluation loops.
 
-
 ## Overview
 
 The hierarchical planning system enhances Gary-Zero's capabilities by:
@@ -12,7 +11,6 @@ The hierarchical planning system enhances Gary-Zero's capabilities by:
 - **Evaluation Loops**: Verifying subtask outputs and adjusting plans dynamically on failures
 - **Dependency Management**: Managing complex interdependencies between subtasks
 - **Progress Monitoring**: Real-time tracking of plan execution with detailed status reports
-
 
 ## Key Components
 
@@ -54,7 +52,6 @@ response = await planning_tool.execute(
 )
 ```
 
-
 ## Usage Examples
 
 ### Basic Research and Summarization
@@ -94,7 +91,6 @@ plan = scheduler.create_and_execute_plan(objective)
 # 2. Perform analysis (using code_execution_tool)
 # 3. Generate analysis report
 ```
-
 
 ## Agent Tool Interface
 
@@ -139,7 +135,6 @@ Configure planner settings:
 - retry_failed_subtasks: true/false
 ```
 
-
 ## Configuration Options
 
 The planner can be configured through environment variables or runtime settings:
@@ -152,7 +147,6 @@ The planner can be configured through environment variables or runtime settings:
 | Max Subtasks | `PLANNER_MAX_SUBTASKS` | `10` | Maximum subtasks per plan |
 | Verification | `PLANNER_VERIFICATION` | `true` | Enable output verification |
 | Retry Failed | `PLANNER_RETRY_FAILED` | `true` | Retry failed subtasks |
-
 
 ## Evaluation and Quality Control
 
@@ -179,7 +173,6 @@ Outputs are scored on a 0.0-1.0 scale:
 - 0.5-0.7: Acceptable (proceed with warnings)
 - <0.5: Requires retry or plan adjustment
 
-
 ## Tool Selection
 
 The planner intelligently assigns tools based on subtask requirements:
@@ -200,7 +193,6 @@ The planner intelligently assigns tools based on subtask requirements:
 - `knowledge_tool`: Data analysis and interpretation
 - `code_execution_tool`: Statistical analysis and processing
 
-
 ## Success Metrics
 
 The hierarchical planning system achieves:
@@ -208,7 +200,6 @@ The hierarchical planning system achieves:
 - **≥80% Appropriate Tool Selection**: Tools are correctly assigned based on subtask requirements
 - **Minimal Manual Intervention**: Complex objectives are automatically decomposed into executable plans
 - **≥20% Token Efficiency**: Structured planning reduces overall token usage compared to manual decomposition
-
 
 ## Best Practices
 
@@ -234,7 +225,6 @@ Examples:
 - Disable `verification_enabled` for faster execution when quality control isn't critical
 - Adjust `max_recursion_depth` based on objective complexity
 
-
 ## Integration with Existing Systems
 
 The hierarchical planner integrates seamlessly with:
@@ -243,7 +233,6 @@ The hierarchical planner integrates seamlessly with:
 - **Agent Context**: Maintains conversation context across subtasks
 - **Memory System**: Persistent storage of plan history and results
 - **Tool Framework**: Leverages all existing Gary-Zero tools
-
 
 ## Troubleshooting
 
@@ -268,7 +257,6 @@ The hierarchical planner integrates seamlessly with:
 - Reduce `max_subtasks` to create simpler plans
 - Adjust dependency structure to allow parallel execution
 - Consider disabling verification for faster execution
-
 
 ## Future Enhancements
 

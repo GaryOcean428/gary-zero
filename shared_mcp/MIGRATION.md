@@ -2,7 +2,6 @@
 
 This guide helps repositories migrate to using the shared MCP library extracted from gary-zero.
 
-
 ## Overview
 
 The shared MCP library provides:
@@ -10,7 +9,6 @@ The shared MCP library provides:
 - **Shared Implementation**: Gold standard MCP implementation for all repos
 - **Flexibility**: Can be used directly or through compatibility layer
 - **Extensibility**: Easy to customize for specific repository needs
-
 
 ## Migration Strategy
 
@@ -31,7 +29,6 @@ The shared MCP library provides:
 - **Timeline**: 1-3 months
 - **Action**: Migrate existing code to shared library
 - **Benefit**: Simplified codebase and better maintainability
-
 
 ## For Repository Owners
 
@@ -96,7 +93,6 @@ async def handle_planning(message, attachments, chat_id, persistent_chat):
 
 server.register_message_handler(handle_planning)
 ```
-
 
 ## Migration Patterns
 
@@ -188,7 +184,6 @@ async def get_plan_from_gary8d(goal):
     return result
 ```
 
-
 ## Testing Your Migration
 
 ### 1. Unit Tests
@@ -240,7 +235,6 @@ def test_backward_compatibility():
     except ImportError:
         pytest.fail("Backward compatibility broken")
 ```
-
 
 ## Troubleshooting
 
@@ -296,7 +290,6 @@ ValueError: "MCPConfig" object has no field "settings_provider"
    print("✅ Backward compatibility maintained")
    ```
 
-
 ## Best Practices
 
 ### 1. Configuration Management
@@ -338,7 +331,6 @@ async def use_client():
         pass
 ```
 
-
 ## Timeline and Rollout
 
 ### Week 1-2: Assessment
@@ -365,7 +357,6 @@ async def use_client():
 - [ ] Monitor and fix issues
 - [ ] Deploy to production
 
-
 ## Support and Resources
 
 ### Documentation
@@ -386,7 +377,6 @@ async def use_client():
 2. Review example implementations in EXAMPLES.md
 3. Test with simple integration first before complex features
 4. Validate that existing functionality still works
-
 
 ## Success Criteria
 

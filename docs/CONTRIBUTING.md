@@ -2,7 +2,6 @@
 
 Thank you for your interest in contributing to Gary-Zero! This guide will help you get started with the development process.
 
-
 ## 🚀 CI/CD Pipeline Overview
 
 Gary-Zero features a modern, modular CI/CD pipeline built around 4 reusable composite workflows:
@@ -47,7 +46,6 @@ make format      # Auto-fix formatting issues
 make docker-build # Test Docker build locally
 make clean       # Clean up build artifacts
 ```
-
 
 ## Development Setup
 
@@ -104,7 +102,6 @@ pre-commit install
 npm run prepare
 ```
 
-
 ## Code Quality Standards
 
 ### Linting and Formatting
@@ -139,7 +136,6 @@ Pre-commit hooks run automatically before each commit to ensure code quality:
 - Code linting and formatting
 - Type checking
 - Test execution
-
 
 ## Architecture Guidelines
 
@@ -185,7 +181,6 @@ class MyService(Service):
     def is_initialized(self) -> bool:
         return self._initialized
 ```
-
 
 ## Testing Guidelines
 
@@ -235,7 +230,6 @@ pytest tests/test_container.py
 pytest -k "test_container"
 ```
 
-
 ## Pull Request Process
 
 1. **Fork** the repository
@@ -253,7 +247,6 @@ pytest -k "test_container"
 - [ ] Code follows style guidelines
 - [ ] Documentation is updated
 - [ ] Commit messages are descriptive
-
 
 ## Code Style
 
@@ -300,7 +293,6 @@ class AuthenticationService(BaseService):
         pass
 ```
 
-
 ## Documentation
 
 ### Code Documentation
@@ -316,7 +308,6 @@ class AuthenticationService(BaseService):
 - Document all endpoints
 - Provide request/response examples
 - Include error scenarios
-
 
 ## Railpack Configuration & Deployment
 
@@ -465,7 +456,6 @@ jq '.environment.PORT' railpack.json      # Check PORT config
 4. **Environment Variables**: Verify all required environment variables are set
 5. **Script Permissions**: Ensure scripts are executable and have correct paths
 
-
 ## Security Guidelines
 
 - Never commit secrets or credentials
@@ -473,7 +463,6 @@ jq '.environment.PORT' railpack.json      # Check PORT config
 - Validate all user inputs
 - Follow secure coding practices
 - Use HTTPS for all external communications
-
 
 ## Getting Help
 

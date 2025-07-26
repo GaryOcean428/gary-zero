@@ -55,6 +55,7 @@ CRITICAL: Only use approved models from `docs/ai-models.md`:
 - **Morphism**: Browser automation service
 
 ## File Structure Awareness
+
 ```
 Gary-Zero/
 ├── .agent-os/          # Agent OS coordination layer

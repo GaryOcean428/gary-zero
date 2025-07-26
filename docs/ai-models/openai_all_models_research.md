@@ -297,6 +297,7 @@
 - **Model Selection**: Use `model="dall-e"` in API calls
 
 **Sample Code Example**:
+
 ```python
 import openai
 openai.api_key = "YOUR_API_KEY"
@@ -336,6 +337,7 @@ print(response["data"])
 - **Available Snapshots**: whisper-1
 
 **Sample Code Example**:
+
 ```bash
 curl https://api.openai.com/v1/audio/transcriptions \
   -H "Authorization: Bearer $OPENAI_API_KEY" \
@@ -395,6 +397,7 @@ Embeddings are numerical vector representations of text that enable semantic sim
 - **Classification**: Use embeddings as input features for ML models
 
 **Sample Code Example**:
+
 ```python
 from openai import OpenAI
 client = OpenAI()
@@ -433,12 +436,13 @@ All moderation models are provided **free of charge** for detecting policy-viola
 ### omni-moderation-latest
 - **Purpose**: Most capable moderation model
 - **Input**: Images + Text
-- **Features**: 
+- **Features**:
   - Same seven category classifications
   - Can scan images for policy violations
   - Snapshots available for version consistency
 
 **Sample Code Example**:
+
 ```bash
 curl https://api.openai.com/v1/moderations \
   -H "Authorization: Bearer $OPENAI_API_KEY" \
@@ -446,6 +450,7 @@ curl https://api.openai.com/v1/moderations \
 ```
 
 **Response Format**:
+
 ```json
 {
   "id": "...",

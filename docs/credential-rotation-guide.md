@@ -1,10 +1,8 @@
 # Credential Rotation Guide - Gary-Zero Security Update
 
-
 ## 🚨 Breaking Change Notice
 
 Gary-Zero has implemented enhanced security measures that **require immediate action** from existing users. Default hardcoded credentials have been removed and authentication now requires explicit environment variable configuration.
-
 
 ## What Changed?
 
@@ -24,14 +22,12 @@ Gary-Zero has implemented enhanced security measures that **require immediate ac
 "auth_password": hashlib.sha256(os.getenv("DEFAULT_AUTH_PASSWORD", "admin").encode()).hexdigest()
 ```
 
-
 ## 🛡️ Security Impact
 
 - **Eliminated hardcoded credentials** from codebase
 - **Mandatory environment variable configuration** for production deployments
 - **Enhanced secret scanning** prevents accidental credential commits
 - **Separation of concerns** between code and configuration
-
 
 ## Migration Instructions
 
@@ -172,7 +168,6 @@ EOF
 chmod 600 .env
 ```
 
-
 ## 🔄 Credential Rotation Best Practices
 
 ### 1. Regular Rotation Schedule
@@ -215,7 +210,6 @@ export AUTH_PASSWORD="$(vault kv get -field=password secret/gary-zero/auth)"
 # Best: Cloud-native secret management
 export AUTH_PASSWORD="$(gcloud secrets versions access latest --secret=gary-zero-auth-password)"
 ```
-
 
 ## 🚨 Troubleshooting
 
@@ -285,7 +279,6 @@ echo $OPENAI_API_KEY | grep -E "^sk-[a-zA-Z0-9]+"
 curl -H "Authorization: Bearer $OPENAI_API_KEY" https://api.openai.com/v1/models
 ```
 
-
 ## 📋 Migration Checklist
 
 ### Pre-Migration (⚠️ Do This First)
@@ -311,7 +304,6 @@ curl -H "Authorization: Bearer $OPENAI_API_KEY" https://api.openai.com/v1/models
 - [ ] **Monitor authentication logs** for any issues
 - [ ] **Update backup procedures** to include credential recovery
 
-
 ## 🔒 Security Verification
 
 ### Run Security Scan
@@ -335,7 +327,6 @@ curl -X POST http://localhost:7860/api/login \
 # Verify environment variables
 env | grep -E "(AUTH_|DEFAULT_)" | sort
 ```
-
 
 ## 📞 Support
 

@@ -1,10 +1,8 @@
 # Gary-Zero Framework API Documentation
 
-
 ## Overview
 
 The Gary-Zero framework provides a comprehensive set of APIs for building AI agents with dependency injection, service management, and tool execution capabilities.
-
 
 ## Core Components
 
@@ -128,7 +126,6 @@ class MessageBus(Protocol):
     async def unsubscribe(self, topic: str, handler: Any) -> None: ...
 ```
 
-
 ## Tool Framework
 
 ### Tool Base Class
@@ -154,7 +151,6 @@ class Response:
     message: str      # Response message
     break_loop: bool  # Whether to break the execution loop
 ```
-
 
 ## Exception Classes
 
@@ -195,7 +191,6 @@ def validate_config(config):
     if not config.get("required_field"):
         raise ConfigurationError("Required field missing")
 ```
-
 
 ## Usage Examples
 
@@ -277,7 +272,6 @@ class CalculatorTool(Tool):
         )
 ```
 
-
 ## Best Practices
 
 1. **Service Lifecycle**: Always implement proper initialization and shutdown
@@ -285,7 +279,6 @@ class CalculatorTool(Tool):
 3. **Type Hints**: Use type hints for all public APIs
 4. **Documentation**: Document all public methods and classes
 5. **Testing**: Write tests for all service implementations
-
 
 ## Version Information
 

@@ -38,25 +38,38 @@ else
     mkdir -p data logs work_dir tmp memory
 fi
 
+# Run settings migration script
+echo "🔄 Running settings migration..."
+if [ -f "scripts/migrate_settings.py" ]; then
+    python scripts/migrate_settings.py
+    if [ $? -ne 0 ]; then
+        echo "⚠️  Settings migration completed with warnings, continuing..."
+    else
+        echo "✅ Settings migration completed successfully"
+    fi
+else
+    echo "⚠️  Migration script not found, skipping..."
+fi
+
 # Health check function
 check_health() {
     local max_attempts=30
     local attempt=1
     local port=${PORT:-8000}
-    
+
     echo "🏥 Waiting for service to be healthy..."
-    
+
     while [ $attempt -le $max_attempts ]; do
         if curl -f -s "http://localhost:${port}/health" > /dev/null 2>&1; then
             echo "✅ Service is healthy"
             return 0
         fi
-        
+
         echo "  Attempt ${attempt}/${max_attempts} - waiting for service..."
         sleep 2
         ((attempt++))
     done
-    
+
     echo "⚠️  Service health check timeout, but continuing..."
     return 0
 }
@@ -74,7 +87,7 @@ else
     echo "📋 Using direct uvicorn command"
     PORT=${PORT:-8000}
     HOST=${WEB_UI_HOST:-0.0.0.0}
-    
+
     uvicorn main:app \
         --host "$HOST" \
         --port "$PORT" \

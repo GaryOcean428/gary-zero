@@ -1,10 +1,8 @@
 # Vitest Testing Framework
 
-
 ## Overview
 
 Vitest is a fast unit testing framework powered by Vite.
-
 
 ## Key Resources
 
@@ -12,11 +10,9 @@ Vitest is a fast unit testing framework powered by Vite.
 - [API Reference](https://vitest.dev/api/) - Testing APIs and utilities
 - [Configuration](https://vitest.dev/config/) - Vitest configuration options
 
-
 ## Project Setup
 
 Tests are configured in `vitest.config.js` and located in the `tests/` directory.
-
 
 ## Running Tests
 
@@ -31,7 +27,6 @@ npm run test:ui
 npm run test:coverage
 ```
 
-
 ## Writing Tests
 
 ```javascript
@@ -43,7 +38,6 @@ describe('Component', () => {
   })
 })
 ```
-
 
 ## Best Practices
 

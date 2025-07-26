@@ -12,18 +12,15 @@ related_docs: ["runtime-architecture.md", "technical-decisions.md"]
 
 # Cloud Architecture
 
-
 ## Overview
 
 This document outlines the cloud infrastructure architecture and design decisions.
-
 
 ## Cloud Provider
 
 **Selected Provider:** [TBD - AWS/Azure/GCP]
 
 **Rationale:** [Document reasoning for cloud provider selection]
-
 
 ## Core Services
 
@@ -43,21 +40,17 @@ This document outlines the cloud infrastructure architecture and design decision
 
 - [Database services and configurations]
 
-
 ## Architecture Diagrams
 
 [Include cloud architecture diagrams here]
-
 
 ## Scaling Strategy
 
 [Document auto-scaling policies and capacity planning]
 
-
 ## Cost Optimization
 
 [Document cost optimization strategies and monitoring]
-
 
 ## Disaster Recovery
 

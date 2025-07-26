@@ -2,7 +2,6 @@
 
 This document describes the integration between Gary-Zero and the Kali Linux Docker service deployed on Railway, enabling secure penetration testing and security analysis capabilities.
 
-
 ## Overview
 
 The Kali integration allows Gary-Zero to:
@@ -10,7 +9,6 @@ The Kali integration allows Gary-Zero to:
 - Perform penetration testing and vulnerability assessments
 - Access a comprehensive suite of security analysis tools
 - Maintain secure service-to-service communication within Railway's private network
-
 
 ## Configuration
 
@@ -44,7 +42,6 @@ KALI_PUBLIC_URL=https://kali-linux-docker.up.railway.app
 # Optional: Set execution mode to use Kali service
 CODE_EXECUTION_MODE=kali
 ```
-
 
 ## Usage
 
@@ -105,7 +102,6 @@ if kali and kali.is_available():
     kali.close()
 ```
 
-
 ## Available Security Tools
 
 The Kali integration provides access to common security tools:
@@ -135,7 +131,6 @@ The Kali integration provides access to common security tools:
 - **OpenSSL**: SSL/TLS analysis and certificate inspection
 - **SSLyze**: SSL configuration scanner
 - **testssl.sh**: SSL/TLS security assessment
-
 
 ## API Reference
 
@@ -168,7 +163,6 @@ High-level executor for security operations.
 - `get_available_tools() -> Dict`: List available tools
 - `close()`: Close connection
 
-
 ## Execution Modes
 
 The Gary-Zero framework supports multiple execution modes:
@@ -197,7 +191,6 @@ If `CODE_EXECUTION_MODE` is not set, the system will auto-detect based on:
 2. Environment (Railway, Docker, local)
 3. Service availability
 
-
 ## Security Considerations
 
 ### Network Communication
@@ -217,7 +210,6 @@ If `CODE_EXECUTION_MODE` is not set, the system will auto-detect based on:
 - Commands executed in isolated Kali container
 - Timeouts prevent runaway processes
 - Error handling and logging for audit trails
-
 
 ## Troubleshooting
 
@@ -257,7 +249,6 @@ connector = KaliServiceConnector()
 from framework.helpers.execution_mode import get_execution_info
 print(get_execution_info())
 ```
-
 
 ## Example Use Cases
 
@@ -313,7 +304,6 @@ async def custom_security_scan(target, tools):
     kali.close()
     return results
 ```
-
 
 ## Future Enhancements
 

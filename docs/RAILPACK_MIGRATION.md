@@ -1,10 +1,8 @@
 # Railway Deployment Migration: railway.toml → railpack.json
 
-
 ## Overview
 
 This document details the migration from `railway.toml` to `railpack.json` for deployment configuration, along with the implementation of automated validation via CI/CD.
-
 
 ## Migration Summary
 
@@ -53,7 +51,6 @@ This document details the migration from `railway.toml` to `railpack.json` for d
 }
 ```
 
-
 ## Validation Rules
 
 The CI validation enforces these requirements:
@@ -83,7 +80,6 @@ The CI validation enforces these requirements:
 - ✅ JSON Schema compliance
 - ✅ Dual validation with AJV and check-jsonschema
 
-
 ## CI/CD Integration
 
 ### Workflow Triggers
@@ -108,7 +104,6 @@ The CI validation enforces these requirements:
 - Clear error messages and remediation steps
 - Integration with feature branch status checks
 
-
 ## Benefits
 
 1. **Better Validation**: Strict schema enforcement prevents deployment issues
@@ -117,14 +112,12 @@ The CI validation enforces these requirements:
 4. **Railway Standards**: Enforces Railway deployment best practices
 5. **Documentation**: Self-documenting schema with descriptions
 
-
 ## Migration Preservation
 
 - `railway.toml` is kept for reference
 - Added migration note to original file
 - No breaking changes to existing deployment process
 - Backward compatibility maintained
-
 
 ## Usage
 
@@ -148,7 +141,6 @@ The JSON schema is located at `.github/schemas/railpack.schema.json` and include
 - Builder type validation
 - Path format validation
 - Environment variable naming rules
-
 
 ## Future Enhancements
 

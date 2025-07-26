@@ -2,11 +2,9 @@
 
 This document provides comprehensive guidance for deploying Gary Zero to Railway.
 
-
 ## Overview
 
 Gary Zero is configured for Railway deployment with a comprehensive cloud environment that includes specialized services for enhanced capabilities. The main application connects to Railway-hosted services including Kali Linux for security testing, E2B for secure code execution, and browser automation services.
-
 
 ## Prerequisites
 
@@ -14,7 +12,6 @@ Gary Zero is configured for Railway deployment with a comprehensive cloud enviro
 2. Railway account and project created
 3. Node.js >=22.0.0 environment (specified in package.json)
 4. Python 3.9+ environment (specified in pyproject.toml)
-
 
 ## Configuration
 
@@ -79,7 +76,6 @@ Based on `.env.example`, you'll need to configure the following environment vari
 - `AUTH_LOGIN`
 - `AUTH_PASSWORD`
 
-
 ## Deployment Steps
 
 ### 1. Initial Setup
@@ -118,7 +114,6 @@ railway variables set DATABASE_URL=your-postgres-url
 railway up
 ```
 
-
 ## Build Process
 
 Railway will automatically:
@@ -126,13 +121,11 @@ Railway will automatically:
 1. **Build Phase**: Run `npm install && pip install -r requirements.txt`
 2. **Deploy Phase**: Start the application with `python run_ui.py --port $PORT`
 
-
 ## Health Checks
 
 - **Health Check Path**: `/`
 - **Timeout**: 300 seconds
 - **Restart Policy**: On failure with max 10 retries
-
 
 ## Port Configuration
 
@@ -141,7 +134,6 @@ Railway will automatically:
 - The application's port resolution logic automatically uses Railway's `$PORT` variable
 - No additional `WEB_UI_PORT` configuration is needed in railway.toml
 - Default fallback port is 5000 (defined in application code)
-
 
 ## Monitoring
 
@@ -157,7 +149,6 @@ railway status
 # View environment variables
 railway variables
 ```
-
 
 ## Troubleshooting
 
@@ -194,13 +185,11 @@ echo $PORT
 echo $NODE_ENV
 ```
 
-
 ## Additional Resources
 
 - [Railway Documentation](https://docs.railway.app/)
 - [Railway Environment Variables](https://docs.railway.app/develop/variables)
 - [Railway Deployment Guide](https://docs.railway.app/deploy/railway-up)
-
 
 ## Security Considerations
 
@@ -208,7 +197,6 @@ echo $NODE_ENV
 2. Use Railway's environment variables for all sensitive data
 3. Enable appropriate authentication (AUTH_LOGIN/AUTH_PASSWORD)
 4. Consider using Railway's private networking for database connections
-
 
 ## Cloud Service Architecture
 
@@ -226,7 +214,6 @@ Gary Zero leverages Railway's private networking to connect with specialized ser
 - Services communicate via Railway's internal network (`railway.internal`)
 - Environment variables use Railway reference syntax: `${{service-name.VARIABLE}}`
 - Private networking ensures secure inter-service communication
-
 
 ## Performance Optimization
 

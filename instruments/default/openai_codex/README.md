@@ -2,7 +2,6 @@
 
 This instrument provides integration with the OpenAI Codex CLI for context-aware code editing, file creation, and terminal commands.
 
-
 ## Features
 
 - **Code Editing**: Edit existing files with AI assistance using context-aware instructions
@@ -11,7 +10,6 @@ This instrument provides integration with the OpenAI Codex CLI for context-aware
 - **Safety Controls**: Configurable approval modes and sandboxing for secure execution
 - **Auto Installation**: Automatic installation of the CLI tool when needed
 
-
 ## Installation
 
 The OpenAI Codex CLI can be installed automatically when auto-install is enabled, or manually:
@@ -19,7 +17,6 @@ The OpenAI Codex CLI can be installed automatically when auto-install is enabled
 ```bash
 npm install -g @openai/codex-cli
 ```
-
 
 ## Usage
 
@@ -69,7 +66,6 @@ Install the CLI tool:
 action: install
 ```
 
-
 ## Configuration
 
 Configure the tool through Gary-Zero settings:
@@ -82,14 +78,12 @@ Configure the tool through Gary-Zero settings:
   - `block`: Block all operations
 - **Auto Install**: Automatically install CLI if not found
 
-
 ## Safety Features
 
 - **Approval Workflow**: All operations can require user approval
 - **Sandboxed Execution**: Commands run in controlled environment
 - **Timeout Controls**: Prevent runaway processes
 - **Error Handling**: Comprehensive error reporting and recovery
-
 
 ## API Keys
 

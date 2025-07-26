@@ -2,11 +2,9 @@
 
 This document outlines how credentials are managed in Gary-Zero to ensure security and avoid hardcoded secrets.
 
-
 ## Overview
 
 Gary-Zero has been updated to eliminate hardcoded credentials and use environment variables for all authentication settings. This ensures that sensitive information is not stored in the codebase and can be properly managed in deployment environments.
-
 
 ## Environment Variables
 
@@ -28,7 +26,6 @@ The following environment variables control default authentication settings:
 - `KALI_USERNAME`: Username for Kali Linux service connection
 - `KALI_PASSWORD`: Password for Kali Linux service connection
 
-
 ## Security Features
 
 ### No Hardcoded Credentials
@@ -42,7 +39,6 @@ The following environment variables control default authentication settings:
 - **detect-secrets** is configured to scan for accidentally committed secrets
 - CI/CD pipeline includes automatic secret detection
 - Baseline file (`.secrets.baseline`) tracks known non-secret patterns
-
 
 ## Usage Examples
 
@@ -75,7 +71,6 @@ export AUTH_PASSWORD="${SECRET_RUNTIME_PASSWORD}"
 export DEFAULT_ROOT_PASSWORD="secure-container-password"
 ```
 
-
 ## Migration Notes
 
 ### Before (Insecure)
@@ -92,7 +87,6 @@ export DEFAULT_ROOT_PASSWORD="secure-container-password"
 "auth_password": hashlib.sha256(os.getenv("DEFAULT_AUTH_PASSWORD", "admin").encode()).hexdigest()
 ```
 
-
 ## Validation
 
 To verify that no hardcoded credentials exist:
@@ -106,7 +100,6 @@ uv pip compile requirements.in -o requirements.check.txt
 diff requirements.txt requirements.check.txt
 ```
 
-
 ## Best Practices
 
 1. **Never commit credentials** to version control
@@ -115,7 +108,6 @@ diff requirements.txt requirements.check.txt
 4. **Use strong passwords** with sufficient entropy
 5. **Monitor secret detection** in CI/CD pipelines
 6. **Document credential requirements** for deployment teams
-
 
 ## Related Files
 

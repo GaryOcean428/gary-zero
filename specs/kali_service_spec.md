@@ -7,6 +7,7 @@
 - **Maintain secure service-to-service communication within Railway's private network**
 
 ## Reference Variable Schemas
+
 ```toml
 # Railway Environment Variables
 KALI_SHELL_URL="http://${{kali-linux-docker.RAILWAY_PRIVATE_DOMAIN}}:${{kali-linux-docker.PORT}}"
@@ -22,6 +23,7 @@ KALI_PASSWORD="${{kali-linux-docker.PASSWORD}}"
 
 ## Sample SDK Snippets
 ### Python
+
 ```python
 from framework.helpers.kali_executor import KaliCodeExecutor
 executor = KaliCodeExecutor()
@@ -29,6 +31,7 @@ result = await executor.run_nmap_scan('target.com', 'basic')
 ```
 
 ### TypeScript
+
 ```typescript
 // Import libraries and setup
 const kaliService = new KaliServiceConnector();

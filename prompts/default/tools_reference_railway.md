@@ -1,6 +1,5 @@
 # Complete Tools Reference for Railway/E2B Environment
 
-
 ## Core Tools
 
 ### 1. **code_execution_tool**
@@ -58,7 +57,6 @@ With Docker Hub credentials configured:
 - **Input**: Full URL with http:// or https://
 - **Output**: Main text content, cleaned and formatted
 
-
 ## Memory Tools
 
 ### 6. **memory_load**
@@ -85,7 +83,6 @@ With Docker Hub credentials configured:
 - **Operations**: save, search, delete, update
 - **Railway Context**: Persisted across deployments
 
-
 ## Browser Tools
 
 ### 10. **browser_agent**
@@ -99,7 +96,6 @@ With Docker Hub credentials configured:
 - **Commands**: open, click, type, wait, search
 - **Purpose**: Direct browser control without agent
 - **Best For**: Simple, specific browser tasks
-
 
 ## Input/Output Tools
 
@@ -115,7 +111,6 @@ With Docker Hub credentials configured:
 - **Formats**: Common image formats (jpg, png, etc)
 - **Note**: Convert to bitmap if needed
 
-
 ## MCP (Model Context Protocol) Tools
 
 ### 14. **Dynamic MCP Tools**
@@ -128,7 +123,6 @@ With Docker Hub credentials configured:
   - Slack (messages, channels)
   - Custom database connectors
 - **Railway Context**: Configured per environment
-
 
 ## Railway-Specific Considerations
 
@@ -230,7 +224,6 @@ Custom Development:
   "code": "go version && echo 'package main\nimport \"fmt\"\nfunc main() { fmt.Println(\"Hello from Go!\") }' > main.go && go run main.go"
 }
 ```
-
 
 ## Docker Hub Access Benefits
 

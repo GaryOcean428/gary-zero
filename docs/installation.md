@@ -141,7 +141,6 @@ Optionally you can map local folders for file persistence:
 3. Configure Gary-Zero
 - Refer to the following sections for a full guide on how to configure Gary-Zero.
 
-
 ## Settings Configuration
 
 Gary-Zero provides a comprehensive settings interface to customize various aspects of its functionality. Access the settings by clicking the "Settings"button with a gear icon in the sidebar.
@@ -217,14 +216,12 @@ The Settings page is the control center for selecting the Large Language Models 
 2. Choose the provider for the LLM for each role (Chat model, Utility model, Embedding model) and write the model name.
 3. Click "Save" to apply the changes.
 
-
 ## Important Considerations
 
 > [!CAUTION]
 > Changing the `embedding_llm` will re-index all the memory and knowledge, and
 > requires clearing the `memory` folder to avoid errors, as the embeddings can't be
 > mixed in the vector database. Note that this will DELETE ALL of Gary-Zero's memory.
-
 
 ## Installing and Using Ollama (Local Models)
 
@@ -298,7 +295,6 @@ Once you've downloaded some models, you might want to check which ones you have 
   ```
 
 - Experiment with different model combinations to find the balance of performance and cost that best suits your needs. E.g., faster and lower latency LLMs will help, and you can also use `faiss_gpu` instead of `faiss_cpu` for the memory.
-
 
 ## Using Gary-Zero on your mobile device
 
@@ -394,7 +390,6 @@ For developers or users who need to run Gary-Zero directly on their system,see t
 
 [![Video](res/setup/thumb_play.png)](https://youtu.be/8H7mFsvxKYQ)
 
-
 ## Reminders
 
 1. There's no need to install Python, Conda will manage that for you.
@@ -408,7 +403,6 @@ For developers or users who need to run Gary-Zero directly on their system,see t
 > Linux instructions are provided as general instructions for any Linux distribution. If you're using a distribution other than Debian/Ubuntu, you may need to adjust the instructions accordingly.
 >
 > For Debian/Ubuntu, just follow the macOS instructions, as they are the same.
-
 
 ## 1. Install Conda (miniconda)
 
@@ -447,7 +441,6 @@ For developers or users who need to run Gary-Zero directly on their system,see t
 <br><br>
 
 3. Extract the downloaded archive where you want to have it. I will extract them to "gary-zero" folder on my Desktop - "C:\Users\frdel\Desktop\gary-zero" on Windows and "/Users/frdel/Desktop/gary-zero" on macOS.
-
 
 ## 3. Set up Conda environment
 
@@ -498,7 +491,6 @@ This might take some time. If you get any errors regarding version conflicts and
 
 <img src="res/setup/image-19.png" alt="conda reqs" height="200"/>
 <br><br>
-
 
 ## 4. Install Docker (Docker Desktop application)
 
@@ -555,7 +547,6 @@ You can refer to the [installation instructions above](#windows-macos-and-linux-
   - You need to map the `/a0` volume to the location of your local Gary-Zero folder.
 - Run the Docker container following the instructions.
 
-
 ## 5. Run the local Gary-Zero instance
 
 Run the Gary-Zero with Web UI:
@@ -569,11 +560,9 @@ python run_ui.py
 
 - Open the URL shown in terminal in your web browser. You should see the Gary-Zero interface.
 
-
 ## 6. Configure Gary-Zero
 
 Now we can configure Gary-Zero - select models, settings, API Keys etc. Refer to the [Usage](usage.md#agent-configuration) guide for a full guide on how to configure Gary-Zero.
-
 
 ## 7. Configure Gary-Zero RFC
 

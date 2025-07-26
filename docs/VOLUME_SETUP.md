@@ -1,6 +1,5 @@
 # Railway Volume Setup and Migration Guide
 
-
 ## Overview
 
 Gary-Zero now supports persistent data storage using Railway volumes to prevent data loss during deployments. This setup includes:
@@ -8,7 +7,6 @@ Gary-Zero now supports persistent data storage using Railway volumes to prevent 
 - **SearXNG as primary search** with DuckDuckGo fallback
 - **Persistent volume storage** for agent memory, logs, knowledge base, and work files
 - **Automatic migration** from existing installations
-
 
 ## Search Engine Configuration
 
@@ -23,7 +21,6 @@ Gary-Zero now supports persistent data storage using Railway volumes to prevent 
 - Activates automatically if SearXNG fails
 - No configuration required
 - Works in any network environment
-
 
 ## Volume Configuration
 
@@ -57,7 +54,6 @@ Gary-Zero now supports persistent data storage using Railway volumes to prevent 
 └── tmp/           # Temporary files
 ```
 
-
 ## Environment Variables
 
 ### Required for Railway Deployment
@@ -66,7 +62,10 @@ Gary-Zero now supports persistent data storage using Railway volumes to prevent 
 # SearXNG service URL (set automatically by Railway)
 SEARXNG_URL=http://${{searchxng.RAILWAY_PRIVATE_DOMAIN}}:${{searchxng.PORT}}
 
-# Data directory for persistent storage
+# Data directory for persistent storage (REQUIRED)
+# This is the root path where all persistent data is stored.
+# MUST match the volume mountPath in railpack.json (/app/data)
+# All application data (settings, memory, logs, etc.) will be stored here.
 DATA_DIR=/app/data
 
 # Search provider configuration
@@ -81,7 +80,6 @@ SEARXNG_URL=http://localhost:55510
 DATA_DIR=/app/data
 ```
 
-
 ## Migration Process
 
 ### New Installations
@@ -90,11 +88,19 @@ No action required - volume structure is created automatically on first deployme
 
 ### Existing Installations
 
-1. **Automatic Migration**: Run the migration script during deployment:
+⚠️ **BREAKING CHANGE**: Settings path migration from `/app/tmp/settings.json` to `/app/data/settings.json`
+
+1. **Automatic Migration**: The system automatically migrates settings and data during deployment:
 
    ```bash
+   # Settings migration (automatic)
+   python scripts/migrate_settings.py
+
+   # Volume structure migration (automatic)
    python scripts/migrate_to_volumes.py
    ```
+
+   > **Note**: Both migrations run automatically during Railway deployment. No manual intervention required.
 
 2. **Manual Migration**: If needed:
 
@@ -114,7 +120,6 @@ No action required - volume structure is created automatically on first deployme
    ```bash
    python scripts/migrate_to_volumes.py rollback
    ```
-
 
 ## Volume Initialization
 
@@ -143,7 +148,6 @@ DATA_DIR=/custom/path python scripts/init_volumes.py
 # Initialize without symlinks (for testing)
 python -c "from scripts.init_volumes import initialize_volume_structure; initialize_volume_structure()"
 ```
-
 
 ## Verification Commands
 
@@ -176,7 +180,6 @@ print('Search test:', 'PASS' if result else 'FAIL')
 "
 ```
 
-
 ## Troubleshooting
 
 ### SearXNG Connection Issues
@@ -196,7 +199,6 @@ print('Search test:', 'PASS' if result else 'FAIL')
 1. **SearXNG + DuckDuckGo both fail**: Check network connectivity
 2. **Rate limiting**: DuckDuckGo may rate-limit requests - this is normal
 3. **Empty results**: Verify search query format and provider status
-
 
 ## Benefits
 
@@ -220,7 +222,6 @@ print('Search test:', 'PASS' if result else 'FAIL')
 - ✅ Internal service communication
 - ✅ No external API dependencies
 - ✅ Container-optimized storage
-
 
 ## File Structure Changes
 

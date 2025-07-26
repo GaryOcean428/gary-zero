@@ -2,7 +2,6 @@
 
 This guide helps you set up and troubleshoot SearchXNG integration with Gary-Zero on Railway.
 
-
 ## Quick Setup
 
 ### 1. Deploy SearchXNG Service on Railway
@@ -27,7 +26,6 @@ The following should be automatically set via railway.toml, but verify:
 SEARXNG_URL=http://${{searchxng.RAILWAY_PRIVATE_DOMAIN}}:${{searchxng.PORT}}
 SEARCH_PROVIDER=searxng
 ```
-
 
 ## Troubleshooting
 
@@ -77,7 +75,6 @@ https://your-gary-zero-url/diagnostics
 
 **Fix:** Already fixed in latest code - pull latest changes
 
-
 ## Manual Configuration
 
 If automatic configuration fails, set these manually in Gary-Zero:
@@ -90,14 +87,12 @@ SEARXNG_URL=http://searchxng.railway.internal:8080
 SEARXNG_URL=https://searchxng-production-xxxx.up.railway.app
 ```
 
-
 ## Fallback Behavior
 
 If SearchXNG is unavailable, Gary-Zero will:
 1. Try `http://searchxng.railway.internal:8080` on Railway
 2. Fall back to `http://localhost:55510` for local development
 3. You can switch to DuckDuckGo: `SEARCH_PROVIDER=duckduckgo`
-
 
 ## Railway Service Communication
 
@@ -106,7 +101,6 @@ Gary-Zero uses Railway's private networking:
 - No egress fees for internal communication
 - IPv6 support enabled by default
 - Uses HTTP (not HTTPS) for internal communication
-
 
 ## Verification Steps
 
@@ -131,7 +125,6 @@ Gary-Zero uses Railway's private networking:
    ```
    🔍 SearchXNG URL: http://searchxng.railway.internal:8080
    ```
-
 
 ## Support
 

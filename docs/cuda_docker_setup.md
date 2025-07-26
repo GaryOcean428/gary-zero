@@ -4,7 +4,6 @@ This guide explains how to build and run Gary-Zero with NVIDIA GPU acceleration 
 
 ---
 
-
 ## Prerequisites
 
 Before you begin, ensure you have:
@@ -17,7 +16,6 @@ Before you begin, ensure you have:
 
 ---
 
-
 ## 1. Build the CUDA Docker Image
 
 Open a terminal in this directory and run:
@@ -29,7 +27,6 @@ docker build --no-cache -t frdel/gary-zero-run-cuda:testing --build-arg BRANCH=$
 ```
 
 ---
-
 
 ## 2. Run Gary-Zero with CUDA Support
 
@@ -44,7 +41,6 @@ docker-compose -f docker-compose.cuda.yml up -d
 
 ---
 
-
 ## 3. Access Gary-Zero
 
 Once the container is running, open your browser and go to:
@@ -52,7 +48,6 @@ Once the container is running, open your browser and go to:
 [http://localhost:50080](http://localhost:50080)
 
 ---
-
 
 ## 4. Stopping Gary-Zero
 
@@ -63,7 +58,6 @@ docker-compose -f docker-compose.cuda.yml down
 ```
 
 ---
-
 
 ## 5. Switching Between CPU and GPU Versions
 
@@ -90,7 +84,6 @@ You can easily switch between the CPU and GPU versions:
 
 ---
 
-
 ## Troubleshooting & Tips
 
 - **First time setup may take several minutes** as dependencies are downloaded and installed.
@@ -104,7 +97,6 @@ You can easily switch between the CPU and GPU versions:
 - For advanced configuration, see the comments in [`Dockerfile.cuda`](mdc:docker/run/Dockerfile.cuda).
 
 ---
-
 
 ## More Information
 

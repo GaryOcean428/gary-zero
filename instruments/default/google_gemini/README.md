@@ -2,7 +2,6 @@
 
 This instrument provides integration with the Google Gemini CLI for local model interaction, code assistance, and content generation.
 
-
 ## Features
 
 - **Chat Interface**: Interactive chat with Gemini models
@@ -12,7 +11,6 @@ This instrument provides integration with the Google Gemini CLI for local model 
 - **Safety Controls**: Configurable approval modes and secure execution
 - **Auto Installation**: Automatic installation of the CLI tool when needed
 
-
 ## Installation
 
 The Google Gemini CLI can be installed automatically when auto-install is enabled, or manually:
@@ -20,7 +18,6 @@ The Google Gemini CLI can be installed automatically when auto-install is enable
 ```bash
 pip install google-generativeai[cli]
 ```
-
 
 ## Usage
 
@@ -89,7 +86,6 @@ Install the CLI tool:
 action: install
 ```
 
-
 ## Configuration
 
 Configure the tool through Gary-Zero settings:
@@ -102,14 +98,12 @@ Configure the tool through Gary-Zero settings:
   - `block`: Block all operations
 - **Auto Install**: Automatically install CLI if not found
 
-
 ## Safety Features
 
 - **Approval Workflow**: All operations can require user approval
 - **Sandboxed Execution**: Commands run in controlled environment
 - **Timeout Controls**: Prevent runaway processes
 - **Error Handling**: Comprehensive error reporting and recovery
-
 
 ## API Keys
 
@@ -119,13 +113,11 @@ Ensure your Google AI API key is configured for the CLI to function properly:
 gemini config set api_key YOUR_GOOGLE_AI_API_KEY
 ```
 
-
 ## Available Models
 
 - `gemini-pro`: Standard Gemini model for general tasks
 - `gemini-pro-vision`: Gemini model with vision capabilities
 - `gemini-ultra`: Most capable Gemini model (when available)
-
 
 ## Examples
 

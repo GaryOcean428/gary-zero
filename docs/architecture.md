@@ -4,7 +4,6 @@ Gary-Zero is built on a flexible and modular architecture designed for extensibi
 
 > **📋 Note**: For detailed technology stack information, see [.agent-os/product/tech-stack.md](../.agent-os/product/tech-stack.md)
 
-
 ## System Architecture
 
 This simplified diagram illustrates the hierarchical relationship between agents and their interaction with tools, extensions, instruments, prompts, memory and knowledge base.
@@ -12,7 +11,6 @@ This simplified diagram illustrates the hierarchical relationship between agents
 ![Gary-Zero Architecture](res/arch-01.svg)
 
 The user or Agent 0 is at the top of the hierarchy, delegating tasks to subordinate agents, which can further delegate to other agents. Each agent can utilize tools and access the shared assets (prompts, memory, knowledge, extensions and instruments) to perform its tasks.
-
 
 ## Runtime Architecture
 
@@ -41,7 +39,6 @@ This architecture ensures:
 > is still possible but requires Remote Function Calling (RFC) configuration through the Settings
 > page. See [Full Binaries Installation](installation.md#in-depth-guide-for-full-binaries-installation)
 > for detailed instructions.
-
 
 ## Implementation Details
 
@@ -86,7 +83,6 @@ This architecture ensures:
 > [!NOTE]
 > When using the Docker runtime container, these directories are mounted
 > within the `/a0` volume for data persistence until the container is restarted or deleted.
-
 
 ## Core Components
 

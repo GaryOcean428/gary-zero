@@ -26,7 +26,6 @@ no text before after json
 }
 ~~~
 
-
 ## Receiving messages
 
 user messages contain superior instructions, tool results, framework messages

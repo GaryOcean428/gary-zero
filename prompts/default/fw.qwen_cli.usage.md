@@ -2,7 +2,6 @@
 
 The Qwen Coder CLI tool provides AI-powered code assistance and generation capabilities.
 
-
 ## Available Actions
 
 ### Generate Code
@@ -61,7 +60,6 @@ Install the CLI tool (if auto-install is enabled):
 qwen_coder_cli action=install
 ```
 
-
 ## Parameters
 
 - **action**: Required. One of: {{available_actions}}
@@ -76,7 +74,6 @@ qwen_coder_cli action=install
 - **detail_level**: Explanation detail (low, medium, high)
 - **refactor_type**: Type of refactoring (general, modernize, optimize)
 - **target**: Target specification for refactoring
-
 
 ## Notes
 

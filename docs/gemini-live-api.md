@@ -2,7 +2,6 @@
 
 This document provides comprehensive guidance for using the Google Gemini Live API integration in Gary-Zero.
 
-
 ## Overview
 
 The Gemini Live API integration enables real-time voice and video streaming with Google's advanced AI models. This feature provides:
@@ -12,7 +11,6 @@ The Gemini Live API integration enables real-time voice and video streaming with
 - **Configurable response modalities** (Audio now, Video coming soon)
 - **WebSocket-based real-time communication**
 - **Seamless integration with Gary-Zero's agent framework**
-
 
 ## Setup Instructions
 
@@ -45,7 +43,6 @@ pip install websockets
 ```
 
 Note: Audio functionality requires `pyaudio` but will gracefully degrade if not available.
-
 
 ## Usage
 
@@ -114,7 +111,6 @@ The integration provides several API endpoints for frontend interaction:
 - `GET /api/gemini-live/status` - Get current status
 - `GET /api/gemini-live/config` - Get configuration options
 
-
 ## Available Models
 
 ### Audio Dialog Models
@@ -134,7 +130,6 @@ The integration provides several API endpoints for frontend interaction:
 
 - **AUDIO** ✅ Available now
 - **VIDEO** 🔄 Coming soon (when supported by Google)
-
 
 ## Features
 
@@ -160,7 +155,6 @@ The integration uses WebSocket connections for low-latency communication:
 - Connection retry mechanisms
 - Comprehensive error reporting
 - Status monitoring and alerts
-
 
 ## Troubleshooting
 
@@ -224,7 +218,6 @@ import logging
 logging.getLogger('instruments.custom.gemini_live').setLevel(logging.DEBUG)
 ```
 
-
 ## Best Practices
 
 ### Performance Optimization
@@ -247,7 +240,6 @@ logging.getLogger('instruments.custom.gemini_live').setLevel(logging.DEBUG)
 2. **Handle errors gracefully**: Display helpful error messages
 3. **Test different voices**: Let users experiment with voice options
 4. **Audio device selection**: Allow users to choose input/output devices
-
 
 ## Integration Examples
 
@@ -294,7 +286,6 @@ response = await tool.execute()
 print(response.message)
 ```
 
-
 ## Development Notes
 
 ### Architecture
@@ -326,7 +317,6 @@ When contributing to this integration:
 4. Ensure backward compatibility
 5. Add appropriate error handling
 
-
 ## Support
 
 For issues related to the Gemini Live API integration:
@@ -335,7 +325,6 @@ For issues related to the Gemini Live API integration:
 2. Review the test results from `test_gemini_live_basic.py`
 3. Check Gary-Zero's main documentation
 4. Report bugs through the project's issue tracker
-
 
 ## Future Enhancements
 

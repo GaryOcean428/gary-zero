@@ -13,11 +13,9 @@ compliance_frameworks: ["SOC2", "GDPR", "HIPAA"]
 
 # Security Policies
 
-
 ## Overview
 
 This document defines the security policies and procedures for the organization.
-
 
 ## Information Security Policy
 
@@ -30,7 +28,6 @@ This document defines the security policies and procedures for the organization.
 - **Security Team:** [Define responsibilities]
 - **Development Team:** [Define responsibilities]
 - **Operations Team:** [Define responsibilities]
-
 
 ## Access Control Policy
 
@@ -45,7 +42,6 @@ This document defines the security policies and procedures for the organization.
 - [Role-based access control (RBAC) implementation]
 - [Principle of least privilege]
 - [Access review procedures]
-
 
 ## Data Protection Policy
 
@@ -62,7 +58,6 @@ This document defines the security policies and procedures for the organization.
 - [Encryption requirements for data in transit]
 - [Key management procedures]
 
-
 ## Incident Response Policy
 
 ### Incident Classification
@@ -72,7 +67,6 @@ This document defines the security policies and procedures for the organization.
 ### Response Procedures
 
 [Document step-by-step incident response procedures]
-
 
 ## Compliance Requirements
 

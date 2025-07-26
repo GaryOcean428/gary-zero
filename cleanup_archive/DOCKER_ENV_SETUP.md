@@ -1,10 +1,8 @@
 # Docker Hub Environment Variables Setup
 
-
 ## Important: Security Notice
 
 **NEVER** include your `.env` file with API keys in the Docker image!
-
 
 ## Environment Variables for Docker Hub
 
@@ -46,7 +44,6 @@ TOKENIZERS_PARALLELISM=true
 PYDEVD_DISABLE_FILE_VALIDATION=1
 ```
 
-
 ## How to Add Environment Variables in Docker Hub
 
 1. Go to your Docker Hub repository settings
@@ -54,7 +51,6 @@ PYDEVD_DISABLE_FILE_VALIDATION=1
 3. Click on "Build Environment Variables"
 4. Add each API key as a build-time variable
 5. Mark sensitive variables as "Hidden" for security
-
 
 ## Runtime vs Build-time Variables
 
@@ -70,14 +66,12 @@ PYDEVD_DISABLE_FILE_VALIDATION=1
 - Included in the image layers
 - Good for: default configurations
 
-
 ## Security Best Practices
 
 1. **Never commit API keys to Git**
 2. **Use Docker Hub's environment variables for sensitive data**
 3. **Create a `.env.example` file with empty values**
 4. **Document which variables are required**
-
 
 ## Example Docker Run Command
 
@@ -100,7 +94,6 @@ docker run -p 50001:50001 \
   -e API_KEY_GROQ="your-key" \
   garyocean77/gary-zero:latest
 ```
-
 
 ## Using Docker Compose
 

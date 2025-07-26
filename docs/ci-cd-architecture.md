@@ -1,10 +1,8 @@
 # Gary-Zero CI/CD Architecture
 
-
 ## Overview
 
 Gary-Zero uses a modular CI/CD architecture built around 4 reusable composite workflows that can be mixed and matched based on the deployment scenario.
-
 
 ## Architecture Diagram
 
@@ -143,7 +141,6 @@ graph TB
     class COV,SEC,LOGS,REL,DOCK outputNode
 ```
 
-
 ## Composite Workflow Details
 
 ### A. Static Checks (`_static-checks.yml`)
@@ -182,7 +179,6 @@ graph TB
 - **Railway Deployment**: CLI-based deployment, health verification, URL extraction
 - **Post-deployment**: Release creation, notification system
 - **Outputs**: Deployment URL, deployment status, release artifacts
-
 
 ## Workflow Usage Patterns
 
@@ -223,7 +219,6 @@ jobs:
 - **Coverage**: Quality + security + deployment
 - **Duration**: ~25-35 minutes
 
-
 ## Quality Gate System
 
 The quality gate ensures that all quality checks pass before deployment:
@@ -245,7 +240,6 @@ graph LR
     class QG gateNode
 ```
 
-
 ## Configuration Matrix
 
 | Environment | Static Checks | Tests | Security | Deploy | Coverage Threshold |
@@ -254,7 +248,6 @@ graph LR
 | Pull Request | ✅ | ✅ | ❌ | ❌ | 75% |
 | Main Branch | ✅ | ✅ | ✅ | ✅ | 80% |
 | Manual Deploy | ✅ | ✅ | Optional | Optional | 80% |
-
 
 ## Railway Integration
 
@@ -280,7 +273,6 @@ graph LR
 5. URL extraction and validation
 ```
 
-
 ## Security Integration
 
 ### Multi-layer Security Scanning
@@ -298,7 +290,6 @@ graph LR
 - Artifact retention for security audit trails
 - Configurable failure thresholds
 
-
 ## Monitoring and Observability
 
 ### Workflow Outputs
@@ -314,7 +305,6 @@ graph LR
 - **PR Comments**: Automated result summaries
 - **Security Alerts**: SARIF integration with GitHub Security
 - **Releases**: Automated release creation on successful deployment
-
 
 ## Benefits
 

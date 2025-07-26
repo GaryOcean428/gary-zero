@@ -2,7 +2,6 @@
 
 This document describes the comprehensive cloud environment that compensates for traditional desktop limitations through Railway.com deployment and specialized service integrations.
 
-
 ## Overview
 
 Gary-Zero operates in a distributed cloud architecture where the main application coordinates with specialized services to provide capabilities that would traditionally require local desktop access. This approach enables:
@@ -11,7 +10,6 @@ Gary-Zero operates in a distributed cloud architecture where the main applicatio
 - **Security Testing**: Via Kali Linux environments
 - **Visual Computing**: Using Anthropic Computer Use
 - **Browser Automation**: Through Morphism services
-
 
 ## Cloud Service Components
 
@@ -141,7 +139,6 @@ MORPHISM_BROWSER_URL="https://${{morphism-browser.RAILWAY_PUBLIC_DOMAIN}}"
 - Web form automation
 - Dynamic content interaction
 
-
 ## Environment Compensations
 
 ### Traditional Desktop → Cloud Equivalents
@@ -170,7 +167,6 @@ MORPHISM_BROWSER_URL="https://${{morphism-browser.RAILWAY_PUBLIC_DOMAIN}}"
 3. **Geographic Distribution**: Services can be deployed closer to users
 4. **Load Balancing**: Railway handles traffic distribution
 
-
 ## Service Communication
 
 ### Railway Private Networking
@@ -198,7 +194,6 @@ http://morphism-browser.railway.internal:3000
 - **Retry Logic**: Automatic retry with exponential backoff
 - **Circuit Breakers**: Prevent cascade failures
 
-
 ## Development Workflow
 
 ### Local Development
@@ -221,7 +216,6 @@ For local development, developers can:
 2. **Health Checks**: Verify all services are healthy
 3. **Configuration**: Set Railway reference variables
 4. **Monitoring**: Track service health and performance
-
 
 ## Monitoring and Observability
 
@@ -247,7 +241,6 @@ Key metrics tracked:
 - Resource utilization
 - Service availability
 
-
 ## Security Considerations
 
 ### Network Security
@@ -269,7 +262,6 @@ Key metrics tracked:
 - **GDPR**: Data handling compliant with privacy regulations
 - **SOC 2**: Security controls for service providers
 - **Audit Trails**: Complete audit trails for all operations
-
 
 ## Troubleshooting
 
@@ -302,7 +294,6 @@ railway logs --service kali-linux-docker
 # Monitor metrics
 railway metrics --service gary-zero
 ```
-
 
 ## Future Enhancements
 

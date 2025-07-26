@@ -23,7 +23,6 @@ To begin with Gary-Zero, follow the links below for detailed guides on various t
 - **Share your Work:** Share your Gary-Zero creations, workflows and discoverings on our [Show and Tell](https://github.com/frdel/gary-zero/discussions/categories/show-and-tell) area on GitHub.
 - **Report Issues:** Use the [GitHub issue tracker](https://github.com/frdel/gary-zero/issues) to report framework-relative bugs or suggest new features.
 
-
 ## Table of Contents
 
 - [Welcome to the Gary-Zero Documentation](#gary-zero-documentation)

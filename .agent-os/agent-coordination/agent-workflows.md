@@ -12,11 +12,9 @@ dependencies: ["communication-protocols.md", "task-delegation.md"]
 
 # Agent Workflows
 
-
 ## Overview
 
 This document defines the standard workflows and coordination patterns for agent interactions.
-
 
 ## Workflow Types
 
@@ -37,7 +35,6 @@ This document defines the standard workflows and coordination patterns for agent
 - **Description:** [Branching logic based on conditions]
 - **Use Cases:** [When to use conditional workflows]
 - **Implementation:** [Technical implementation details]
-
 
 ## Standard Workflow Patterns
 
@@ -60,7 +57,6 @@ Message Broker -> Notify -> [Agent B, Agent C, Agent D]
 ```
 Request -> Agent A -> Agent B -> Agent C -> Response
 ```
-
 
 ## Workflow Configuration
 
@@ -85,7 +81,6 @@ workflow:
 - [Define error handling strategies]
 - [Retry policies and backoff strategies]
 - [Failure notification procedures]
-
 
 ## Monitoring and Observability
 

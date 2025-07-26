@@ -2,7 +2,6 @@
 
 This document provides instructions for deploying the Gary-Zero fixes to production, addressing the critical LangChain Anthropic streaming bug and UI/UX improvements.
 
-
 ## Quick Start (Emergency Deployment)
 
 For immediate production hotfix, set these environment variables:
@@ -18,7 +17,6 @@ LANGCHAIN_ANTHROPIC_STREAM_USAGE=false
 ENABLE_DEV_FEATURES=false
 VSCODE_INTEGRATION_ENABLED=false
 ```
-
 
 ## Issues Addressed
 
@@ -55,7 +53,6 @@ VSCODE_INTEGRATION_ENABLED=false
 - **Files Modified**: `run_ui.py`
 - **New Scripts**: `validate_env.py`, `verify_fixes.py`
 
-
 ## Environment Variables
 
 ### Critical Production Variables
@@ -87,7 +84,6 @@ API_KEY=your_secure_api_key
 JWT_SECRET=your_32_character_jwt_secret_here
 ```
 
-
 ## Deployment Methods
 
 ### Method 1: Railway Dashboard (Recommended)
@@ -118,7 +114,6 @@ Create `.env` file in project root:
 cp .env.example .env
 # Edit .env with your values
 ```
-
 
 ## Verification Steps
 
@@ -153,7 +148,6 @@ railway logs --tail 50 | grep -E "(TypeError|NoneType|streaming)"
 # Should see no TypeErrors related to streaming
 ```
 
-
 ## Rollback Plan
 
 If issues occur, immediately rollback:
@@ -167,7 +161,6 @@ railway variables set VSCODE_INTEGRATION_ENABLED=true
 # Monitor logs
 railway logs --tail 20
 ```
-
 
 ## Success Metrics
 
@@ -184,7 +177,6 @@ railway logs --tail 20
 - Faster page load times (reduced JS execution)
 - Improved user experience with chat input
 - No development console warnings in production
-
 
 ## Monitoring & Maintenance
 
@@ -212,7 +204,6 @@ grep -E "(streaming.*disabled|production.*mode|auto-resize.*enabled)" logs.txt
 python validate_env.py > env-audit-$(date +%Y%m%d).log
 ```
 
-
 ## Troubleshooting
 
 ### LangChain Streaming Still Causing Errors
@@ -239,7 +230,6 @@ python validate_env.py > env-audit-$(date +%Y%m%d).log
 2. Verify production mode is active
 3. Monitor VS Code integration is fully disabled
 
-
 ## Files Changed
 
 ### Backend Files
@@ -260,7 +250,6 @@ python validate_env.py > env-audit-$(date +%Y%m%d).log
 - `validate_env.py` - Environment validation script
 - `verify_fixes.py` - Fix verification script
 - `PRODUCTION_DEPLOYMENT.md` - This deployment guide
-
 
 ## Support
 
