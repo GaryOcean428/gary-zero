@@ -132,7 +132,7 @@ def test_openai_model_creation():
         try:
             model = ChatOpenAI(
                 api_key=api_key,
-                model="gpt-4o-mini"
+                model="gpt-4.1-mini"
             )
             print("  ✅ Direct ChatOpenAI instantiation successful")
             print(f"    Model type: {type(model)}")
@@ -145,7 +145,7 @@ def test_openai_model_creation():
         # Step 4: Test our get_openai_chat function
         try:
             from models import get_openai_chat
-            our_model = get_openai_chat("gpt-4o-mini")
+            our_model = get_openai_chat("gpt-4.1-mini")
             
             if our_model:
                 print("  ✅ get_openai_chat() successful")
@@ -175,12 +175,12 @@ def test_model_get_function():
         import models
         
         # Test utility model
-        print("Testing utility model (gpt-4o-mini):")
+        print("Testing utility model (gpt-4.1-mini):")
         try:
             model = models.get_model(
                 models.ModelType.CHAT,
                 models.ModelProvider.OPENAI,
-                "gpt-4o-mini"
+                "gpt-4.1-mini"
             )
             
             if model:

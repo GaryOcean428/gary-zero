@@ -185,10 +185,16 @@ class ModelRegistry:
         cost_map = {
             "gpt-4o": (0.005, 0.015),
             "gpt-4o-mini": (0.00015, 0.0006),
+            "gpt-4.1": (0.01, 0.04),  # Estimated based on advanced capabilities
+            "gpt-4.1-mini": (0.0005, 0.002),  # Cost-efficient version
+            "gpt-4.1-nano": (0.0002, 0.0008),  # Most cost-effective
             "o1": (0.015, 0.06),
             "o1-preview": (0.015, 0.06),
             "o1-mini": (0.003, 0.012),
+            "o3": (0.02, 0.08),  # Advanced reasoning model
+            "o3-pro": (0.04, 0.16),  # Enhanced compute version
             "o3-mini": (0.0025, 0.01),
+            "o4-mini": (0.002, 0.008),  # Cost-efficient reasoning
             "dall-e-3": (0.04, 0.0),  # per image
             "whisper-1": (0.006, 0.0),  # per minute
             "tts-1": (0.015, 0.0),  # per 1k chars
