@@ -30,15 +30,25 @@ def validate_model_name(provider: str, model_name: str) -> bool:
     # Common valid models for each provider
     valid_models = {
         "ANTHROPIC": [
+            "claude-sonnet-4-20250514",
+            "claude-opus-4-20250514",
+            "claude-3-7-sonnet-20250219",
             "claude-3-5-sonnet-20241022",
             "claude-3-5-haiku-20241022",
+            "claude-code",
             "claude-3-opus-20240229",
             "claude-3-sonnet-20240229",
             "claude-3-haiku-20240307",
         ],
         "OPENAI": [
+            "gpt-4.1",
+            "gpt-4.1-mini",
+            "gpt-4.1-nano",
             "gpt-4o",
             "gpt-4o-mini",
+            "o3",
+            "o3-pro",
+            "o4-mini",
             "gpt-4-turbo",
             "gpt-4",
             "gpt-3.5-turbo",
@@ -80,7 +90,24 @@ def validate_model_config(
         result["issues"].append(f"Invalid/non-existent model: {model_name}")
         return result
 
-    # Try to create the model
+    # Check if API key is available for the provider
+    api_key_available = False
+    if provider == "OPENAI":
+        api_key_available = bool(os.getenv("OPENAI_API_KEY") or os.getenv("API_KEY_OPENAI"))
+    elif provider == "ANTHROPIC":
+        api_key_available = bool(os.getenv("ANTHROPIC_API_KEY") or os.getenv("API_KEY_ANTHROPIC"))
+    elif provider == "GOOGLE":
+        api_key_available = bool(os.getenv("GEMINI_API_KEY") or os.getenv("API_KEY_GOOGLE"))
+    elif provider == "GROQ":
+        api_key_available = bool(os.getenv("GROQ_API_KEY") or os.getenv("API_KEY_GROQ"))
+
+    # If no API key, just mark as valid since the model name passed validation
+    if not api_key_available:
+        result["valid"] = True
+        result["issues"].append("Skipped initialization (no API key found)")
+        return result
+
+    # Try to create the model if API key is available
     try:
         provider_enum = getattr(models.ModelProvider, provider)
 
