@@ -125,7 +125,7 @@
   - Real-time response generation
 - **Use Cases**: Live captioning, voice agents, interactive applications
 
-### GPT-4 (Previous Generation)
+### GPT-4 (Previous Generation) do not use
 
 #### GPT-4
 - **Purpose**: High-intelligence text model for chat completions
@@ -144,7 +144,7 @@
   - Tier 1: 500 RPM, 10,000 TPM
   - Tier 5: 10,000 RPM, 1,000,000 TPM
 
-### GPT-3.5 Series
+### GPT-3.5 Series do not use
 
 #### GPT-3.5 Turbo
 - **Purpose**: Lower-cost chat-optimized model
