@@ -205,9 +205,9 @@ DEFAULT_SETTINGS: Settings = {
     "chat_model_rl_requests": 0,
     "chat_model_rl_input": 0,
     "chat_model_rl_output": 0,
-    # Utility model settings - using GPT-4o-mini (latest available and efficient)
+    # Utility model settings - using GPT-4.1-mini (latest available and efficient)
     "util_model_provider": "OPENAI",
-    "util_model_name": "gpt-4o-mini",
+    "util_model_name": "gpt-4.1-mini",
     "util_model_kwargs": {},
     "util_model_ctx_length": 1047576,  # 1M+ tokens (from model parameters)
     "util_model_ctx_history": 0.9,

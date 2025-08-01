@@ -134,13 +134,13 @@ def debug_model_initialization():
         import models
 
         # Test utility model (the one that's failing)
-        print("🔧 Testing utility model (gpt-4o-mini)...")
+        print("🔧 Testing utility model (gpt-4.1-mini)...")
         try:
             model = models.get_model(
-                models.ModelType.CHAT, models.ModelProvider.OPENAI, "gpt-4o-mini"
+                models.ModelType.CHAT, models.ModelProvider.OPENAI, "gpt-4.1-mini"
             )
             if model:
-                print("  ✅ Successfully initialized gpt-4o-mini")
+                print("  ✅ Successfully initialized gpt-4.1-mini")
                 print(f"  📋 Model type: {type(model)}")
             else:
                 print("  ❌ Model initialization returned None")
@@ -188,7 +188,7 @@ def debug_openai_function_directly():
 
         # Try to call the function
         try:
-            model = get_openai_chat("gpt-4o-mini")
+            model = get_openai_chat("gpt-4.1-mini")
             if model:
                 print("  ✅ get_openai_chat() succeeded")
                 print(f"  📋 Model type: {type(model)}")

@@ -288,7 +288,7 @@ def test_default_util_model():
     manager = SettingsManager()
     settings = manager.get_settings()
 
-    assert settings.get("util_model_name") == "gpt-4o-mini"
+    assert settings.get("util_model_name") == "gpt-4.1-mini"
 
 
 def test_model_catalog_validation():

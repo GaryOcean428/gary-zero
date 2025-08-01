@@ -186,6 +186,8 @@ class ModelRegistry:
             "gpt-4o": (0.005, 0.015),
             "gpt-4o-mini": (0.00015, 0.0006),
             "gpt-4.1": (0.01, 0.04),  # Estimated based on advanced capabilities
+            "gpt-4.1-mini": (0.0005, 0.002),  # Cost-efficient version
+            "gpt-4.1-nano": (0.0002, 0.0008),  # Most cost-effective
             "o1": (0.015, 0.06),
             "o1-preview": (0.015, 0.06),
             "o1-mini": (0.003, 0.012),
