@@ -47,7 +47,7 @@ def test_langchain_openai_import():
 
         print("\n🔧 Testing ChatOpenAI instantiation...")
         try:
-            model = ChatOpenAI(api_key=api_key, model="gpt-4.1-mini")
+            model = ChatOpenAI(api_key=api_key, model="gpt-4o-mini")
             print("✅ ChatOpenAI instantiation successful")
             print(f"📋 Model type: {type(model)}")
             return model
@@ -115,8 +115,8 @@ def test_openai_chat_function():
 
         print("✅ Successfully imported get_openai_chat")
 
-        print("🔧 Calling get_openai_chat('gpt-4.1-mini')...")
-        model = get_openai_chat("gpt-4.1-mini")
+        print("🔧 Calling get_openai_chat('gpt-4o-mini')...")
+        model = get_openai_chat("gpt-4o-mini")
 
         if model:
             print("✅ get_openai_chat successful")
