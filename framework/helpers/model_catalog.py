@@ -22,25 +22,25 @@ MODEL_CATALOG: ModelCollection = {
     "ANTHROPIC": [
         # Modern models (post-June 2024)
         {
-            "value": "claude-sonnet-4-0",
+            "value": "claude-sonnet-4-20250514",
             "label": "Claude 4 Sonnet",
             "modern": True,
             "release_date": "2025-05-14",
         },
         {
-            "value": "claude-opus-4-0",
+            "value": "claude-opus-4-20250514",
             "label": "Claude 4 Opus",
             "modern": True,
             "release_date": "2025-05-14",
         },
         {
-            "value": "claude-3-7-sonnet-latest",
+            "value": "claude-3-7-sonnet-20250219",
             "label": "Claude 3.7 Sonnet (2025-02-19)",
             "modern": True,
             "release_date": "2025-02-19",
         },
         {
-            "value": "claude-3-5-sonnet-latest",
+            "value": "claude-3-5-sonnet-20241022",
             "label": "Claude 3.5 Sonnet (Latest)",
             "modern": True,
             "release_date": "2024-10-22",
@@ -53,7 +53,7 @@ MODEL_CATALOG: ModelCollection = {
             "code": True,
         },
         {
-            "value": "claude-3-5-haiku-latest",
+            "value": "claude-3-5-haiku-20241022",
             "label": "Claude 3.5 Haiku (Latest)",
             "modern": True,
             "release_date": "2024-11-01",
