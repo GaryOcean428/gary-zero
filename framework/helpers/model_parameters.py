@@ -123,7 +123,13 @@ MODEL_PARAMETERS: dict[str, dict[str, dict[str, Any]]] = {
             "rl_input": 30000000,
             "rl_output": 10000000,
         },
-
+        "gpt-4.1-mini": {
+            "ctx_length": 1047576,
+            "vision": True,
+            "rl_requests": 10000,
+            "rl_input": 200000000,
+            "rl_output": 70000000,
+        },
         "o1": {
             "ctx_length": 200000,
             "vision": False,
