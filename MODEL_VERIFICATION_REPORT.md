@@ -95,12 +95,12 @@ This report provides an accurate cross-reference between:
 ## Current Default Settings Analysis
 
 Current defaults in `framework/helpers/settings/types.py`:
-1. **Chat Model**: `claude-3-5-sonnet-20241022` (ANTHROPIC) ✅ Valid but should upgrade
-2. **Utility Model**: `gpt-4o-mini` (OPENAI) ✅ Verified
+1. **Chat Model**: `claude-sonnet-4-20250514` (ANTHROPIC) ✅ Updated to latest
+2. **Utility Model**: `gpt-4.1-mini` (OPENAI) ✅ Updated to latest cost-effective model  
 3. **Embedding Model**: `text-embedding-3-large` (OPENAI) ✅ Keep
 4. **Browser Model**: `claude-3-5-sonnet-20241022` (ANTHROPIC) ✅ Valid
 5. **Voice Model**: `gpt-4o` (OPENAI) ✅ Verified
-6. **Code Model**: `claude-3-5-sonnet-20241022` (ANTHROPIC) → Should update to `claude-sonnet-4-0`
+6. **Code Model**: `claude-sonnet-4-20250514` (ANTHROPIC) ✅ Updated to latest
 
 ## Recommendations
 
