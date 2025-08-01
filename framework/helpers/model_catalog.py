@@ -67,18 +67,7 @@ MODEL_CATALOG: ModelCollection = {
             "modern": True,
             "release_date": "2025-01-01",
         },
-        {
-            "value": "gpt-4.1-mini",
-            "label": "GPT-4.1 Mini",
-            "modern": True,
-            "release_date": "2025-01-01",
-        },
-        {
-            "value": "gpt-4.1-nano",
-            "label": "GPT-4.1 Nano",
-            "modern": True,
-            "release_date": "2025-01-01",
-        },
+
         {"value": "o3", "label": "o3", "modern": True, "release_date": "2025-01-31"},
         {
             "value": "o3-pro",

@@ -15,7 +15,7 @@ MODEL_MIGRATIONS = {
     "gpt-4": "gpt-4.1",
     "gpt-4-turbo": "gpt-4.1",
     "gpt-4-turbo-preview": "gpt-4.1",
-    "gpt-3.5-turbo": "gpt-4.1-mini",
+    "gpt-3.5-turbo": "gpt-4o-mini",
     # Google models
     "gemini-1.5-pro": "gemini-2.5-pro",
     "gemini-1.5-flash": "gemini-2.5-flash",
