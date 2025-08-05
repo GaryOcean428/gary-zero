@@ -839,14 +839,36 @@ class Agent:
                 )
             return model
         except Exception as e:
-            error_msg = (
-                f"Failed to initialize utility model - "
-                f"provider: {self.config.utility_model.provider}, "
-                f"name: {self.config.utility_model.name}, "
-                f"error: {str(e)}"
+            # Fallback to chat model if utility model fails
+            fallback_msg = (
+                f"Utility model failed (provider: {self.config.utility_model.provider}, "
+                f"name: {self.config.utility_model.name}, error: {str(e)}). "
+                f"Falling back to chat model (provider: {self.config.chat_model.provider}, "
+                f"name: {self.config.chat_model.name})"
             )
-            self.context.log.log(type="error", content=error_msg)
-            raise RuntimeError(error_msg) from e
+            self.context.log.log(type="warning", content=fallback_msg)
+            
+            try:
+                # Use chat model configuration for utility functions
+                fallback_model = models.get_model(
+                    models.ModelType.CHAT,
+                    self.config.chat_model.provider,
+                    self.config.chat_model.name,
+                    **self.config.chat_model.kwargs,
+                )
+                if fallback_model is None:
+                    raise ValueError(
+                        f"Chat model fallback also returned None - provider: {self.config.chat_model.provider}, "
+                        f"name: {self.config.chat_model.name}"
+                    )
+                return fallback_model
+            except Exception as fallback_error:
+                error_msg = (
+                    f"Both utility model and chat model fallback failed - "
+                    f"utility: {str(e)}, fallback: {str(fallback_error)}"
+                )
+                self.context.log.log(type="error", content=error_msg)
+                raise RuntimeError(error_msg) from fallback_error
 
     def get_embedding_model(self):
         try:
