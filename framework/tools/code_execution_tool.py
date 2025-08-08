@@ -519,6 +519,14 @@ class CodeExecution(Tool):
                         self.state.shells[session] = shell
                         await shell.connect()
 
+                # Ensure session still exists before accessing (race condition guard)
+                if session not in self.state.shells:
+                    # Auto-recreate session if missing
+                    PrintStyle.warning(f"⚠️ Session {session} not found, recreating...")
+                    shell = LocalInteractiveSession()
+                    self.state.shells[session] = shell
+                    await shell.connect()
+
                 self.state.shells[session].send_command(command)
 
                 PrintStyle(

@@ -8,6 +8,113 @@ const logger = window.Logger ? new Logger('Settings') : {
     error: console.error 
 };
 
+// Utility function for debouncing
+function debounce(func, wait, options = {}) {
+    let timeout;
+    let result;
+    let lastArgs;
+    let lastThis;
+    let maxTimeoutId;
+    let lastCallTime;
+    
+    const leading = !!options.leading;
+    const trailing = options.trailing !== false;
+    const maxWait = options.maxWait;
+    
+    function invokeFunc(time) {
+        const args = lastArgs;
+        const thisArg = lastThis;
+        
+        lastArgs = lastThis = undefined;
+        result = func.apply(thisArg, args);
+        return result;
+    }
+    
+    function startTimer(pendingFunc, wait) {
+        return setTimeout(pendingFunc, wait);
+    }
+    
+    function cancelTimer(id) {
+        clearTimeout(id);
+    }
+    
+    function leadingEdge(time) {
+        lastCallTime = time;
+        timeout = startTimer(timerExpired, wait);
+        return leading ? invokeFunc(time) : result;
+    }
+    
+    function remainingWait(time) {
+        const timeSinceLastCall = time - lastCallTime;
+        const timeSinceLastInvoke = time - (lastCallTime || 0);
+        const timeWaiting = wait - timeSinceLastCall;
+        
+        return maxWait !== undefined ? Math.min(timeWaiting, maxWait - timeSinceLastInvoke) : timeWaiting;
+    }
+    
+    function shouldInvoke(time) {
+        const timeSinceLastCall = time - lastCallTime;
+        const timeSinceLastInvoke = time - (lastCallTime || 0);
+        
+        return (lastCallTime === undefined || (timeSinceLastCall >= wait) ||
+                (timeSinceLastCall < 0) || (maxWait !== undefined && timeSinceLastInvoke >= maxWait));
+    }
+    
+    function timerExpired() {
+        const time = Date.now();
+        if (shouldInvoke(time)) {
+            return trailingEdge(time);
+        }
+        timeout = startTimer(timerExpired, remainingWait(time));
+    }
+    
+    function trailingEdge(time) {
+        timeout = undefined;
+        
+        if (trailing && lastArgs) {
+            return invokeFunc(time);
+        }
+        lastArgs = lastThis = undefined;
+        return result;
+    }
+    
+    function debounced(...args) {
+        const time = Date.now();
+        const isInvoking = shouldInvoke(time);
+        
+        lastArgs = args;
+        lastThis = this;
+        lastCallTime = time;
+        
+        if (isInvoking) {
+            if (timeout === undefined) {
+                return leadingEdge(lastCallTime);
+            }
+            if (maxWait !== undefined) {
+                timeout = startTimer(timerExpired, wait);
+                return invokeFunc(lastCallTime);
+            }
+        }
+        if (timeout === undefined) {
+            timeout = startTimer(timerExpired, wait);
+        }
+        return result;
+    }
+    
+    debounced.cancel = function() {
+        if (timeout !== undefined) {
+            cancelTimer(timeout);
+        }
+        if (maxTimeoutId !== undefined) {
+            cancelTimer(maxTimeoutId);
+        }
+        lastCallTime = 0;
+        lastArgs = lastThis = timeout = maxTimeoutId = undefined;
+    };
+    
+    return debounced;
+}
+
 const settingsModalProxy = {
     isOpen: false,
     settings: {},
@@ -27,6 +134,13 @@ const settingsModalProxy = {
         }
 
         return filteredSections;
+    },
+
+    // Initialize debounced save function
+    init() {
+        if (!this._debouncedSaveSettings) {
+            this._debouncedSaveSettings = debounce(this._actualSaveSettings.bind(this), 1000, { trailing: true });
+        }
     },
 
     // Switch tab method
@@ -669,12 +783,26 @@ document.addEventListener("alpine:init", () => {
             },
 
             async saveSettings() {
+                // Initialize debounced function if not already done
+                if (!this._debouncedSaveSettings) {
+                    this.init();
+                }
+                
+                // Show optimistic UI feedback
+                this.isLoading = true;
+                
+                // Call the debounced version
+                return this._debouncedSaveSettings();
+            },
+
+            async _actualSaveSettings() {
                 try {
                     // First validate
                     for (const section of this.settingsData.sections) {
                         for (const field of section.fields) {
                             if (field.required && (!field.value || field.value.trim() === "")) {
                                 showToast(`${field.title} in ${section.title} is required`, "error");
+                                this.isLoading = false;
                                 return;
                             }
                         }
@@ -703,11 +831,20 @@ document.addEventListener("alpine:init", () => {
                         await this.fetchSettings();
                     } else {
                         const errorData = await response.json();
-                        throw new Error(errorData.error || "Failed to save settings");
+                        
+                        // Handle validation errors from server (400 status)
+                        if (response.status === 400 && errorData.validation_errors) {
+                            const errorMessages = errorData.validation_errors.join('\n');
+                            showToast(`Settings validation failed:\n${errorMessages}`, "error");
+                        } else {
+                            throw new Error(errorData.error || "Failed to save settings");
+                        }
                     }
                 } catch (error) {
                     logger.error("Error saving settings:", error);
                     showToast("Failed to save settings: " + error.message, "error");
+                } finally {
+                    this.isLoading = false;
                 }
             },
 
