@@ -525,7 +525,12 @@ class CodeExecution(Tool):
                     PrintStyle.warning(f"⚠️ Session {session} not found, recreating...")
                     shell = LocalInteractiveSession()
                     self.state.shells[session] = shell
-                    await shell.connect()
+                    try:
+                        await shell.connect()
+                    except Exception as e:
+                        PrintStyle.error(f"❌ Failed to recreate session {session}: {e}")
+                        del self.state.shells[session]  # Clean up failed session
+                        raise RuntimeError(f"Unable to establish session {session}")
 
                 self.state.shells[session].send_command(command)
 

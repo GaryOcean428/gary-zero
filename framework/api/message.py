@@ -79,39 +79,56 @@ class Message(ApiHandler):
                     # Return existing message result to prevent duplicate
                     PrintStyle(font_color="yellow").print(f"🚫 Skipping duplicate message with client_message_id: {client_message_id}")
                     return None, context  # Return None to indicate duplicate
+            
+            # Also check if there's an in-progress message with the same client_message_id
+            # This prevents race conditions during concurrent requests
+            if hasattr(context, '_processing_messages'):
+                if client_message_id in context._processing_messages:
+                    PrintStyle(font_color="yellow").print(f"🚫 Message already being processed: {client_message_id}")
+                    return None, context
+            else:
+                context._processing_messages = set()
+            
+            # Mark this message as being processed
+            context._processing_messages.add(client_message_id)
 
-        # Store attachments in agent data
-        # context.agent0.set_data("attachments", attachment_paths)
+        try:
+            # Store attachments in agent data
+            # context.agent0.set_data("attachments", attachment_paths)
 
-        # Prepare attachment filenames for logging
-        attachment_filenames = (
-            [os.path.basename(path) for path in attachment_paths]
-            if attachment_paths
-            else []
-        )
+            # Prepare attachment filenames for logging
+            attachment_filenames = (
+                [os.path.basename(path) for path in attachment_paths]
+                if attachment_paths
+                else []
+            )
 
-        # Print to console and log
-        PrintStyle(
-            background_color="#6C3483", font_color="white", bold=True, padding=True
-        ).print("User message:")
-        PrintStyle(font_color="white", padding=False).print(f"> {message}")
-        if attachment_filenames:
-            PrintStyle(font_color="white", padding=False).print("Attachments:")
-            for filename in attachment_filenames:
-                PrintStyle(font_color="white", padding=False).print(f"- {filename}")
+            # Print to console and log
+            PrintStyle(
+                background_color="#6C3483", font_color="white", bold=True, padding=True
+            ).print("User message:")
+            PrintStyle(font_color="white", padding=False).print(f"> {message}")
+            if attachment_filenames:
+                PrintStyle(font_color="white", padding=False).print("Attachments:")
+                for filename in attachment_filenames:
+                    PrintStyle(font_color="white", padding=False).print(f"- {filename}")
 
-        # Add client_message_id to kvps for deduplication
-        log_kvps = {"attachments": attachment_filenames}
-        if client_message_id:
-            log_kvps["client_message_id"] = client_message_id
+            # Add client_message_id to kvps for deduplication
+            log_kvps = {"attachments": attachment_filenames}
+            if client_message_id:
+                log_kvps["client_message_id"] = client_message_id
 
-        # Log the message with message_id and attachments
-        context.log.log(
-            type="user",
-            heading="User message",
-            content=message,
-            kvps=log_kvps,
-            id=message_id,
-        )
+            # Log the message with message_id and attachments
+            context.log.log(
+                type="user",
+                heading="User message",
+                content=message,
+                kvps=log_kvps,
+                id=message_id,
+            )
 
-        return context.communicate(UserMessage(message, attachment_paths)), context
+            return context.communicate(UserMessage(message, attachment_paths)), context
+        finally:
+            # Clean up processing state
+            if client_message_id and hasattr(context, '_processing_messages'):
+                context._processing_messages.discard(client_message_id)
