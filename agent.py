@@ -991,6 +991,9 @@ class Agent:
                     error_msg = f"Failed to connect to AI model service after {max_retries} attempts. Please check your internet connection and try again."
                     self.context.log.log(type="error", content=error_msg)
                     raise RepairableError(error_msg) from e
+            except InterventionError:
+                # Let InterventionError bubble up to be handled by message loop
+                raise
             except Exception as e:
                 # For other exceptions, don't retry but still log appropriately
                 error_msg = f"Unexpected error during AI model communication: {str(e)}"
