@@ -19,8 +19,7 @@ describe('Alpine.js Integration Fixes - File Validation', () => {
         expect(content).toContain('_setupDebouncedSave()');
         
         // Should NOT contain the old broken pattern
-        expect(content).not.toContain('this._actualSaveSettings.bind(this)') || 
-               expect(content).toMatch(/this\._actualSaveSettings\s*=.*\.bind\(this\)/);
+        expect(content).not.toContain('this._actualSaveSettings.bind(this)');
     });
 
     it('should validate error-boundary.js has fetchCurrentModel improvements', () => {
@@ -42,12 +41,14 @@ describe('Alpine.js Integration Fixes - File Validation', () => {
         const indexPath = path.join(__dirname, '..', 'webui', 'index.html');
         const content = fs.readFileSync(indexPath, 'utf8');
         
-        // Should have improved security attributes
-        expect(content).toContain('sandbox="allow-scripts"');
+        // Should have proper sandbox configuration (allow-same-origin is needed for same-origin requests)
+        expect(content).toContain('sandbox="allow-scripts allow-same-origin"');
         expect(content).toContain('referrerpolicy="strict-origin-when-cross-origin"');
         
-        // Should not have the old insecure attributes
-        expect(content).not.toContain('allow-same-origin');
+        // Should not have problematic CSP attribute (not well supported on iframe)
+        expect(content).not.toContain('csp=');
+        
+        // Should not have excessive permissions
         expect(content).not.toContain('allow-forms');
         expect(content).not.toContain('allow-popups');
         expect(content).not.toContain('allow-modals');
