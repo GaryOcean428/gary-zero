@@ -79,6 +79,25 @@ MODEL_CATALOG: ModelCollection = {
             "modern": True,
             "release_date": "2025-01-01",
         },
+        # GPT-5 Series (Latest)
+        {
+            "value": "gpt-5-chat-latest",
+            "label": "GPT-5 Chat (Latest)",
+            "modern": True,
+            "release_date": "2025-07-01",
+        },
+        {
+            "value": "gpt-5-mini",
+            "label": "GPT-5 Mini",
+            "modern": True,
+            "release_date": "2025-07-01",
+        },
+        {
+            "value": "gpt-5-nano",
+            "label": "GPT-5 Nano",
+            "modern": True,
+            "release_date": "2025-07-01",
+        },
         {"value": "o3", "label": "o3", "modern": True, "release_date": "2025-01-31"},
         {
             "value": "o3-pro",
