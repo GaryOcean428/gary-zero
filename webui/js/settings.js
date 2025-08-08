@@ -138,8 +138,29 @@ const settingsModalProxy = {
 
     // Initialize debounced save function
     init() {
+        // Define the actual save method BEFORE creating the debounced version
+        this._actualSaveSettings = async function() {
+            try {
+                const response = await fetch('/settings_set', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(this.settings)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP ${response.status}`);
+                }
+                console.log('Settings saved successfully');
+                return response.json();
+            } catch (error) {
+                console.error('Settings save failed:', error);
+                throw error;
+            }
+        }.bind(this);
+        
+        // NOW create the debounced version after method exists
         if (!this._debouncedSaveSettings) {
-            this._debouncedSaveSettings = debounce(this._actualSaveSettings.bind(this), 1000, { trailing: true });
+            this._debouncedSaveSettings = debounce(this._actualSaveSettings, 1000, { trailing: true });
         }
     },
 
@@ -630,19 +651,30 @@ const settingsModalProxy = {
 // });
 
 document.addEventListener("alpine:init", () => {
-    // Root store is now initialized in initFw.js for better timing
-    
-    // Initialize settings modal Alpine component using the Component Manager
-    if (window.safeRegisterAlpineComponent) {
-        window.safeRegisterAlpineComponent("settingsModal", () => ({
+    // Register with initialization orchestrator if available
+    const registerComponent = () => {
+        // Initialize settings modal Alpine component using the Component Manager
+        if (window.safeRegisterAlpineComponent) {
+            window.safeRegisterAlpineComponent("settingsModal", () => ({
             settingsData: {},
             filteredSections: [],
             activeTab: "agent",
             isLoading: true,
             envStatus: null, // Add environment variable status
 
+            // Setup debounced save method - called during initialization
+            _setupDebouncedSave() {
+                // Ensure the debounced method is properly set up
+                if (!this._debouncedSaveSettings) {
+                    this._debouncedSaveSettings = debounce(() => this._actualSaveSettings(), 1000, { trailing: true });
+                }
+            },
+
             async init() {
                 try {
+                    // Initialize debounced save method FIRST
+                    this._setupDebouncedSave();
+                    
                     // Wait for root store to be available with retry logic
                     let rootStore = null;
                     let retryCount = 0;
@@ -664,12 +696,6 @@ document.addEventListener("alpine:init", () => {
                         retryCount++;
                     }
                     
-                    if (rootStore) {
-                        this.activeTab = rootStore.activeTab || "agent";
-                    } else {
-                        logger.warn("Root store not available after retries, using default");
-                        this.activeTab = "agent";
-                    }
                     if (rootStore) {
                         this.activeTab = rootStore.activeTab || "agent";
                     } else {
@@ -853,10 +879,8 @@ document.addEventListener("alpine:init", () => {
             },
 
             async saveSettings() {
-                // Initialize debounced function if not already done
-                if (!this._debouncedSaveSettings) {
-                    this.init();
-                }
+                // Ensure debounced function is set up
+                this._setupDebouncedSave();
                 
                 // Show optimistic UI feedback
                 this.isLoading = true;
@@ -1171,6 +1195,19 @@ document.addEventListener("alpine:init", () => {
         } catch (error) {
             logger.error("❌ Error registering Alpine settingsModal component:", error);
         }
+    }
+    };
+    
+    // Register with orchestrator if available, otherwise initialize directly
+    if (window.initOrchestrator) {
+        window.initOrchestrator.register(
+            'settingsModal',
+            registerComponent,
+            ['alpine', 'rootStore'] // Dependencies
+        );
+    } else {
+        // Direct initialization if orchestrator not available
+        registerComponent();
     }
 });
 

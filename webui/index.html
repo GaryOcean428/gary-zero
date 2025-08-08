@@ -619,10 +619,13 @@
                         <iframe :src="currentSrc"
                                 class="activity-monitor-frame"
                                 frameborder="0"
-                                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals"
+                                sandbox="allow-scripts"
                                 loading="lazy"
                                 title="Live Activity Monitor"
-                                @load="isLoading = false">
+                                @load="isLoading = false"
+                                referrerpolicy="strict-origin-when-cross-origin"
+                                allow="geolocation 'none'; microphone 'none'; camera 'none'"
+                                csp="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self';">
                         </iframe>
                         
                         <div x-show="isLoading" class="iframe-loading-overlay">

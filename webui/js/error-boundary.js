@@ -386,23 +386,37 @@ if (typeof window !== 'undefined' && !window.location.href.includes('test')) {
 
 // Provide early fallback for functions that Alpine.js might call before modules load
 if (typeof window !== 'undefined') {
-    // Early fetchCurrentModel fallback
-    if (!window.fetchCurrentModel) {
-        window.fetchCurrentModel = function() {
-            console.log('🔄 fetchCurrentModel called early, deferring until index.js loads...');
-            // Defer execution until the real function is available
-            const checkForRealFunction = () => {
-                // Look for the real function from index.js module
-                if (window.fetchCurrentModel && window.fetchCurrentModel.toString().includes('sendJsonData')) {
-                    console.log('✅ Real fetchCurrentModel found, calling it now');
-                    window.fetchCurrentModel();
-                } else {
-                    setTimeout(checkForRealFunction, 100);
-                }
-            };
-            setTimeout(checkForRealFunction, 100);
-        };
-    }
+    // Improved fetchCurrentModel race condition handling
+    let fetchModelQueue = [];
+    let realFetchModel = null;
+    
+    window.fetchCurrentModel = function() {
+        if (realFetchModel) {
+            return realFetchModel();
+        }
+        
+        // Queue the call with promise support
+        return new Promise((resolve, reject) => {
+            fetchModelQueue.push({ resolve, reject });
+            console.log('🔄 fetchCurrentModel queued, waiting for initialization...');
+        });
+    };
+    
+    // Register real implementation when available
+    window.registerFetchCurrentModel = function(fn) {
+        realFetchModel = fn;
+        console.log('✅ Real fetchCurrentModel registered, processing queue...');
+        // Process queued calls
+        while (fetchModelQueue.length > 0) {
+            const { resolve, reject } = fetchModelQueue.shift();
+            try {
+                const result = fn();
+                resolve(result);
+            } catch (error) {
+                reject(error);
+            }
+        }
+    };
 }
 
 // Export for use in other modules
