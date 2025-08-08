@@ -15,6 +15,14 @@ class Message(ApiHandler):
         return await self.respond(task, context)
 
     async def respond(self, task: DeferredTask, context: AgentContext):
+        # Handle duplicate message case (task is None)
+        if task is None:
+            return {
+                "message": "Duplicate message ignored",
+                "context": context.id,
+                "duplicate": True,
+            }
+        
         result = await task.result()  # type: ignore
         return {
             "message": result,
@@ -27,6 +35,7 @@ class Message(ApiHandler):
             text = request.form.get("text", "")
             ctxid = request.form.get("context", "")
             message_id = request.form.get("message_id", None)
+            client_message_id = request.form.get("client_message_id", None)
             attachments = request.files.getlist("attachments")
             attachment_paths = []
 
@@ -48,6 +57,10 @@ class Message(ApiHandler):
             text = input_data.get("text", "")
             ctxid = input_data.get("context", "")
             message_id = input_data.get("message_id", None)
+            client_message_id = input_data.get("client_message_id", None)
+            # Also check Idempotency-Key header
+            if not client_message_id:
+                client_message_id = request.headers.get("Idempotency-Key", None)
             attachment_paths = []
 
         # Now process the message
@@ -55,6 +68,17 @@ class Message(ApiHandler):
 
         # Obtain agent context
         context = self.get_context(ctxid)
+
+        # Check for existing message with same client_message_id for idempotency
+        if client_message_id:
+            existing_logs = context.log.logs
+            for log_item in existing_logs:
+                if (log_item.type == "user" and 
+                    log_item.kvps and 
+                    log_item.kvps.get("client_message_id") == client_message_id):
+                    # Return existing message result to prevent duplicate
+                    PrintStyle(font_color="yellow").print(f"🚫 Skipping duplicate message with client_message_id: {client_message_id}")
+                    return None, context  # Return None to indicate duplicate
 
         # Store attachments in agent data
         # context.agent0.set_data("attachments", attachment_paths)
@@ -76,12 +100,17 @@ class Message(ApiHandler):
             for filename in attachment_filenames:
                 PrintStyle(font_color="white", padding=False).print(f"- {filename}")
 
+        # Add client_message_id to kvps for deduplication
+        log_kvps = {"attachments": attachment_filenames}
+        if client_message_id:
+            log_kvps["client_message_id"] = client_message_id
+
         # Log the message with message_id and attachments
         context.log.log(
             type="user",
             heading="User message",
             content=message,
-            kvps={"attachments": attachment_filenames},
+            kvps=log_kvps,
             id=message_id,
         )
 

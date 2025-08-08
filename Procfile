@@ -1,1 +1,1 @@
-web: python start_uvicorn.py
+web: python run_ui.py --port $PORT --host 0.0.0.0

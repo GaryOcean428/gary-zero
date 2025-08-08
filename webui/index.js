@@ -1,6 +1,22 @@
 import * as msgs from "./js/messages.js";
 import { speech } from "./js/speech.js";
 
+// --- App Boot Management ---
+if (window.__APP_BOOTED__) { 
+    console.debug('App already booted, skipping init'); 
+    // Don't continue with initialization if already booted
+} else {
+    // Continue with normal initialization
+    window.__APP_BOOTED__ = true;
+    
+    // Queue early fetchCurrentModel calls until boot completes
+    const earlyCalls = [];
+    window.fetchCurrentModel = (...args) => earlyCalls.push(args);
+    
+    // Store the early calls queue globally so we can process them later
+    window.__earlyFetchCurrentModelCalls = earlyCalls;
+}
+
 // --- Global State ---
 let autoScroll = true; // Used by toggleAutoScroll and setMessage functions
 let context = null;
@@ -309,6 +325,22 @@ async function fetchCurrentModel() {
 
 window.fetchCurrentModel = fetchCurrentModel;
 
+// Process any early calls that were queued during initialization
+if (window.__earlyFetchCurrentModelCalls && window.__earlyFetchCurrentModelCalls.length > 0) {
+    console.debug('Processing', window.__earlyFetchCurrentModelCalls.length, 'queued fetchCurrentModel calls');
+    const earlyCallsToProcess = [...window.__earlyFetchCurrentModelCalls];
+    window.__earlyFetchCurrentModelCalls.length = 0; // Clear the queue
+    
+    // Process queued calls
+    earlyCallsToProcess.forEach(args => {
+        try {
+            fetchCurrentModel(...args);
+        } catch (error) {
+            console.warn('Error processing queued fetchCurrentModel call:', error);
+        }
+    });
+}
+
 // --- State Management ---
 
 function setContext(id) {
@@ -518,6 +550,7 @@ async function sendMessage() {
 
         if (message || hasAttachments) {
             const messageId = generateGUID();
+            const clientMessageId = generateGUID(); // Generate unique client message ID for idempotency
             let response;
 
             if (hasAttachments) {
@@ -535,6 +568,7 @@ async function sendMessage() {
                 formData.append("text", message);
                 formData.append("context", context);
                 formData.append("message_id", messageId);
+                formData.append("client_message_id", clientMessageId);
                 attachments.forEach((att) => formData.append("attachments", att.file));
 
                 response = await fetch("/message_async", {
@@ -545,10 +579,13 @@ async function sendMessage() {
                 setMessage(messageId, "user", "", message, false);
                 // Track this as a locally created user message
                 localUserMessages.add(messageId);
-                const data = { text: message, context, message_id: messageId };
+                const data = { text: message, context, message_id: messageId, client_message_id: clientMessageId };
                 response = await fetch("/message_async", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Idempotency-Key": clientMessageId // Also send as header
+                    },
                     body: JSON.stringify(data),
                 });
             }
@@ -558,6 +595,13 @@ async function sendMessage() {
             }
 
             const jsonResponse = await response.json();
+            
+            // Check if this was a duplicate message
+            if (jsonResponse && jsonResponse.duplicate) {
+                console.log(`🚫 Message was duplicate, skipping: ${clientMessageId}`);
+                return;
+            }
+            
             if (jsonResponse && jsonResponse.context) {
                 setContext(jsonResponse.context);
             } else {
