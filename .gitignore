@@ -179,3 +179,4 @@ yarn-error.log*
 # OS generated files
 Thumbs.db
 ehthumbs.db
+test_env/
