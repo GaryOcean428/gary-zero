@@ -308,19 +308,59 @@ class AnthropicComputerUse(Tool):
             return f"Scroll failed: {str(e)}"
 
     async def request_approval(self, action_description: str) -> bool:
-        """Request user approval for an action."""
-        # This would typically integrate with the agent's intervention system
-        # For now, we'll implement a simple approval mechanism
-
-        PrintStyle(font_color="yellow", bold=True).print(
-            f"⚠️  Computer Use Action Requires Approval: {action_description}"
-        )
-
-        # In a real implementation, this would pause execution and wait for user input
-        # For now, we'll assume approval is granted
-        # TODO: Integrate with agent intervention system
-
-        return True
+        """Request user approval for an action through the agent intervention system."""
+        try:
+            # Import the approval workflow system
+            from framework.security.approval_workflow import ApprovalWorkflow, RiskLevel as ApprovalRiskLevel
+            from framework.security.approval_interface import CLIApprovalInterface
+            
+            # Get or create the approval workflow
+            if not hasattr(self, '_approval_workflow'):
+                self._approval_workflow = ApprovalWorkflow()
+                self._approval_interface = CLIApprovalInterface(self._approval_workflow)
+            
+            # Map our risk level to approval system risk level
+            risk_level = ApprovalRiskLevel.CRITICAL  # Computer use is always critical
+            
+            # Get user ID from agent context if available
+            user_id = getattr(self.agent, 'user_id', 'system') if hasattr(self, 'agent') else 'system'
+            
+            # Create approval request
+            request_id = await self._approval_workflow.request_approval(
+                user_id=user_id,
+                action_type="computer_use_action",
+                action_description=action_description,
+                risk_level=risk_level,
+                parameters={
+                    "action": self.args.get("action", "unknown"),
+                    "coordinates": f"({self.args.get('x', 'N/A')}, {self.args.get('y', 'N/A')})" 
+                                 if self.args.get("x") or self.args.get("y") else "N/A",
+                    "text": self.args.get("text", "N/A"),
+                    "keys": self.args.get("keys", "N/A")
+                },
+                timeout_seconds=120  # 2 minute timeout for approval
+            )
+            
+            PrintStyle(font_color="yellow", bold=True).print(
+                f"⚠️  Computer Use Action Requires Approval: {action_description}"
+            )
+            PrintStyle(font_color="cyan").print(f"Request ID: {request_id}")
+            
+            # Wait for approval decision
+            result = await self._approval_workflow.wait_for_response(request_id)
+            
+            if result and result.approved:
+                PrintStyle(font_color="green").print("✅ Action approved by user")
+                return True
+            else:
+                reason = result.rejection_reason if result else "timeout or cancellation"
+                PrintStyle(font_color="red").print(f"❌ Action rejected: {reason}")
+                return False
+                
+        except Exception as e:
+            PrintStyle(font_color="red").print(f"❌ Approval system error: {e}")
+            # Fallback to conservative behavior - deny approval
+            return False
 
     async def before_execution(self, **kwargs):
         """Pre-execution setup."""

@@ -177,16 +177,17 @@ class Topic(Record):
         )
         large_msgs = []
         for m in (m for m in self.messages if not m.summary):
-            # TODO refactor this
+            # Analyze message size for compression candidates
             out = m.output()
             text = output_text(out)
             tok = m.get_tokens()
-            leng = len(text)
+            text_length = len(text)
+            
             if tok > msg_max_size:
-                large_msgs.append((m, tok, leng, out))
+                large_msgs.append((m, tok, text_length, out))
         large_msgs.sort(key=lambda x: x[1], reverse=True)
-        for msg, tok, leng, out in large_msgs:
-            trim_to_chars = leng * (msg_max_size / tok)
+        for msg, tok, text_length, out in large_msgs:
+            trim_to_chars = text_length * (msg_max_size / tok)
             # raw messages will be replaced as a whole, they would become invalid when truncated
             if _is_raw_message(out[0]["content"]):
                 msg.set_summary(
@@ -226,8 +227,13 @@ class Topic(Record):
         return False
 
     async def summarize_messages(self, messages: list[Message]):
-        # FIXME: vision bytes are sent to utility LLM, send summary instead
-        msg_txt = [m.output_text() for m in messages]
+        # Convert messages to text, handling vision data appropriately
+        msg_txt = []
+        for m in messages:
+            # Use summary-friendly text that excludes raw vision bytes
+            text = self._message_to_summary_text(m)
+            msg_txt.append(text)
+        
         summary = await self.history.agent.call_utility_model(
             system=self.history.agent.read_prompt("fw.topic_summary.sys.md"),
             message=self.history.agent.read_prompt(
@@ -235,6 +241,32 @@ class Topic(Record):
             ),
         )
         return summary
+    
+    def _message_to_summary_text(self, message: Message) -> str:
+        """Convert a message to text suitable for summarization, handling vision data efficiently."""
+        output = message.output()
+        if not output:
+            return ""
+        
+        parts = []
+        for output_msg in output:
+            content = output_msg["content"]
+            
+            # Handle vision/raw messages specially for summaries
+            if _is_raw_message(content):
+                # Use the preview text instead of raw content for summaries
+                preview = content.get("preview", "")  # type: ignore
+                if preview:
+                    parts.append(f"{'ai' if output_msg['ai'] else 'human'}: {preview}")
+                else:
+                    # Fallback to describing the raw content type
+                    parts.append(f"{'ai' if output_msg['ai'] else 'human'}: [Raw message content]")
+            else:
+                # For non-raw messages, use the standard text conversion
+                text_content = _stringify_content(content)
+                parts.append(f"{'ai' if output_msg['ai'] else 'human'}: {text_content}")
+        
+        return "\n".join(parts)
 
     def to_dict(self):
         return {

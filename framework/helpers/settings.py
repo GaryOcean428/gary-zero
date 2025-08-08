@@ -1715,11 +1715,13 @@ def _apply_settings(previous: Settings | None) -> None:
                     type="info", content="Finished updating MCP settings.", temp=True
                 )
 
-            # TODO: Replace with a proper background task scheduler
-            # if/when the codebase is fully async.
-            import asyncio
-
-            asyncio.create_task(update_mcp_settings(config.mcp_servers))
+            # Use the enhanced scheduler for background task management
+            from framework.helpers.enhanced_scheduler import schedule_background_task
+            
+            schedule_background_task(
+                "update_mcp_settings", 
+                update_mcp_settings(config.mcp_servers)
+            )
 
         # update token in mcp server
         # NOTE: The MCP server token is always generated from dotenv values for consistency.
@@ -1731,11 +1733,13 @@ def _apply_settings(previous: Settings | None) -> None:
 
                 DynamicMcpProxy.get_instance().reconfigure(token=token)
 
-            # TODO: Replace with a proper background task scheduler
-            # if/when the codebase is fully async.
-            import asyncio
-
-            asyncio.create_task(update_mcp_token(current_token))
+            # Use the enhanced scheduler for background task management
+            from framework.helpers.enhanced_scheduler import schedule_background_task
+            
+            schedule_background_task(
+                "update_mcp_token",
+                update_mcp_token(current_token)
+            )
 
 
 def _env_to_dict(data: str):
