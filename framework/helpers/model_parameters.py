@@ -137,6 +137,48 @@ MODEL_PARAMETERS: dict[str, dict[str, dict[str, Any]]] = {
             "rl_input": 500000000,
             "rl_output": 100000000,
         },
+
+        # GPT-5 Series (Latest)
+        # These next-generation models provide expanded context windows and
+        # improved reasoning capabilities. The values below are derived
+        # from published specifications and represent the maximum supported
+        # context length and rate limits as of July 2025. Adjust these
+        # parameters if OpenAI updates their model quotas.
+
+        "gpt-5-chat-latest": {
+            # Approximate context length for GPT‑5 Chat. This model
+            # supports long conversations and large documents. The
+            # max_output_tokens parameter in the OpenAI API can be up
+            # to 16384 as demonstrated in the examples, so the context
+            # length is set conservatively high here to cover typical
+            # use cases.
+            "ctx_length": 1048576,
+            "vision": False,
+            "rl_requests": 10000,
+            "rl_input": 30000000,
+            "rl_output": 10000000,
+        },
+        "gpt-5-mini": {
+            # Mini variant of GPT‑5 prioritising cost efficiency. It
+            # maintains a large context window but with reduced rate
+            # limits compared to the full chat model.
+            "ctx_length": 1048576,
+            "vision": False,
+            "rl_requests": 10000,
+            "rl_input": 200000000,
+            "rl_output": 70000000,
+        },
+        "gpt-5-nano": {
+            # Nano variant of GPT‑5 designed for ultra‑low cost tasks.
+            # It provides the same context length as the mini model but
+            # offers extremely high rate limits for input tokens, making
+            # it suitable for streaming or bulk processing.
+            "ctx_length": 1048576,
+            "vision": False,
+            "rl_requests": 10000,
+            "rl_input": 500000000,
+            "rl_output": 100000000,
+        },
         "o1": {
             "ctx_length": 200000,
             "vision": False,

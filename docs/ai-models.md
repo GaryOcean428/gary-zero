@@ -19,9 +19,9 @@ released after June 2024, with a focus on performance, capabilities, and reliabi
 - **Voice**: GPT-4o (`gpt-4o`)
 
 ### Model Statistics
-- **Total Models**: 47 active models
+- **Total Models**: 50 active models
 - **Providers**: 7 verified providers
-- **Last Updated**: January 2025
+- **Last Updated**: August 2025
 
 ## Providers and Models
 
@@ -43,12 +43,22 @@ released after June 2024, with a focus on performance, capabilities, and reliabi
 #### Specialized
 - `claude-code` - Claude Code (CLI optimized)
 
-### 🔷 OpenAI (18 models)
+### 🔷 OpenAI (21 models)
 
 #### GPT-4.1 Series (Newest)
-- `gpt-4.1` - Latest GPT-4.1 model
-- `gpt-4.1-mini` - Cost-effective GPT-4.1 ⭐ *Recommended utility model*
-- `gpt-4.1-nano` - Ultra-low cost variant
+ - `gpt-4.1` - Latest GPT‑4.1 model
+ - `gpt-4.1-mini` - Cost‑effective GPT‑4.1 ⭐ *Recommended utility model*
+ - `gpt-4.1-nano` - Ultra‑low cost variant
+
+#### GPT‑5 Series (Latest)
+
+The GPT‑5 family introduces a new generation of OpenAI models with extended context windows and configurable reasoning behaviour.
+
+ - `gpt-5-chat-latest` – Next‑generation chat model with a large context window and improved reasoning. Supports up to 16k output tokens when using the OpenAI API. Ideal for complex conversations and summarisation tasks.
+ - `gpt-5-mini` – Cost‑effective variant of GPT‑5 that balances capability and price. Supports high verbosity options and detailed reasoning outputs.
+ - `gpt-5-nano` – Ultra‑low cost GPT‑5 variant optimised for minimal output and succinct reasoning. Good for quick interactions and lightweight tasks.
+
+See [GPT‑5 Code Examples](./ai-models/gpt-5-examples.md) for detailed usage and parameter settings.
 
 #### Reasoning Models
 - `o3` - Advanced reasoning
@@ -315,8 +325,12 @@ If you encounter "Model not found" errors, ensure:
 - [Settings Documentation](../docs/usage.md) - UI configuration guide
 - [Model Registry](../models/registry.py) - Complete model definitions
 
+### External Resources
+
+- [Anthropic model comparison table](https://docs.anthropic.com/en/docs/about-claude/models/overview#model-comparison-table) – Official Anthropic documentation comparing Claude model variants and their capabilities. Useful for understanding differences between Claude series.
+
 ---
 
-**Last Updated**: January 2025
-**Version**: 2.0
-**Status**: Production Ready - All models verified against specified sources
+**Last Updated**: August 2025
+**Version**: 2.1
+**Status**: Production Ready – All models verified against specified sources
