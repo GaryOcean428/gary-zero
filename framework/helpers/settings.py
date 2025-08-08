@@ -1396,6 +1396,91 @@ def convert_out(settings: Settings) -> SettingsOutput:
     }
 
     # Add the section to the result
+    
+    # Environment Variables section - show current status
+    env_vars_fields: list[SettingsField] = []
+    
+    # Import the environment status function
+    try:
+        from framework.helpers.settings.env_priority import get_env_var_status
+        env_status = get_env_var_status()
+        
+        # Add informational field about environment variables
+        env_vars_fields.append({
+            "id": "env_vars_info",
+            "title": "Environment Variable Status",
+            "description": (
+                f"Environment variables provide a way to configure settings externally "
+                f"(e.g., in Railway deployments). Currently {len(env_status['overridden'])} settings "
+                f"are overridden by environment variables, and {len(env_status['missing'])} "
+                f"environment variables could be set to override stored settings."
+            ),
+            "type": "textarea",
+            "value": "This section is read-only and shows the current environment variable status.",
+            "hidden": False,
+        })
+        
+        # Add fields showing overridden settings
+        if env_status['overridden']:
+            overridden_text = "Settings currently overridden by environment variables:\n\n"
+            for setting_key, info in env_status['overridden'].items():
+                env_var = info['env_var']
+                value = info.get('value', 'SET')
+                overridden_text += f"• {setting_key}: {env_var} = {value}\n"
+                
+            env_vars_fields.append({
+                "id": "env_vars_overridden",
+                "title": "Overridden by Environment Variables",
+                "description": "These settings are currently being overridden by environment variables. To change these values, update the environment variables or remove them to use stored settings.",
+                "type": "textarea",
+                "value": overridden_text,
+                "hidden": False,
+            })
+        
+        # Add fields showing available environment variables
+        if env_status['missing']:
+            available_text = "Environment variables that can be set to override settings:\n\n"
+            # Show first 10 to avoid overwhelming the UI
+            for setting_key, info in list(env_status['missing'].items())[:10]:
+                env_var = info['env_var']
+                desc = info.get('description', f'Set {env_var} to override {setting_key}')
+                available_text += f"• {env_var}: {desc}\n"
+            
+            if len(env_status['missing']) > 10:
+                available_text += f"\n... and {len(env_status['missing']) - 10} more environment variables available"
+                
+            env_vars_fields.append({
+                "id": "env_vars_available", 
+                "title": "Available Environment Variables",
+                "description": "Set these environment variables to override the corresponding settings. This is particularly useful for Railway deployments and production environments.",
+                "type": "textarea",
+                "value": available_text,
+                "hidden": False,
+            })
+            
+    except ImportError:
+        # Fallback if env_priority module not available
+        env_vars_fields.append({
+            "id": "env_vars_info",
+            "title": "Environment Variable Support",
+            "description": "Environment variable support is not available in this configuration.",
+            "type": "textarea",
+            "value": "Environment variable integration requires the env_priority module.",
+            "hidden": False,
+        })
+    
+    env_vars_section: SettingsSection = {
+        "id": "env_vars",
+        "title": "Environment Variables",
+        "description": (
+            "Shows the current status of environment variables that can override settings. "
+            "Environment variables always take priority over stored settings. "
+            "This is particularly useful for Railway and other deployment platforms."
+        ),
+        "fields": env_vars_fields,
+        "tab": "developer",
+    }
+    
     result: SettingsOutput = {
         "sections": [
             agent_section,
@@ -1416,6 +1501,7 @@ def convert_out(settings: Settings) -> SettingsOutput:
             mcp_server_section,
             computer_use_section,
             claude_code_section,
+            env_vars_section,  # Add environment variables section
             dev_section,
         ]
     }
