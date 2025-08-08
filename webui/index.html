@@ -367,6 +367,15 @@
                                         <span class="slider"></span>
                                     </label>
                                 </li>
+                                <li x-data="{ showAgents: localStorage.getItem('showAgents') === 'true' }"
+                                    x-init="$watch('showAgents', val => { localStorage.setItem('showAgents', val); window.safeCall('toggleAgents', val); })">
+                                    <span>Show agent messages</span>
+                                    <label class="switch">
+                                        <input type="checkbox" x-model="showAgents"
+                                            x-effect="window.safeCall('toggleAgents',showAgents)" aria-label="Toggle show agent messages">
+                                        <span class="slider"></span>
+                                    </label>
+                                </li>
                                 <li x-data="{ showDeprecated: localStorage.getItem('showDeprecated') === 'true' }"
                                     x-init="$watch('showDeprecated', val => { localStorage.setItem('showDeprecated', val); document.dispatchEvent(new CustomEvent('deprecated-toggle-changed', { detail: val })); })">
                                     <span>Show deprecated models</span>
