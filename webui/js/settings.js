@@ -639,6 +639,7 @@ document.addEventListener("alpine:init", () => {
             filteredSections: [],
             activeTab: "agent",
             isLoading: true,
+            envStatus: null, // Add environment variable status
 
             async init() {
                 try {
@@ -685,8 +686,9 @@ document.addEventListener("alpine:init", () => {
                         }
                     });
 
-                    // Load settings
+                    // Load settings and environment variable status
                     await this.fetchSettings();
+                    await this.fetchEnvStatus();
                     this.updateFilteredSections();
                 } catch (error) {
                     logger.error("Error in settingsModal init:", error);
@@ -760,6 +762,74 @@ document.addEventListener("alpine:init", () => {
                 } finally {
                     this.isLoading = false;
                 }
+            },
+
+            async fetchEnvStatus() {
+                try {
+                    logger.info("Fetching environment variable status from /env_status endpoint");
+                    const response = await fetch("/env_status", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({}),
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        logger.info("Environment status data received:", data);
+                        this.envStatus = data.env_status || null;
+                    } else {
+                        logger.warn("Failed to fetch environment status:", response.status, response.statusText);
+                        this.envStatus = null;
+                    }
+                } catch (error) {
+                    logger.warn("Error fetching environment status:", error);
+                    this.envStatus = null;
+                }
+            },
+
+            // Check if a field is overridden by environment variables
+            isFieldOverriddenByEnv(fieldId) {
+                if (!this.envStatus || !this.envStatus.overridden) {
+                    return false;
+                }
+                
+                // Check direct field override
+                if (this.envStatus.overridden[fieldId]) {
+                    return true;
+                }
+                
+                // Check API key overrides
+                if (fieldId.startsWith('api_key_')) {
+                    const provider = fieldId.replace('api_key_', '').toUpperCase();
+                    return this.envStatus.overridden[`api_keys.${provider}`];
+                }
+                
+                return false;
+            },
+
+            // Get environment variable name for a field
+            getEnvVarName(fieldId) {
+                if (!this.envStatus || !this.envStatus.overridden) {
+                    return null;
+                }
+                
+                const override = this.envStatus.overridden[fieldId];
+                if (override) {
+                    return override.env_var;
+                }
+                
+                // Check API key overrides
+                if (fieldId.startsWith('api_key_')) {
+                    const provider = fieldId.replace('api_key_', '').toUpperCase();
+                    const apiKeyOverride = this.envStatus.overridden[`api_keys.${provider}`];
+                    if (apiKeyOverride) {
+                        return apiKeyOverride.env_var;
+                    }
+                }
+                
+                return null;
             },
 
             updateFilteredSections() {
