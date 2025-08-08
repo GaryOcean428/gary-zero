@@ -248,7 +248,41 @@ class TaskManager:
         parent_id: str | None = None,
         context: dict[str, Any] | None = None,
     ) -> Task:
-        """Create a new task."""
+        """Create a new task.
+
+        To reduce duplicate tasks being created for the same user intent, this
+        method attempts to find an existing pending or in‑progress task with
+        matching title, description and context. If a match is found, the
+        existing task is returned instead of creating a new one. This helps
+        prevent duplicate tasks being created when the client sends the same
+        request multiple times (e.g., due to network retries or UI glitches).
+
+        Args:
+            title: The task title.
+            description: Optional description.
+            priority: Priority level.
+            category: Category of task.
+            parent_id: Optional parent task id.
+            context: Optional context dictionary.
+
+        Returns:
+            Task: The newly created task or an existing matching task.
+        """
+        # Attempt to find an existing task with the same title and description
+        # in a non‑terminal state. We also compare context_id if provided.
+        for existing in self.tasks.values():
+            if (
+                existing.title == title
+                and existing.description == description
+                and existing.status in {TaskStatus.PENDING, TaskStatus.IN_PROGRESS}
+            ):
+                # Compare context_id if available in both
+                new_context_id = (context or {}).get("context_id") if context else None
+                existing_context_id = existing.context.get("context_id") if existing.context else None
+                if new_context_id is None or existing_context_id is None or new_context_id == existing_context_id:
+                    # Reuse existing task
+                    return existing
+
         task = Task(
             title=title,
             description=description,
