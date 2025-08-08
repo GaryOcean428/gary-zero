@@ -195,9 +195,9 @@ class Settings(TypedDict):
 
 # Default settings values that can be used across modules
 DEFAULT_SETTINGS: Settings = {
-    # Chat model settings - using Claude Sonnet 4 (preferred)
-    "chat_model_provider": "ANTHROPIC",
-    "chat_model_name": "claude-sonnet-4-20250514",
+    # Chat model settings - using Claude Sonnet 4 (preferred) with environment variable support
+    "chat_model_provider": os.getenv("CHAT_MODEL_PROVIDER", "ANTHROPIC"),
+    "chat_model_name": os.getenv("CHAT_MODEL_NAME", "claude-sonnet-4-20250514"),
     "chat_model_kwargs": {},
     "chat_model_ctx_length": 200000,  # 200K tokens
     "chat_model_ctx_history": 0.9,
@@ -205,9 +205,9 @@ DEFAULT_SETTINGS: Settings = {
     "chat_model_rl_requests": 0,
     "chat_model_rl_input": 0,
     "chat_model_rl_output": 0,
-    # Utility model settings - using GPT-4.1-mini (latest available and efficient)
-    "util_model_provider": "OPENAI",
-    "util_model_name": "gpt-4.1-mini",
+    # Utility model settings - using GPT-4.1-mini (latest available and efficient) with environment variable support
+    "util_model_provider": os.getenv("UTIL_MODEL_PROVIDER", "OPENAI"),
+    "util_model_name": os.getenv("UTIL_MODEL_NAME", "gpt-4.1-mini"),
     "util_model_kwargs": {},
     "util_model_ctx_length": 1047576,  # 1M+ tokens (from model parameters)
     "util_model_ctx_history": 0.9,
@@ -215,16 +215,16 @@ DEFAULT_SETTINGS: Settings = {
     "util_model_rl_requests": 0,
     "util_model_rl_input": 0,
     "util_model_rl_output": 0,
-    # Embedding model settings - using OpenAI text-embedding-3-large (modern and valid)
-    "embed_model_provider": "OPENAI",
-    "embed_model_name": "text-embedding-3-large",
+    # Embedding model settings - using OpenAI text-embedding-3-large (modern and valid) with environment variable support
+    "embed_model_provider": os.getenv("EMBED_MODEL_PROVIDER", "OPENAI"),
+    "embed_model_name": os.getenv("EMBED_MODEL_NAME", "text-embedding-3-large"),
     "embed_model_kwargs": {},
     "embed_model_ctx_length": 8192,
     "embed_model_rl_requests": 0,
     "embed_model_rl_input": 0,
-    # Browser model settings - using Claude 3.5 Sonnet latest for vision
-    "browser_model_provider": "ANTHROPIC",
-    "browser_model_name": "claude-3-5-sonnet-20241022",
+    # Browser model settings - using Claude 3.5 Sonnet latest for vision with environment variable support
+    "browser_model_provider": os.getenv("BROWSER_MODEL_PROVIDER", "ANTHROPIC"),
+    "browser_model_name": os.getenv("BROWSER_MODEL_NAME", "claude-3-5-sonnet-20241022"),
     "browser_model_kwargs": {},
     "browser_model_vision": True,
     "browser_model_rl_requests": 0,

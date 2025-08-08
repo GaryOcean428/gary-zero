@@ -56,7 +56,8 @@ class SettingsManager:
         """Get the current settings.
 
         Returns:
-            The current settings, loaded from file or default if not set.
+            The current settings, loaded from file or default if not set,
+            with environment variable overrides applied.
         """
         if self._settings is None:
             # Import from the settings.py file directly using importlib
@@ -82,7 +83,17 @@ class SettingsManager:
                 if loaded_settings
                 else default_settings
             )
-        return self._settings  # type: ignore[return-value]
+            
+        # Always apply environment variable overrides on access
+        # This ensures environment variables always take priority
+        try:
+            from framework.helpers.settings.env_priority import apply_env_var_overrides
+            result = apply_env_var_overrides(self._settings)
+            return result  # type: ignore[return-value]
+        except ImportError as e:
+            print(f"Warning: Failed to import env_priority, using stored settings only: {e}")
+            # Fallback to original behavior if import fails
+            return self._settings  # type: ignore[return-value]
 
     def set_settings(self, settings: Settings, apply: bool = True) -> None:
         """Update the current settings and optionally apply them.
