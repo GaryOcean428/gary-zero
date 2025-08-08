@@ -2,7 +2,12 @@ import uuid
 from collections.abc import Sequence
 from typing import Any
 
-# faiss needs to be patched for python 3.13 on arm #TODO remove once not needed
+# NOTE: FAISS compatibility issue on ARM64 with Python 3.13+
+# If you encounter import errors, consider:
+# 1. Using conda-forge FAISS: conda install -c conda-forge faiss-cpu
+# 2. Building from source with proper ARM64 support
+# 3. Using alternative vector stores (ChromaDB, Weaviate, etc.)
+# TODO: Remove this note when FAISS fully supports Python 3.13 on ARM64
 import faiss
 from langchain.embeddings import CacheBackedEmbeddings
 from langchain.storage import InMemoryByteStore

@@ -158,15 +158,22 @@ class ModelRegistry:
             
         # Perform health check
         try:
-            # TODO: Implement actual health check calls to each provider
-            # For now, assume healthy
-            status.is_healthy = True
-            status.last_check = now
-            status.error_count = 0
-            status.last_error = None
+            # Make a minimal health check call to the provider
+            success = await self._perform_provider_health_check(provider)
             
-            PrintStyle().success(f"✅ Provider {provider} health check passed")
-            return True
+            status.is_healthy = success
+            status.last_check = now
+            
+            if success:
+                status.error_count = 0
+                status.last_error = None
+                PrintStyle().success(f"✅ Provider {provider} health check passed")
+            else:
+                status.error_count += 1
+                status.last_error = "Health check failed"
+                PrintStyle().error(f"❌ Provider {provider} health check failed")
+                
+            return success
             
         except Exception as e:
             status.is_healthy = False
@@ -175,6 +182,91 @@ class ModelRegistry:
             status.last_error = str(e)
             
             PrintStyle().error(f"❌ Provider {provider} health check failed: {e}")
+            return False
+    
+    async def _perform_provider_health_check(self, provider: str) -> bool:
+        """Perform actual health check for a specific provider."""
+        try:
+            # Import here to avoid circular dependencies
+            import models
+            from framework.helpers import dotenv
+            
+            # Get API key for the provider
+            api_key = dotenv.get_dotenv_value(f"API_KEY_{provider.upper()}")
+            if not api_key:
+                return False
+            
+            # Get a model for this provider to test with
+            provider_models = self.get_models_by_provider(provider)
+            if not provider_models:
+                return False
+                
+            # Select the first available model for testing
+            test_model_id = next(iter(provider_models.keys()))
+            config = provider_models[test_model_id]
+            
+            # Perform provider-specific health check
+            if provider == "openai":
+                return await self._health_check_openai(config.model_name, api_key)
+            elif provider == "anthropic":
+                return await self._health_check_anthropic(config.model_name, api_key)
+            elif provider == "google":
+                return await self._health_check_google(config.model_name, api_key)
+            else:
+                # For other providers, assume healthy if API key exists
+                return bool(api_key)
+                
+        except Exception as e:
+            PrintStyle().error(f"Health check error for {provider}: {e}")
+            return False
+    
+    async def _health_check_openai(self, model_name: str, api_key: str) -> bool:
+        """Health check for OpenAI provider."""
+        try:
+            import openai
+            client = openai.AsyncOpenAI(api_key=api_key)
+            
+            # Make a minimal completion request
+            response = await client.chat.completions.create(
+                model=model_name,
+                messages=[{"role": "user", "content": "test"}],
+                max_tokens=1,
+                timeout=10.0
+            )
+            return response.choices[0].message.content is not None
+            
+        except Exception:
+            return False
+    
+    async def _health_check_anthropic(self, model_name: str, api_key: str) -> bool:
+        """Health check for Anthropic provider."""
+        try:
+            import anthropic
+            client = anthropic.AsyncAnthropic(api_key=api_key)
+            
+            # Make a minimal message request
+            response = await client.messages.create(
+                model=model_name,
+                max_tokens=1,
+                messages=[{"role": "user", "content": "test"}],
+                timeout=10.0
+            )
+            return len(response.content) > 0
+            
+        except Exception:
+            return False
+    
+    async def _health_check_google(self, model_name: str, api_key: str) -> bool:
+        """Health check for Google provider."""
+        try:
+            import google.generativeai as genai
+            genai.configure(api_key=api_key)
+            
+            model = genai.GenerativeModel(model_name)
+            response = await model.generate_content_async("test")
+            return response.text is not None
+            
+        except Exception:
             return False
     
     def get_provider_status(self, provider: str) -> Optional[ProviderStatus]:

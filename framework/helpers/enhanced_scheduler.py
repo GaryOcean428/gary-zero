@@ -584,3 +584,43 @@ async def tick_with_orchestration():
 
 def get_scheduler() -> EnhancedTaskScheduler:
     return get_enhanced_scheduler()
+
+
+def schedule_background_task(name: str, coro) -> None:
+    """
+    Schedule a background task to run using the enhanced scheduler.
+    
+    Args:
+        name: A descriptive name for the task
+        coro: The coroutine to execute
+    """
+    try:
+        # If we have an async event loop, create a task
+        loop = asyncio.get_running_loop()
+        task = loop.create_task(coro)
+        task.set_name(f"bg_{name}")
+        logger.info(f"Scheduled background task: {name}")
+    except RuntimeError:
+        # No running loop, try to use the scheduler's async capabilities
+        try:
+            scheduler = get_enhanced_scheduler()
+            if scheduler._async_enabled or asyncio.iscoroutinefunction(scheduler.initialize_async_mode):
+                # Schedule through the enhanced scheduler
+                asyncio.create_task(_schedule_via_scheduler(name, coro))
+            else:
+                # Fall back to creating a new task
+                asyncio.create_task(coro)
+            logger.info(f"Scheduled background task via fallback: {name}")
+        except Exception as e:
+            logger.error(f"Failed to schedule background task {name}: {e}")
+            # Last resort - just create the task
+            asyncio.create_task(coro)
+
+
+async def _schedule_via_scheduler(name: str, coro):
+    """Helper function to schedule a coroutine via the enhanced scheduler."""
+    try:
+        await coro
+        logger.info(f"Background task completed: {name}")
+    except Exception as e:
+        logger.error(f"Background task {name} failed: {e}")
