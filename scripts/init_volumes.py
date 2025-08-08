@@ -14,9 +14,11 @@ def initialize_volume_structure():
 
     # Create all required subdirectories
     directories = [
+        "settings",  # Application settings storage
         "memory",  # Agent persistent memory storage
         "logs",  # HTML CLI-style chat logs
         "knowledge",  # Knowledge base and RAG data
+        "prompts",  # Dynamic prompts and agent templates
         "work_dir",  # Agent working directory
         "reports",  # Generated analysis reports
         "scheduler",  # Task scheduling data
@@ -36,6 +38,31 @@ def initialize_volume_structure():
         scheduler_file.write_text("[]")
         print(f"✓ Initialized scheduler tasks: {scheduler_file}")
 
+    # Initialize settings configuration
+    settings_file = data_dir / "settings" / "config.json"
+    if not settings_file.exists():
+        settings_file.write_text("{}")
+        print(f"✓ Initialized settings config: {settings_file}")
+
+    # Initialize prompts directory structure
+    prompt_subdirs = ["system", "tools", "agents", "dynamic"]
+    for prompt_subdir in prompt_subdirs:
+        prompt_dir = data_dir / "prompts" / prompt_subdir
+        prompt_dir.mkdir(parents=True, exist_ok=True)
+        print(f"✓ Created prompts subdirectory: {prompt_dir}")
+
+    # Initialize memory context
+    memory_file = data_dir / "memory" / "context.json"
+    if not memory_file.exists():
+        memory_file.write_text("[]")
+        print(f"✓ Initialized memory context: {memory_file}")
+
+    # Initialize knowledge index
+    knowledge_file = data_dir / "knowledge" / "index.json"
+    if not knowledge_file.exists():
+        knowledge_file.write_text("[]")
+        print(f"✓ Initialized knowledge index: {knowledge_file}")
+
     # Create .gitkeep files to ensure directories persist in git
     for dir_name in directories:
         gitkeep_file = data_dir / dir_name / ".gitkeep"
@@ -52,9 +79,11 @@ def create_symlinks():
     app_dir = Path("/app")
 
     symlink_mappings = {
+        "settings": app_dir / "settings",
         "memory": app_dir / "memory",
         "logs": app_dir / "logs",
         "knowledge": app_dir / "knowledge",
+        "prompts": app_dir / "prompts",
         "work_dir": app_dir / "work_dir",
         "reports": app_dir / "reports",
     }

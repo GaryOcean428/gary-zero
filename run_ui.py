@@ -13,6 +13,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import initialize
 from framework.helpers import dotenv, files, mcp_server, process, runtime
 from framework.helpers.api import ApiHandler
+from framework.helpers.auth_rate_limiter import auth_rate_limiter
+from framework.helpers.dynamic_prompt_loader import dynamic_prompt_loader
 from framework.helpers.extract_tools import load_classes_from_folder
 from framework.helpers.files import get_abs_path
 from framework.helpers.print_style import PrintStyle
@@ -345,6 +347,16 @@ def requires_auth(f):
 
     @wraps(f)
     async def decorated(*args, **kwargs):
+        # Check rate limiting first
+        client_ip = request.remote_addr or "unknown"
+        if not auth_rate_limiter.is_auth_allowed(client_ip):
+            PrintStyle().warning(f"Authentication rate limit exceeded for {client_ip}")
+            return Response(
+                "Too many authentication attempts. Please try again later.",
+                429,
+                {"WWW-Authenticate": 'Basic realm="Rate Limited"'},
+            )
+        
         auth = request.authorization
         success, user_data = False, None
 
@@ -354,6 +366,9 @@ def requires_auth(f):
                 success, user_data = db_auth.authenticate_user(
                     auth.username, auth.password, ip_address=request.remote_addr
                 )
+                # Rate limit success logging to prevent spam
+                if success and auth_rate_limiter.should_log_success(client_ip):
+                    PrintStyle().success(f"User '{auth.username}' authenticated via database from {request.remote_addr}")
             else:
                 # Fallback to environment-based authentication with security checks
                 user = dotenv.get_dotenv_value("AUTH_LOGIN")
@@ -372,7 +387,9 @@ def requires_auth(f):
                     # Use secure password comparison
                     if auth.username == user and check_password_hash(generate_password_hash(password), auth.password):
                         success = True
-                        PrintStyle().success(f"User '{auth.username}' authenticated via fallback method from {request.remote_addr}")
+                        # Rate limit success logging to prevent spam
+                        if auth_rate_limiter.should_log_success(client_ip):
+                            PrintStyle().success(f"User '{auth.username}' authenticated via fallback method from {request.remote_addr}")
                     else:
                         PrintStyle().warning(f"Authentication failed for '{auth.username}' via fallback method from {request.remote_addr}")
 
@@ -603,6 +620,77 @@ def health_check_railway():
             },
         }
     except Exception as e:
+        PrintStyle().error(f"Health check failed: {str(e)}")
+        return {"status": "unhealthy", "error": str(e), "timestamp": time.time()}, 500
+
+
+# Directory structure health check endpoint
+@webapp.route("/health/directories", methods=["GET", "OPTIONS"])
+def health_check_directories():
+    """Check the health of persistent volume directory structure."""
+    if request.method == "OPTIONS":
+        response = Response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add(
+            "Access-Control-Allow-Headers", "Content-Type,Authorization"
+        )
+        response.headers.add("Access-Control-Allow-Methods", "GET,OPTIONS")
+        return response
+
+    try:
+        from framework.helpers.files import get_data_path
+        
+        # Required directories
+        required_dirs = ["settings", "memory", "knowledge", "prompts", "logs", "work_dir", "reports", "scheduler", "tmp"]
+        directory_status = {}
+        all_healthy = True
+        
+        base_data_path = get_data_path()
+        
+        for dir_name in required_dirs:
+            dir_path = os.path.join(base_data_path, dir_name)
+            exists = os.path.exists(dir_path) and os.path.isdir(dir_path)
+            directory_status[dir_name] = {
+                "exists": exists,
+                "path": dir_path,
+                "writable": os.access(dir_path, os.W_OK) if exists else False
+            }
+            if not exists:
+                all_healthy = False
+        
+        # Check for specific files
+        required_files = {
+            "settings/config.json": os.path.join(base_data_path, "settings", "config.json"),
+            "memory/context.json": os.path.join(base_data_path, "memory", "context.json"),
+            "knowledge/index.json": os.path.join(base_data_path, "knowledge", "index.json"),
+            "scheduler/tasks.json": os.path.join(base_data_path, "scheduler", "tasks.json"),
+        }
+        
+        file_status = {}
+        for file_key, file_path in required_files.items():
+            exists = os.path.exists(file_path) and os.path.isfile(file_path)
+            file_status[file_key] = {
+                "exists": exists,
+                "path": file_path,
+                "size": os.path.getsize(file_path) if exists else 0
+            }
+        
+        # Check authentication rate limiter stats
+        auth_stats = auth_rate_limiter.get_stats()
+        
+        status_code = 200 if all_healthy else 503
+        return {
+            "status": "healthy" if all_healthy else "degraded",
+            "timestamp": time.time(),
+            "base_data_path": base_data_path,
+            "directories": directory_status,
+            "files": file_status,
+            "authentication": {
+                "rate_limiter_active": True,
+                "current_stats": auth_stats
+            }
+        }, status_code
+    except Exception as e:
         # Fallback to basic health check if psutil fails
         return {
             "status": "healthy",
@@ -619,6 +707,67 @@ def health_check_railway():
                 "railway_environment": os.environ.get("RAILWAY_ENVIRONMENT", "local"),
             },
         }
+
+
+# Dynamic prompts and agents endpoint
+@webapp.route("/api/prompts", methods=["GET", "OPTIONS"])
+def api_prompts():
+    """Get information about dynamic prompts and agents."""
+    if request.method == "OPTIONS":
+        response = Response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add(
+            "Access-Control-Allow-Headers", "Content-Type,Authorization"
+        )
+        response.headers.add("Access-Control-Allow-Methods", "GET,OPTIONS")
+        return response
+
+    try:
+        stats = dynamic_prompt_loader.get_stats()
+        agents = dynamic_prompt_loader.list_agents()
+        
+        return {
+            "status": "success",
+            "timestamp": time.time(),
+            "prompt_stats": stats,
+            "agents": agents
+        }
+    except Exception as e:
+        PrintStyle().error(f"Prompts API failed: {str(e)}")
+        return {"status": "error", "error": str(e), "timestamp": time.time()}, 500
+
+
+@webapp.route("/api/agents/<agent_id>/prompt", methods=["GET", "OPTIONS"])
+def api_agent_prompt(agent_id):
+    """Get a specific agent's prompt."""
+    if request.method == "OPTIONS":
+        response = Response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add(
+            "Access-Control-Allow-Headers", "Content-Type,Authorization"
+        )
+        response.headers.add("Access-Control-Allow-Methods", "GET,OPTIONS")
+        return response
+
+    try:
+        prompt_data = dynamic_prompt_loader.get_agent_prompt(agent_id)
+        if prompt_data:
+            return {
+                "status": "success",
+                "agent_id": agent_id,
+                "prompt": prompt_data,
+                "timestamp": time.time()
+            }
+        else:
+            return {
+                "status": "not_found",
+                "agent_id": agent_id,
+                "message": "Agent prompt not found",
+                "timestamp": time.time()
+            }, 404
+    except Exception as e:
+        PrintStyle().error(f"Agent prompt API failed: {str(e)}")
+        return {"status": "error", "error": str(e), "timestamp": time.time()}, 500
 
 
 # API endpoints for compatibility
@@ -840,6 +989,13 @@ def serve_favicon():
 def run():
     """Run the Flask server."""
     PrintStyle().print("Initializing framework...")
+
+    # Initialize dynamic prompt loader
+    try:
+        dynamic_prompt_loader.start_watching()
+        PrintStyle().success("Dynamic prompt loader initialized")
+    except Exception as e:
+        PrintStyle().error(f"Failed to initialize dynamic prompt loader: {e}")
 
     # Suppress only request logs but keep the startup messages
     from a2wsgi import ASGIMiddleware

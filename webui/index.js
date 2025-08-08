@@ -701,7 +701,14 @@ window.toggleAutoScroll = toggleAutoScroll;
 
 window.toggleJson = (show) => toggleCssProperty(".msg-json", "display", show ? "block" : "none");
 window.toggleThoughts = (show) => toggleCssProperty(".msg-thoughts", "display", show ? "block" : "none");
-window.toggleUtils = (show) => toggleCssProperty(".message-util", "display", show ? "block" : "none");
+window.toggleUtils = (show) => {
+    // Toggle both utility messages and agent messages together
+    toggleCssProperty(".message-util", "display", show ? "block" : "none");
+    toggleCssProperty(".message-agent:not(.message-user)", "display", show ? "block" : "none");
+};
+
+// Add specific agent message visibility toggle
+window.toggleAgents = (show) => toggleCssProperty(".message-agent:not(.message-user)", "display", show ? "block" : "none");
 
 window.toggleSpeech = (isOn) => {
     localStorage.setItem("speech", isOn);
@@ -1172,11 +1179,13 @@ function initializeApp() {
         // Initialize toggle states for thoughts and utilities
         const showThoughts = localStorage.getItem("showThoughts") !== "false"; // Default to true
         const showUtils = localStorage.getItem("showUtils") === "true"; // Default to false
+        const showAgents = localStorage.getItem("showAgents") !== "false"; // Default to true
         const showJson = localStorage.getItem("showJson") === "true"; // Default to false
         
         // Apply the toggle states
         if (window.toggleThoughts) window.toggleThoughts(showThoughts);
         if (window.toggleUtils) window.toggleUtils(showUtils);
+        if (window.toggleAgents) window.toggleAgents(showAgents);
         if (window.toggleJson) window.toggleJson(showJson);
     }
 
