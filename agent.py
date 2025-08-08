@@ -554,8 +554,17 @@ class Agent:
         prompt = files.remove_code_fences(prompt)
         return prompt
 
-    def get_data(self, field: str):
-        return self.data.get(field, None)
+    def get_data(self, field: str, default: Any | None = None):
+        """Retrieve a value from the agent's internal data store.
+
+        Args:
+            field: The key to look up.
+            default: Optional default value to return if the key is not present.
+
+        Returns:
+            The stored value for ``field`` if present; otherwise ``default``.
+        """
+        return self.data.get(field, default)
 
     def set_data(self, field: str, value):
         self.data[field] = value
