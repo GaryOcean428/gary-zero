@@ -557,9 +557,15 @@ class CodeExecution(Tool):
         truncated_output = ""
         got_output = False
 
+        # Ensure the requested session exists
+        shell = self.state.shells.get(session)
+        if shell is None:
+            # No such session; return empty output to avoid KeyError
+            return "", ""
+
         while True:
             await asyncio.sleep(sleep_time)
-            full_output, partial_output = await self.state.shells[session].read_output(
+            full_output, partial_output = await shell.read_output(
                 timeout=3, reset_full_output=reset_full_output
             )
             reset_full_output = False  # only reset once
