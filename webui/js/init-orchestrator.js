@@ -4,6 +4,15 @@
  * Prevents race conditions and binding errors
  */
 
+// Setup logger fallback to prevent ReferenceError
+const logger = (typeof window !== 'undefined' && window.Logger) ? 
+    new window.Logger('InitOrchestrator') : {
+        debug: (...args) => console.log('[InitOrchestrator] DEBUG:', ...args),
+        info: (...args) => console.info('[InitOrchestrator] INFO:', ...args),
+        warn: (...args) => console.warn('[InitOrchestrator] WARN:', ...args),
+        error: (...args) => console.error('[InitOrchestrator] ERROR:', ...args)
+    };
+
 class InitOrchestrator {
     constructor() {
         this.pendingInits = new Map();
@@ -179,14 +188,6 @@ class InitOrchestrator {
 // Create global orchestrator instance
 if (typeof window !== 'undefined') {
     window.initOrchestrator = new InitOrchestrator();
-    
-    // Setup logger if available
-    const logger = window.Logger ? new Logger('InitOrchestrator') : { 
-        debug: console.log, 
-        info: console.info, 
-        warn: console.warn, 
-        error: console.error 
-    };
     
     // Debug helper
     window.getInitStatus = () => {
