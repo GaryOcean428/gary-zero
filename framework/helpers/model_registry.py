@@ -55,83 +55,59 @@ class ModelRegistry:
         self._initialize_registry()
     
     def _initialize_registry(self):
-        """Initialize the model registry with provider-qualified IDs."""
-        # OpenAI models
-        self._register_model("openai:gpt-4o-mini", ModelConfig(
-            provider="openai",
-            model_name="gpt-4o-mini",
-            endpoint=ModelEndpoint.CHAT,
-            capabilities=["chat", "function_calling"],
-            max_tokens=128000
-        ))
+        """Initialize the model registry dynamically from MODEL_CATALOG."""
+        # Load configurations dynamically from the central MODEL_CATALOG
+        providers_found = set()
         
-        self._register_model("openai:gpt-4o", ModelConfig(
-            provider="openai", 
-            model_name="gpt-4o",
-            endpoint=ModelEndpoint.CHAT,
-            capabilities=["chat", "function_calling", "vision"],
-            max_tokens=128000
-        ))
+        for provider_key, models in MODEL_CATALOG.items():
+            provider_name = provider_key.lower()
+            providers_found.add(provider_name)
+            
+            for model_info in models:
+                model_value = model_info["value"]
+                qualified_id = f"{provider_name}:{model_value}"
+                
+                # Determine endpoint based on provider
+                if provider_name == "openai":
+                    endpoint = ModelEndpoint.CHAT
+                elif provider_name == "anthropic":
+                    endpoint = ModelEndpoint.MESSAGES
+                else:
+                    endpoint = ModelEndpoint.CHAT  # Default fallback
+                
+                # Infer capabilities based on model characteristics
+                capabilities = ["chat"]
+                if model_info.get("modern", False):
+                    capabilities.extend(["function_calling"])
+                    
+                # Add vision capability for certain models
+                if any(keyword in model_value.lower() for keyword in ["gpt-4", "claude-3", "claude-4", "o3", "gpt-5"]):
+                    if "vision" not in capabilities:
+                        capabilities.append("vision")
+                
+                # Add advanced reasoning for newer models
+                if any(keyword in model_value.lower() for keyword in ["gpt-5", "claude-4", "o3"]):
+                    capabilities.append("advanced_reasoning")
+                
+                # Estimate max tokens based on model
+                max_tokens = 128000  # Default
+                if any(keyword in model_value.lower() for keyword in ["gpt-5", "claude-4"]):
+                    max_tokens = 200000
+                elif "claude" in model_value.lower():
+                    max_tokens = 200000
+                
+                config = ModelConfig(
+                    provider=provider_name,
+                    model_name=model_value,
+                    endpoint=endpoint,
+                    capabilities=capabilities,
+                    max_tokens=max_tokens
+                )
+                
+                self._register_model(qualified_id, config)
         
-        self._register_model("openai:gpt-5-mini", ModelConfig(
-            provider="openai",
-            model_name="gpt-5-mini", 
-            endpoint=ModelEndpoint.CHAT,
-            capabilities=["chat", "function_calling", "vision"],
-            max_tokens=200000
-        ))
-        
-        self._register_model("openai:gpt-5-chat-latest", ModelConfig(
-            provider="openai",
-            model_name="gpt-5-chat-latest",
-            endpoint=ModelEndpoint.CHAT,
-            capabilities=["chat", "function_calling", "vision", "advanced_reasoning"],
-            max_tokens=200000
-        ))
-        
-        self._register_model("openai:o3", ModelConfig(
-            provider="openai",
-            model_name="o3",
-            endpoint=ModelEndpoint.CHAT,
-            capabilities=["chat", "reasoning", "mathematics", "coding"],
-            max_tokens=128000
-        ))
-        
-        self._register_model("openai:o3-pro", ModelConfig(
-            provider="openai",
-            model_name="o3-pro", 
-            endpoint=ModelEndpoint.CHAT,
-            capabilities=["chat", "reasoning", "mathematics", "coding", "research"],
-            max_tokens=128000
-        ))
-        
-        # Anthropic models
-        self._register_model("anthropic:claude-3-5-sonnet-20241022", ModelConfig(
-            provider="anthropic",
-            model_name="claude-3-5-sonnet-20241022",
-            endpoint=ModelEndpoint.MESSAGES,
-            capabilities=["chat", "function_calling", "vision"],
-            max_tokens=200000
-        ))
-        
-        self._register_model("anthropic:claude-sonnet-4-20250514", ModelConfig(
-            provider="anthropic",
-            model_name="claude-sonnet-4-20250514", 
-            endpoint=ModelEndpoint.MESSAGES,
-            capabilities=["chat", "function_calling", "vision", "advanced_reasoning"],
-            max_tokens=200000
-        ))
-        
-        self._register_model("anthropic:claude-opus-4-20250514", ModelConfig(
-            provider="anthropic",
-            model_name="claude-opus-4-20250514",
-            endpoint=ModelEndpoint.MESSAGES, 
-            capabilities=["chat", "function_calling", "vision", "advanced_reasoning", "research"],
-            max_tokens=200000
-        ))
-        
-        # Initialize provider statuses
-        for provider in ["openai", "anthropic"]:
+        # Initialize provider statuses for all found providers
+        for provider in providers_found:
             self._provider_status[provider] = ProviderStatus(provider=provider)
     
     def _register_model(self, qualified_id: str, config: ModelConfig):
