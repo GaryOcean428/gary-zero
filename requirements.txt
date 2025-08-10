@@ -810,6 +810,8 @@ uvloop==0.21.0
     # via uvicorn
 watchfiles==1.1.0
     # via uvicorn
+watchdog==5.0.3
+    # via -r requirements.in (file watching for gary-zero)
 webcolors==24.6.0
     # via -r requirements.in
 webencodings==0.5.1
