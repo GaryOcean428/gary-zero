@@ -49,7 +49,13 @@ fi
 # Install Node.js dependencies if package.json exists
 if [ -f package.json ]; then
     echo "📦 Installing Node.js dependencies..."
-    npm ci --only=production
+    if command -v yarn &> /dev/null; then
+        echo "Using Yarn for dependency installation..."
+        yarn install --immutable
+    else
+        echo "Fallback to npm for dependency installation..."
+        npm ci --only=production
+    fi
     echo "✅ Node.js dependencies installed"
 fi
 
