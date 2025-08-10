@@ -187,7 +187,7 @@ class ConfigLoader:
         warnings = []
 
         # Check required variables
-        required_vars = ["PORT", "WEB_UI_HOST"]
+        required_vars = ["PORT"]  # WEB_UI_HOST has a default, not strictly required
         for var in required_vars:
             try:
                 value = self.get_env_var(var, required=True)
