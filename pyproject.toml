@@ -7,7 +7,7 @@ name = "gary-zero"
 version = "0.9.0"
 description = "Autonomous AI Agent Framework with Multi-Agent Cooperation"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 license = {file = "LICENSE"}
 authors = [
   {name = "Gary Ocean", email = "gary@garyocean.com"}
