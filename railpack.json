@@ -1,20 +1,85 @@
 {
-  "$schema": "./.github/schemas/railpack.schema.json",
-  "builder": "NIXPACKS",
-  "buildCommand": "bash scripts/build.sh",
-  "startCommand": "bash scripts/start.sh",
-  "healthcheckPath": "/health",
-  "healthcheckTimeout": 300,
-  "restartPolicyType": "ON_FAILURE",
-  "restartPolicyMaxRetries": 3,
-  "environment": {
-    "PORT": "${PORT}",
-    "WEB_UI_HOST": "0.0.0.0",
-    "PYTHONUNBUFFERED": "1",
-    "TOKENIZERS_PARALLELISM": "false",
-    "DATA_DIR": "/app/data",
-    "DATABASE_URL": "${{postgres.DATABASE_URL}}",
-    "REDIS_URL": "${{redis.REDIS_URL}}"
+  "$schema": "https://schema.railpack.com",
+  "provider": "node",
+  "packages": {
+    "node": "20",
+    "python": "3.12"
+  },
+  "buildAptPackages": ["git", "curl", "build-essential", "postgresql-client"],
+  "caches": {
+    "npm": {
+      "directory": "/root/.npm",
+      "type": "shared"
+    },
+    "yarn": {
+      "directory": "/usr/local/share/.cache/yarn",
+      "type": "shared"
+    },
+    "pip": {
+      "directory": "/root/.cache/pip",
+      "type": "shared"
+    }
+  },
+  "steps": {
+    "install-python": {
+      "commands": [
+        "pip install --upgrade pip setuptools wheel",
+        "pip install -r requirements.txt",
+        "pip install watchdog gunicorn uvicorn"
+      ],
+      "caches": ["pip"]
+    },
+    "install-node": {
+      "commands": [
+        "yarn install --frozen-lockfile",
+        "yarn cache clean"
+      ],
+      "caches": ["yarn"]
+    },
+    "build-frontend": {
+      "inputs": [
+        { "step": "install-node" }
+      ],
+      "commands": [
+        "yarn build || echo 'No build script, skipping frontend build'"
+      ]
+    },
+    "setup-directories": {
+      "commands": [
+        "mkdir -p /app/data/{settings,memory,knowledge,prompts,agents,logs}",
+        "mkdir -p logs work_dir tmp memory tmp/scheduler",
+        "chmod -R 755 /app/data",
+        "echo '[]' > tmp/scheduler/tasks.json"
+      ]
+    }
+  },
+  "deploy": {
+    "base": {
+      "image": "ghcr.io/railwayapp/railpack-runtime:latest"
+    },
+    "inputs": [
+      { "step": "install-python", "include": ["/usr/local/lib/python3.12"] },
+      { "step": "install-node", "include": ["node_modules"] },
+      { "step": "build-frontend", "include": ["dist", "static", "webui"] },
+      { "step": "setup-directories" },
+      { "local": true, "include": ["."], "exclude": ["node_modules", ".git", "__pycache__", ".yarn/cache", "uv.lock"] }
+    ],
+    "startCommand": "bash scripts/start.sh",
+    "variables": {
+      "PORT": "${PORT:-8000}",
+      "WEB_UI_HOST": "0.0.0.0",
+      "NODE_ENV": "production",
+      "PYTHONUNBUFFERED": "1",
+      "TOKENIZERS_PARALLELISM": "false",
+      "DATA_DIR": "/app/data",
+      "DATABASE_URL": "${{postgres.DATABASE_URL}}",
+      "REDIS_URL": "${{redis.REDIS_URL}}"
+    },
+    "paths": ["/usr/local/bin", "/app/node_modules/.bin"],
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 300,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 3
   },
   "volumes": {
     "gary-zero-data": {

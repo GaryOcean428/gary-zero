@@ -9,7 +9,8 @@
     "lib": "lib"
   },
   "scripts": {
-    "start": "source .venv/bin/activate && python run_ui.py",
+    "build": "echo 'Build handled by Railpack'",
+    "start": "bash scripts/start.sh",
     "dev": "bash scripts/dev-server.sh --frontend",
     "dev:backend": "bash scripts/dev-server.sh --backend",
     "dev:frontend": "bash scripts/dev-server.sh --frontend",
@@ -98,5 +99,6 @@
   },
   "dependencies": {
     "@openai/agents": "^0.0.13"
-  }
+  },
+  "packageManager": "yarn@4.9.2"
 }
