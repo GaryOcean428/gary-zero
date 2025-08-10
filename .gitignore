@@ -166,6 +166,16 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Yarn 4+ cache and build artifacts
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Package manager lock files (keep only yarn.lock)
+package-lock.json
+pnpm-lock.yaml
+
 # Database files
 *.db
 *.sqlite
