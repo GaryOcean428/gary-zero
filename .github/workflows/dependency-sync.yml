@@ -16,7 +16,7 @@ on:
       - 'requirements-dev.txt'
 
 env:
-  PYTHON_VERSION: "3.13"
+  PYTHON_VERSION: "3.12"
 
 jobs:
   validate-dependencies:

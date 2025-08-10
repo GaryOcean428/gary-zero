@@ -81,10 +81,18 @@ jobs:
         fi
         
         # Run bandit with JSON output for processing
-        bandit -r framework/ api/ security/ -f json -o bandit-report.json || BANDIT_EXIT=$?
+        BANDIT_DIRS=""
+        [ -d "framework" ] && BANDIT_DIRS="$BANDIT_DIRS framework/"
+        [ -d "api" ] && BANDIT_DIRS="$BANDIT_DIRS api/"
+        [ -d "security" ] && BANDIT_DIRS="$BANDIT_DIRS security/"
         
-        # Run bandit with human-readable output
-        bandit -r framework/ api/ security/ -ll || BANDIT_EXIT_READABLE=$?
+        if [ -n "$BANDIT_DIRS" ]; then
+          bandit -r $BANDIT_DIRS -f json -o bandit-report.json || BANDIT_EXIT=$?
+          bandit -r $BANDIT_DIRS -ll || BANDIT_EXIT_READABLE=$?
+        else
+          echo "⚠️ No directories found to scan with bandit"
+          echo '{"results": []}' > bandit-report.json
+        fi
         
         # Process results
         if [ -f bandit-report.json ]; then

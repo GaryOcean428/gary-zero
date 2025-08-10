@@ -16,9 +16,13 @@ nest_asyncio>=1.5.6,<2.0.0
 # Code quality and static analysis
 mypy>=0.910,<2.0.0
 ruff>=0.8.0,<1.0.0  # Pin ruff version to prevent breaking CLI changes
-bandit>=1.7.5,<2.0.0  # Security vulnerability scanning
+bandit[toml]>=1.7.5,<2.0.0  # Security vulnerability scanning
 safety>=2.3.0,<3.0.0  # Dependency security check
 detect-secrets>=1.4.0,<2.0.0  # Secret detection
+pip-audit>=2.6.0,<3.0.0  # Additional vulnerability scanning
+
+# License checking
+pip-licenses>=4.3.0,<5.0.0  # Python package license checking
 
 # Application dependencies for testing
 fastapi>=0.100.0,<1.0.0
@@ -30,3 +34,12 @@ websockets>=11.0.0,<16.0.0
 
 # Git operations (needed by main.py)
 GitPython>=3.1.40,<4.0.0
+
+# Coverage and reporting tools
+coverage[toml]>=7.0.0,<8.0.0
+
+# Docker testing
+docker>=6.0.0,<8.0.0  # For container tests
+
+# Filesystem watching (for dynamic prompt system)
+watchdog>=3.0.0,<5.0.0
