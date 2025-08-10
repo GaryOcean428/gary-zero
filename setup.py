@@ -25,7 +25,7 @@ setup(
         "api": ["*.py"],
         "framework": ["*.py", "*/*.py"],
     },
-    python_requires=">=3.13",
+    python_requires=">=3.12",
     install_requires=[
         # Core dependencies
         "pydantic>=1.10.0",
@@ -59,8 +59,8 @@ setup(
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
-        "Programming Language :: Python :: 3.14",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
