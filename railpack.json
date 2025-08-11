@@ -64,7 +64,7 @@
       { "step": "setup-directories" },
       { "local": true, "include": ["."], "exclude": ["node_modules", ".git", "__pycache__", ".yarn/cache", "uv.lock"] }
     ],
-    "startCommand": "bash scripts/start.sh",
+    "startCommand": "npm start || python start_uvicorn.py || python main.py || python app.py",
     "variables": {
       "PORT": "${PORT:-8000}",
       "WEB_UI_HOST": "0.0.0.0",
