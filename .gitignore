@@ -150,6 +150,7 @@ memory/
 !package.json
 !package-lock.json
 !railpack.json
+!railway.json
 !tsconfig.json
 !.markdownlint.json
 !.vscode/settings.json
