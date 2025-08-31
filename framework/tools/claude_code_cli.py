@@ -186,7 +186,7 @@ class ClaudeCodeCLI(Tool):
                     "output": stdout.decode(),
                     "error": stderr.decode(),
                 }
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 process.kill()
                 await process.communicate()
                 return {

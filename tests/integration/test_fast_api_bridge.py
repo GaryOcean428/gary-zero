@@ -59,9 +59,9 @@ class TestFastAPIBridge:
         # Since complex WebSocket testing requires the actual handler to be available,
         # we'll verify the endpoint exists by checking the route
         route_paths = [route.path for route in app.routes]
-        assert "/a2a/stream" in route_paths, (
-            "A2A WebSocket endpoint should be available"
-        )
+        assert (
+            "/a2a/stream" in route_paths
+        ), "A2A WebSocket endpoint should be available"
 
         # Test basic WebSocket functionality with the main endpoint
         try:
@@ -150,9 +150,9 @@ class TestAPIBridgeCompatibility:
         expected_endpoints = ["/", "/health", "/metrics", "/ws"]
 
         for endpoint in expected_endpoints:
-            assert endpoint in route_paths, (
-                f"Expected endpoint {endpoint} should be available"
-            )
+            assert (
+                endpoint in route_paths
+            ), f"Expected endpoint {endpoint} should be available"
 
         # Test that the app actually works with enhanced endpoints
         from fastapi.testclient import TestClient

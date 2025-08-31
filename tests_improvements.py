@@ -23,9 +23,9 @@ def test_legal_pages_exist():
     privacy_content = privacy_path.read_text()
     assert "Privacy Policy" in privacy_content, "Privacy policy missing title"
     assert "Gary-Zero" in privacy_content, "Privacy policy missing app name"
-    assert "data" in privacy_content.lower(), (
-        "Privacy policy missing data handling info"
-    )
+    assert (
+        "data" in privacy_content.lower()
+    ), "Privacy policy missing data handling info"
 
     # Check terms of service
     terms_path = webui_path / "terms.html"
@@ -110,9 +110,9 @@ def test_security_headers():
     run_ui_content = run_ui_path.read_text()
     assert "add_security_headers" in run_ui_content, "Security headers function missing"
     assert "X-Frame-Options" in run_ui_content, "X-Frame-Options header missing"
-    assert "X-Content-Type-Options" in run_ui_content, (
-        "X-Content-Type-Options header missing"
-    )
+    assert (
+        "X-Content-Type-Options" in run_ui_content
+    ), "X-Content-Type-Options header missing"
     assert "Content-Security-Policy" in run_ui_content, "CSP header missing"
 
     print("✅ Security headers test passed")

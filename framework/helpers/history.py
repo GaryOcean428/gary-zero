@@ -182,7 +182,7 @@ class Topic(Record):
             text = output_text(out)
             tok = m.get_tokens()
             text_length = len(text)
-            
+
             if tok > msg_max_size:
                 large_msgs.append((m, tok, text_length, out))
         large_msgs.sort(key=lambda x: x[1], reverse=True)
@@ -233,7 +233,7 @@ class Topic(Record):
             # Use summary-friendly text that excludes raw vision bytes
             text = self._message_to_summary_text(m)
             msg_txt.append(text)
-        
+
         summary = await self.history.agent.call_utility_model(
             system=self.history.agent.read_prompt("fw.topic_summary.sys.md"),
             message=self.history.agent.read_prompt(
@@ -241,17 +241,17 @@ class Topic(Record):
             ),
         )
         return summary
-    
+
     def _message_to_summary_text(self, message: Message) -> str:
         """Convert a message to text suitable for summarization, handling vision data efficiently."""
         output = message.output()
         if not output:
             return ""
-        
+
         parts = []
         for output_msg in output:
             content = output_msg["content"]
-            
+
             # Handle vision/raw messages specially for summaries
             if _is_raw_message(content):
                 # Use the preview text instead of raw content for summaries
@@ -260,12 +260,14 @@ class Topic(Record):
                     parts.append(f"{'ai' if output_msg['ai'] else 'human'}: {preview}")
                 else:
                     # Fallback to describing the raw content type
-                    parts.append(f"{'ai' if output_msg['ai'] else 'human'}: [Raw message content]")
+                    parts.append(
+                        f"{'ai' if output_msg['ai'] else 'human'}: [Raw message content]"
+                    )
             else:
                 # For non-raw messages, use the standard text conversion
                 text_content = _stringify_content(content)
                 parts.append(f"{'ai' if output_msg['ai'] else 'human'}: {text_content}")
-        
+
         return "\n".join(parts)
 
     def to_dict(self):

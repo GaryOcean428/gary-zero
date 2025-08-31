@@ -240,9 +240,9 @@ class GaryZeroSDKAgent:
     def get_session_data(self) -> dict[str, Any]:
         """Get current session data."""
         return {
-            "session_id": self.session.session_id
-            if hasattr(self.session, "session_id")
-            else None,
+            "session_id": (
+                self.session.session_id if hasattr(self.session, "session_id") else None
+            ),
             "agent_name": self.config.name,
             "current_run_id": self._current_run_id,
             "context": self._sdk_context,

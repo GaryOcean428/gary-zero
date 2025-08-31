@@ -63,9 +63,11 @@ class CodeGenerationWorkflow(WorkflowExample):
                     "step": 1,
                     "description": "Code generation with Gemini CLI",
                     "success": gemini_response.success,
-                    "output": gemini_response.data
-                    if gemini_response.success
-                    else gemini_response.error,
+                    "output": (
+                        gemini_response.data
+                        if gemini_response.success
+                        else gemini_response.error
+                    ),
                 }
             )
 
@@ -96,9 +98,11 @@ class CodeGenerationWorkflow(WorkflowExample):
                     "step": 2,
                     "description": "Save code to file with Claude Code",
                     "success": claude_response.success,
-                    "output": claude_response.data
-                    if claude_response.success
-                    else claude_response.error,
+                    "output": (
+                        claude_response.data
+                        if claude_response.success
+                        else claude_response.error
+                    ),
                 }
             )
 
@@ -126,9 +130,11 @@ class CodeGenerationWorkflow(WorkflowExample):
                     "step": 3,
                     "description": "Test code compilation",
                     "success": test_response.success,
-                    "output": test_response.data
-                    if test_response.success
-                    else test_response.error,
+                    "output": (
+                        test_response.data
+                        if test_response.success
+                        else test_response.error
+                    ),
                 }
             )
 
@@ -148,9 +154,11 @@ class CodeGenerationWorkflow(WorkflowExample):
                     "step": 4,
                     "description": "Take screenshot",
                     "success": screenshot_response.success,
-                    "output": screenshot_response.data
-                    if screenshot_response.success
-                    else screenshot_response.error,
+                    "output": (
+                        screenshot_response.data
+                        if screenshot_response.success
+                        else screenshot_response.error
+                    ),
                 }
             )
 
@@ -200,9 +208,11 @@ class SecurityAuditWorkflow(WorkflowExample):
                     "step": 1,
                     "description": "Security audit with Kali tools",
                     "success": audit_response.success,
-                    "output": audit_response.data
-                    if audit_response.success
-                    else audit_response.error,
+                    "output": (
+                        audit_response.data
+                        if audit_response.success
+                        else audit_response.error
+                    ),
                 }
             )
 
@@ -234,9 +244,11 @@ class SecurityAuditWorkflow(WorkflowExample):
                     "step": 2,
                     "description": "Generate audit report",
                     "success": report_response.success,
-                    "output": report_response.data
-                    if report_response.success
-                    else report_response.error,
+                    "output": (
+                        report_response.data
+                        if report_response.success
+                        else report_response.error
+                    ),
                 }
             )
 
@@ -275,9 +287,11 @@ class SecurityAuditWorkflow(WorkflowExample):
                         "step": 3,
                         "description": "Commit report to Git",
                         "success": git_commit_response.success,
-                        "output": git_commit_response.data
-                        if git_commit_response.success
-                        else git_commit_response.error,
+                        "output": (
+                            git_commit_response.data
+                            if git_commit_response.success
+                            else git_commit_response.error
+                        ),
                     }
                 )
             else:
@@ -404,9 +418,11 @@ class MultiToolShowcaseWorkflow(WorkflowExample):
                     "step": 1,
                     "description": "Get workspace information",
                     "success": workspace_response.success,
-                    "output": workspace_response.data
-                    if workspace_response.success
-                    else workspace_response.error,
+                    "output": (
+                        workspace_response.data
+                        if workspace_response.success
+                        else workspace_response.error
+                    ),
                 }
             )
 
@@ -431,9 +447,11 @@ class MultiToolShowcaseWorkflow(WorkflowExample):
                     "step": 2,
                     "description": "Generate documentation",
                     "success": doc_response.success,
-                    "output": doc_response.data
-                    if doc_response.success
-                    else doc_response.error,
+                    "output": (
+                        doc_response.data
+                        if doc_response.success
+                        else doc_response.error
+                    ),
                 }
             )
 
@@ -453,9 +471,11 @@ class MultiToolShowcaseWorkflow(WorkflowExample):
                     "step": 3,
                     "description": "Check Kali tools availability",
                     "success": tools_response.success,
-                    "output": tools_response.data
-                    if tools_response.success
-                    else tools_response.error,
+                    "output": (
+                        tools_response.data
+                        if tools_response.success
+                        else tools_response.error
+                    ),
                 }
             )
 
@@ -475,9 +495,11 @@ class MultiToolShowcaseWorkflow(WorkflowExample):
                     "step": 4,
                     "description": "Take final screenshot",
                     "success": final_screenshot_response.success,
-                    "output": final_screenshot_response.data
-                    if final_screenshot_response.success
-                    else final_screenshot_response.error,
+                    "output": (
+                        final_screenshot_response.data
+                        if final_screenshot_response.success
+                        else final_screenshot_response.error
+                    ),
                 }
             )
 

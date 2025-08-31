@@ -1,44 +1,43 @@
 import os
 from pathlib import Path
-from typing import List
 
 from langchain_core.documents import Document
 
 
-def extract_file(path: str) -> List[Document]:
+def extract_file(path: str) -> list[Document]:
     """
     Extract text content from a file and convert it to Document objects for RAG.
-    
+
     Args:
         path: Path to the file to extract content from
-        
+
     Returns:
         List of Document objects containing the extracted text
-        
+
     Raises:
         FileNotFoundError: If the file doesn't exist
         IOError: If the file cannot be read
     """
     if not os.path.exists(path):
         raise FileNotFoundError(f"File not found: {path}")
-    
+
     try:
         file_path = Path(path)
-        
+
         # Read file content as bytes
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             content = f.read()
-        
+
         # Extract text chunks using the existing extract_text function
         text_chunks = extract_text(content)
-        
+
         # Convert chunks to Document objects
         documents = []
         for i, chunk in enumerate(text_chunks):
             # Skip binary markers
             if chunk == "[BINARY]":
                 continue
-                
+
             # Create document with metadata
             doc = Document(
                 page_content=chunk,
@@ -48,15 +47,15 @@ def extract_file(path: str) -> List[Document]:
                     "file_extension": file_path.suffix,
                     "chunk_index": i,
                     "file_size": len(content),
-                    "chunk_size": len(chunk)
-                }
+                    "chunk_size": len(chunk),
+                },
             )
             documents.append(doc)
-        
+
         return documents
-        
+
     except Exception as e:
-        raise IOError(f"Error reading file {path}: {str(e)}") from e
+        raise OSError(f"Error reading file {path}: {str(e)}") from e
 
 
 def extract_text(content: bytes, chunk_size: int = 128) -> list[str]:

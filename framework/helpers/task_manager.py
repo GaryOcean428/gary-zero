@@ -145,9 +145,11 @@ class TaskManager:
                         title=task.title,
                         description=task.description,
                         status=TaskStatus(task.status.value),
-                        category=TaskCategory(task.category.value)
-                        if task.category
-                        else TaskCategory.OTHER,
+                        category=(
+                            TaskCategory(task.category.value)
+                            if task.category
+                            else TaskCategory.OTHER
+                        ),
                         created_at=task.created_at or datetime.now(UTC),
                         started_at=task.started_at,
                         completed_at=task.completed_at,
@@ -278,8 +280,14 @@ class TaskManager:
             ):
                 # Compare context_id if available in both
                 new_context_id = (context or {}).get("context_id") if context else None
-                existing_context_id = existing.context.get("context_id") if existing.context else None
-                if new_context_id is None or existing_context_id is None or new_context_id == existing_context_id:
+                existing_context_id = (
+                    existing.context.get("context_id") if existing.context else None
+                )
+                if (
+                    new_context_id is None
+                    or existing_context_id is None
+                    or new_context_id == existing_context_id
+                ):
                     # Reuse existing task
                     return existing
 

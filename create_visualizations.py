@@ -11,6 +11,7 @@ from pathlib import Path
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+from integration_demo import GaryZeroTestExecutor
 
 from framework.benchmarking.analysis import BenchmarkAnalysis
 from framework.benchmarking.harness import BenchmarkHarness, BenchmarkResult, TaskStatus
@@ -23,7 +24,6 @@ from framework.logging.unified_logger import (
     LogLevel,
     get_unified_logger,
 )
-from integration_demo import GaryZeroTestExecutor
 
 
 def create_performance_timeline_chart(
@@ -349,9 +349,7 @@ def create_performance_summary_report(
         status_class = (
             "status-success"
             if success_rate > 80
-            else "status-warning"
-            if success_rate > 60
-            else "status-error"
+            else "status-warning" if success_rate > 60 else "status-error"
         )
 
         html_content += f"""

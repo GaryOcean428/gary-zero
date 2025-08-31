@@ -164,9 +164,9 @@ class RouteChecker:
                 "total_routes": total_checks,
                 "successful": success_count,
                 "failed": total_checks - success_count,
-                "success_rate": (success_count / total_checks * 100)
-                if total_checks > 0
-                else 0,
+                "success_rate": (
+                    (success_count / total_checks * 100) if total_checks > 0 else 0
+                ),
                 "avg_response_time_ms": avg_response_time,
             },
             "results": [asdict(r) for r in valid_results],

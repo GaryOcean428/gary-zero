@@ -344,9 +344,11 @@ class AgentTracer:
                 "task_id": trace_data["task_id"],
                 "start_time": trace_data["start_time"].isoformat(),
                 "event_count": len(trace_data["events"]),
-                "latest_event": trace_data["events"][-1].event_type.value
-                if trace_data["events"]
-                else None,
+                "latest_event": (
+                    trace_data["events"][-1].event_type.value
+                    if trace_data["events"]
+                    else None
+                ),
             }
 
         # Check completed traces from processor

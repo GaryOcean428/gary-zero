@@ -256,9 +256,7 @@ class SystemHealthChecker:
         overall_status = (
             "healthy"
             if overall_score >= 80
-            else "unhealthy"
-            if overall_score < 50
-            else "warning"
+            else "unhealthy" if overall_score < 50 else "warning"
         )
 
         return {
@@ -324,9 +322,7 @@ class SystemHealthChecker:
         status_emoji = (
             "🟢"
             if overall["status"] == "healthy"
-            else "🟡"
-            if overall["status"] == "warning"
-            else "🔴"
+            else "🟡" if overall["status"] == "warning" else "🔴"
         )
         print(f"{status_emoji} Overall Status: {overall['status'].upper()}")
         print(f"📊 Health Score: {overall['score']:.1f}/100")

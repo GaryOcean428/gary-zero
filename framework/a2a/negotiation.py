@@ -181,9 +181,11 @@ class NegotiationService:
 
             # Set communication parameters
             communication_params = {
-                "format": request.preferred_format
-                if request.preferred_format == "json"
-                else "json",
+                "format": (
+                    request.preferred_format
+                    if request.preferred_format == "json"
+                    else "json"
+                ),
                 "max_message_size": min(
                     request.max_message_size or 1024 * 1024, 10 * 1024 * 1024
                 ),  # Max 10MB

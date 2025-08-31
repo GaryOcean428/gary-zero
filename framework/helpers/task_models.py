@@ -139,11 +139,11 @@ class BaseTask(BaseModel):
     updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     last_run: datetime | None = None
     last_result: str | None = None
-    
+
     def __hash__(self):
         """Make Task objects hashable using their UUID."""
         return hash(self.uuid)
-    
+
     def __eq__(self, other):
         """Check equality based on UUID."""
         if isinstance(other, BaseTask):

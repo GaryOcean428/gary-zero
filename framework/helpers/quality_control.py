@@ -785,9 +785,11 @@ class QualityController:
             "average_score": avg_score,
             "quality_distribution": level_counts,
             "review_type_distribution": type_counts,
-            "latest_assessment": self.assessment_history[-1].overall_score
-            if self.assessment_history
-            else None,
+            "latest_assessment": (
+                self.assessment_history[-1].overall_score
+                if self.assessment_history
+                else None
+            ),
         }
 
 

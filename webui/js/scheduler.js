@@ -1,3 +1,6 @@
+// Import enhanced logger
+import { logger } from './console-logger.js';
+
 /**
  * Task Scheduler Component for Settings Modal
  * Manages scheduled and ad-hoc tasks through a dedicated settings tab
@@ -9,7 +12,7 @@ import { formatDateTime, getUserTimezone } from "./time-utils.js";
 // Ensure the showToast function is available
 // if (typeof window.showToast !== 'function') {
 //     window.showToast = function(message, type = 'info') {
-//         console.log(`[Toast ${type}]: ${message}`);
+//         logger.log(`[Toast ${type}]: ${message}`);
 //         // Create toast element if not already present
 //         let toastContainer = document.getElementById('toast-container');
 //         if (!toastContainer) {
@@ -63,7 +66,7 @@ const showToast = (message, type = "info") => {
     if (typeof window.toast === "function") {
         window.toast(message, type);
     } else {
-        console.log(`Toast (${type}): ${message}`);
+        logger.log(`Toast (${type}): ${message}`);
     }
 };
 
@@ -192,7 +195,7 @@ const fullComponentImplementation = () => ({
 
         // Cleanup on component destruction
         this.$cleanup = () => {
-            console.log("Cleaning up schedulerSettings component");
+            logger.log("Cleaning up schedulerSettings component");
             this.stopPolling();
 
             // Clean up any Flatpickr instances
@@ -212,11 +215,11 @@ const fullComponentImplementation = () => ({
     startPolling() {
         // Don't start if already polling
         if (this.pollingInterval) {
-            console.log("Polling already active, not starting again");
+            logger.log("Polling already active, not starting again");
             return;
         }
 
-        console.log("Starting task polling");
+        logger.log("Starting task polling");
         this.pollingActive = true;
 
         // Fetch immediately, then set up interval for every 2 seconds
@@ -230,7 +233,7 @@ const fullComponentImplementation = () => ({
 
     // Stop polling when tab is inactive
     stopPolling() {
-        console.log("Stopping task polling");
+        logger.log("Stopping task polling");
         this.pollingActive = false;
 
         if (this.pollingInterval) {
@@ -271,35 +274,35 @@ const fullComponentImplementation = () => ({
 
             // Check if data.tasks exists and is an array
             if (!data || !data.tasks) {
-                console.error("Invalid response: data.tasks is missing", data);
+                logger.error("Invalid response: data.tasks is missing", data);
                 this.tasks = [];
             } else if (!Array.isArray(data.tasks)) {
-                console.error("Invalid response: data.tasks is not an array", data.tasks);
+                logger.error("Invalid response: data.tasks is not an array", data.tasks);
                 this.tasks = [];
             } else {
                 // Verify each task has necessary properties
                 const validTasks = data.tasks.filter((task) => {
                     if (!task || typeof task !== "object") {
-                        console.error("Invalid task (not an object):", task);
+                        logger.error("Invalid task (not an object):", task);
                         return false;
                     }
                     if (!task.uuid) {
-                        console.error("Task missing uuid:", task);
+                        logger.error("Task missing uuid:", task);
                         return false;
                     }
                     if (!task.name) {
-                        console.error("Task missing name:", task);
+                        logger.error("Task missing name:", task);
                         return false;
                     }
                     if (!task.type) {
-                        console.error("Task missing type:", task);
+                        logger.error("Task missing type:", task);
                         return false;
                     }
                     return true;
                 });
 
                 if (validTasks.length !== data.tasks.length) {
-                    console.warn(`Filtered out ${data.tasks.length - validTasks.length} invalid tasks`);
+                    logger.warn(`Filtered out ${data.tasks.length - validTasks.length} invalid tasks`);
                 }
 
                 this.tasks = validTasks;
@@ -308,7 +311,7 @@ const fullComponentImplementation = () => ({
                 this.updateTasksUI();
             }
         } catch (error) {
-            console.error("Error fetching tasks:", error);
+            logger.error("Error fetching tasks:", error);
             // Only show toast for errors on manual refresh, not during polling
             if (!this.pollingInterval) {
                 showToast("Failed to fetch tasks: " + error.message, "error");
@@ -390,10 +393,10 @@ const fullComponentImplementation = () => ({
                     nextRun = formatDateTime(nextTime, "short");
                 } else {
                     nextRun = "Invalid date";
-                    console.warn(`Invalid date format in plan.todo[0]: ${task.plan.todo[0]}`);
+                    logger.warn(`Invalid date format in plan.todo[0]: ${task.plan.todo[0]}`);
                 }
             } catch (error) {
-                console.error(`Error formatting next run time: ${error.message}`);
+                logger.error(`Error formatting next run time: ${error.message}`);
                 nextRun = "Error";
             }
         } else {
@@ -485,8 +488,8 @@ const fullComponentImplementation = () => ({
         this.editingTask = JSON.parse(JSON.stringify(task));
 
         // Debug log
-        console.log("Task data for editing:", task);
-        console.log("Attachments from task:", task.attachments);
+        logger.log("Task data for editing:", task);
+        logger.log("Attachments from task:", task.attachments);
 
         // Ensure state is set with a default if missing
         if (!this.editingTask.state) this.editingTask.state = "idle";
@@ -556,10 +559,10 @@ const fullComponentImplementation = () => ({
             // Initialize token if it doesn't exist
             if (!this.editingTask.token) {
                 this.editingTask.token = this.generateRandomToken();
-                console.log("Generated new token for adhoc task:", this.editingTask.token);
+                logger.log("Generated new token for adhoc task:", this.editingTask.token);
             }
 
-            console.log("Setting token for adhoc task:", this.editingTask.token);
+            logger.log("Setting token for adhoc task:", this.editingTask.token);
 
             // Initialize plan stub for adhoc tasks to prevent undefined errors
             if (!this.editingTask.plan) {
@@ -602,7 +605,7 @@ const fullComponentImplementation = () => ({
         const destroyFlatpickr = (inputId) => {
             const input = document.getElementById(inputId);
             if (input && input._flatpickr) {
-                console.log(`Destroying Flatpickr instance for ${inputId}`);
+                logger.log(`Destroying Flatpickr instance for ${inputId}`);
                 input._flatpickr.destroy();
 
                 // Also remove any wrapper elements that might have been created
@@ -711,10 +714,10 @@ const fullComponentImplementation = () => ({
                 // Ensure token is a non-empty string, generate a new one if needed
                 if (!this.editingTask.token) {
                     this.editingTask.token = this.generateRandomToken();
-                    console.log("Generated new token for adhoc task:", this.editingTask.token);
+                    logger.log("Generated new token for adhoc task:", this.editingTask.token);
                 }
 
-                console.log("Setting token in taskData:", this.editingTask.token);
+                logger.log("Setting token in taskData:", this.editingTask.token);
                 taskData.token = this.editingTask.token;
 
                 // Don't send schedule or plan for adhoc tasks
@@ -748,10 +751,10 @@ const fullComponentImplementation = () => ({
                         if (!isNaN(date.getTime())) {
                             validatedTodo.push(date.toISOString());
                         } else {
-                            console.warn(`Skipping invalid date in todo list: ${dateStr}`);
+                            logger.warn(`Skipping invalid date in todo list: ${dateStr}`);
                         }
                     } catch (error) {
-                        console.warn(`Error processing date: ${error.message}`);
+                        logger.warn(`Error processing date: ${error.message}`);
                     }
                 }
 
@@ -769,7 +772,7 @@ const fullComponentImplementation = () => ({
                 };
 
                 // Log the plan data for debugging
-                console.log("Planned task plan data:", JSON.stringify(taskData.plan, null, 2));
+                logger.log("Planned task plan data:", JSON.stringify(taskData.plan, null, 2));
 
                 // Don't send schedule or token for planned tasks
                 delete taskData.schedule;
@@ -785,7 +788,7 @@ const fullComponentImplementation = () => ({
             }
 
             // Debug: Log the final task data being sent
-            console.log("Final task data being sent to API:", JSON.stringify(taskData, null, 2));
+            logger.log("Final task data being sent to API:", JSON.stringify(taskData, null, 2));
 
             // Make API request
             const response = await fetch(apiEndpoint, {
@@ -809,7 +812,7 @@ const fullComponentImplementation = () => ({
 
             // Immediately update the UI if the response includes the task
             if (responseData && responseData.task) {
-                console.log("Task received in response:", responseData.task);
+                logger.log("Task received in response:", responseData.task);
 
                 // Update the tasks array
                 if (this.isCreating) {
@@ -868,7 +871,7 @@ const fullComponentImplementation = () => ({
             this.isEditing = false;
             document.querySelector('[x-data="schedulerSettings"]')?.removeAttribute("data-editing-state");
         } catch (error) {
-            console.error("Error saving task:", error);
+            logger.error("Error saving task:", error);
             showToast("Failed to save task: " + error.message, "error");
         }
     },
@@ -897,7 +900,7 @@ const fullComponentImplementation = () => ({
             // Refresh task list
             this.fetchTasks();
         } catch (error) {
-            console.error("Error running task:", error);
+            logger.error("Error running task:", error);
             showToast("Failed to run task: " + error.message, "error");
         }
     },
@@ -943,7 +946,7 @@ const fullComponentImplementation = () => ({
             await this.fetchTasks();
             this.showLoadingState = false;
         } catch (error) {
-            console.error("Error resetting task state:", error);
+            logger.error("Error resetting task state:", error);
             showToast("Failed to reset task state: " + error.message, "error");
             this.showLoadingState = false;
         }
@@ -989,7 +992,7 @@ const fullComponentImplementation = () => ({
             // Update UI using the shared function
             this.updateTasksUI();
         } catch (error) {
-            console.error("Error deleting task:", error);
+            logger.error("Error deleting task:", error);
             showToast("Failed to delete task: " + error.message, "error");
         }
     },
@@ -1030,7 +1033,7 @@ const fullComponentImplementation = () => ({
     get filteredTasks() {
         // Make sure we have tasks to filter
         if (!Array.isArray(this.tasks)) {
-            console.warn("Tasks is not an array:", this.tasks);
+            logger.warn("Tasks is not an array:", this.tasks);
             return [];
         }
 
@@ -1113,20 +1116,20 @@ const fullComponentImplementation = () => ({
     // Debug method to test filtering logic
     testFiltering() {
         console.group("SchedulerSettings Debug: Filter Test");
-        console.log("Current Filter Settings:");
-        console.log("- Filter Type:", this.filterType);
-        console.log("- Filter State:", this.filterState);
-        console.log("- Sort Field:", this.sortField);
-        console.log("- Sort Direction:", this.sortDirection);
+        logger.log("Current Filter Settings:");
+        logger.log("- Filter Type:", this.filterType);
+        logger.log("- Filter State:", this.filterState);
+        logger.log("- Sort Field:", this.sortField);
+        logger.log("- Sort Direction:", this.sortDirection);
 
         // Check if tasks is an array
         if (!Array.isArray(this.tasks)) {
-            console.error("ERROR: this.tasks is not an array!", this.tasks);
+            logger.error("ERROR: this.tasks is not an array!", this.tasks);
             console.groupEnd();
             return;
         }
 
-        console.log(`Raw Tasks (${this.tasks.length}):`, this.tasks);
+        logger.log(`Raw Tasks (${this.tasks.length}):`, this.tasks);
 
         // Test filtering by type
         console.group("Filter by Type Test");
@@ -1134,7 +1137,7 @@ const fullComponentImplementation = () => ({
             const filtered = this.tasks.filter(
                 (task) => type === "all" || (task.type && String(task.type).toLowerCase() === type)
             );
-            console.log(`Type "${type}": ${filtered.length} tasks`, filtered);
+            logger.log(`Type "${type}": ${filtered.length} tasks`, filtered);
         });
         console.groupEnd();
 
@@ -1144,12 +1147,12 @@ const fullComponentImplementation = () => ({
             const filtered = this.tasks.filter(
                 (task) => state === "all" || (task.state && String(task.state).toLowerCase() === state)
             );
-            console.log(`State "${state}": ${filtered.length} tasks`, filtered);
+            logger.log(`State "${state}": ${filtered.length} tasks`, filtered);
         });
         console.groupEnd();
 
         // Show current filtered tasks
-        console.log("Current Filtered Tasks:", this.filteredTasks);
+        logger.log("Current Filtered Tasks:", this.filteredTasks);
 
         console.groupEnd();
     },
@@ -1159,8 +1162,8 @@ const fullComponentImplementation = () => ({
         console.group("SchedulerSettings Comprehensive Debug");
 
         // Component state
-        console.log("Component State:");
-        console.log({
+        logger.log("Component State:");
+        logger.log({
             filterType: this.filterType,
             filterState: this.filterState,
             sortField: this.sortField,
@@ -1173,20 +1176,20 @@ const fullComponentImplementation = () => ({
 
         // Tasks validation
         if (!this.tasks) {
-            console.error("ERROR: this.tasks is undefined or null!");
+            logger.error("ERROR: this.tasks is undefined or null!");
             console.groupEnd();
             return;
         }
 
         if (!Array.isArray(this.tasks)) {
-            console.error("ERROR: this.tasks is not an array!", typeof this.tasks, this.tasks);
+            logger.error("ERROR: this.tasks is not an array!", typeof this.tasks, this.tasks);
             console.groupEnd();
             return;
         }
 
         // Raw tasks
         console.group("Raw Tasks");
-        console.log(`Count: ${this.tasks.length}`);
+        logger.log(`Count: ${this.tasks.length}`);
         if (this.tasks.length > 0) {
             console.table(
                 this.tasks.map((t) => ({
@@ -1198,16 +1201,16 @@ const fullComponentImplementation = () => ({
             );
 
             // Inspect first task in detail
-            console.log("First Task Structure:", JSON.stringify(this.tasks[0], null, 2));
+            logger.log("First Task Structure:", JSON.stringify(this.tasks[0], null, 2));
         } else {
-            console.log("No tasks available");
+            logger.log("No tasks available");
         }
         console.groupEnd();
 
         // Filtered tasks
         console.group("Filtered Tasks");
         const filteredTasks = this.filteredTasks;
-        console.log(`Count: ${filteredTasks.length}`);
+        logger.log(`Count: ${filteredTasks.length}`);
         if (filteredTasks.length > 0) {
             console.table(
                 filteredTasks.map((t) => ({
@@ -1218,7 +1221,7 @@ const fullComponentImplementation = () => ({
                 }))
             );
         } else {
-            console.log("No filtered tasks");
+            logger.log("No filtered tasks");
         }
         console.groupEnd();
 
@@ -1227,29 +1230,29 @@ const fullComponentImplementation = () => ({
 
         // Check for case mismatches
         if (this.tasks.length > 0 && filteredTasks.length === 0) {
-            console.warn("Filter seems to exclude all tasks. Checking why:");
+            logger.warn("Filter seems to exclude all tasks. Checking why:");
 
             // Check type values
             const uniqueTypes = [...new Set(this.tasks.map((t) => t.type))];
-            console.log("Unique task types in data:", uniqueTypes);
+            logger.log("Unique task types in data:", uniqueTypes);
 
             // Check state values
             const uniqueStates = [...new Set(this.tasks.map((t) => t.state))];
-            console.log("Unique task states in data:", uniqueStates);
+            logger.log("Unique task states in data:", uniqueStates);
 
             // Check for exact mismatches
             if (this.filterType !== "all") {
                 const typeMatch = this.tasks.some(
                     (t) => t.type && String(t.type).toLowerCase() === this.filterType.toLowerCase()
                 );
-                console.log(`Type "${this.filterType}" matches found:`, typeMatch);
+                logger.log(`Type "${this.filterType}" matches found:`, typeMatch);
             }
 
             if (this.filterState !== "all") {
                 const stateMatch = this.tasks.some(
                     (t) => t.state && String(t.state).toLowerCase() === this.filterState.toLowerCase()
                 );
-                console.log(`State "${this.filterState}" matches found:`, stateMatch);
+                logger.log(`State "${this.filterState}" matches found:`, stateMatch);
             }
         }
 
@@ -1258,11 +1261,11 @@ const fullComponentImplementation = () => ({
         const hasUndefinedState = this.tasks.some((t) => t.state === undefined || t.state === null);
 
         if (hasUndefinedType) {
-            console.warn("Some tasks have undefined or null type values!");
+            logger.warn("Some tasks have undefined or null type values!");
         }
 
         if (hasUndefinedState) {
-            console.warn("Some tasks have undefined or null state values!");
+            logger.warn("Some tasks have undefined or null state values!");
         }
 
         console.groupEnd();
@@ -1285,11 +1288,11 @@ const fullComponentImplementation = () => ({
             // Fall back to getElementById if x-ref is not available
             if (!input) {
                 input = document.getElementById(inputId);
-                console.log(`Using getElementById fallback for ${inputId}`);
+                logger.log(`Using getElementById fallback for ${inputId}`);
             }
 
             if (!input) {
-                console.warn(`Input element ${inputId} not found by ID or ref`);
+                logger.warn(`Input element ${inputId} not found by ID or ref`);
                 return null;
             }
 
@@ -1419,10 +1422,10 @@ const fullComponentImplementation = () => ({
 
 // Only define the component if it doesn't already exist or extend the existing one
 if (!window.schedulerSettings) {
-    console.log("Defining schedulerSettings component from scratch");
+    logger.log("Defining schedulerSettings component from scratch");
     window.schedulerSettings = fullComponentImplementation;
 } else {
-    console.log("Extending existing schedulerSettings component");
+    logger.log("Extending existing schedulerSettings component");
     // Store the original function
     const originalSchedulerSettings = window.schedulerSettings;
 
@@ -1439,7 +1442,7 @@ if (!window.schedulerSettings) {
             // Call the original init if it exists
             originalInit.call(this);
 
-            console.log("Enhanced init running: adding missing methods to component");
+            logger.log("Enhanced init running: adding missing methods to component");
 
             // Get the full implementation
             const fullImpl = fullComponentImplementation();
@@ -1475,7 +1478,7 @@ if (!window.schedulerSettings) {
 
             essentialMethods.forEach((method) => {
                 if (typeof this[method] !== "function" && typeof fullImpl[method] === "function") {
-                    console.log(`Adding missing method: ${method}`);
+                    logger.log(`Adding missing method: ${method}`);
                     this[method] = fullImpl[method];
                 }
             });
@@ -1604,7 +1607,7 @@ if (!window.schedulerSettings) {
                     if (typeof this.initFlatpickr === "function") {
                         this.initFlatpickr();
                     } else {
-                        console.error("initFlatpickr is not available");
+                        logger.error("initFlatpickr is not available");
                     }
                 });
             });
@@ -1614,11 +1617,11 @@ if (!window.schedulerSettings) {
                 if (typeof this.fetchTasks === "function") {
                     this.fetchTasks();
                 } else {
-                    console.error("fetchTasks still not available after enhancement");
+                    logger.error("fetchTasks still not available after enhancement");
                 }
             }, 100);
 
-            console.log("Enhanced init complete");
+            logger.log("Enhanced init complete");
         };
 
         return baseComponent;
@@ -1631,22 +1634,22 @@ if (window.safeRegisterAlpineComponent) {
     window.safeRegisterAlpineComponent("schedulerSettings", window.schedulerSettings, {
         allowOverride: true // Allow override since this component may be registered multiple times
     });
-    console.log("✅ schedulerSettings component registered via Component Manager");
+    logger.log("✅ schedulerSettings component registered via Component Manager");
 } else if (window.Alpine) {
     // Alpine is already loaded, register now as fallback
-    console.log("Alpine already loaded, registering schedulerSettings component now (fallback)");
+    logger.log("Alpine already loaded, registering schedulerSettings component now (fallback)");
     window.Alpine.data("schedulerSettings", window.schedulerSettings);
 } else {
     // Wait for Alpine to load as final fallback
     document.addEventListener("alpine:init", () => {
-        console.log("Alpine:init - registering schedulerSettings component (final fallback)");
+        logger.log("Alpine:init - registering schedulerSettings component (final fallback)");
         Alpine.data("schedulerSettings", window.schedulerSettings);
     });
 }
 
 // Add a document ready event handler to ensure the scheduler tab can be clicked on first load
 document.addEventListener("DOMContentLoaded", () => {
-    console.log("DOMContentLoaded - setting up scheduler tab click handler");
+    logger.log("DOMContentLoaded - setting up scheduler tab click handler");
     // Setup scheduler tab click handling
     const setupSchedulerTab = () => {
         const settingsModal = document.getElementById("settingsModal");
@@ -1685,20 +1688,20 @@ document.addEventListener("DOMContentLoaded", () => {
                             if (typeof schedulerData.fetchTasks === "function") {
                                 schedulerData.fetchTasks();
                             } else {
-                                console.error("fetchTasks is not a function on scheduler component");
+                                logger.error("fetchTasks is not a function on scheduler component");
                             }
 
                             if (typeof schedulerData.startPolling === "function") {
                                 schedulerData.startPolling();
                             } else {
-                                console.error("startPolling is not a function on scheduler component");
+                                logger.error("startPolling is not a function on scheduler component");
                             }
                         } else {
-                            console.error("Could not find scheduler component element");
+                            logger.error("Could not find scheduler component element");
                         }
                     }, 100);
                 } catch (err) {
-                    console.error("Error handling scheduler tab click:", err);
+                    logger.error("Error handling scheduler tab click:", err);
                 }
             },
             true

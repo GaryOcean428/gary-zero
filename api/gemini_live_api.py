@@ -118,9 +118,9 @@ async def manage_streaming(request: GeminiLiveRequest):
             message=response.message,
             details={
                 "action": request.action,
-                "streaming_active": tool.is_streaming
-                if hasattr(tool, "is_streaming")
-                else False,
+                "streaming_active": (
+                    tool.is_streaming if hasattr(tool, "is_streaming") else False
+                ),
             },
         )
 
@@ -200,9 +200,9 @@ async def get_status():
             message="Status retrieved successfully",
             details={
                 "tool_response": response.message,
-                "streaming_active": tool.is_streaming
-                if hasattr(tool, "is_streaming")
-                else False,
+                "streaming_active": (
+                    tool.is_streaming if hasattr(tool, "is_streaming") else False
+                ),
             },
         )
 

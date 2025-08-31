@@ -38,5 +38,5 @@ class GetModelsForProvider(ApiHandler):
             "deprecated_count": len(
                 model_catalog.get_deprecated_models_for_provider(provider)
             ),
-            "show_deprecated": show_deprecated
+            "show_deprecated": show_deprecated,
         }

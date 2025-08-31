@@ -95,11 +95,13 @@ def test_db_connection(connection_string, connection_name):
             print(f"Server address: {server_addr[0]}")
 
             # List tables in database
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT table_name
                 FROM information_schema.tables
                 WHERE table_schema = 'public'
-            """)
+            """
+            )
             tables = cursor.fetchall()
             if tables:
                 print("Tables in database:")

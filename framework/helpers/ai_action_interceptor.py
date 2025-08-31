@@ -141,9 +141,11 @@ class ClaudeComputerUseInterceptor(ActionInterceptor):
                         action.status = "completed"
                         action.execution_time = time.time() - start_time
                         action.result = {
-                            "message": result.message
-                            if hasattr(result, "message")
-                            else str(result)
+                            "message": (
+                                result.message
+                                if hasattr(result, "message")
+                                else str(result)
+                            )
                         }
                     except Exception as e:
                         action.status = "error"

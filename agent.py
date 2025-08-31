@@ -64,6 +64,7 @@ class AgentContext:
         self.config = config
         # Import log module to ensure it's available
         from framework.helpers import log as log_module
+
         self.log = log or log_module.Log()
         self.agent0 = agent0 or Agent(0, self.config, self)
         self.paused = paused
@@ -736,9 +737,11 @@ class Agent:
                             tracer.end_agent_trace(
                                 trace_id,
                                 success=safety_eval.get("is_safe", True),
-                                result=final_message[:200] + "..."
-                                if len(final_message) > 200
-                                else final_message,
+                                result=(
+                                    final_message[:200] + "..."
+                                    if len(final_message) > 200
+                                    else final_message
+                                ),
                             )
 
                         # Update task progress
@@ -747,9 +750,11 @@ class Agent:
                         )
                         task_manager.complete_task(
                             task_id,
-                            final_message[:200] + "..."
-                            if len(final_message) > 200
-                            else final_message,
+                            (
+                                final_message[:200] + "..."
+                                if len(final_message) > 200
+                                else final_message
+                            ),
                         )
 
                         # Log safety evaluation results
@@ -856,7 +861,7 @@ class Agent:
                 f"name: {self.config.chat_model.name})"
             )
             self.context.log.log(type="warning", content=fallback_msg)
-            
+
             try:
                 # Use chat model configuration for utility functions
                 fallback_model = models.get_model(

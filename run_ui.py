@@ -136,23 +136,26 @@ def handle_404(e):
     )
 
     if is_api_request:
-        return jsonify(
-            {
-                "error": "Not Found",
-                "method": request.method,
-                "path": request.path,
-                "message": "The requested endpoint does not exist",
-                "timestamp": time.time(),
-                "available_endpoints": [
-                    "/",
-                    "/health",
-                    "/ready",
-                    "/privacy",
-                    "/terms",
-                    "/favicon.ico",
-                ],
-            }
-        ), 404
+        return (
+            jsonify(
+                {
+                    "error": "Not Found",
+                    "method": request.method,
+                    "path": request.path,
+                    "message": "The requested endpoint does not exist",
+                    "timestamp": time.time(),
+                    "available_endpoints": [
+                        "/",
+                        "/health",
+                        "/ready",
+                        "/privacy",
+                        "/terms",
+                        "/favicon.ico",
+                    ],
+                }
+            ),
+            404,
+        )
     else:
         try:
             return files.read_file("./webui/404.html"), 404
@@ -356,7 +359,7 @@ def requires_auth(f):
                 429,
                 {"WWW-Authenticate": 'Basic realm="Rate Limited"'},
             )
-        
+
         auth = request.authorization
         success, user_data = False, None
 
@@ -368,7 +371,9 @@ def requires_auth(f):
                 )
                 # Rate limit success logging to prevent spam
                 if success and auth_rate_limiter.should_log_success(client_ip):
-                    PrintStyle().success(f"User '{auth.username}' authenticated via database from {request.remote_addr}")
+                    PrintStyle().success(
+                        f"User '{auth.username}' authenticated via database from {request.remote_addr}"
+                    )
             else:
                 # Fallback to environment-based authentication with security checks
                 user = dotenv.get_dotenv_value("AUTH_LOGIN")
@@ -376,22 +381,32 @@ def requires_auth(f):
 
                 # Critical: Block insecure default credentials
                 if user == "admin" and password == "admin":
-                    PrintStyle().error("SECURITY VIOLATION: Attempt to use insecure default credentials admin/admin")
+                    PrintStyle().error(
+                        "SECURITY VIOLATION: Attempt to use insecure default credentials admin/admin"
+                    )
                     return Response(
                         "SECURITY ERROR: Default credentials are not allowed. Please contact administrator.",
                         403,
-                        {"WWW-Authenticate": 'Basic realm="Secure Authentication Required"'},
+                        {
+                            "WWW-Authenticate": 'Basic realm="Secure Authentication Required"'
+                        },
                     )
 
                 if user and password:
                     # Use secure password comparison
-                    if auth.username == user and check_password_hash(generate_password_hash(password), auth.password):
+                    if auth.username == user and check_password_hash(
+                        generate_password_hash(password), auth.password
+                    ):
                         success = True
                         # Rate limit success logging to prevent spam
                         if auth_rate_limiter.should_log_success(client_ip):
-                            PrintStyle().success(f"User '{auth.username}' authenticated via fallback method from {request.remote_addr}")
+                            PrintStyle().success(
+                                f"User '{auth.username}' authenticated via fallback method from {request.remote_addr}"
+                            )
                     else:
-                        PrintStyle().warning(f"Authentication failed for '{auth.username}' via fallback method from {request.remote_addr}")
+                        PrintStyle().warning(
+                            f"Authentication failed for '{auth.username}' via fallback method from {request.remote_addr}"
+                        )
 
         if not auth or not success:
             return Response(
@@ -525,9 +540,11 @@ def health_check():
             "version": "1.0.0",
             "memory_percent": memory_percent,
             "uptime_seconds": uptime,
-            "server": "gunicorn"
-            if "gunicorn" in os.environ.get("SERVER_SOFTWARE", "")
-            else "development",
+            "server": (
+                "gunicorn"
+                if "gunicorn" in os.environ.get("SERVER_SOFTWARE", "")
+                else "development"
+            ),
             "environment": {
                 "node_env": node_env,
                 "langchain_stream_disabled": langchain_stream_disabled,
@@ -607,9 +624,11 @@ def health_check_railway():
             "version": "1.0.0",
             "memory_percent": memory_percent,
             "uptime_seconds": uptime,
-            "server": "gunicorn"
-            if "gunicorn" in os.environ.get("SERVER_SOFTWARE", "")
-            else "development",
+            "server": (
+                "gunicorn"
+                if "gunicorn" in os.environ.get("SERVER_SOFTWARE", "")
+                else "development"
+            ),
             "service": "gary-zero",
             "environment": {
                 "node_env": node_env,
@@ -639,45 +658,63 @@ def health_check_directories():
 
     try:
         from framework.helpers.files import get_data_path
-        
+
         # Required directories
-        required_dirs = ["settings", "memory", "knowledge", "prompts", "logs", "work_dir", "reports", "scheduler", "tmp"]
+        required_dirs = [
+            "settings",
+            "memory",
+            "knowledge",
+            "prompts",
+            "logs",
+            "work_dir",
+            "reports",
+            "scheduler",
+            "tmp",
+        ]
         directory_status = {}
         all_healthy = True
-        
+
         base_data_path = get_data_path()
-        
+
         for dir_name in required_dirs:
             dir_path = os.path.join(base_data_path, dir_name)
             exists = os.path.exists(dir_path) and os.path.isdir(dir_path)
             directory_status[dir_name] = {
                 "exists": exists,
                 "path": dir_path,
-                "writable": os.access(dir_path, os.W_OK) if exists else False
+                "writable": os.access(dir_path, os.W_OK) if exists else False,
             }
             if not exists:
                 all_healthy = False
-        
+
         # Check for specific files
         required_files = {
-            "settings/config.json": os.path.join(base_data_path, "settings", "config.json"),
-            "memory/context.json": os.path.join(base_data_path, "memory", "context.json"),
-            "knowledge/index.json": os.path.join(base_data_path, "knowledge", "index.json"),
-            "scheduler/tasks.json": os.path.join(base_data_path, "scheduler", "tasks.json"),
+            "settings/config.json": os.path.join(
+                base_data_path, "settings", "config.json"
+            ),
+            "memory/context.json": os.path.join(
+                base_data_path, "memory", "context.json"
+            ),
+            "knowledge/index.json": os.path.join(
+                base_data_path, "knowledge", "index.json"
+            ),
+            "scheduler/tasks.json": os.path.join(
+                base_data_path, "scheduler", "tasks.json"
+            ),
         }
-        
+
         file_status = {}
         for file_key, file_path in required_files.items():
             exists = os.path.exists(file_path) and os.path.isfile(file_path)
             file_status[file_key] = {
                 "exists": exists,
                 "path": file_path,
-                "size": os.path.getsize(file_path) if exists else 0
+                "size": os.path.getsize(file_path) if exists else 0,
             }
-        
+
         # Check authentication rate limiter stats
         auth_stats = auth_rate_limiter.get_stats()
-        
+
         status_code = 200 if all_healthy else 503
         return {
             "status": "healthy" if all_healthy else "degraded",
@@ -687,8 +724,8 @@ def health_check_directories():
             "files": file_status,
             "authentication": {
                 "rate_limiter_active": True,
-                "current_stats": auth_stats
-            }
+                "current_stats": auth_stats,
+            },
         }, status_code
     except Exception as e:
         # Fallback to basic health check if psutil fails
@@ -725,12 +762,12 @@ def api_prompts():
     try:
         stats = dynamic_prompt_loader.get_stats()
         agents = dynamic_prompt_loader.list_agents()
-        
+
         return {
             "status": "success",
             "timestamp": time.time(),
             "prompt_stats": stats,
-            "agents": agents
+            "agents": agents,
         }
     except Exception as e:
         PrintStyle().error(f"Prompts API failed: {str(e)}")
@@ -756,14 +793,14 @@ def api_agent_prompt(agent_id):
                 "status": "success",
                 "agent_id": agent_id,
                 "prompt": prompt_data,
-                "timestamp": time.time()
+                "timestamp": time.time(),
             }
         else:
             return {
                 "status": "not_found",
                 "agent_id": agent_id,
                 "message": "Agent prompt not found",
-                "timestamp": time.time()
+                "timestamp": time.time(),
             }, 404
     except Exception as e:
         PrintStyle().error(f"Agent prompt API failed: {str(e)}")
@@ -914,41 +951,43 @@ async def rotate_credentials():
         )
         response.headers.add("Access-Control-Allow-Methods", "POST,OPTIONS")
         return response
-    
+
     try:
         if db_auth:
             # Use database-backed credential rotation
-            auth_user = request.authorization.username if request.authorization else "admin"
+            auth_user = (
+                request.authorization.username if request.authorization else "admin"
+            )
             new_password = db_auth.rotate_credentials(auth_user)
-            
+
             if new_password:
                 return {
                     "status": "success",
                     "message": "Credentials rotated successfully",
                     "new_password": new_password,
                     "timestamp": time.time(),
-                    "warning": "Please update your AUTH_PASSWORD environment variable with the new password"
+                    "warning": "Please update your AUTH_PASSWORD environment variable with the new password",
                 }
             else:
                 return {
-                    "status": "error", 
+                    "status": "error",
                     "message": "Failed to rotate credentials",
-                    "timestamp": time.time()
+                    "timestamp": time.time(),
                 }, 500
         else:
             return {
                 "status": "error",
                 "message": "Database authentication not available - cannot rotate credentials",
-                "timestamp": time.time()
+                "timestamp": time.time(),
             }, 503
-            
+
     except Exception as e:
         PrintStyle().error(f"Credential rotation failed: {str(e)}")
         return {
             "status": "error",
             "message": "Credential rotation failed",
             "error": str(e),
-            "timestamp": time.time()
+            "timestamp": time.time(),
         }, 500
 
 

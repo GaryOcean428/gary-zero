@@ -1,3 +1,6 @@
+// Import enhanced logger
+import { logger } from './console-logger.js';
+
 import { getContext } from "../index.js";
 
 export async function openHistoryModal() {

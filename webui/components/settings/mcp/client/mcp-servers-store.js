@@ -1,3 +1,6 @@
+// Import enhanced logger
+import { logger } from './../../../../js/console-logger.js';
+
 import { createStore } from "/js/AlpineStore.js";
 import * as API from "/js/api.js";
 import { scrollModal } from "/js/modals.js";
@@ -41,7 +44,7 @@ const model = {
                         json = "{}"; // Default empty JSON object
                     }
                 } catch (e) {
-                    console.warn("Failed to get initial JSON value:", e);
+                    logger.warn("Failed to get initial JSON value:", e);
                     json = "{}";
                 }
                 
@@ -63,7 +66,7 @@ const model = {
                 });
                 
             } catch (error) {
-                console.error("Failed to initialize Ace editor, using fallback:", error);
+                logger.error("Failed to initialize Ace editor, using fallback:", error);
                 this.initializeFallbackTextarea(container);
             }
         }
@@ -90,7 +93,7 @@ const model = {
                     : JSON.stringify(fieldConfig.value, null, 2);
             }
         } catch (e) {
-            console.warn("Failed to get initial JSON value for fallback:", e);
+            logger.warn("Failed to get initial JSON value for fallback:", e);
         }
         
         textarea.value = json;
@@ -127,7 +130,7 @@ const model = {
                 this.fallbackTextarea.value = formatted;
             }
         } catch (error) {
-            console.error("Failed to format JSON:", error);
+            logger.error("Failed to format JSON:", error);
             alert("Invalid JSON: " + error.message);
         }
     },
@@ -157,9 +160,9 @@ const model = {
             try {
                 const content = this.getEditorValue();
                 localStorage.setItem('mcp_servers_config_draft', content);
-                console.log('Auto-saved MCP servers config');
+                logger.log('Auto-saved MCP servers config');
             } catch (e) {
-                console.error('Failed to auto-save:', e);
+                logger.error('Failed to auto-save:', e);
             }
         }, 1000);
     },
@@ -184,7 +187,7 @@ const model = {
             // Stop status check
             this.stopStatusCheck();
         } catch (error) {
-            console.error("Error in onClose:", error);
+            logger.error("Error in onClose:", error);
         }
     },
 
@@ -235,7 +238,7 @@ const model = {
             await sleep(100); // wait for ui and scroll
             scrollModal("mcp-servers-status");
         } catch (error) {
-            console.error("Failed to apply MCP servers:", error);
+            logger.error("Failed to apply MCP servers:", error);
             alert("Failed to apply MCP servers: " + error.message);
         }
         this.loading = false;

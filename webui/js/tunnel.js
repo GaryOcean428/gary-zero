@@ -1,3 +1,6 @@
+// Import enhanced logger
+import { logger } from './console-logger.js';
+
 // Tunnel settings for the Settings modal
 document.addEventListener("alpine:init", () => {
     Alpine.data("tunnelSettings", () => ({

@@ -22,7 +22,7 @@ class Message(ApiHandler):
                 "context": context.id,
                 "duplicate": True,
             }
-        
+
         result = await task.result()  # type: ignore
         return {
             "message": result,
@@ -73,22 +73,28 @@ class Message(ApiHandler):
         if client_message_id:
             existing_logs = context.log.logs
             for log_item in existing_logs:
-                if (log_item.type == "user" and 
-                    log_item.kvps and 
-                    log_item.kvps.get("client_message_id") == client_message_id):
+                if (
+                    log_item.type == "user"
+                    and log_item.kvps
+                    and log_item.kvps.get("client_message_id") == client_message_id
+                ):
                     # Return existing message result to prevent duplicate
-                    PrintStyle(font_color="yellow").print(f"🚫 Skipping duplicate message with client_message_id: {client_message_id}")
+                    PrintStyle(font_color="yellow").print(
+                        f"🚫 Skipping duplicate message with client_message_id: {client_message_id}"
+                    )
                     return None, context  # Return None to indicate duplicate
-            
+
             # Also check if there's an in-progress message with the same client_message_id
             # This prevents race conditions during concurrent requests
-            if hasattr(context, '_processing_messages'):
+            if hasattr(context, "_processing_messages"):
                 if client_message_id in context._processing_messages:
-                    PrintStyle(font_color="yellow").print(f"🚫 Message already being processed: {client_message_id}")
+                    PrintStyle(font_color="yellow").print(
+                        f"🚫 Message already being processed: {client_message_id}"
+                    )
                     return None, context
             else:
                 context._processing_messages = set()
-            
+
             # Mark this message as being processed
             context._processing_messages.add(client_message_id)
 
@@ -130,5 +136,5 @@ class Message(ApiHandler):
             return context.communicate(UserMessage(message, attachment_paths)), context
         finally:
             # Clean up processing state
-            if client_message_id and hasattr(context, '_processing_messages'):
+            if client_message_id and hasattr(context, "_processing_messages"):
                 context._processing_messages.discard(client_message_id)

@@ -24,7 +24,9 @@ MODEL_PARAMS_DESCRIPTION = (
     """Any other parameters supported by the model. Format is KEY=VALUE """
     """on individual lines, just like .env file."""
 )
-PASSWORD_PLACEHOLDER = "****PSWD****"  # nosec B105 - This is a placeholder, not a real password
+PASSWORD_PLACEHOLDER = (
+    "****PSWD****"  # nosec B105 - This is a placeholder, not a real password
+)
 
 
 def _dict_to_env(data_dict):

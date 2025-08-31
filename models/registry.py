@@ -95,88 +95,113 @@ class ModelRegistry:
 
     def infer_provider(self, model_code: str) -> str:
         code_lower = model_code.lower()
-        if any(term in code_lower for term in [
-            'gpt', 'o1', 'o3', 'dall-e', 'whisper', 'tts', 'omni', 'text-embedding'
-        ]):
+        if any(
+            term in code_lower
+            for term in [
+                "gpt",
+                "o1",
+                "o3",
+                "dall-e",
+                "whisper",
+                "tts",
+                "omni",
+                "text-embedding",
+            ]
+        ):
             return "openai"
-        if 'gemini' in code_lower or 'imagen' in code_lower or 'veo' in code_lower:
+        if "gemini" in code_lower or "imagen" in code_lower or "veo" in code_lower:
             return "google"
-        if 'claude' in code_lower:
+        if "claude" in code_lower:
             return "anthropic"
-        if 'grok' in code_lower:
+        if "grok" in code_lower:
             return "xai"
-        if 'llama' in code_lower or 'mixtral' in code_lower or 'gemma' in code_lower:
+        if "llama" in code_lower or "mixtral" in code_lower or "gemma" in code_lower:
             return "groq"
         return ""
 
     def map_features_to_capabilities(
-        self, features: list[str], model_code: str, inputs: list[str], outputs: list[str]
+        self,
+        features: list[str],
+        model_code: str,
+        inputs: list[str],
+        outputs: list[str],
     ) -> list[ModelCapability]:
         capabilities = set()
         code_lower = model_code.lower()
 
         # Base on model type
-        if any(m in code_lower for m in [
-            'gpt', 'o1', 'o3', 'claude', 'grok', 'gemini', 'llama', 'mixtral', 'gemma'
-        ]):
+        if any(
+            m in code_lower
+            for m in [
+                "gpt",
+                "o1",
+                "o3",
+                "claude",
+                "grok",
+                "gemini",
+                "llama",
+                "mixtral",
+                "gemma",
+            ]
+        ):
             capabilities.add(ModelCapability.TEXT_GENERATION)
-        if 'embedding' in code_lower:
+        if "embedding" in code_lower:
             capabilities.add(ModelCapability.EMBEDDINGS)
-        if 'tts' in code_lower:
+        if "tts" in code_lower:
             capabilities.add(ModelCapability.TTS)
-        if 'whisper' in code_lower:
+        if "whisper" in code_lower:
             capabilities.add(ModelCapability.STT)
-        if any(m in code_lower for m in ['dall-e', 'imagen']):
+        if any(m in code_lower for m in ["dall-e", "imagen"]):
             capabilities.add(ModelCapability.IMAGE_GENERATION)
-        if 'veo' in code_lower:
+        if "veo" in code_lower:
             capabilities.add(ModelCapability.VIDEO_GENERATION)
-        if 'omni-moderation' in code_lower:
+        if "omni-moderation" in code_lower:
             capabilities.add(ModelCapability.MODERATION)
 
         # From features
         for feature in features:
             f_lower = feature.lower()
-            if any(k in f_lower for k in ['code', 'coding']):
+            if any(k in f_lower for k in ["code", "coding"]):
                 capabilities.add(ModelCapability.CODE_GENERATION)
-            if any(k in f_lower for k in ['function calling', 'tool use']):
+            if any(k in f_lower for k in ["function calling", "tool use"]):
                 capabilities.add(ModelCapability.FUNCTION_CALLING)
-            if any(k in f_lower for k in ['vision', 'multimodal']):
+            if any(k in f_lower for k in ["vision", "multimodal"]):
                 capabilities.add(ModelCapability.VISION)
-            if 'streaming' in f_lower:
+            if "streaming" in f_lower:
                 capabilities.add(ModelCapability.STREAMING)
-            if any(k in f_lower for k in ['json', 'structured outputs']):
+            if any(k in f_lower for k in ["json", "structured outputs"]):
                 capabilities.add(ModelCapability.JSON_MODE)
-            if 'reasoning' in f_lower:
+            if "reasoning" in f_lower:
                 capabilities.add(ModelCapability.REASONING)
-            if 'search' in f_lower:
+            if "search" in f_lower:
                 capabilities.add(ModelCapability.SEARCH)
-            if any(k in f_lower for k in ['voice', 'audio', 'realtime']):
+            if any(k in f_lower for k in ["voice", "audio", "realtime"]):
                 capabilities.add(ModelCapability.VOICE)
-            if 'text-to-speech' in f_lower:
+            if "text-to-speech" in f_lower:
                 capabilities.add(ModelCapability.TTS)
-            if 'speech-to-text' in f_lower:
+            if "speech-to-text" in f_lower:
                 capabilities.add(ModelCapability.STT)
-            if 'image generation' in f_lower:
+            if "image generation" in f_lower:
                 capabilities.add(ModelCapability.IMAGE_GENERATION)
-            if 'video generation' in f_lower:
+            if "video generation" in f_lower:
                 capabilities.add(ModelCapability.VIDEO_GENERATION)
-            if 'moderation' in f_lower:
+            if "moderation" in f_lower:
                 capabilities.add(ModelCapability.MODERATION)
 
         # From inputs/outputs
-        if any(i in inputs for i in ['image', 'video', 'audio', 'documents']):
+        if any(i in inputs for i in ["image", "video", "audio", "documents"]):
             capabilities.add(ModelCapability.VISION)
-        if 'audio' in inputs:
+        if "audio" in inputs:
             capabilities.add(ModelCapability.STT)
-        if 'audio' in outputs:
+        if "audio" in outputs:
             capabilities.add(ModelCapability.TTS)
-        if 'images' in outputs:
+        if "images" in outputs:
             capabilities.add(ModelCapability.IMAGE_GENERATION)
-        if 'videos' in outputs:
+        if "videos" in outputs:
             capabilities.add(ModelCapability.VIDEO_GENERATION)
-        if 'embeddings' in outputs:
+        if "embeddings" in outputs:
             capabilities.add(ModelCapability.EMBEDDINGS)
-        if 'moderation_scores' in outputs:
+        if "moderation_scores" in outputs:
             capabilities.add(ModelCapability.MODERATION)
 
         return list(capabilities)
@@ -231,18 +256,41 @@ class ModelRegistry:
 
     def is_modern(self, model_code: str, release_date: str) -> bool:
         legacy_models = [
-            'gpt-4', 'gpt-4-32k', 'gpt-4-turbo', 'gpt-3.5-turbo', 
-            'text-embedding-ada-002', 'text-embedding-3', 'gpt-4o', 
-            'gpt-4-turbo-preview', 'gpt-4o-mini-search-preview',
-            'claude-2.0', 'claude-2.1', 'claude-3-opus', 'claude-3-sonnet', 
-            'claude-3-haiku', 'claude-instant-1.2',
-            'gemini-pro', 'gemini-1.5-pro', 'gemini-1.5-flash', 
-            'text-bison', 'chat-bison',
-            'mistral-7b-instruct', 'mixtral-8x7b', 'mixtral-8x22b', 'mistral-large',
-            'deepseek-llm', 'deepseek-7b', 'deepseek-67b',
-            'grok-1', 'grok-1.5',
-            'llama-2-chat-7b', 'llama-2-chat-13b',
-            'dialogpt-medium', 'dialogpt-large', 'blenderbot-400m', 'llama-2-chat',
+            "gpt-4",
+            "gpt-4-32k",
+            "gpt-4-turbo",
+            "gpt-3.5-turbo",
+            "text-embedding-ada-002",
+            "text-embedding-3",
+            "gpt-4o",
+            "gpt-4-turbo-preview",
+            "gpt-4o-mini-search-preview",
+            "claude-2.0",
+            "claude-2.1",
+            "claude-3-opus",
+            "claude-3-sonnet",
+            "claude-3-haiku",
+            "claude-instant-1.2",
+            "gemini-pro",
+            "gemini-1.5-pro",
+            "gemini-1.5-flash",
+            "text-bison",
+            "chat-bison",
+            "mistral-7b-instruct",
+            "mixtral-8x7b",
+            "mixtral-8x22b",
+            "mistral-large",
+            "deepseek-llm",
+            "deepseek-7b",
+            "deepseek-67b",
+            "grok-1",
+            "grok-1.5",
+            "llama-2-chat-7b",
+            "llama-2-chat-13b",
+            "dialogpt-medium",
+            "dialogpt-large",
+            "blenderbot-400m",
+            "llama-2-chat",
         ]
         return model_code.lower() not in [m.lower() for m in legacy_models]
 
@@ -260,19 +308,19 @@ class ModelRegistry:
     def _initialize_models(self):
         """Initialize the model registry with models from CSV."""
         csv_path = os.path.join(
-            os.path.dirname(__file__), '..', 'docs', 'ai-models', 'ai-models.csv'
+            os.path.dirname(__file__), "..", "docs", "ai-models", "ai-models.csv"
         )
         if not os.path.exists(csv_path):
             logger.error(f"CSV file not found: {csv_path}")
             return
 
-        with open(csv_path, encoding='utf-8') as f:
+        with open(csv_path, encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
-                if not row['Model Name']:
+                if not row["Model Name"]:
                     continue
 
-                model_code = row['Model Code for API']
+                model_code = row["Model Code for API"]
                 provider_str = self.infer_provider(model_code)
                 if not provider_str:
                     logger.warning(f"Unknown provider for {model_code}")
@@ -281,20 +329,22 @@ class ModelRegistry:
 
                 try:
                     context_window = int(
-                        row['Input Token Limit'].replace(',', '').replace(' tokens', '')
+                        row["Input Token Limit"].replace(",", "").replace(" tokens", "")
                     )
                     max_tokens = int(
-                        row['Output Token Limit'].replace(',', '').replace(' tokens', '')
+                        row["Output Token Limit"]
+                        .replace(",", "")
+                        .replace(" tokens", "")
                     )
                 except ValueError:
                     logger.warning(f"Invalid token limits for {model_code}")
                     continue
 
                 features = [
-                    f.strip() for f in row['Key Features'].split(',') if f.strip()
+                    f.strip() for f in row["Key Features"].split(",") if f.strip()
                 ]
-                inputs = [i.strip() for i in row['Inputs'].split(',') if i.strip()]
-                outputs = [o.strip() for o in row['Outputs'].split(',') if o.strip()]
+                inputs = [i.strip() for i in row["Inputs"].split(",") if i.strip()]
+                outputs = [o.strip() for o in row["Outputs"].split(",") if o.strip()]
                 capabilities = self.map_features_to_capabilities(
                     features, model_code, inputs, outputs
                 )
@@ -305,24 +355,24 @@ class ModelRegistry:
 
                 rpm, tpm = self.get_rate_limits(provider_str)
 
-                modern = self.is_modern(model_code, row['Last Updated'])
+                modern = self.is_modern(model_code, row["Last Updated"])
 
                 self.register_model(
                     ModelConfig(
                         provider=provider,
                         model_name=model_code,
-                        display_name=row['Model Name'],
+                        display_name=row["Model Name"],
                         max_tokens=max_tokens,
                         context_window=context_window,
                         cost_per_1k_input_tokens=input_cost,
                         cost_per_1k_output_tokens=output_cost,
                         capabilities=capabilities,
                         recommended_for=recommended_for,
-                        description=row['Description'],
+                        description=row["Description"],
                         rate_limit_rpm=rpm,
                         rate_limit_tpm=tpm,
                         modern=modern,
-                        release_date=row['Last Updated'],
+                        release_date=row["Last Updated"],
                     )
                 )
 
@@ -368,7 +418,7 @@ class ModelRegistry:
             m
             for m in self.models.values()
             if (
-                any(uc in m.recommended_for for uc in use_case.lower().split()) 
+                any(uc in m.recommended_for for uc in use_case.lower().split())
                 and m.is_available
             )
         ]
@@ -386,19 +436,19 @@ class ModelRegistry:
 
         # Prefer gpt-4.1 over gpt-4o except for realtime voice
         is_realtime_voice = any(
-            term in use_case.lower() for term in ['realtime', 'voice']
+            term in use_case.lower() for term in ["realtime", "voice"]
         )
 
         def priority_key(m):
             if is_realtime_voice:
-                if 'gpt-4o' in m.model_name:
+                if "gpt-4o" in m.model_name:
                     return 0
-                elif 'gpt-4.1' in m.model_name:
+                elif "gpt-4.1" in m.model_name:
                     return 1
             else:
-                if 'gpt-4.1' in m.model_name:
+                if "gpt-4.1" in m.model_name:
                     return 0
-                elif 'gpt-4o' in m.model_name:
+                elif "gpt-4o" in m.model_name:
                     return 1
             return 2
 

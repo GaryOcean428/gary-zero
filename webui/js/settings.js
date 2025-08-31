@@ -1,12 +1,7 @@
-/* global Logger */
+// Import enhanced logger
+import { logger } from './console-logger.js';
 
-// Create logger instance for settings module
-const logger = window.Logger ? new Logger('Settings') : { 
-    debug: console.log, 
-    info: console.info, 
-    warn: console.warn, 
-    error: console.error 
-};
+/* global Logger */
 
 // Utility function for debouncing
 function debounce(func, wait, options = {}) {
@@ -61,7 +56,7 @@ function debounce(func, wait, options = {}) {
     }
     
     function timerExpired() {
-        const time = Date.now();
+    // const time = Date.now(); // Unused time variable
         if (shouldInvoke(time)) {
             return trailingEdge(time);
         }
@@ -79,7 +74,7 @@ function debounce(func, wait, options = {}) {
     }
     
     function debounced(...args) {
-        const time = Date.now();
+    // const time = Date.now(); // Unused time variable
         const isInvoking = shouldInvoke(time);
         
         lastArgs = args;
@@ -150,10 +145,10 @@ const settingsModalProxy = {
                     const errorData = await response.json();
                     throw new Error(errorData.error || `HTTP ${response.status}`);
                 }
-                console.log('Settings saved successfully');
+                logger.log('Settings saved successfully');
                 return response.json();
             } catch (error) {
-                console.error('Settings save failed:', error);
+                logger.error('Settings save failed:', error);
                 throw error;
             }
         }.bind(this);
@@ -639,7 +634,7 @@ const settingsModalProxy = {
 
 //     window.openSettings = function () {
 //         proxy.openModal().then(result => {
-//             console.log(result);  // This will log the result when the modal is closed
+//             logger.log(result);  // This will log the result when the modal is closed
 //         });
 //     }
 

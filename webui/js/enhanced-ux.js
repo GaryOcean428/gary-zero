@@ -1,3 +1,6 @@
+// Import enhanced logger
+import { logger } from './console-logger.js';
+
 /**
  * Enhanced form validation and user feedback for Gary-Zero
  */
@@ -15,7 +18,7 @@ class ToastManager {
 
         // Wait for document.body to be available if needed
         if (!document.body) {
-            console.warn("ToastManager: document.body not available, deferring container creation");
+            logger.warn("ToastManager: document.body not available, deferring container creation");
             return false;
         }
 
@@ -29,7 +32,7 @@ class ToastManager {
         }
 
         if (!parent) {
-            console.warn("ToastManager: No suitable parent element found, using document.body");
+            logger.warn("ToastManager: No suitable parent element found, using document.body");
             parent = document.body;
         }
 
@@ -46,19 +49,19 @@ class ToastManager {
         try {
             parent.appendChild(this.container);
             this.initialized = true;
-            console.log("✅ ToastManager container created successfully");
+            logger.log("✅ ToastManager container created successfully");
             return true;
         } catch (error) {
-            console.error("ToastManager: Failed to append container to parent:", error);
+            logger.error("ToastManager: Failed to append container to parent:", error);
             // Fallback to document.body if the selected parent fails
             if (parent !== document.body && document.body) {
                 try {
                     document.body.appendChild(this.container);
                     this.initialized = true;
-                    console.log("✅ ToastManager container created with fallback to body");
+                    logger.log("✅ ToastManager container created with fallback to body");
                     return true;
                 } catch (fallbackError) {
-                    console.error("ToastManager: Fallback to body also failed:", fallbackError);
+                    logger.error("ToastManager: Fallback to body also failed:", fallbackError);
                     return false;
                 }
             }
@@ -84,15 +87,15 @@ class ToastManager {
                         }
                     }, 100);
                 }
-                console.warn("ToastManager: Container not available, queued toast message");
+                logger.warn("ToastManager: Container not available, queued toast message");
                 return null;
             }
         }
 
         // Ensure container exists before showing toast
         if (!this.container || !this.container.parentElement) {
-            console.warn("ToastManager: Container not available, logging to console instead");
-            console.log(`[${type.toUpperCase()}] ${message}`);
+            logger.warn("ToastManager: Container not available, logging to console instead");
+            logger.log(`[${type.toUpperCase()}] ${message}`);
             return null;
         }
 
@@ -377,12 +380,12 @@ class AlpineErrorBoundary {
 
     setupGlobalErrorHandling() {
         window.addEventListener("error", (event) => {
-            console.error("Global error:", event.error);
+            logger.error("Global error:", event.error);
             this.handleError(event.error, "Global Error");
         });
 
         window.addEventListener("unhandledrejection", (event) => {
-            console.error("Unhandled promise rejection:", event.reason);
+            logger.error("Unhandled promise rejection:", event.reason);
             this.handleError(event.reason, "Promise Rejection");
         });
     }

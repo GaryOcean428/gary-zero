@@ -60,7 +60,8 @@ class DatabaseAuth:
                 cursor = conn.cursor()
 
                 # Create users table
-                cursor.execute("""
+                cursor.execute(
+                    """
                     CREATE TABLE IF NOT EXISTS auth_users (
                         id SERIAL PRIMARY KEY,
                         username VARCHAR(255) UNIQUE NOT NULL,
@@ -74,10 +75,12 @@ class DatabaseAuth:
                         password_changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         must_change_password BOOLEAN DEFAULT FALSE
                     )
-                """)
+                """
+                )
 
                 # Create sessions table for session management
-                cursor.execute("""
+                cursor.execute(
+                    """
                     CREATE TABLE IF NOT EXISTS auth_sessions (
                         id SERIAL PRIMARY KEY,
                         session_token VARCHAR(512) UNIQUE NOT NULL,
@@ -88,10 +91,12 @@ class DatabaseAuth:
                         ip_address INET,
                         user_agent TEXT
                     )
-                """)
+                """
+                )
 
                 # Create OAuth tokens table (future-proofing)
-                cursor.execute("""
+                cursor.execute(
+                    """
                     CREATE TABLE IF NOT EXISTS auth_oauth_tokens (
                         id SERIAL PRIMARY KEY,
                         user_id INTEGER REFERENCES auth_users(id) ON DELETE CASCADE,
@@ -102,7 +107,8 @@ class DatabaseAuth:
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         UNIQUE(user_id, provider)
                     )
-                """)
+                """
+                )
 
                 # Create indexes for performance
                 cursor.execute(

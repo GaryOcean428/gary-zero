@@ -244,15 +244,21 @@ Focus on creating output that clearly demonstrates successful completion of the 
                         "status": subtask.status,
                         "tool": subtask.tool_name,
                         "dependencies": len(subtask.dependencies),
-                        "started_at": subtask.started_at.isoformat()
-                        if subtask.started_at
-                        else None,
-                        "completed_at": subtask.completed_at.isoformat()
-                        if subtask.completed_at
-                        else None,
-                        "result_preview": subtask.result[:100] + "..."
-                        if subtask.result and len(subtask.result) > 100
-                        else subtask.result,
+                        "started_at": (
+                            subtask.started_at.isoformat()
+                            if subtask.started_at
+                            else None
+                        ),
+                        "completed_at": (
+                            subtask.completed_at.isoformat()
+                            if subtask.completed_at
+                            else None
+                        ),
+                        "result_preview": (
+                            subtask.result[:100] + "..."
+                            if subtask.result and len(subtask.result) > 100
+                            else subtask.result
+                        ),
                         "error": subtask.error,
                     }
                     for subtask in plan.subtasks
@@ -294,9 +300,9 @@ class EnhancedTaskScheduler(BaseTaskScheduler):
             asyncio.Lock() if asyncio.get_event_loop().is_running() else None
         )
         self._pending_async_tasks: dict[str, dict[str, Any]] = {}
-        self._task_mapping: dict[
-            str, str
-        ] = {}  # scheduler task id -> orchestration task id
+        self._task_mapping: dict[str, str] = (
+            {}
+        )  # scheduler task id -> orchestration task id
         self._performance_monitor = get_performance_monitor()
         self._execution_stats = {
             "sync_executions": 0,
@@ -589,7 +595,7 @@ def get_scheduler() -> EnhancedTaskScheduler:
 def schedule_background_task(name: str, coro) -> None:
     """
     Schedule a background task to run using the enhanced scheduler.
-    
+
     Args:
         name: A descriptive name for the task
         coro: The coroutine to execute
@@ -604,7 +610,9 @@ def schedule_background_task(name: str, coro) -> None:
         # No running loop, try to use the scheduler's async capabilities
         try:
             scheduler = get_enhanced_scheduler()
-            if scheduler._async_enabled or asyncio.iscoroutinefunction(scheduler.initialize_async_mode):
+            if scheduler._async_enabled or asyncio.iscoroutinefunction(
+                scheduler.initialize_async_mode
+            ):
                 # Schedule through the enhanced scheduler
                 asyncio.create_task(_schedule_via_scheduler(name, coro))
             else:

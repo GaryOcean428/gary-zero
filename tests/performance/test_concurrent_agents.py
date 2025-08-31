@@ -123,9 +123,9 @@ class TestMemoryUsage:
         )
 
         # Memory increase should be reasonable (adjust threshold as needed)
-        assert memory_increase < 50, (
-            f"Memory usage increased too much: {memory_increase}MB"
-        )
+        assert (
+            memory_increase < 50
+        ), f"Memory usage increased too much: {memory_increase}MB"
 
     def test_code_validation_performance(self):
         """Test performance of code validation."""

@@ -6,10 +6,10 @@ from framework.helpers.settings.env_priority import get_env_var_status
 
 class GetEnvStatus(ApiHandler):
     """Get environment variable status for settings."""
-    
+
     async def process(self, input_data: Input, request: Request) -> Output:
         """Get the status of environment variables affecting settings.
-        
+
         Returns:
             Dictionary containing:
             - overridden: Settings that are overridden by environment variables
@@ -20,10 +20,11 @@ class GetEnvStatus(ApiHandler):
             env_status = get_env_var_status()
             return {
                 "env_status": env_status,
-                "message": "Environment variable status retrieved successfully"
+                "message": "Environment variable status retrieved successfully",
             }
         except Exception as e:
             print(f"ERROR in GetEnvStatus: {e}")
             import traceback
+
             traceback.print_exc()
             raise

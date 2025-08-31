@@ -426,15 +426,15 @@ class PerformanceMonitor:
             "duration_seconds": duration_seconds,
             "resource_usage": {
                 "current": {
-                    "cpu_percent": latest_snapshot.cpu_percent
-                    if latest_snapshot
-                    else 0,
-                    "memory_percent": latest_snapshot.memory_percent
-                    if latest_snapshot
-                    else 0,
-                    "memory_used_mb": latest_snapshot.memory_used_mb
-                    if latest_snapshot
-                    else 0,
+                    "cpu_percent": (
+                        latest_snapshot.cpu_percent if latest_snapshot else 0
+                    ),
+                    "memory_percent": (
+                        latest_snapshot.memory_percent if latest_snapshot else 0
+                    ),
+                    "memory_used_mb": (
+                        latest_snapshot.memory_used_mb if latest_snapshot else 0
+                    ),
                 },
                 "average": resource_avg,
             },

@@ -103,15 +103,15 @@ def test_template_helper():
             print(f"✅ Template rendered: {len(rendered)} chars")
 
             # Verify placeholders are replaced
-            assert "{{version_no}}" not in rendered, (
-                "version_no placeholder not replaced"
-            )
-            assert "{{version_time}}" not in rendered, (
-                "version_time placeholder not replaced"
-            )
-            assert "{{feature_flags_config}}" not in rendered, (
-                "feature_flags_config placeholder not replaced"
-            )
+            assert (
+                "{{version_no}}" not in rendered
+            ), "version_no placeholder not replaced"
+            assert (
+                "{{version_time}}" not in rendered
+            ), "version_time placeholder not replaced"
+            assert (
+                "{{feature_flags_config}}" not in rendered
+            ), "feature_flags_config placeholder not replaced"
             assert "<script>" in rendered, "Feature flags script not injected"
 
             print("✅ Template helper tests passed!")

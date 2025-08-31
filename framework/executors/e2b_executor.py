@@ -137,12 +137,16 @@ class E2BCodeExecutor(BaseCodeExecutor):
                     ),  # Rich outputs (charts, tables, etc.)
                     "execution_time": time.time() - start_time,
                     "logs": {
-                        "stdout": getattr(execution.logs, "stdout", [])
-                        if hasattr(execution, "logs")
-                        else [],
-                        "stderr": getattr(execution.logs, "stderr", [])
-                        if hasattr(execution, "logs")
-                        else [],
+                        "stdout": (
+                            getattr(execution.logs, "stdout", [])
+                            if hasattr(execution, "logs")
+                            else []
+                        ),
+                        "stderr": (
+                            getattr(execution.logs, "stderr", [])
+                            if hasattr(execution, "logs")
+                            else []
+                        ),
                     },
                     "session_id": session_id,
                     "language": language,
@@ -168,12 +172,16 @@ class E2BCodeExecutor(BaseCodeExecutor):
                     "stderr": execution.error or "",
                     "execution_time": time.time() - start_time,
                     "logs": {
-                        "stdout": getattr(execution.logs, "stdout", [])
-                        if hasattr(execution, "logs")
-                        else [],
-                        "stderr": getattr(execution.logs, "stderr", [])
-                        if hasattr(execution, "logs")
-                        else [],
+                        "stdout": (
+                            getattr(execution.logs, "stdout", [])
+                            if hasattr(execution, "logs")
+                            else []
+                        ),
+                        "stderr": (
+                            getattr(execution.logs, "stderr", [])
+                            if hasattr(execution, "logs")
+                            else []
+                        ),
                     },
                     "session_id": session_id,
                     "language": language,
@@ -196,9 +204,9 @@ class E2BCodeExecutor(BaseCodeExecutor):
                 "error": str(e),
                 "stdout": "",
                 "stderr": "",
-                "execution_time": time.time() - start_time
-                if "start_time" in locals()
-                else 0,
+                "execution_time": (
+                    time.time() - start_time if "start_time" in locals() else 0
+                ),
                 "session_id": session_id,
                 "language": language,
             }

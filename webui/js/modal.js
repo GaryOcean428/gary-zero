@@ -1,3 +1,6 @@
+// Import enhanced logger
+import { logger } from './console-logger.js';
+
 const fullScreenInputModalProxy = {
     isOpen: false,
     inputText: "",

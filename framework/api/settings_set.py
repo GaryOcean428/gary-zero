@@ -1,7 +1,8 @@
+from flask import abort
+
 from framework.helpers import settings
 from framework.helpers.api import ApiHandler, Input, Output, Request
 from framework.helpers.model_catalog import validate_model_selection
-from flask import abort
 
 
 class SetSettings(ApiHandler):
@@ -33,7 +34,11 @@ class SetSettings(ApiHandler):
                 ("embed_model_provider", "embed_model_name", "Embedding model"),
                 ("browser_model_provider", "browser_model_name", "Browser model"),
                 ("coding_agent_provider", "coding_agent_name", "Coding agent model"),
-                ("supervisor_agent_provider", "supervisor_agent_name", "Supervisor agent model"),
+                (
+                    "supervisor_agent_provider",
+                    "supervisor_agent_name",
+                    "Supervisor agent model",
+                ),
             ]
 
             # Extract settings to validate

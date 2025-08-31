@@ -1,9 +1,12 @@
+// Import enhanced logger
+import { logger } from './js/console-logger.js';
+
 import * as msgs from "./js/messages.js";
 import { speech } from "./js/speech.js";
 
 // --- App Boot Management ---
 if (window.__APP_BOOTED__) { 
-    console.debug('App already booted, skipping init'); 
+    logger.debug('App already booted, skipping init'); 
     // Don't continue with initialization if already booted
 } else {
     // Continue with normal initialization
@@ -40,13 +43,13 @@ let sidebarOverlay;
 
 function setMessage(id, type, heading, content, temp, kvps) {
     if (!chatHistory) {
-        // console.warn('Chat history element not found, unable to set message');
+        // logger.warn('Chat history element not found, unable to set message');
         return;
     }
 
     // Skip user messages that were already created locally to prevent duplicates
     if (type === "user" && localUserMessages.has(id)) {
-        console.log(`🚫 Skipping duplicate user message from server: ${id}`);
+        logger.log(`🚫 Skipping duplicate user message from server: ${id}`);
         return;
     }
 
@@ -54,11 +57,11 @@ function setMessage(id, type, heading, content, temp, kvps) {
     let messageContainer = messageContainers.get(id);
     if (messageContainer) {
         // Update existing message
-        console.log(`🔄 Updating existing message: ${id} (${type})`);
+        logger.log(`🔄 Updating existing message: ${id} (${type})`);
         messageContainer.innerHTML = "";
     } else {
         // Create new message container
-        console.log(`✨ Creating new message: ${id} (${type})`);
+        logger.log(`✨ Creating new message: ${id} (${type})`);
         messageContainer = document.createElement("div");
         messageContainer.classList.add("message-container");
         messageContainer.setAttribute("data-message-id", id);
@@ -69,7 +72,7 @@ function setMessage(id, type, heading, content, temp, kvps) {
     // Check for potential duplicates in DOM (additional safety check)
     const existingMessages = chatHistory.querySelectorAll(`[data-message-id="${id}"]`);
     if (existingMessages.length > 1) {
-        console.warn(`⚠️ Duplicate message containers detected for ID: ${id}`, existingMessages);
+        logger.warn(`⚠️ Duplicate message containers detected for ID: ${id}`, existingMessages);
         // Remove duplicates, keeping only the first one
         for (let i = 1; i < existingMessages.length; i++) {
             existingMessages[i].remove();
@@ -81,7 +84,7 @@ function setMessage(id, type, heading, content, temp, kvps) {
     if (handler) {
         handler(messageContainer, id, type, heading, content, temp, kvps);
     } else {
-        // console.warn(`No handler found for message type: ${type}`);
+        // logger.warn(`No handler found for message type: ${type}`);
         msgs.drawMessageDefault(messageContainer, id, type, heading, content, temp, kvps);
     }
 
@@ -215,7 +218,7 @@ async function sendJsonData(url, data) {
     
     // Only log requests for non-polling endpoints to reduce console noise
     if (url !== "/poll") {
-        console.log(`📡 Sending request to ${url}`, data);
+        logger.log(`📡 Sending request to ${url}`, data);
     }
 
     for (let i = 0; i < retries; i++) {
@@ -228,12 +231,12 @@ async function sendJsonData(url, data) {
 
             // Only log responses for non-polling endpoints to reduce console noise
             if (url !== "/poll") {
-                console.log(`📡 Response from ${url}: ${response.status} ${response.statusText}`);
+                logger.log(`📡 Response from ${url}: ${response.status} ${response.statusText}`);
             }
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error(`❌ Request failed for ${url}:`, {
+                logger.error(`❌ Request failed for ${url}:`, {
                     status: response.status,
                     statusText: response.statusText,
                     error: errorText
@@ -242,7 +245,7 @@ async function sendJsonData(url, data) {
                 if (response.status === 502) {
                     lastError = new Error(`Server temporarily unavailable (${response.status})`);
                     if (i < retries - 1) {
-                        console.log(`🔄 Retrying ${url} in ${1000 * (i + 1)}ms due to 502 error`);
+                        logger.log(`🔄 Retrying ${url} in ${1000 * (i + 1)}ms due to 502 error`);
                         // Wait longer between retries for 502 errors
                         await new Promise((resolve) => setTimeout(resolve, 1000 * (i + 1)));
                     }
@@ -253,15 +256,15 @@ async function sendJsonData(url, data) {
                 const result = await response.json();
                 // Only log success for non-polling endpoints to reduce console noise
                 if (url !== "/poll") {
-                    console.log(`✅ Success from ${url}:`, result);
+                    logger.log(`✅ Success from ${url}:`, result);
                 }
                 return result;
             }
         } catch (error) {
-            console.error(`❌ Network error for ${url} (attempt ${i + 1}):`, error);
+            logger.error(`❌ Network error for ${url} (attempt ${i + 1}):`, error);
             lastError = error;
             if (i < retries - 1) {
-                console.log(`🔄 Retrying ${url} in ${500 * (i + 1)}ms due to network error`);
+                logger.log(`🔄 Retrying ${url} in ${500 * (i + 1)}ms due to network error`);
                 // Wait before retry
                 await new Promise((resolve) => setTimeout(resolve, 500 * (i + 1)));
             }
@@ -269,7 +272,7 @@ async function sendJsonData(url, data) {
     }
 
     // If we get here, all retries failed
-    console.error(`💥 All retries failed for ${url}:`, lastError);
+    logger.error(`💥 All retries failed for ${url}:`, lastError);
     throw lastError;
 }
 window.sendJsonData = sendJsonData;
@@ -313,13 +316,13 @@ async function fetchCurrentModel() {
                     indicator.classList.add('model-vision');
                 }
                 
-                console.log('✅ Updated model indicator:', modelData);
+                logger.log('✅ Updated model indicator:', modelData);
             }
         } else {
-            console.error('❌ Error fetching current model:', response?.error || 'Unknown error');
+            logger.error('❌ Error fetching current model:', response?.error || 'Unknown error');
         }
     } catch (error) {
-        console.error('❌ Failed to fetch current model:', error);
+        logger.error('❌ Failed to fetch current model:', error);
     }
 }
 
@@ -327,7 +330,7 @@ window.fetchCurrentModel = fetchCurrentModel;
 
 // Process any early calls that were queued during initialization
 if (window.__earlyFetchCurrentModelCalls && window.__earlyFetchCurrentModelCalls.length > 0) {
-    console.debug('Processing', window.__earlyFetchCurrentModelCalls.length, 'queued fetchCurrentModel calls');
+    logger.debug('Processing', window.__earlyFetchCurrentModelCalls.length, 'queued fetchCurrentModel calls');
     const earlyCallsToProcess = [...window.__earlyFetchCurrentModelCalls];
     window.__earlyFetchCurrentModelCalls.length = 0; // Clear the queue
     
@@ -336,7 +339,7 @@ if (window.__earlyFetchCurrentModelCalls && window.__earlyFetchCurrentModelCalls
         try {
             fetchCurrentModel(...args);
         } catch (error) {
-            console.warn('Error processing queued fetchCurrentModel call:', error);
+            logger.warn('Error processing queued fetchCurrentModel call:', error);
         }
     });
 }
@@ -457,7 +460,7 @@ async function poll() {
             return true;
         }
     } catch (error) {
-        console.error("Network error during polling:", error);
+        logger.error("Network error during polling:", error);
         setConnectionStatus(false);
         toastFetchError("Network error during polling", error);
     }
@@ -501,11 +504,11 @@ function verifyUIVisibility() {
         "auto-scroll-switch",
         "left-panel",
     ];
-    // console.log('🔍 UI visibility check');
+    // logger.log('🔍 UI visibility check');
     elements.forEach((id) => {
         const el = document.getElementById(id);
         if (!el) {
-            // console.warn(`❌ #${id} missing`);
+            // logger.warn(`❌ #${id} missing`);
             return;
         }
         const style = window.getComputedStyle(el);
@@ -514,7 +517,7 @@ function verifyUIVisibility() {
             style.visibility !== "hidden" &&
             parseFloat(style.opacity) !== 0 &&
             el.offsetParent !== null;
-        // console.log(`${visible ? '✅' : '⚠️'} #${id}`);
+        // logger.log(`${visible ? '✅' : '⚠️'} #${id}`);
         if (!visible) {
             el.style.display = "";
             el.style.visibility = "visible";
@@ -533,7 +536,7 @@ function newChat() {
         localUserMessages.clear();
         updateAfterScroll();
     } catch (error) {
-        console.error("Error creating new chat:", error);
+        logger.error("Error creating new chat:", error);
         toastFetchError("Error creating new chat", error);
     }
 }
@@ -598,14 +601,14 @@ async function sendMessage() {
             
             // Check if this was a duplicate message
             if (jsonResponse && jsonResponse.duplicate) {
-                console.log(`🚫 Message was duplicate, skipping: ${clientMessageId}`);
+                logger.log(`🚫 Message was duplicate, skipping: ${clientMessageId}`);
                 return;
             }
             
             if (jsonResponse && jsonResponse.context) {
                 setContext(jsonResponse.context);
             } else {
-                console.warn("No response context returned from /message_async");
+                logger.warn("No response context returned from /message_async");
                 toast("No response context returned.", "warning");
             }
 
@@ -617,7 +620,7 @@ async function sendMessage() {
             adjustTextareaHeight();
         }
     } catch (error) {
-        console.error("Error sending message:", error);
+        logger.error("Error sending message:", error);
         toastFetchError("Error sending message", error);
     }
 }
@@ -627,7 +630,7 @@ async function pauseAgent(paused) {
     try {
         await sendJsonData("/pause", { paused, context });
     } catch (error) {
-        console.error("Failed to pause agent:", error);
+        logger.error("Failed to pause agent:", error);
         toast("Failed to pause agent", "error");
     }
 }
@@ -638,7 +641,7 @@ async function resetChat(ctxid = null) {
         await sendJsonData("/chat_reset", { context: ctxid || context });
         if (!ctxid) updateAfterScroll();
     } catch (error) {
-        console.error("Failed to reset chat:", error);
+        logger.error("Failed to reset chat:", error);
         toast("Failed to reset chat", "error");
     }
 }
@@ -729,8 +732,7 @@ window.restart = async () => {
         await sendJsonData("/restart", {});
     } catch (error) {
         // This is expected to fail as the server shuts down. We can ignore it.
-        // eslint-disable-next-line no-console
-        console.log("Restart initiated, server shutting down:", error.message);
+        logger.log("Restart initiated, server shutting down:", error.message);
     }
 
     toast("Restarting...", "info", 0);
@@ -743,8 +745,7 @@ window.restart = async () => {
             return toast("Restarted", "success", 5000);
         } catch (error) {
             // Not ready yet, continue loop
-            // eslint-disable-next-line no-console
-            console.log("Health check failed, retrying...", error.message);
+            logger.log("Health check failed, retrying...", error.message);
         }
     }
     hideToast();
@@ -787,11 +788,11 @@ window.loadChats = async () => {
             setContext(response.ctxids[0]);
             toast("Chats loaded.", "success");
         } else {
-            console.warn("No chats returned from server");
+            logger.warn("No chats returned from server");
             toast("No chats could be loaded from the selected files.", "warning");
         }
     } catch (error) {
-        console.error("Error loading chats:", error);
+        logger.error("Error loading chats:", error);
         toastFetchError("Error loading chats", error);
     }
 };
@@ -803,11 +804,11 @@ async function saveChat() {
             downloadFile(`${response.ctxid}.json`, response.content);
             toast("Chat file downloaded.", "success");
         } else {
-            console.warn("No response returned from /chat_export");
+            logger.warn("No response returned from /chat_export");
             toast("No response returned from server.", "error");
         }
     } catch (error) {
-        console.error("Error saving chat:", error);
+        logger.error("Error saving chat:", error);
         toastFetchError("Error saving chat", error);
     }
 }
@@ -1212,14 +1213,14 @@ function initializeApp() {
                     setTimeout(_doPoll, nextInterval);
                 } catch (error) {
                     consecutiveErrors++;
-                    console.error(`Polling error (attempt ${consecutiveErrors}):`, error);
+                    logger.error(`Polling error (attempt ${consecutiveErrors}):`, error);
 
                     // Use progressively longer intervals on consecutive errors
                     const errorInterval = Math.min(longInterval * 2 ** Math.min(consecutiveErrors - 1, 4), 10000);
                     
                     // Show error to user after multiple consecutive failures
                     if (consecutiveErrors >= 5) {
-                        console.warn(`Polling has failed ${consecutiveErrors} times consecutively`);
+                        logger.warn(`Polling has failed ${consecutiveErrors} times consecutively`);
                         if (consecutiveErrors === 5) {
                             toast("Connection issues detected. Retrying...", "warning", 3000);
                         }
@@ -1242,7 +1243,7 @@ function initializeApp() {
             
             // Listen for settings updates to refresh model info
             document.addEventListener('settings-updated', () => {
-                console.log('🔄 Settings updated, refreshing model indicator');
+                logger.log('🔄 Settings updated, refreshing model indicator');
                 setTimeout(fetchCurrentModel, 500); // Small delay to ensure settings are saved
             });
         }, 1000);

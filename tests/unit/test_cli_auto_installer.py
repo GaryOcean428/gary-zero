@@ -5,20 +5,15 @@ Tests the detection, installation, and management of CLI tools
 with mock environments and version checking.
 """
 
-import asyncio
 import os
 import subprocess
-import tempfile
 import unittest
-from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
-
 from framework.helpers.cli_auto_installer import (
+    ClaudeCodeCLIInstaller,
     CLIInstaller,
     CLIManager,
-    ClaudeCodeCLIInstaller,
     GeminiCLIInstaller,
     OpenAICodexCLIInstaller,
     QwenCoderCLIInstaller,
@@ -45,7 +40,7 @@ class TestCLIInstaller(unittest.TestCase):
         self.assertEqual(self.installer.config, self.config)
         self.assertTrue(self.installer.tmp_bin_path.exists())
 
-    @patch('framework.helpers.cli_auto_installer.CLIInstaller._run_command')
+    @patch("framework.helpers.cli_auto_installer.CLIInstaller._run_command")
     async def test_detect_cli_success(self, mock_run_command):
         """Test successful CLI detection."""
         mock_run_command.return_value = {
@@ -56,12 +51,12 @@ class TestCLIInstaller(unittest.TestCase):
         }
 
         available, path = await self.installer.detect_cli()
-        
+
         self.assertTrue(available)
         self.assertEqual(path, "test-cli")
         mock_run_command.assert_called_with(["test-cli", "--version"], timeout=10)
 
-    @patch('framework.helpers.cli_auto_installer.CLIInstaller._run_command')
+    @patch("framework.helpers.cli_auto_installer.CLIInstaller._run_command")
     async def test_detect_cli_not_found(self, mock_run_command):
         """Test CLI detection when CLI is not found."""
         mock_run_command.return_value = {
@@ -72,17 +67,17 @@ class TestCLIInstaller(unittest.TestCase):
         }
 
         available, error = await self.installer.detect_cli()
-        
+
         self.assertFalse(available)
         self.assertIn("not found", error)
 
-    @patch('framework.helpers.cli_auto_installer.CLIInstaller._install_cli')
+    @patch("framework.helpers.cli_auto_installer.CLIInstaller._install_cli")
     async def test_auto_install_enabled(self, mock_install_cli):
         """Test auto-installation when enabled."""
         mock_install_cli.return_value = (True, "Installation successful")
-        
+
         success, message = await self.installer.auto_install()
-        
+
         self.assertTrue(success)
         self.assertIn("installed successfully", message)
         mock_install_cli.assert_called_once()
@@ -90,9 +85,9 @@ class TestCLIInstaller(unittest.TestCase):
     async def test_auto_install_disabled(self):
         """Test auto-installation when disabled."""
         self.installer.config["auto_install"] = False
-        
+
         success, message = await self.installer.auto_install()
-        
+
         self.assertFalse(success)
         self.assertIn("Auto-install disabled", message)
 
@@ -101,7 +96,7 @@ class TestCLIInstaller(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             await self.installer._install_cli()
 
-    @patch('asyncio.create_subprocess_exec')
+    @patch("asyncio.create_subprocess_exec")
     async def test_run_command_success(self, mock_subprocess):
         """Test successful command execution."""
         mock_process = AsyncMock()
@@ -110,22 +105,22 @@ class TestCLIInstaller(unittest.TestCase):
         mock_subprocess.return_value = mock_process
 
         result = await self.installer._run_command(["echo", "test"])
-        
+
         self.assertTrue(result["success"])
         self.assertEqual(result["output"], "output")
         self.assertEqual(result["returncode"], 0)
 
-    @patch('asyncio.create_subprocess_exec')
+    @patch("asyncio.create_subprocess_exec")
     async def test_run_command_timeout(self, mock_subprocess):
         """Test command execution timeout."""
         mock_process = AsyncMock()
-        mock_process.communicate.side_effect = asyncio.TimeoutError()
+        mock_process.communicate.side_effect = TimeoutError()
         mock_process.kill = AsyncMock()
         mock_process.wait = AsyncMock()
         mock_subprocess.return_value = mock_process
 
         result = await self.installer._run_command(["sleep", "10"], timeout=1)
-        
+
         self.assertFalse(result["success"])
         self.assertIn("timed out", result["error"])
         self.assertEqual(result["returncode"], -1)
@@ -142,7 +137,7 @@ class TestGeminiCLIInstaller(unittest.TestCase):
         """Test Gemini CLI installer initialization."""
         self.assertEqual(self.installer.name, "gemini")
 
-    @patch('framework.helpers.cli_auto_installer.GeminiCLIInstaller._run_command')
+    @patch("framework.helpers.cli_auto_installer.GeminiCLIInstaller._run_command")
     async def test_install_cli_success(self, mock_run_command):
         """Test successful Gemini CLI installation."""
         # Mock pip install success
@@ -152,11 +147,11 @@ class TestGeminiCLIInstaller(unittest.TestCase):
         ]
 
         success, message = await self.installer._install_cli()
-        
+
         self.assertTrue(success)
         self.assertIn("Installed and linked", message)
 
-    @patch('framework.helpers.cli_auto_installer.GeminiCLIInstaller._run_command')
+    @patch("framework.helpers.cli_auto_installer.GeminiCLIInstaller._run_command")
     async def test_install_cli_pip_failure(self, mock_run_command):
         """Test Gemini CLI installation failure during pip install."""
         mock_run_command.return_value = {
@@ -166,7 +161,7 @@ class TestGeminiCLIInstaller(unittest.TestCase):
         }
 
         success, message = await self.installer._install_cli()
-        
+
         self.assertFalse(success)
         self.assertEqual(message, "pip install failed")
 
@@ -182,7 +177,7 @@ class TestClaudeCodeCLIInstaller(unittest.TestCase):
         """Test Claude Code CLI installer initialization."""
         self.assertEqual(self.installer.name, "claude-code")
 
-    @patch('framework.helpers.cli_auto_installer.ClaudeCodeCLIInstaller._run_command')
+    @patch("framework.helpers.cli_auto_installer.ClaudeCodeCLIInstaller._run_command")
     async def test_install_cli_success(self, mock_run_command):
         """Test successful Claude Code CLI installation."""
         # Mock npm install success
@@ -192,7 +187,7 @@ class TestClaudeCodeCLIInstaller(unittest.TestCase):
         ]
 
         success, message = await self.installer._install_cli()
-        
+
         self.assertTrue(success)
         self.assertIn("Installed and linked", message)
 
@@ -208,7 +203,7 @@ class TestOpenAICodexCLIInstaller(unittest.TestCase):
         """Test OpenAI Codex CLI installer initialization."""
         self.assertEqual(self.installer.name, "codex")
 
-    @patch('framework.helpers.cli_auto_installer.OpenAICodexCLIInstaller._run_command')
+    @patch("framework.helpers.cli_auto_installer.OpenAICodexCLIInstaller._run_command")
     async def test_install_cli_success(self, mock_run_command):
         """Test successful OpenAI Codex CLI installation."""
         # Mock npm install success
@@ -218,7 +213,7 @@ class TestOpenAICodexCLIInstaller(unittest.TestCase):
         ]
 
         success, message = await self.installer._install_cli()
-        
+
         self.assertTrue(success)
         self.assertIn("Installed and linked", message)
 
@@ -234,7 +229,7 @@ class TestQwenCoderCLIInstaller(unittest.TestCase):
         """Test Qwen Coder CLI installer initialization."""
         self.assertEqual(self.installer.name, "qwen-coder")
 
-    @patch('framework.helpers.cli_auto_installer.QwenCoderCLIInstaller._run_command')
+    @patch("framework.helpers.cli_auto_installer.QwenCoderCLIInstaller._run_command")
     async def test_install_cli_success(self, mock_run_command):
         """Test successful Qwen Coder CLI installation."""
         # Mock pip install success
@@ -244,7 +239,7 @@ class TestQwenCoderCLIInstaller(unittest.TestCase):
         ]
 
         success, message = await self.installer._install_cli()
-        
+
         self.assertTrue(success)
         self.assertIn("Installed and linked", message)
 
@@ -269,7 +264,7 @@ class TestCLIManager(unittest.TestCase):
         self.assertIn("codex", self.manager.installers)
         self.assertIn("qwen-coder", self.manager.installers)
 
-    @patch('framework.helpers.cli_auto_installer.CLIManager._initialize_cli')
+    @patch("framework.helpers.cli_auto_installer.CLIManager._initialize_cli")
     async def test_initialize_all(self, mock_initialize_cli):
         """Test initializing all CLI tools."""
         mock_initialize_cli.return_value = {
@@ -281,7 +276,7 @@ class TestCLIManager(unittest.TestCase):
         }
 
         results = await self.manager.initialize_all()
-        
+
         self.assertEqual(len(results), 4)
         self.assertEqual(mock_initialize_cli.call_count, 4)
 
@@ -292,7 +287,7 @@ class TestCLIManager(unittest.TestCase):
         os.environ["CODEX_CLI_PATH"] = "/usr/local/bin/codex"
 
         status = self.manager.get_cli_status()
-        
+
         self.assertEqual(len(status), 4)
         self.assertTrue(status["gemini"]["available"])
         self.assertTrue(status["codex"]["available"])
@@ -319,7 +314,7 @@ class TestCLIStartupIntegration(unittest.TestCase):
             "qwen_cli_auto_install": True,
         }
 
-    @patch('framework.helpers.cli_startup_integration.CLIManager')
+    @patch("framework.helpers.cli_startup_integration.CLIManager")
     async def test_initialize_cli_tools(self, mock_cli_manager_class):
         """Test CLI tools initialization during startup."""
         mock_manager = AsyncMock()
@@ -330,7 +325,7 @@ class TestCLIStartupIntegration(unittest.TestCase):
         mock_cli_manager_class.return_value = mock_manager
 
         results = await initialize_cli_tools(self.config)
-        
+
         self.assertIn("gemini", results)
         self.assertIn("claude-code", results)
         mock_manager.initialize_all.assert_called_once()
@@ -342,7 +337,7 @@ class TestCLIStartupIntegration(unittest.TestCase):
         os.environ["QWEN_CODER_CLI_PATH"] = "/usr/local/bin/qwen-coder"
 
         env_vars = get_cli_environment_variables()
-        
+
         self.assertIn("GEMINI_CLI_PATH", env_vars)
         self.assertIn("QWEN_CODER_CLI_PATH", env_vars)
         self.assertEqual(env_vars["GEMINI_CLI_PATH"], "/usr/local/bin/gemini")
@@ -351,14 +346,14 @@ class TestCLIStartupIntegration(unittest.TestCase):
         os.environ.pop("GEMINI_CLI_PATH", None)
         os.environ.pop("QWEN_CODER_CLI_PATH", None)
 
-    @patch('subprocess.run')
+    @patch("subprocess.run")
     def test_verify_cli_installation_success(self, mock_subprocess):
         """Test successful CLI installation verification."""
         mock_subprocess.return_value = MagicMock(returncode=0)
         os.environ["GEMINI_CLI_PATH"] = "/usr/local/bin/gemini"
 
         result = verify_cli_installation("gemini")
-        
+
         self.assertTrue(result)
         mock_subprocess.assert_called_with(
             ["/usr/local/bin/gemini", "--version"],
@@ -373,16 +368,16 @@ class TestCLIStartupIntegration(unittest.TestCase):
     def test_verify_cli_installation_no_env_var(self):
         """Test CLI installation verification when environment variable is not set."""
         result = verify_cli_installation("nonexistent-cli")
-        
+
         self.assertFalse(result)
 
-    @patch('framework.helpers.cli_startup_integration.verify_cli_installation')
+    @patch("framework.helpers.cli_startup_integration.verify_cli_installation")
     async def test_cli_health_check(self, mock_verify):
         """Test CLI health check."""
         mock_verify.side_effect = [True, False, True, False]
 
         health_status = await cli_health_check()
-        
+
         self.assertEqual(len(health_status), 4)
         self.assertTrue(health_status["gemini"])
         self.assertFalse(health_status["claude-code"])
@@ -397,7 +392,7 @@ class TestCLIStartupIntegration(unittest.TestCase):
 
         config = {"gemini_cli_path": "gemini", "codex_cli_path": "codex"}
         updated_config = setup_cli_paths_in_config(config)
-        
+
         self.assertEqual(updated_config["gemini_cli_path"], "/custom/gemini")
         self.assertEqual(updated_config["codex_cli_path"], "/custom/codex")
 
@@ -411,53 +406,57 @@ class TestCLIVersionStubs(unittest.TestCase):
 
     def test_gemini_version_stub(self):
         """Test Gemini CLI version stub."""
-        with patch('subprocess.run') as mock_run:
+        with patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
-                returncode=0,
-                stdout="Google Gemini CLI v1.0.0\n"
+                returncode=0, stdout="Google Gemini CLI v1.0.0\n"
             )
-            
-            result = subprocess.run(["gemini", "--version"], capture_output=True, text=True)
-            
+
+            result = subprocess.run(
+                ["gemini", "--version"], capture_output=True, text=True
+            )
+
             self.assertEqual(result.returncode, 0)
             self.assertIn("Gemini CLI", result.stdout)
 
     def test_claude_code_version_stub(self):
         """Test Claude Code CLI version stub."""
-        with patch('subprocess.run') as mock_run:
+        with patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
-                returncode=0,
-                stdout="Claude Code CLI v1.2.0\n"
+                returncode=0, stdout="Claude Code CLI v1.2.0\n"
             )
-            
-            result = subprocess.run(["claude-code", "--version"], capture_output=True, text=True)
-            
+
+            result = subprocess.run(
+                ["claude-code", "--version"], capture_output=True, text=True
+            )
+
             self.assertEqual(result.returncode, 0)
             self.assertIn("Claude Code CLI", result.stdout)
 
     def test_codex_version_stub(self):
         """Test OpenAI Codex CLI version stub."""
-        with patch('subprocess.run') as mock_run:
+        with patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
-                returncode=0,
-                stdout="OpenAI Codex CLI v0.8.5\n"
+                returncode=0, stdout="OpenAI Codex CLI v0.8.5\n"
             )
-            
-            result = subprocess.run(["codex", "--version"], capture_output=True, text=True)
-            
+
+            result = subprocess.run(
+                ["codex", "--version"], capture_output=True, text=True
+            )
+
             self.assertEqual(result.returncode, 0)
             self.assertIn("Codex CLI", result.stdout)
 
     def test_qwen_coder_version_stub(self):
         """Test Qwen Coder CLI version stub."""
-        with patch('subprocess.run') as mock_run:
+        with patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(
-                returncode=0,
-                stdout="Qwen Coder CLI v2.1.0\n"
+                returncode=0, stdout="Qwen Coder CLI v2.1.0\n"
             )
-            
-            result = subprocess.run(["qwen-coder", "--version"], capture_output=True, text=True)
-            
+
+            result = subprocess.run(
+                ["qwen-coder", "--version"], capture_output=True, text=True
+            )
+
             self.assertEqual(result.returncode, 0)
             self.assertIn("Qwen Coder CLI", result.stdout)
 

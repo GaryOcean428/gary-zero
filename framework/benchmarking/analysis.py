@@ -135,9 +135,7 @@ class BenchmarkAnalysis:
             score_trend = (
                 "improving"
                 if last_avg > first_avg
-                else "declining"
-                if last_avg < first_avg
-                else "stable"
+                else "declining" if last_avg < first_avg else "stable"
             )
 
             first_duration = moving_averages[0]["avg_duration"]
@@ -145,9 +143,7 @@ class BenchmarkAnalysis:
             duration_trend = (
                 "faster"
                 if last_duration < first_duration
-                else "slower"
-                if last_duration > first_duration
-                else "stable"
+                else "slower" if last_duration > first_duration else "stable"
             )
         else:
             score_trend = "insufficient_data"

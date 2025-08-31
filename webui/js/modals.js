@@ -1,3 +1,6 @@
+// Import enhanced logger
+import { logger } from './console-logger.js';
+
 // Import the component loader and page utilities
 import { importComponent } from "/js/components.js";
 
@@ -128,7 +131,7 @@ export function openModal(modalPath) {
                     modal.title.innerHTML = doc.title || modalPath;
                 })
                 .catch((error) => {
-                    console.error("Error loading modal content:", error);
+                    logger.error("Error loading modal content:", error);
                     modal.body.innerHTML = `<div class="error">Failed to load modal content: ${error.message}</div>`;
                 });
 
@@ -141,7 +144,7 @@ export function openModal(modalPath) {
             // Update modal z-indexes
             updateModalZIndexes();
         } catch (error) {
-            console.error("Error loading modal content:", error);
+            logger.error("Error loading modal content:", error);
             resolve();
         }
     });

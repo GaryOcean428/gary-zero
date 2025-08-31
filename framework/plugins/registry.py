@@ -50,7 +50,8 @@ class PluginRegistry:
     def _init_database(self):
         """Initialize the plugin database."""
         with sqlite3.connect(self.db_file) as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS plugins (
                     name TEXT PRIMARY KEY,
                     version TEXT NOT NULL,
@@ -64,10 +65,13 @@ class PluginRegistry:
                     last_updated TEXT,
                     signature TEXT
                 )
-            """)
-            conn.execute("""
+            """
+            )
+            conn.execute(
+                """
                 CREATE INDEX IF NOT EXISTS idx_enabled ON plugins(enabled)
-            """)
+            """
+            )
             conn.commit()
 
     def register_plugin(self, metadata: PluginMetadata) -> bool:
