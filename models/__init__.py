@@ -18,14 +18,15 @@ from __future__ import annotations
 
 import importlib.util
 import os
+from collections.abc import Callable
 from enum import Enum
 from types import ModuleType
-from typing import Any, Callable, Optional
+from typing import Any, Optional
 
-_models_module: Optional[ModuleType] = None
+_models_module: ModuleType | None = None
 
 
-def _load_models_module() -> Optional[ModuleType]:
+def _load_models_module() -> ModuleType | None:
     """Attempt to load the neighbouring ``models.py`` as a module.
 
     Returns:
@@ -59,7 +60,7 @@ if _real is not None:
     # Export selected attributes from the real models module.
     ModelProvider = _real.ModelProvider  # type: ignore[attr-defined]
     ModelType = _real.ModelType  # type: ignore[attr-defined]
-    get_api_key: Callable[[str], Optional[str]] = _real.get_api_key  # type: ignore[attr-defined]
+    get_api_key: Callable[[str], str | None] = _real.get_api_key  # type: ignore[attr-defined]
     get_model: Callable[..., Any] = _real.get_model  # type: ignore[attr-defined]
     get_rate_limiter: Callable[..., Any] = _real.get_rate_limiter  # type: ignore[attr-defined]
     parse_chunk: Callable[[Any], str] = _real.parse_chunk  # type: ignore[attr-defined]
@@ -77,7 +78,7 @@ else:
         CHAT = "Chat"
         EMBEDDING = "Embedding"
 
-    def get_api_key(service: str) -> Optional[str]:
+    def get_api_key(service: str) -> str | None:
         return None
 
     def get_model(

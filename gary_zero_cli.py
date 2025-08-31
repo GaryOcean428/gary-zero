@@ -12,13 +12,14 @@ import json
 import sys
 from datetime import datetime, timedelta
 
+from integration_demo import GaryZeroTestExecutor
+
 from framework.benchmarking.analysis import BenchmarkAnalysis, RegressionDetector
 from framework.benchmarking.harness import BenchmarkHarness
 from framework.benchmarking.reporting import BenchmarkReporter
 from framework.benchmarking.tasks import StandardTasks
 from framework.logging.storage import SqliteStorage
 from framework.logging.unified_logger import EventType, LogLevel, get_unified_logger
-from integration_demo import GaryZeroTestExecutor
 
 
 async def cmd_logs(args):

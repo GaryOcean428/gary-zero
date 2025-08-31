@@ -121,9 +121,9 @@ class ApprovalWorkflow:
         self.completed_requests: dict[str, ApprovalRequest] = {}
         self.action_definitions: dict[str, ActionDefinition] = {}
         self.user_roles: dict[str, UserRole] = {}
-        self.approval_cache: dict[
-            str, dict[str, float]
-        ] = {}  # user_id -> {action_type: timestamp}
+        self.approval_cache: dict[str, dict[str, float]] = (
+            {}
+        )  # user_id -> {action_type: timestamp}
 
         # Configuration
         self.global_timeout = 300  # 5 minutes default

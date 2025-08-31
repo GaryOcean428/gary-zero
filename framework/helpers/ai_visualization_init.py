@@ -130,18 +130,20 @@ class AIActionVisualizationSystem:
     async def _log_system_status(self):
         """Log current system status."""
         status = {
-            "interception_active": self.action_manager.active
-            if self.action_manager
-            else False,
-            "streaming_active": self.streaming_service.running
-            if self.streaming_service
-            else False,
-            "intercepted_providers": len(self.action_manager.interceptors)
-            if self.action_manager
-            else 0,
-            "streaming_url": f"ws://{self.config['streaming_host']}:{self.config['streaming_port']}"
-            if self.config["websocket_enabled"]
-            else "disabled",
+            "interception_active": (
+                self.action_manager.active if self.action_manager else False
+            ),
+            "streaming_active": (
+                self.streaming_service.running if self.streaming_service else False
+            ),
+            "intercepted_providers": (
+                len(self.action_manager.interceptors) if self.action_manager else 0
+            ),
+            "streaming_url": (
+                f"ws://{self.config['streaming_host']}:{self.config['streaming_port']}"
+                if self.config["websocket_enabled"]
+                else "disabled"
+            ),
         }
 
         Log.log().info(f"📊 AI Visualization Status: {status}")
@@ -180,24 +182,30 @@ class AIActionVisualizationSystem:
             "config": self.config,
             "interception": {
                 "active": self.action_manager.active if self.action_manager else False,
-                "providers": list(self.action_manager.interceptors.keys())
-                if self.action_manager
-                else [],
-                "action_count": len(self.action_manager.action_history)
-                if self.action_manager
-                else 0,
+                "providers": (
+                    list(self.action_manager.interceptors.keys())
+                    if self.action_manager
+                    else []
+                ),
+                "action_count": (
+                    len(self.action_manager.action_history)
+                    if self.action_manager
+                    else 0
+                ),
             },
             "streaming": {
-                "active": self.streaming_service.running
-                if self.streaming_service
-                else False,
+                "active": (
+                    self.streaming_service.running if self.streaming_service else False
+                ),
                 "url": f"ws://{self.config['streaming_host']}:{self.config['streaming_port']}",
-                "client_count": len(self.streaming_service.clients)
-                if self.streaming_service
-                else 0,
-                "stats": self.streaming_service.get_server_stats()
-                if self.streaming_service
-                else {},
+                "client_count": (
+                    len(self.streaming_service.clients) if self.streaming_service else 0
+                ),
+                "stats": (
+                    self.streaming_service.get_server_stats()
+                    if self.streaming_service
+                    else {}
+                ),
             },
         }
 

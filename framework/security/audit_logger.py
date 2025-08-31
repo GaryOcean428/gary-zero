@@ -134,9 +134,9 @@ class AuditLogger:
             input_data={
                 "content_length": len(content),
                 "content_type": content_type,
-                "content_preview": content[:100] + "..."
-                if len(content) > 100
-                else content,
+                "content_preview": (
+                    content[:100] + "..." if len(content) > 100 else content
+                ),
             },
             **kwargs,
         )

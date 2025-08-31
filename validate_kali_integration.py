@@ -12,7 +12,7 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 import requests
 
@@ -29,7 +29,11 @@ def validate_environment_variables() -> dict[str, Any]:
 
     optional_vars = ["KALI_PUBLIC_URL", "CODE_EXECUTION_MODE", "SHELL_SERVICE_ENABLED"]
 
-    results: dict[str, Any] = {"required": {}, "optional": {}, "all_required_present": True}
+    results: dict[str, Any] = {
+        "required": {},
+        "optional": {},
+        "all_required_present": True,
+    }
 
     # Check required variables
     for var in required_vars:
@@ -260,7 +264,8 @@ def validate_framework_integration() -> dict[str, Any]:
     # Overall integration status
     prompt_data = dict(results.get("prompt_integration", {}))
     results["integration_complete"] = bool(
-        results["all_files_present"] and prompt_data.get("shell_integration_included", False)
+        results["all_files_present"]
+        and prompt_data.get("shell_integration_included", False)
     )
 
     return results
@@ -283,9 +288,9 @@ async def test_kali_executor_integration() -> dict[str, Any]:
         }
 
         if not results["availability_check"]:
-            results["executor_tests"]["note"] = (
-                "Kali service not available - skipping executor tests"
-            )
+            results["executor_tests"][
+                "note"
+            ] = "Kali service not available - skipping executor tests"
             return results
 
         # Test executor initialization
@@ -319,9 +324,11 @@ async def test_kali_executor_integration() -> dict[str, Any]:
                 tools_result = await executor.get_available_tools()
                 results["executor_tests"]["tools_check"] = {
                     "success": tools_result.get("success", False),
-                    "tools_found": tools_result.get("stdout", "").count("\n")
-                    if tools_result.get("success")
-                    else 0,
+                    "tools_found": (
+                        tools_result.get("stdout", "").count("\n")
+                        if tools_result.get("success")
+                        else 0
+                    ),
                 }
             except Exception as e:
                 results["executor_tests"]["tools_check"] = {

@@ -88,9 +88,11 @@ class SecretCLI:
                 secret_type=parsed_type,
                 access_level=parsed_access,
                 description=description,
-                expires_at=datetime.utcnow() + timedelta(days=expires_days)
-                if expires_days
-                else None,
+                expires_at=(
+                    datetime.utcnow() + timedelta(days=expires_days)
+                    if expires_days
+                    else None
+                ),
                 rotation_interval_days=rotation_days,
                 tags=tags.split(",") if tags else [],
             )
@@ -264,15 +266,21 @@ class SecretCLI:
                 name=name,
                 secret_type=current_metadata.secret_type,
                 access_level=current_metadata.access_level,
-                description=description
-                if description is not None
-                else current_metadata.description,
-                expires_at=datetime.utcnow() + timedelta(days=expires_days)
-                if expires_days is not None
-                else current_metadata.expires_at,
-                rotation_interval_days=rotation_days
-                if rotation_days is not None
-                else current_metadata.rotation_interval_days,
+                description=(
+                    description
+                    if description is not None
+                    else current_metadata.description
+                ),
+                expires_at=(
+                    datetime.utcnow() + timedelta(days=expires_days)
+                    if expires_days is not None
+                    else current_metadata.expires_at
+                ),
+                rotation_interval_days=(
+                    rotation_days
+                    if rotation_days is not None
+                    else current_metadata.rotation_interval_days
+                ),
                 tags=tags.split(",") if tags is not None else current_metadata.tags,
                 owner=current_metadata.owner,
             )

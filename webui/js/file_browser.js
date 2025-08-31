@@ -1,3 +1,6 @@
+// Import enhanced logger
+import { logger } from './console-logger.js';
+
 const fileBrowserModalProxy = {
     isOpen: false,
     isLoading: false,
@@ -46,7 +49,7 @@ const fileBrowserModalProxy = {
                 this.browser.currentPath = data.data.current_path;
                 this.browser.parentPath = data.data.parent_path;
             } else {
-                console.error("Error fetching files:", await response.text());
+                logger.error("Error fetching files:", await response.text());
                 this.browser.entries = [];
             }
         } catch (error) {

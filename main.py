@@ -243,9 +243,11 @@ except Exception as e:
 # --- Middleware ---
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 allowed_origins = [
-    f"https://{os.getenv('RAILWAY_PUBLIC_DOMAIN')}"
-    if os.getenv("RAILWAY_PUBLIC_DOMAIN")
-    else None,
+    (
+        f"https://{os.getenv('RAILWAY_PUBLIC_DOMAIN')}"
+        if os.getenv("RAILWAY_PUBLIC_DOMAIN")
+        else None
+    ),
     os.getenv("FRONTEND_URL", "*"),
     "http://localhost:3000",
     "http://localhost:5173",
@@ -336,7 +338,7 @@ async def health_check_railway():
             "memory_usage": f"{memory_percent:.1f}%",
             "cpu_usage": f"{cpu_percent:.1f}%",
             "uptime_seconds": uptime,
-            "service": "gary-zero"
+            "service": "gary-zero",
         }
     except Exception as e:
         logger.error(f"Health check error: {e}")
@@ -344,7 +346,7 @@ async def health_check_railway():
             "status": "degraded",
             "timestamp": time.time(),
             "error": str(e),
-            "service": "gary-zero"
+            "service": "gary-zero",
         }
 
 
@@ -403,9 +405,11 @@ async def debug_routes():
             routes.append(
                 {
                     "path": route.path,
-                    "methods": list(route.methods - {"HEAD", "OPTIONS"})
-                    if route.methods
-                    else [],
+                    "methods": (
+                        list(route.methods - {"HEAD", "OPTIONS"})
+                        if route.methods
+                        else []
+                    ),
                     "name": getattr(route, "name", "unnamed"),
                 }
             )
@@ -593,9 +597,9 @@ async def method_not_allowed_handler(request, exc):
             "error": "Method Not Allowed",
             "method": request.method,
             "path": str(request.url.path),
-            "allowed_methods": list(set(allowed_methods))
-            if allowed_methods
-            else ["GET"],
+            "allowed_methods": (
+                list(set(allowed_methods)) if allowed_methods else ["GET"]
+            ),
             "message": f"The {request.method} method is not allowed for this endpoint",
             "timestamp": time.time(),
             "suggestion": "Check the allowed methods or use a different endpoint",

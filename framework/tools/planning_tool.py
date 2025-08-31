@@ -382,9 +382,7 @@ class PlanningTool(Tool if _TOOL_AVAILABLE else object):
                 emoji = (
                     "✅"
                     if isinstance(value, bool) and value
-                    else "❌"
-                    if isinstance(value, bool)
-                    else "🔧"
+                    else "❌" if isinstance(value, bool) else "🔧"
                 )
                 message += f"  {emoji} {key}: {value}\n"
 

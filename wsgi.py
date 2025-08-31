@@ -78,16 +78,19 @@ def create_app():
                 @requires_loopback
                 async def handle_request():
                     return await instance.handle_request(request=request)
+
             elif handler.requires_auth():
 
                 @requires_auth
                 async def handle_request():
                     return await instance.handle_request(request=request)
+
             elif handler.requires_api_key():
 
                 @requires_api_key
                 async def handle_request():
                     return await instance.handle_request(request=request)
+
             else:
                 # Fallback to requires_auth
                 @requires_auth

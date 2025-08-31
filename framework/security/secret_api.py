@@ -152,9 +152,11 @@ async def create_secret(
             secret_type=request.secret_type,
             access_level=request.access_level,
             description=request.description,
-            expires_at=datetime.utcnow() + timedelta(days=request.expires_in_days)
-            if request.expires_in_days
-            else None,
+            expires_at=(
+                datetime.utcnow() + timedelta(days=request.expires_in_days)
+                if request.expires_in_days
+                else None
+            ),
             rotation_interval_days=request.rotation_interval_days,
             tags=request.tags,
             owner=request.owner or user,
@@ -357,18 +359,24 @@ async def update_secret(
                 name=secret_name,
                 secret_type=current_metadata.secret_type,
                 access_level=current_metadata.access_level,
-                description=request.description
-                if request.description is not None
-                else current_metadata.description,
-                expires_at=datetime.utcnow() + timedelta(days=request.expires_in_days)
-                if request.expires_in_days is not None
-                else current_metadata.expires_at,
-                rotation_interval_days=request.rotation_interval_days
-                if request.rotation_interval_days is not None
-                else current_metadata.rotation_interval_days,
-                tags=request.tags
-                if request.tags is not None
-                else current_metadata.tags,
+                description=(
+                    request.description
+                    if request.description is not None
+                    else current_metadata.description
+                ),
+                expires_at=(
+                    datetime.utcnow() + timedelta(days=request.expires_in_days)
+                    if request.expires_in_days is not None
+                    else current_metadata.expires_at
+                ),
+                rotation_interval_days=(
+                    request.rotation_interval_days
+                    if request.rotation_interval_days is not None
+                    else current_metadata.rotation_interval_days
+                ),
+                tags=(
+                    request.tags if request.tags is not None else current_metadata.tags
+                ),
                 owner=current_metadata.owner,
             )
 
@@ -387,18 +395,24 @@ async def update_secret(
                 name=secret_name,
                 secret_type=current_metadata.secret_type,
                 access_level=current_metadata.access_level,
-                description=request.description
-                if request.description is not None
-                else current_metadata.description,
-                expires_at=datetime.utcnow() + timedelta(days=request.expires_in_days)
-                if request.expires_in_days is not None
-                else current_metadata.expires_at,
-                rotation_interval_days=request.rotation_interval_days
-                if request.rotation_interval_days is not None
-                else current_metadata.rotation_interval_days,
-                tags=request.tags
-                if request.tags is not None
-                else current_metadata.tags,
+                description=(
+                    request.description
+                    if request.description is not None
+                    else current_metadata.description
+                ),
+                expires_at=(
+                    datetime.utcnow() + timedelta(days=request.expires_in_days)
+                    if request.expires_in_days is not None
+                    else current_metadata.expires_at
+                ),
+                rotation_interval_days=(
+                    request.rotation_interval_days
+                    if request.rotation_interval_days is not None
+                    else current_metadata.rotation_interval_days
+                ),
+                tags=(
+                    request.tags if request.tags is not None else current_metadata.tags
+                ),
                 owner=current_metadata.owner,
             )
 

@@ -1,3 +1,6 @@
+// Import enhanced logger
+import { logger } from './console-logger.js';
+
 // copy button
 import { openImageModal } from "./image_modal.js";
 
@@ -29,7 +32,7 @@ function createCopyButton() {
                 button.textContent = originalText;
             }, 2000);
         } catch (err) {
-            console.error("Failed to copy text:", err);
+            logger.error("Failed to copy text:", err);
         }
     });
 
@@ -443,7 +446,7 @@ async function copyText(text, element) {
             element.classList.remove("copied");
         }, 2000);
     } catch (err) {
-        console.error("Failed to copy text:", err);
+        logger.error("Failed to copy text:", err);
     }
 }
 

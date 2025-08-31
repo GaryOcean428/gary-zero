@@ -47,11 +47,20 @@ class ErrorReporter {
 
         // Log to console in development
         if (this.isDevelopment()) {
-            console.group('🚨 Error Report #' + this.errorCount);
-            console.error('Error:', error);
-            console.log('Context:', context);
-            console.log('Full Report:', errorReport);
-            console.groupEnd();
+            // Use safe console grouping
+            if (typeof console.group === 'function') {
+                console.group('🚨 Error Report #' + this.errorCount);
+                console.error('Error:', error);
+                console.log('Context:', context);
+                console.log('Full Report:', errorReport);
+                console.groupEnd();
+            } else {
+                // Fallback for environments without console.group
+                console.error('🚨 Error Report #' + this.errorCount);
+                console.error('Error:', error);
+                console.log('Context:', context);
+                console.log('Full Report:', errorReport);
+            }
         }
 
         // Try to send to server (non-blocking)

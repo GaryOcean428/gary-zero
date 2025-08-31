@@ -477,9 +477,9 @@ class PlanAdjuster:
                         name=f"{failed_subtask.name} - Part {i + 1}",
                         description=part,
                         tool_name=failed_subtask.tool_name,
-                        dependencies=failed_subtask.dependencies.copy()
-                        if i == 0
-                        else [prev_id],
+                        dependencies=(
+                            failed_subtask.dependencies.copy() if i == 0 else [prev_id]
+                        ),
                     )
                     new_subtasks.append(new_subtask)
                     prev_id = new_subtask.id

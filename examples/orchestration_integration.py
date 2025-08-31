@@ -170,9 +170,9 @@ async def example_multi_agent_workflow():
             submission = orchestrator.submit_task(
                 task,
                 assigned_agent=task.agent_id,
-                priority=1
-                if task.task_type == "system"
-                else 0,  # Higher priority for system tasks
+                priority=(
+                    1 if task.task_type == "system" else 0
+                ),  # Higher priority for system tasks
             )
             task_submissions.append(submission)
 

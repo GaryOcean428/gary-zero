@@ -199,9 +199,11 @@ class CommunicationService:
             response_content = {
                 "status": "active",
                 "load": "normal",
-                "available_capabilities": session_info.get("supported_capabilities", [])
-                if session_info
-                else [],
+                "available_capabilities": (
+                    session_info.get("supported_capabilities", [])
+                    if session_info
+                    else []
+                ),
             }
 
         elif request_type == "execute_task":

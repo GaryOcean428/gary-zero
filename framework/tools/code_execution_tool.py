@@ -528,7 +528,9 @@ class CodeExecution(Tool):
                     try:
                         await shell.connect()
                     except Exception as e:
-                        PrintStyle.error(f"❌ Failed to recreate session {session}: {e}")
+                        PrintStyle.error(
+                            f"❌ Failed to recreate session {session}: {e}"
+                        )
                         del self.state.shells[session]  # Clean up failed session
                         raise RuntimeError(f"Unable to establish session {session}")
 

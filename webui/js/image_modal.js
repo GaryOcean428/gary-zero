@@ -1,3 +1,6 @@
+// Import enhanced logger
+import { logger } from './console-logger.js';
+
 // Singleton interval ID for image refresh
 let activeIntervalId = null;
 
@@ -55,7 +58,7 @@ export async function openImageModal(src, refreshInterval = 0) {
                         currentImg.src = loadedSrc;
                     }
                 } catch (err) {
-                    console.error("Failed to preload image:", err);
+                    logger.error("Failed to preload image:", err);
                 }
             };
 

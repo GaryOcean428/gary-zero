@@ -53,7 +53,8 @@ class SqliteStorage(LogStorage):
     def _init_db(self) -> None:
         """Initialize database schema."""
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
+            conn.execute(
+                """
                 CREATE TABLE IF NOT EXISTS log_events (
                     event_id TEXT PRIMARY KEY,
                     timestamp REAL NOT NULL,
@@ -77,7 +78,8 @@ class SqliteStorage(LogStorage):
                     stack_trace TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            """)
+            """
+            )
 
             # Create indexes for efficient querying
             conn.execute(
@@ -200,9 +202,9 @@ class SqliteStorage(LogStorage):
                 function_name=row["function_name"],
                 tool_name=row["tool_name"],
                 input_data=json.loads(row["input_data"]) if row["input_data"] else None,
-                output_data=json.loads(row["output_data"])
-                if row["output_data"]
-                else None,
+                output_data=(
+                    json.loads(row["output_data"]) if row["output_data"] else None
+                ),
                 metadata=json.loads(row["metadata"]) if row["metadata"] else None,
                 duration_ms=row["duration_ms"],
                 cpu_usage=row["cpu_usage"],
@@ -226,20 +228,24 @@ class SqliteStorage(LogStorage):
 
                 # Events by type
                 type_counts = {}
-                for row in conn.execute("""
+                for row in conn.execute(
+                    """
                     SELECT event_type, COUNT(*) as count 
                     FROM log_events 
                     GROUP BY event_type
-                """):
+                """
+                ):
                     type_counts[row[0]] = row[1]
 
                 # Events by level
                 level_counts = {}
-                for row in conn.execute("""
+                for row in conn.execute(
+                    """
                     SELECT level, COUNT(*) as count 
                     FROM log_events 
                     GROUP BY level
-                """):
+                """
+                ):
                     level_counts[row[0]] = row[1]
 
                 # Recent activity (last 24 hours)

@@ -137,14 +137,12 @@ MODEL_PARAMETERS: dict[str, dict[str, dict[str, Any]]] = {
             "rl_input": 500000000,
             "rl_output": 100000000,
         },
-
         # GPT-5 Series (Latest)
         # These next-generation models provide expanded context windows and
         # improved reasoning capabilities. The values below are derived
         # from published specifications and represent the maximum supported
         # context length and rate limits as of July 2025. Adjust these
         # parameters if OpenAI updates their model quotas.
-
         "gpt-5-chat-latest": {
             # Approximate context length for GPT‑5 Chat. This model
             # supports long conversations and large documents. The

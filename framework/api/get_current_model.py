@@ -1,6 +1,5 @@
 """API handler for getting current active model information."""
 
-import models
 from framework.helpers.api import ApiHandler, Input, Output, Request
 
 
@@ -20,8 +19,9 @@ class GetCurrentModel(ApiHandler):
         try:
             # Get current model settings from user settings
             from framework.helpers.settings import get_settings
+
             settings = get_settings()
-            
+
             current_provider = settings.get("chat_model_provider", "unknown")
             current_model = settings.get("chat_model_name", "unknown")
 

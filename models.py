@@ -497,7 +497,7 @@ def get_groq_chat(model_name: str, api_key: str | None = None, **kwargs) -> Chat
 
     # Extract string value from SecretStr for ChatGroq constructor
     if final_api_key_for_constructor is not None:
-        if hasattr(final_api_key_for_constructor, 'get_secret_value'):
+        if hasattr(final_api_key_for_constructor, "get_secret_value"):
             api_key_string = final_api_key_for_constructor.get_secret_value()
         else:
             api_key_string = str(final_api_key_for_constructor)
@@ -519,7 +519,9 @@ def get_deepseek_chat(
         final_api_key_for_constructor = api_key
     elif isinstance(api_key, SecretStr):  # User provided SecretStr
         final_api_key_for_constructor = api_key.get_secret_value()
-    elif hasattr(api_key, "get_secret_value"):  # User provided object with get_secret_value
+    elif hasattr(
+        api_key, "get_secret_value"
+    ):  # User provided object with get_secret_value
         final_api_key_for_constructor = api_key.get_secret_value()  # type: ignore
     elif (
         api_key is None

@@ -53,9 +53,9 @@ class StreamingService:
     def __init__(self):
         self.negotiation_service = NegotiationService()
         self.active_connections: dict[str, StreamConnection] = {}
-        self.agent_connections: dict[
-            str, set[str]
-        ] = {}  # agent_id -> set of connection_ids
+        self.agent_connections: dict[str, set[str]] = (
+            {}
+        )  # agent_id -> set of connection_ids
         self.heartbeat_interval = 30  # seconds
         self._running = False
 

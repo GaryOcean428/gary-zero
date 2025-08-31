@@ -83,15 +83,18 @@ class SettingsManager:
                 if loaded_settings
                 else default_settings
             )
-            
+
         # Always apply environment variable overrides on access
         # This ensures environment variables always take priority
         try:
             from framework.helpers.settings.env_priority import apply_env_var_overrides
+
             result = apply_env_var_overrides(self._settings)
             return result  # type: ignore[return-value]
         except ImportError as e:
-            print(f"Warning: Failed to import env_priority, using stored settings only: {e}")
+            print(
+                f"Warning: Failed to import env_priority, using stored settings only: {e}"
+            )
             # Fallback to original behavior if import fails
             return self._settings  # type: ignore[return-value]
 

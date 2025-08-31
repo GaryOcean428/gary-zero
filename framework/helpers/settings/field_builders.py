@@ -106,7 +106,7 @@ class FieldBuilder:
             if 'release_date' in model:
                 enhanced_model['tooltip'] = f"Released: {model['release_date']}"
             enhanced_provider_models.append(enhanced_model)
-        
+
         fields.append(
             {
                 "id": f"{model_type}_model_name",

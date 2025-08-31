@@ -1,3 +1,6 @@
+// Import enhanced logger
+import { logger } from './console-logger.js';
+
 import * as _components from "./components.js";
 import * as _modals from "./modals.js";
 
@@ -11,7 +14,7 @@ import "./alpine-registration.js";
 // Use the new Alpine Component Manager for proper timing control
 function initializeRootStore() {
     if (!window.alpineManager) {
-        console.error("❌ Alpine Component Manager not available");
+        logger.error("❌ Alpine Component Manager not available");
         return;
     }
 
@@ -26,19 +29,19 @@ function initializeRootStore() {
                         try {
                             this.isOpen = !this.isOpen;
                         } catch (error) {
-                            console.error("Error toggling settings:", error);
+                            logger.error("Error toggling settings:", error);
                         }
                     },
                 });
-                console.log("✅ Alpine root store initialized via Component Manager");
+                logger.log("✅ Alpine root store initialized via Component Manager");
             } else {
-                console.error("❌ Alpine.store not available");
+                logger.error("❌ Alpine.store not available");
             }
         } catch (error) {
-            console.error("❌ Error initializing Alpine root store:", error);
+            logger.error("❌ Error initializing Alpine root store:", error);
         }
     }).catch(error => {
-        console.error("❌ Failed to initialize Alpine Component Manager:", error);
+        logger.error("❌ Failed to initialize Alpine Component Manager:", error);
     });
 }
 
@@ -57,7 +60,7 @@ if (typeof Alpine !== "undefined") {
             try {
                 return value != null ? String(value).trim() : defaultValue;
             } catch (error) {
-                console.warn("Alpine safe magic error:", error);
+                logger.warn("Alpine safe magic error:", error);
                 return defaultValue;
             }
         };
@@ -89,7 +92,7 @@ if (typeof Alpine !== "undefined") {
                     try {
                         isOpen = evaluate(showDirective);
                     } catch (error) {
-                        console.warn("Error evaluating x-show for collapse:", error);
+                        logger.warn("Error evaluating x-show for collapse:", error);
                         isOpen = true; // Default to open on error
                     }
                 } else {
@@ -135,7 +138,7 @@ if (typeof Alpine !== "undefined") {
         });
     });
 
-    console.log("✅ Alpine.js Collapse directive registered");
+    logger.log("✅ Alpine.js Collapse directive registered");
 }
 
 // Wait for Alpine to be available
@@ -149,7 +152,7 @@ if (typeof Alpine !== "undefined") {
             const result = Alpine.evaluate(context, expression);
             return result != null ? result : defaultValue;
         } catch (error) {
-            console.warn("Alpine expression evaluation error:", error, "Expression:", expression);
+            logger.warn("Alpine expression evaluation error:", error, "Expression:", expression);
             return defaultValue;
         }
     };
@@ -160,5 +163,5 @@ if (typeof Alpine !== "undefined") {
         cleanup(() => onDestroy());
     });
 } else {
-    console.error("Alpine.js not loaded properly");
+    logger.error("Alpine.js not loaded properly");
 }

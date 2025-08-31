@@ -186,9 +186,10 @@ async def test_dependency_management():
         print(f"✓ Execution order: {execution_order}")
 
         # Verify A ran before B despite submission order
-        assert execution_order == ["dep_task_a", "dep_task_b"], (
-            f"Wrong order: {execution_order}"
-        )
+        assert execution_order == [
+            "dep_task_a",
+            "dep_task_b",
+        ], f"Wrong order: {execution_order}"
 
     finally:
         await orchestrator.stop()

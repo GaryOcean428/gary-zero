@@ -37,7 +37,8 @@ class TaskDatabase:
             cursor = conn.cursor()
 
             # Tasks table
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS tasks (
                     id TEXT PRIMARY KEY,
                     title TEXT NOT NULL,
@@ -57,10 +58,12 @@ class TaskDatabase:
                     error_message TEXT,
                     metadata TEXT  -- JSON object
                 )
-            """)
+            """
+            )
 
             # Task updates table
-            cursor.execute("""
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS task_updates (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     task_id TEXT,
@@ -71,7 +74,8 @@ class TaskDatabase:
                     agent_id TEXT,
                     FOREIGN KEY (task_id) REFERENCES tasks (id)
                 )
-            """)
+            """
+            )
 
             # Create indexes for better performance
             cursor.execute(
@@ -397,21 +401,23 @@ class TaskDatabase:
             id=row["id"],
             title=row["title"],
             description=row["description"],
-            category=TaskCategory(row["category"])
-            if row["category"]
-            else TaskCategory.OTHER,
+            category=(
+                TaskCategory(row["category"]) if row["category"] else TaskCategory.OTHER
+            ),
             status=TaskStatus(row["status"]),
             priority=row["priority"],
             progress=row["progress"],
-            created_at=datetime.fromisoformat(row["created_at"])
-            if row["created_at"]
-            else None,
-            started_at=datetime.fromisoformat(row["started_at"])
-            if row["started_at"]
-            else None,
-            completed_at=datetime.fromisoformat(row["completed_at"])
-            if row["completed_at"]
-            else None,
+            created_at=(
+                datetime.fromisoformat(row["created_at"]) if row["created_at"] else None
+            ),
+            started_at=(
+                datetime.fromisoformat(row["started_at"]) if row["started_at"] else None
+            ),
+            completed_at=(
+                datetime.fromisoformat(row["completed_at"])
+                if row["completed_at"]
+                else None
+            ),
             context_id=row["context_id"],
             agent_id=row["agent_id"],
             parent_id=row["parent_id"],

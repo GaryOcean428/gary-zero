@@ -438,9 +438,9 @@ class BenchmarkHarness:
             "total_runs": self.total_runs,
             "successful_runs": self.successful_runs,
             "failed_runs": self.failed_runs,
-            "success_rate": self.successful_runs / self.total_runs
-            if self.total_runs > 0
-            else 0,
+            "success_rate": (
+                self.successful_runs / self.total_runs if self.total_runs > 0 else 0
+            ),
             "registered_tests": len(self.test_cases),
             "registered_executors": len(self.executors),
             "registered_configurations": len(self.configurations),

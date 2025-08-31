@@ -93,7 +93,9 @@ class BackgroundTaskManager:
                     if on_error:
                         try:
                             on_error(e)
-                        except Exception as handler_error:  # pylint: disable=broad-except
+                        except (
+                            Exception
+                        ) as handler_error:  # pylint: disable=broad-except
                             PrintStyle(
                                 background_color="red", font_color="white", padding=True
                             ).print(

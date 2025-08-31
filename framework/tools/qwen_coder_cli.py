@@ -158,7 +158,8 @@ class QwenCoderCLI(Tool):
 
         if not file_path:
             return Response(
-                message="❌ 'file_path' is required for review action.", break_loop=False
+                message="❌ 'file_path' is required for review action.",
+                break_loop=False,
             )
 
         try:

@@ -92,23 +92,30 @@ class SharedMCPServer:
             message: Annotated[
                 str, Field(description="The message to send", title="message")
             ],
-            attachments: Annotated[
-                list[str],
-                Field(description="Optional attachments", title="attachments"),
-            ]
-            | None = None,
-            chat_id: Annotated[
-                str, Field(description="Optional chat ID to continue", title="chat_id")
-            ]
-            | None = None,
-            persistent_chat: Annotated[
-                bool,
-                Field(
-                    description="Whether to use persistent chat",
-                    title="persistent_chat",
-                ),
-            ]
-            | None = None,
+            attachments: (
+                Annotated[
+                    list[str],
+                    Field(description="Optional attachments", title="attachments"),
+                ]
+                | None
+            ) = None,
+            chat_id: (
+                Annotated[
+                    str,
+                    Field(description="Optional chat ID to continue", title="chat_id"),
+                ]
+                | None
+            ) = None,
+            persistent_chat: (
+                Annotated[
+                    bool,
+                    Field(
+                        description="Whether to use persistent chat",
+                        title="persistent_chat",
+                    ),
+                ]
+                | None
+            ) = None,
         ) -> Annotated[
             Union[ToolResponse, ToolError],
             Field(description="The response", title="response"),

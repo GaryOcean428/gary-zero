@@ -93,11 +93,17 @@ def validate_model_config(
     # Check if API key is available for the provider
     api_key_available = False
     if provider == "OPENAI":
-        api_key_available = bool(os.getenv("OPENAI_API_KEY") or os.getenv("API_KEY_OPENAI"))
+        api_key_available = bool(
+            os.getenv("OPENAI_API_KEY") or os.getenv("API_KEY_OPENAI")
+        )
     elif provider == "ANTHROPIC":
-        api_key_available = bool(os.getenv("ANTHROPIC_API_KEY") or os.getenv("API_KEY_ANTHROPIC"))
+        api_key_available = bool(
+            os.getenv("ANTHROPIC_API_KEY") or os.getenv("API_KEY_ANTHROPIC")
+        )
     elif provider == "GOOGLE":
-        api_key_available = bool(os.getenv("GEMINI_API_KEY") or os.getenv("API_KEY_GOOGLE"))
+        api_key_available = bool(
+            os.getenv("GEMINI_API_KEY") or os.getenv("API_KEY_GOOGLE")
+        )
     elif provider == "GROQ":
         api_key_available = bool(os.getenv("GROQ_API_KEY") or os.getenv("API_KEY_GROQ"))
 

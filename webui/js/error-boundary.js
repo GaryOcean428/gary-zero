@@ -319,12 +319,22 @@ class ErrorBoundary {
         
         // For now, just log to console in development
         if (this.isDevelopmentMode()) {
-            console.group('🚨 Error Boundary Report');
-            console.error('Type:', errorEntry.type);
-            console.error('Message:', errorEntry.message);
-            console.error('Metadata:', errorEntry.metadata);
-            console.error('Stack:', errorEntry.stack);
-            console.groupEnd();
+            // Use safe console grouping
+            if (typeof console.group === 'function') {
+                console.group('🚨 Error Boundary Report');
+                console.error('Type:', errorEntry.type);
+                console.error('Message:', errorEntry.message);
+                console.error('Metadata:', errorEntry.metadata);
+                console.error('Stack:', errorEntry.stack);
+                console.groupEnd();
+            } else {
+                // Fallback for environments without console.group
+                console.error('🚨 Error Boundary Report');
+                console.error('Type:', errorEntry.type);
+                console.error('Message:', errorEntry.message);
+                console.error('Metadata:', errorEntry.metadata);
+                console.error('Stack:', errorEntry.stack);
+            }
         }
     }
 

@@ -372,9 +372,11 @@ class ToolExecutor:
             else:
                 result = ToolExecutionResult(
                     success=True,
-                    result=sdk_result.result
-                    if hasattr(sdk_result, "result")
-                    else str(sdk_result),
+                    result=(
+                        sdk_result.result
+                        if hasattr(sdk_result, "result")
+                        else str(sdk_result)
+                    ),
                     metadata=getattr(sdk_result, "metadata", {}),
                 )
 
@@ -445,9 +447,9 @@ class ToolExecutor:
             "successful_executions": successful,
             "success_rate": successful / total if total > 0 else 0,
             "tool_usage_frequency": tool_usage,
-            "most_used_tool": max(tool_usage.items(), key=lambda x: x[1])[0]
-            if tool_usage
-            else None,
+            "most_used_tool": (
+                max(tool_usage.items(), key=lambda x: x[1])[0] if tool_usage else None
+            ),
         }
 
 

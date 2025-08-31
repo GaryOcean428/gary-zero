@@ -1,3 +1,6 @@
+// Import enhanced logger
+import { logger } from './console-logger.js';
+
 import { sendMessage, updateChatInput } from "../index.js";
 import { pipeline, read_audio } from "./transformers@3.0.2.js";
 
@@ -55,7 +58,7 @@ class MicrophoneInput {
 
         const oldStatus = this._status;
         this._status = newStatus;
-        console.log(`Mic status changed from ${oldStatus} to ${newStatus}`);
+        logger.log(`Mic status changed from ${oldStatus} to ${newStatus}`);
 
         // Update UI
         microphoneButton.classList.remove(`mic-${oldStatus.toLowerCase()}`);
@@ -114,7 +117,7 @@ class MicrophoneInput {
         if (!this.hasStartedRecording && this.mediaRecorder.state !== "recording") {
             this.hasStartedRecording = true;
             this.mediaRecorder.start(1000);
-            console.log("Speech started");
+            logger.log("Speech started");
         }
         if (this.waitingTimer) {
             clearTimeout(this.waitingTimer);
@@ -175,7 +178,7 @@ class MicrophoneInput {
                         this.lastChunk = null;
                     }
                     this.audioChunks.push(event.data);
-                    console.log("Audio chunk received, total chunks:", this.audioChunks.length);
+                    logger.log("Audio chunk received, total chunks:", this.audioChunks.length);
                 } else if (this.status === Status.LISTENING) {
                     this.lastChunk = event.data;
                 }
@@ -184,7 +187,7 @@ class MicrophoneInput {
             this.setupAudioAnalysis(stream);
             return true;
         } catch (error) {
-            console.error("Microphone initialization error:", error);
+            logger.error("Microphone initialization error:", error);
             toast("Failed to access microphone. Please check permissions.", "error");
             return false;
         }
@@ -277,11 +280,11 @@ class MicrophoneInput {
             const text = this.filterResult(result.text || "");
 
             if (text) {
-                console.log("Transcription:", result.text);
+                logger.log("Transcription:", result.text);
                 await this.updateCallback(result.text, true);
             }
         } catch (error) {
-            console.error("Transcription error:", error);
+            logger.error("Transcription error:", error);
             toast("Transcription failed.", "error");
         } finally {
             URL.revokeObjectURL(audioUrl);
@@ -301,7 +304,7 @@ class MicrophoneInput {
             ok = true;
         }
         if (ok) return text;
-        else console.log(`Discarding transcription: ${text}`);
+        else logger.log(`Discarding transcription: ${text}`);
     }
 }
 
@@ -360,7 +363,7 @@ async function requestMicrophonePermission() {
         await navigator.mediaDevices.getUserMedia({ audio: true });
         return true;
     } catch (err) {
-        console.error("Error accessing microphone:", err);
+        logger.error("Error accessing microphone:", err);
         toast("Microphone access denied. Please enable microphone access in your browser settings.", "error");
         return false;
     }
@@ -383,7 +386,7 @@ class Speech {
     }
 
     speak(text) {
-        console.log("Speaking:", text);
+        logger.log("Speaking:", text);
         // Stop any current utterance
         this.stop();
 

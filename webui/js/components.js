@@ -1,3 +1,6 @@
+// Import enhanced logger
+import { logger } from './console-logger.js';
+
 // Import a component into a target element
 // Import a component and recursively load its nested components
 // Returns the parsed document for additional processing
@@ -59,7 +62,7 @@ async function retryOperation(operation, maxRetries = 3, baseDelay = 1000) {
             
             if (attempt < maxRetries - 1) {
                 const delay = baseDelay * Math.pow(2, attempt);
-                console.warn(`Retry attempt ${attempt + 1} failed, retrying in ${delay}ms:`, error.message);
+                logger.warn(`Retry attempt ${attempt + 1} failed, retrying in ${delay}ms:`, error.message);
                 await new Promise(resolve => setTimeout(resolve, delay));
             }
         }
@@ -71,7 +74,7 @@ async function retryOperation(operation, maxRetries = 3, baseDelay = 1000) {
 export async function importComponent(path, targetElement) {
     try {
         if (!targetElement) {
-            console.warn("Target element is required for component import");
+            logger.warn("Target element is required for component import");
             return null;
         }
 
@@ -98,7 +101,7 @@ export async function importComponent(path, targetElement) {
                 // store in cache only if successful
                 componentCache[componentUrl] = html;
             } catch (fetchError) {
-                console.warn(`Failed to load component ${path}, using fallback:`, fetchError);
+                logger.warn(`Failed to load component ${path}, using fallback:`, fetchError);
                 
                 // Show toast notification if available
                 if (window.toast) {
@@ -139,7 +142,7 @@ export async function importComponent(path, targetElement) {
                                 componentCache[resolvedUrl] = modulePromise;
                                 loadPromises.push(modulePromise);
                             } catch (moduleError) {
-                                console.warn(`Failed to load external module ${resolvedUrl}:`, moduleError);
+                                logger.warn(`Failed to load external module ${resolvedUrl}:`, moduleError);
                                 // Don't add to loadPromises, continue without this module
                             }
                         }
@@ -177,7 +180,7 @@ export async function importComponent(path, targetElement) {
                                     500 // 500ms base delay
                                 )
                                 .catch((err) => {
-                                    console.warn(`Failed to load inline module for ${path}:`, err.message);
+                                    logger.warn(`Failed to load inline module for ${path}:`, err.message);
                                     
                                     // Show toast notification if available
                                     if (window.toast) {
@@ -194,7 +197,7 @@ export async function importComponent(path, targetElement) {
                                 componentCache[virtualUrl] = modulePromise;
                                 loadPromises.push(modulePromise);
                             } catch (blobError) {
-                                console.warn(`Failed to create blob module for ${path}:`, blobError);
+                                logger.warn(`Failed to create blob module for ${path}:`, blobError);
                                 // Continue without this inline script
                             }
                         }
@@ -240,7 +243,7 @@ export async function importComponent(path, targetElement) {
             await Promise.allSettled(loadPromises).then(results => {
                 const failures = results.filter(result => result.status === 'rejected');
                 if (failures.length > 0) {
-                    console.warn(`${failures.length} module(s) failed to load for component ${path}:`, 
+                    logger.warn(`${failures.length} module(s) failed to load for component ${path}:`, 
                         failures.map(f => f.reason?.message || f.reason));
                     
                     // Show toast notification for multiple failures
@@ -250,7 +253,7 @@ export async function importComponent(path, targetElement) {
                 }
             });
         } catch (promiseError) {
-            console.warn(`Error waiting for module promises in ${path}:`, promiseError);
+            logger.warn(`Error waiting for module promises in ${path}:`, promiseError);
         }
 
         // Remove loading indicator
@@ -265,7 +268,7 @@ export async function importComponent(path, targetElement) {
         // Return parsed document
         return doc;
     } catch (error) {
-        console.error("Error importing component:", error);
+        logger.error("Error importing component:", error);
         
         // Show fallback content on any critical error
         if (targetElement) {
@@ -299,7 +302,7 @@ export async function loadComponents(roots = [document.documentElement]) {
             components.map(async (component) => {
                 const path = component.getAttribute("path");
                 if (!path) {
-                    console.error("x-component missing path attribute:", component);
+                    logger.error("x-component missing path attribute:", component);
                     return Promise.reject(new Error("Missing path attribute"));
                 }
                 return await importComponent(path, component);
@@ -309,7 +312,7 @@ export async function loadComponents(roots = [document.documentElement]) {
         // Log any failures but don't throw
         const failures = results.filter(result => result.status === 'rejected');
         if (failures.length > 0) {
-            console.warn(`${failures.length} component(s) failed to load:`, 
+            logger.warn(`${failures.length} component(s) failed to load:`, 
                 failures.map(f => f.reason?.message || f.reason));
             
             // Show consolidated toast notification if available
@@ -320,7 +323,7 @@ export async function loadComponents(roots = [document.documentElement]) {
         
         return results;
     } catch (error) {
-        console.error("Error loading components:", error);
+        logger.error("Error loading components:", error);
         
         // Show toast notification if available
         if (window.toast) {
@@ -375,12 +378,12 @@ const observer = new MutationObserver((mutations) => {
                     const path = node.getAttribute("path");
                     if (path) {
                         importComponent(path, node).catch(error => {
-                            console.warn(`Failed to dynamically load component ${path}:`, error);
+                            logger.warn(`Failed to dynamically load component ${path}:`, error);
                         });
                     }
                 } else if (node.querySelectorAll) {
                     loadComponents([node]).catch(error => {
-                        console.warn("Failed to load nested components:", error);
+                        logger.warn("Failed to load nested components:", error);
                     });
                 }
             }

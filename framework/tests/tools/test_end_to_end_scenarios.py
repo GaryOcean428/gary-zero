@@ -275,18 +275,18 @@ class TestEndToEndScenarios:
             expected_tools = set(scenario["expected_tools"])
 
             # Should use at least one of the expected tools
-            assert len(assigned_tools.intersection(expected_tools)) > 0, (
-                f"No expected tools found for: {scenario['objective']}"
-            )
+            assert (
+                len(assigned_tools.intersection(expected_tools)) > 0
+            ), f"No expected tools found for: {scenario['objective']}"
 
             # Check that subtasks mention relevant keywords
             subtask_text = " ".join([s.description.lower() for s in plan.subtasks])
             keyword_matches = sum(
                 1 for keyword in scenario["keywords"] if keyword in subtask_text
             )
-            assert keyword_matches >= len(scenario["keywords"]) // 2, (
-                f"Not enough keyword matches for: {scenario['objective']}"
-            )
+            assert (
+                keyword_matches >= len(scenario["keywords"]) // 2
+            ), f"Not enough keyword matches for: {scenario['objective']}"
 
 
 class TestPerformanceMetrics:
@@ -328,9 +328,9 @@ class TestPerformanceMetrics:
                 appropriate_selections += 1
 
         success_rate = appropriate_selections / total_tests
-        assert success_rate >= 0.8, (
-            f"Tool selection success rate {success_rate:.2%} is below 80% threshold"
-        )
+        assert (
+            success_rate >= 0.8
+        ), f"Tool selection success rate {success_rate:.2%} is below 80% threshold"
 
     def test_minimal_manual_intervention_required(self):
         """Test that plans can execute with minimal manual intervention."""
@@ -350,23 +350,23 @@ class TestPerformanceMetrics:
 
             # Verify plan has clear structure
             assert len(plan.subtasks) >= 3, f"Plan too simple for: {objective}"
-            assert len(plan.subtasks) <= enhanced_scheduler.config.max_subtasks, (
-                f"Plan too complex for: {objective}"
-            )
+            assert (
+                len(plan.subtasks) <= enhanced_scheduler.config.max_subtasks
+            ), f"Plan too complex for: {objective}"
 
             # Verify dependencies are reasonable (not every task depends on every other task)
             total_dependencies = sum(len(s.dependencies) for s in plan.subtasks)
             max_reasonable_deps = len(plan.subtasks) * 2  # Reasonable heuristic
-            assert total_dependencies <= max_reasonable_deps, (
-                f"Too many dependencies for: {objective}"
-            )
+            assert (
+                total_dependencies <= max_reasonable_deps
+            ), f"Too many dependencies for: {objective}"
 
             # Verify all dependencies are valid
             for subtask in plan.subtasks:
                 for dep_id in subtask.dependencies:
-                    assert plan.get_subtask_by_id(dep_id) is not None, (
-                        f"Invalid dependency in plan for: {objective}"
-                    )
+                    assert (
+                        plan.get_subtask_by_id(dep_id) is not None
+                    ), f"Invalid dependency in plan for: {objective}"
 
     def test_plan_decomposition_quality(self):
         """Test the quality of plan decomposition."""
@@ -396,6 +396,6 @@ class TestPerformanceMetrics:
         if research_indices and analysis_indices:
             avg_research_pos = sum(research_indices) / len(research_indices)
             avg_analysis_pos = sum(analysis_indices) / len(analysis_indices)
-            assert avg_research_pos < avg_analysis_pos, (
-                "Analysis should generally come after research"
-            )
+            assert (
+                avg_research_pos < avg_analysis_pos
+            ), "Analysis should generally come after research"

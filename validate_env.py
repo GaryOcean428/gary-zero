@@ -196,11 +196,9 @@ class EnvironmentValidator:
             print("✅ Validation PASSED: All configurations look good!")
 
         return {
-            "status": "failed"
-            if self.errors
-            else "warning"
-            if self.warnings
-            else "passed",
+            "status": (
+                "failed" if self.errors else "warning" if self.warnings else "passed"
+            ),
             "errors": self.errors,
             "warnings": self.warnings,
             "info": self.info,

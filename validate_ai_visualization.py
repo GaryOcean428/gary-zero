@@ -52,9 +52,9 @@ class AIVisualizationValidator:
         except Exception as e:
             self.validation_results["tests_failed"] += 1
             self.validation_results["errors"].append(f"{component_name}: {str(e)}")
-            self.validation_results["components"][component_name] = (
-                f"❌ ERROR: {str(e)}"
-            )
+            self.validation_results["components"][
+                component_name
+            ] = f"❌ ERROR: {str(e)}"
             print(f"❌ {component_name}: ERROR - {str(e)}")
             return False
 
@@ -81,9 +81,9 @@ class AIVisualizationValidator:
         except Exception as e:
             self.validation_results["tests_failed"] += 1
             self.validation_results["errors"].append(f"{component_name}: {str(e)}")
-            self.validation_results["components"][component_name] = (
-                f"❌ ERROR: {str(e)}"
-            )
+            self.validation_results["components"][
+                component_name
+            ] = f"❌ ERROR: {str(e)}"
             print(f"❌ {component_name}: ERROR - {str(e)}")
             return False
 

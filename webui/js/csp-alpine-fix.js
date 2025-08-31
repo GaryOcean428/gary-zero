@@ -1,3 +1,6 @@
+// Import enhanced logger
+import { logger } from './console-logger.js';
+
 // Alpine.js Components Registration
 // Server-side CSP is now properly configured in run_ui.py
 
@@ -5,7 +8,7 @@
     // Initialize Alpine.js components using the Component Manager
     function initializeAlpineComponents() {
         if (!window.safeRegisterAlpineComponent) {
-            console.warn("Alpine Component Manager not available, using direct registration");
+            logger.warn("Alpine Component Manager not available, using direct registration");
             // Fallback to direct registration
             if (typeof Alpine !== "undefined") {
                 registerComponentsDirect();
@@ -26,7 +29,7 @@
                 if (window.resetChat) {
                     window.resetChat();
                 } else {
-                    console.log("Reset chat - function not available");
+                    logger.log("Reset chat - function not available");
                 }
             },
 
@@ -34,7 +37,7 @@
                 if (window.newChat) {
                     window.newChat();
                 } else {
-                    console.log("New chat - function not available");
+                    logger.log("New chat - function not available");
                 }
             },
 
@@ -42,7 +45,7 @@
                 if (window.loadChats) {
                     window.loadChats();
                 } else {
-                    console.log("Load chats - function not available");
+                    logger.log("Load chats - function not available");
                 }
             },
 
@@ -50,7 +53,7 @@
                 if (window.saveChat) {
                     window.saveChat();
                 } else {
-                    console.log("Save chat - function not available");
+                    logger.log("Save chat - function not available");
                 }
             },
 
@@ -58,12 +61,12 @@
                 if (window.restart) {
                     window.restart();
                 } else {
-                    console.log("Restart - function not available");
+                    logger.log("Restart - function not available");
                 }
             },
         }));
 
-        console.log("✅ Alpine.js components registered via Component Manager");
+        logger.log("✅ Alpine.js components registered via Component Manager");
 
         // Register Alpine magic helpers using the standard Alpine APIs
         if (typeof Alpine !== "undefined") {
@@ -72,7 +75,7 @@
                 if (window[name] && typeof window[name] === "function") {
                     return window[name](...args);
                 } else {
-                    console.warn(`Function ${name} not available`);
+                    logger.warn(`Function ${name} not available`);
                 }
             });
 
@@ -84,12 +87,12 @@
                     }
                     return String(value);
                 } catch (error) {
-                    console.warn("Alpine safeText error:", error);
+                    logger.warn("Alpine safeText error:", error);
                     return fallback;
                 }
             });
 
-            console.log("✅ Alpine.js magic helpers registered");
+            logger.log("✅ Alpine.js magic helpers registered");
         }
     }
 
@@ -107,7 +110,7 @@
                 if (window.resetChat) {
                     window.resetChat();
                 } else {
-                    console.log("Reset chat - function not available");
+                    logger.log("Reset chat - function not available");
                 }
             },
 
@@ -115,7 +118,7 @@
                 if (window.newChat) {
                     window.newChat();
                 } else {
-                    console.log("New chat - function not available");
+                    logger.log("New chat - function not available");
                 }
             },
 
@@ -123,7 +126,7 @@
                 if (window.loadChats) {
                     window.loadChats();
                 } else {
-                    console.log("Load chats - function not available");
+                    logger.log("Load chats - function not available");
                 }
             },
 
@@ -131,7 +134,7 @@
                 if (window.saveChat) {
                     window.saveChat();
                 } else {
-                    console.log("Save chat - function not available");
+                    logger.log("Save chat - function not available");
                 }
             },
 
@@ -139,19 +142,19 @@
                 if (window.restart) {
                     window.restart();
                 } else {
-                    console.log("Restart - function not available");
+                    logger.log("Restart - function not available");
                 }
             },
         }));
 
-        console.log("✅ Alpine.js components registered directly (fallback)");
+        logger.log("✅ Alpine.js components registered directly (fallback)");
 
         // Create global Alpine magic helpers
         Alpine.magic("safeCall", () => (name, ...args) => {
             if (window[name] && typeof window[name] === "function") {
                 return window[name](...args);
             } else {
-                console.warn(`Function ${name} not available`);
+                logger.warn(`Function ${name} not available`);
             }
         });
 
@@ -163,12 +166,12 @@
                 }
                 return String(value);
             } catch (error) {
-                console.warn("Alpine safeText error:", error);
+                logger.warn("Alpine safeText error:", error);
                 return fallback;
             }
         });
 
-        console.log("✅ Alpine.js magic helpers registered (fallback)");
+        logger.log("✅ Alpine.js magic helpers registered (fallback)");
     }
 
     // 3. Fix ToastManager DOM initialization issues
@@ -218,12 +221,12 @@
                     }
 
                     if (!parent) {
-                        console.warn("ToastManager: No suitable parent element found, using document.body as fallback");
+                        logger.warn("ToastManager: No suitable parent element found, using document.body as fallback");
                         parent = document.body;
                     }
 
                     if (!parent) {
-                        console.error("ToastManager: document.body not available, cannot create container");
+                        logger.error("ToastManager: document.body not available, cannot create container");
                         return;
                     }
 
@@ -248,9 +251,9 @@
 
                     try {
                         parent.appendChild(this.container);
-                        console.log("✅ Enhanced ToastManager container created");
+                        logger.log("✅ Enhanced ToastManager container created");
                     } catch (error) {
-                        console.error("ToastManager: Failed to append container:", error);
+                        logger.error("ToastManager: Failed to append container:", error);
                     }
                 }
 
@@ -258,8 +261,8 @@
                     this.ensureContainer();
 
                     if (!this.container) {
-                        console.warn("ToastManager: Container not available, falling back to console");
-                        console.log(`[${type.toUpperCase()}] ${message}`);
+                        logger.warn("ToastManager: Container not available, falling back to console");
+                        logger.log(`[${type.toUpperCase()}] ${message}`);
                         return;
                     }
 
@@ -276,7 +279,7 @@
             }
 
             window.ToastManagerFixed = true;
-            console.log("✅ ToastManager enhanced successfully");
+            logger.log("✅ ToastManager enhanced successfully");
         }
     }
 
@@ -290,7 +293,7 @@
                 try {
                     return originalStart.apply(this, arguments);
                 } catch (error) {
-                    console.error("Alpine.js initialization error:", error);
+                    logger.error("Alpine.js initialization error:", error);
                     if (window.toastManager) {
                         window.toastManager.show(
                             "Interface initialization encountered an error. Some features may not work correctly.",
@@ -310,7 +313,7 @@
 
                 // Handle specific null.trim() error
                 if (errorMessage.includes("null") && errorMessage.includes("trim")) {
-                    console.error("Alpine.js null trim error detected:", event.error);
+                    logger.error("Alpine.js null trim error detected:", event.error);
                     if (window.toastManager) {
                         window.toastManager.show(
                             "Interface initialization issue resolved. Some features may have been temporarily unavailable.",
@@ -323,7 +326,7 @@
 
                 // Handle other Alpine.js errors
                 if (errorMessage.includes("Alpine")) {
-                    console.error("Alpine.js runtime error:", event.error);
+                    logger.error("Alpine.js runtime error:", event.error);
                     if (window.toastManager) {
                         window.toastManager.show(
                             "Interface error detected. Please refresh if issues persist.",
@@ -335,12 +338,12 @@
             }
         });
 
-        console.log("✅ Alpine.js error boundary established");
+        logger.log("✅ Alpine.js error boundary established");
     }
 
     // Execution sequence
     function applyFixes() {
-        console.log("🔧 Applying Alpine.js component registration...");
+        logger.log("🔧 Applying Alpine.js component registration...");
 
         // Apply fixes in sequence
         setupAlpineErrorBoundary();
@@ -362,12 +365,12 @@
             setTimeout(() => {
                 clearInterval(checkAlpine);
                 if (typeof Alpine === "undefined") {
-                    console.warn("Alpine.js not loaded within timeout period");
+                    logger.warn("Alpine.js not loaded within timeout period");
                 }
             }, 5000);
         }
 
-        console.log("✅ Alpine.js component registration complete");
+        logger.log("✅ Alpine.js component registration complete");
     }
 
     // Execute fixes when DOM is ready

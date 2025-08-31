@@ -98,9 +98,9 @@ class PerformanceDemo:
 
         return {
             "total_users": len(users),
-            "average_score": sum(u["profile"]["score"] for u in users) / len(users)
-            if users
-            else 0,
+            "average_score": (
+                sum(u["profile"]["score"] for u in users) / len(users) if users else 0
+            ),
         }
 
     @timer("cpu_intensive_task")

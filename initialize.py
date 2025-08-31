@@ -42,14 +42,18 @@ def initialize_agent():
 
     # utility model from user settings with fallback through model registry
     try:
-        from framework.helpers.model_registry import get_utility_model_config, get_model_registry
-        
+        from framework.helpers.model_registry import (
+            get_utility_model_config,
+        )
+
         # Try to get utility model config from registry
         utility_config = get_utility_model_config(current_settings)
-        
+
         if utility_config:
             # Use model registry configuration
-            PrintStyle().success(f"✅ Using utility model: {utility_config.provider}:{utility_config.model_name}")
+            PrintStyle().success(
+                f"✅ Using utility model: {utility_config.provider}:{utility_config.model_name}"
+            )
             utility_llm = ModelConfig(
                 provider=models.ModelProvider[utility_config.provider.upper()],
                 name=utility_config.model_name,
@@ -62,14 +66,16 @@ def initialize_agent():
         else:
             # Fallback to original behavior
             raise ValueError("No valid utility model found in registry")
-            
+
     except Exception as e:
         PrintStyle().warn(f"⚠️ Model registry fallback failed: {e}")
         PrintStyle().warn("Using original utility model configuration...")
-        
+
         # Original utility model configuration
         utility_llm = ModelConfig(
-            provider=models.ModelProvider[current_settings["util_model_provider"].upper()],
+            provider=models.ModelProvider[
+                current_settings["util_model_provider"].upper()
+            ],
             name=current_settings["util_model_name"],
             ctx_length=current_settings["util_model_ctx_length"],
             limit_requests=current_settings["util_model_rl_requests"],
