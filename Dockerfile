@@ -45,6 +45,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libportaudio2 \
     libportaudiocpp0 \
     python3-dev \
+    nodejs \
+    npm \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -110,6 +112,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libportaudio2 \
     libportaudiocpp0 \
     libasound2 \
+    nodejs \
+    npm \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
