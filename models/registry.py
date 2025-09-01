@@ -101,6 +101,7 @@ class ModelRegistry:
                 "gpt",
                 "o1",
                 "o3",
+                "o4",
                 "dall-e",
                 "whisper",
                 "tts",
@@ -136,6 +137,7 @@ class ModelRegistry:
                 "gpt",
                 "o1",
                 "o3",
+                "o4",
                 "claude",
                 "grok",
                 "gemini",
@@ -213,6 +215,9 @@ class ModelRegistry:
             "gpt-4.1": (0.01, 0.04),  # Estimated based on advanced capabilities
             "gpt-4.1-mini": (0.0005, 0.002),  # Cost-efficient version
             "gpt-4.1-nano": (0.0002, 0.0008),  # Most cost-effective
+            "gpt-5": (0.010, 0.040),  # Flagship model for coding and agentic tasks
+            "gpt-5-mini": (0.002, 0.008),  # Faster, cost-efficient GPT-5
+            "gpt-5-nano": (0.0005, 0.002),  # Fastest, most cost-efficient GPT-5
             "o1": (0.015, 0.06),
             "o1-preview": (0.015, 0.06),
             "o1-mini": (0.003, 0.012),
