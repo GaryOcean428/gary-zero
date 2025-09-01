@@ -302,6 +302,77 @@ openai:
         - image_analysis
         - multimodal_understanding
         - visual_reasoning
+
+    # GPT-5 Family
+    gpt-5:
+      context_window: 2097152
+      max_output: 32768
+      capabilities:
+        - text
+        - vision
+        - multimodal
+        - function_calling
+        - streaming
+        - structured_outputs
+        - advanced_reasoning
+        - code_generation
+        - agentic_tasks
+        - advanced_conversation
+        - scientific_analysis
+      cost:
+        input: 0.010
+        output: 0.040
+      use_cases:
+        - flagship_coding_tasks
+        - agentic_workflows
+        - complex_multimodal_tasks
+        - advanced_problem_solving
+        - scientific_applications
+        - architectural_decisions
+
+    gpt-5-mini:
+      context_window: 1048576
+      max_output: 16384
+      capabilities:
+        - text
+        - vision
+        - function_calling
+        - streaming
+        - structured_outputs
+        - code_generation
+        - agentic_tasks
+        - fast_response
+        - cost_efficient
+      cost:
+        input: 0.002
+        output: 0.008
+      use_cases:
+        - fast_agentic_tasks
+        - cost_efficient_coding
+        - automated_workflows
+        - rapid_prototyping
+        - general_development
+
+    gpt-5-nano:
+      context_window: 524288
+      max_output: 8192
+      capabilities:
+        - text
+        - function_calling
+        - streaming
+        - structured_outputs
+        - code_completion
+        - fast_response
+        - ultra_cost_efficient
+      cost:
+        input: 0.0005
+        output: 0.002
+      use_cases:
+        - ultra_fast_responses
+        - high_throughput_tasks
+        - cost_critical_applications
+        - simple_coding_tasks
+        - batch_processing
 ```
 
 ### Google Models (Gemini 2.5 Series)
@@ -662,47 +733,52 @@ task_routing:
   complex_reasoning:
     primary: o3-pro
     fallback: claude-opus-4-20250514
-    alternatives: [gemini-2.5-pro, o3]
+    alternatives: [gpt-5, gemini-2.5-pro, o3]
 
   advanced_reasoning:
     primary: o3
     fallback: claude-sonnet-4-20250514
-    alternatives: [gpt-4.1, gemini-2.5-pro]
+    alternatives: [gpt-5, gpt-4.1, gemini-2.5-pro]
 
   fast_reasoning:
     primary: o4-mini
     fallback: o3-mini
-    alternatives: [claude-3-5-haiku-20241022, gemini-2.5-flash]
+    alternatives: [gpt-5-mini, claude-3-5-haiku-20241022, gemini-2.5-flash]
 
   general_coding:
-    primary: gpt-4.1
-    fallback: claude-3-5-sonnet-20241022
-    alternatives: [gemini-2.5-flash, llama-3.3-70b-versatile]
+    primary: gpt-5
+    fallback: gpt-4.1
+    alternatives: [claude-3-5-sonnet-20241022, gemini-2.5-flash, llama-3.3-70b-versatile]
+
+  agentic_tasks:
+    primary: gpt-5
+    fallback: gpt-5-mini
+    alternatives: [gpt-4.1, claude-3-5-sonnet-20241022]
 
   cost_efficient:
-    primary: gpt-4.1-mini
-    fallback: gemini-2.5-flash-lite
-    alternatives: [claude-3-5-haiku-20241022, llama-3.1-8b-instant]
+    primary: gpt-5-nano
+    fallback: gpt-4.1-mini
+    alternatives: [gemini-2.5-flash-lite, claude-3-5-haiku-20241022, llama-3.1-8b-instant]
 
   vision_tasks:
-    primary: gpt-4.1-vision
-    fallback: gemini-2.0-flash
-    alternatives: [claude-3-5-sonnet-20241022]
+    primary: gpt-5
+    fallback: gpt-4.1-vision
+    alternatives: [gemini-2.0-flash, claude-3-5-sonnet-20241022]
 
   rapid_prototyping:
-    primary: llama-3.1-8b-instant
-    fallback: gemini-2.5-flash
-    alternatives: [gpt-4.1-mini, claude-3-5-haiku-20241022]
+    primary: gpt-5-mini
+    fallback: llama-3.1-8b-instant
+    alternatives: [gemini-2.5-flash, gpt-4.1-mini, claude-3-5-haiku-20241022]
 
   multilingual:
     primary: qwen/qwen3-32b
     fallback: gemini-2.5-pro
-    alternatives: [claude-sonnet-4-20250514, gpt-4.1]
+    alternatives: [gpt-5, claude-sonnet-4-20250514, gpt-4.1]
 
   scientific_math:
     primary: o3-pro
-    fallback: gemini-2.5-pro
-    alternatives: [o3, claude-opus-4-20250514]
+    fallback: gpt-5
+    alternatives: [gemini-2.5-pro, o3, claude-opus-4-20250514]
 
 ```
 
@@ -712,6 +788,7 @@ task_routing:
 cost_tiers:
   budget:
     models:
+      - gpt-5-nano
       - gpt-4.1-mini
       - gemini-2.5-flash-lite
       - claude-3-5-haiku-20241022
@@ -720,6 +797,7 @@ cost_tiers:
 
   balanced:
     models:
+      - gpt-5-mini
       - o4-mini
       - gemini-2.5-flash
       - gpt-4.1
@@ -728,6 +806,7 @@ cost_tiers:
 
   premium:
     models:
+      - gpt-5
       - o3-pro
       - claude-opus-4-20250514
       - gemini-2.5-pro
@@ -736,6 +815,7 @@ cost_tiers:
 
   ultra_premium:
     models:
+      - gpt-5
       - o3-pro
       - claude-opus-4-20250514
     max_cost_per_1k_tokens: 0.100
@@ -751,12 +831,14 @@ cost_tiers:
 - **Model Validation**: Only Claude 3.5+ models supported
 
 ### OpenAI
+- **GPT-5 Series**: Latest flagship models optimized for coding and agentic tasks
 - **Reasoning Models**: o1/o3/o4 series with advanced thinking capabilities
 - **Function Calling**: Native tool use across all models
 - **JSON Mode**: Guaranteed valid JSON
-- **Vision**: Image understanding for diagrams
+- **Vision**: Image understanding for diagrams (GPT-5, GPT-4.1-vision)
 - **Streaming**: Real-time response generation
 - **Structured Outputs**: Guaranteed output formats
+- **Agentic Capabilities**: Enhanced autonomous task execution (GPT-5 family)
 
 ### Google
 - **Gemini 2.5**: State-of-the-art reasoning capabilities
@@ -843,6 +925,7 @@ benchmarks:
     together: 200
 
   reasoning_quality:
+    gpt-5: 9.9/10
     o3-pro: 9.8/10
     claude-opus-4-20250514: 9.7/10
     gemini-2.5-pro: 9.6/10
@@ -949,18 +1032,19 @@ async def generate_code(model="gpt-4o"):  # Automatically converts to gpt-4.1
 
 ## Model Statistics
 
-- **Total Available Models**: 31 across 5 primary providers
+- **Total Available Models**: 34 across 5 primary providers
 - **Reasoning Models**: 6 (OpenAI o1/o3/o4 series)
-- **Chat Models**: 17 (OpenAI GPT-4.1 family + Anthropic Claude + xAI Grok + others)
-- **Multimodal Models**: 4 (Vision-capable models)
+- **Chat Models**: 20 (OpenAI GPT-5 + GPT-4.1 family + Anthropic Claude + xAI Grok + others)
+- **Multimodal Models**: 6 (Vision-capable models including GPT-5)
 - **Hardware Accelerated**: 6 (Groq models)
-- **Cost-Optimized**: 14 (Models under $0.001 per 1K tokens)
+- **Cost-Optimized**: 15 (Models under $0.001 per 1K tokens including GPT-5-nano)
+- **Agentic Models**: 3 (GPT-5 family optimized for autonomous tasks)
 
 ## Contact
 
 For model-specific questions or issues:
 - GitHub Issues: [monkey-coder/issues](https://github.com/GaryOcean428/monkey-coder/issues)
-- Model Selection: Use `o3-pro` for complex decisions, `gpt-4.1` for general tasks
+- Model Selection: Use `gpt-5` for flagship coding and agentic tasks, `o3-pro` for complex decisions
 - Performance Issues: Check Groq models first for speed-critical tasks
-- Cost Optimization: Use `gpt-4.1-mini` or `gemini-2.5-flash-lite` for budget constraints
+- Cost Optimization: Use `gpt-5-nano` or `gpt-4.1-mini` or `gemini-2.5-flash-lite` for budget constraints
 - Compliance: All models automatically validated against approved list
