@@ -1,0 +1,298 @@
+#!/usr/bin/env bash
+
+# Pre-commit hook for Gary-Zero framework
+# Ensures code quality and security before commits
+
+set -e
+
+echo "🔍 Running pre-commit checks..."
+
+# Check if this is a merge commit (skip hooks for merge commits)
+if git rev-parse --verify -q MERGE_HEAD; then
+    echo "🔀 Merge commit detected, skipping pre-commit hooks"
+    exit 0
+fi
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Function to print colored output
+print_status() {
+    case $1 in
+        "error")
+            echo -e "${RED}❌ $2${NC}"
+            ;;
+        "success")
+            echo -e "${GREEN}✅ $2${NC}"
+            ;;
+        "warning")
+            echo -e "${YELLOW}⚠️  $2${NC}"
+            ;;
+        *)
+            echo "ℹ️  $2"
+            ;;
+    esac
+}
+
+# Check if required tools are installed
+check_tools() {
+    local missing_tools=()
+    
+    command -v python3 >/dev/null 2>&1 || missing_tools+=("python3")
+    command -v black >/dev/null 2>&1 || missing_tools+=("black")
+    command -v ruff >/dev/null 2>&1 || missing_tools+=("ruff")
+    command -v mypy >/dev/null 2>&1 || missing_tools+=("mypy")
+    
+    if [ ${#missing_tools[@]} -ne 0 ]; then
+        print_status "error" "Missing required tools: ${missing_tools[*]}"
+        echo "Install them with: pip install black ruff mypy"
+        exit 1
+    fi
+}
+
+# Get list of changed Python files
+get_changed_python_files() {
+    git diff --cached --name-only --diff-filter=ACM | grep -E '\.(py)$' || true
+}
+
+# Get list of changed files (all types)
+get_changed_files() {
+    git diff --cached --name-only --diff-filter=ACM || true
+}
+
+# Check Python code formatting with Black
+check_formatting() {
+    local python_files=($(get_changed_python_files))
+    
+    if [ ${#python_files[@]} -eq 0 ]; then
+        print_status "success" "No Python files to format"
+        return 0
+    fi
+    
+    print_status "info" "Checking Python code formatting..."
+    
+    if black --check --quiet "${python_files[@]}" 2>/dev/null; then
+        print_status "success" "Code formatting is correct"
+    else
+        print_status "error" "Code formatting issues found"
+        echo "Run 'black ${python_files[*]}' to fix formatting"
+        return 1
+    fi
+}
+
+# Lint Python code with Ruff
+lint_python() {
+    local python_files=($(get_changed_python_files))
+    
+    if [ ${#python_files[@]} -eq 0 ]; then
+        print_status "success" "No Python files to lint"
+        return 0
+    fi
+    
+    print_status "info" "Linting Python code..."
+    
+    if ruff check "${python_files[@]}" --quiet 2>/dev/null; then
+        print_status "success" "Python linting passed"
+    else
+        print_status "error" "Python linting issues found"
+        echo "Run 'ruff check ${python_files[*]} --fix' to fix issues"
+        return 1
+    fi
+}
+
+# Type check Python code with MyPy
+type_check() {
+    local python_files=($(get_changed_python_files))
+    
+    if [ ${#python_files[@]} -eq 0 ]; then
+        print_status "success" "No Python files to type check"
+        return 0
+    fi
+    
+    print_status "info" "Type checking Python code..."
+    
+    # Only check files in framework and api directories to avoid issues with test files
+    local framework_files=()
+    for file in "${python_files[@]}"; do
+        if [[ "$file" == framework/* ]] || [[ "$file" == api/* ]]; then
+            framework_files+=("$file")
+        fi
+    done
+    
+    if [ ${#framework_files[@]} -eq 0 ]; then
+        print_status "success" "No framework/api files to type check"
+        return 0
+    fi
+    
+    if mypy "${framework_files[@]}" --ignore-missing-imports --no-error-summary 2>/dev/null; then
+        print_status "success" "Type checking passed"
+    else
+        print_status "warning" "Type checking issues found (non-blocking)"
+        # Don't fail the commit for type issues, just warn
+    fi
+}
+
+# Check for security issues
+check_security() {
+    local python_files=($(get_changed_python_files))
+    
+    if [ ${#python_files[@]} -eq 0 ]; then
+        print_status "success" "No Python files to security check"
+        return 0
+    fi
+    
+    print_status "info" "Checking for security issues..."
+    
+    # Check for common security anti-patterns
+    local security_issues=0
+    
+    for file in "${python_files[@]}"; do
+        # Check for hardcoded secrets
+        if grep -qE "(password|secret|key|token)\s*=\s*['\"][^'\"]+['\"]" "$file"; then
+            print_status "error" "Potential hardcoded secret in $file"
+            security_issues=$((security_issues + 1))
+        fi
+        
+        # Check for SQL concatenation
+        if grep -qE "\".*\+.*\".*sql|sql.*\".*\+.*\"" "$file"; then
+            print_status "error" "Potential SQL injection vulnerability in $file"
+            security_issues=$((security_issues + 1))
+        fi
+        
+        # Check for eval usage
+        if grep -qE "\beval\s*\(" "$file"; then
+            print_status "error" "Usage of eval() found in $file"
+            security_issues=$((security_issues + 1))
+        fi
+    done
+    
+    if [ $security_issues -eq 0 ]; then
+        print_status "success" "No obvious security issues found"
+    else
+        print_status "error" "Security issues found"
+        return 1
+    fi
+}
+
+# Check commit message format
+check_commit_message() {
+    local commit_msg_file=".git/COMMIT_EDITMSG"
+    
+    if [ ! -f "$commit_msg_file" ]; then
+        return 0
+    fi
+    
+    local commit_msg=$(head -n 1 "$commit_msg_file")
+    
+    # Check commit message length
+    if [ ${#commit_msg} -lt 10 ]; then
+        print_status "error" "Commit message too short (minimum 10 characters)"
+        return 1
+    fi
+    
+    if [ ${#commit_msg} -gt 72 ]; then
+        print_status "warning" "Commit message longer than 72 characters"
+    fi
+    
+    # Check for conventional commit format (optional)
+    if [[ "$commit_msg" =~ ^(feat|fix|docs|style|refactor|test|chore|perf|build|ci)(\(.+\))?: ]]; then
+        print_status "success" "Conventional commit format detected"
+    else
+        print_status "warning" "Consider using conventional commit format"
+    fi
+}
+
+# Check for large files
+check_file_sizes() {
+    local large_files=()
+    local max_size=1048576  # 1MB in bytes
+    
+    for file in $(get_changed_files); do
+        if [ -f "$file" ]; then
+            local size=$(stat -c%s "$file" 2>/dev/null || stat -f%z "$file" 2>/dev/null || echo 0)
+            if [ "$size" -gt $max_size ]; then
+                large_files+=("$file ($((size / 1024))KB)")
+            fi
+        fi
+    done
+    
+    if [ ${#large_files[@]} -eq 0 ]; then
+        print_status "success" "No large files detected"
+    else
+        print_status "warning" "Large files detected: ${large_files[*]}"
+        echo "Consider using Git LFS for large files"
+    fi
+}
+
+# Run tests for changed files
+run_quick_tests() {
+    local python_files=($(get_changed_python_files))
+    
+    if [ ${#python_files[@]} -eq 0 ]; then
+        print_status "success" "No Python files to test"
+        return 0
+    fi
+    
+    print_status "info" "Running quick tests..."
+    
+    # Check if pytest is available
+    if ! command -v pytest >/dev/null 2>&1; then
+        print_status "warning" "pytest not available, skipping tests"
+        return 0
+    fi
+    
+    # Run only fast unit tests
+    if pytest tests/unit/ tests/domain/ -x --tb=no --quiet 2>/dev/null; then
+        print_status "success" "Quick tests passed"
+    else
+        print_status "error" "Quick tests failed"
+        echo "Run 'pytest tests/unit/ tests/domain/ -v' for detailed output"
+        return 1
+    fi
+}
+
+# Main execution
+main() {
+    echo "🚀 Gary-Zero Pre-commit Hook"
+    echo "=========================="
+    
+    # Check if we have any changes to commit
+    if ! git diff --cached --quiet; then
+        print_status "info" "Changes detected, running checks..."
+    else
+        print_status "warning" "No staged changes detected"
+        exit 0
+    fi
+    
+    # Run all checks
+    local failed_checks=0
+    
+    check_tools || exit 1
+    
+    check_formatting || failed_checks=$((failed_checks + 1))
+    lint_python || failed_checks=$((failed_checks + 1))
+    type_check  # Non-blocking
+    check_security || failed_checks=$((failed_checks + 1))
+    check_commit_message  # Non-blocking
+    check_file_sizes  # Non-blocking
+    run_quick_tests || failed_checks=$((failed_checks + 1))
+    
+    echo "=========================="
+    
+    if [ $failed_checks -eq 0 ]; then
+        print_status "success" "All pre-commit checks passed! 🎉"
+        exit 0
+    else
+        print_status "error" "$failed_checks check(s) failed"
+        echo ""
+        echo "Fix the issues above before committing."
+        echo "You can skip these checks with 'git commit --no-verify' if needed."
+        exit 1
+    fi
+}
+
+# Run main function
+main "$@"
