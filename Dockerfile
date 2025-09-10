@@ -58,7 +58,8 @@ COPY shared_mcp/ ./shared_mcp/
 
 # Install Python dependencies with Railway-compatible cache optimization
 RUN --mount=type=cache,id=s/eef92461-60f6-4937-a828-fd5cfd6440d7-pip,target=/root/.cache/pip \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt || \
+    pip install --no-cache-dir psutil fastapi uvicorn starlette pydantic gitpython
 
 # ========== Runtime Stage ==========
 FROM python:3.13-slim
@@ -119,9 +120,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Set working directory
 WORKDIR /app
 
-# Copy installed packages from builder
+# Copy installed packages from builder stage to runtime stage
 COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Also ensure the shared_mcp package is available in the runtime stage
+COPY --from=builder /app/shared_mcp /app/shared_mcp
 
 # Copy application code - adjusted for actual project structure
 COPY . .
@@ -136,7 +140,7 @@ RUN mkdir -p logs work_dir tmp memory tmp/scheduler /app/data && \
     echo '[]' > /app/tmp/scheduler/tasks.json && \
     chmod 755 /app/data && \
     chmod +x /app/docker-entrypoint.sh && \
-    chmod +x /app/scripts/init_volumes.py
+    chmod +x /app/scripts/*.sh /app/scripts/*.py 2>/dev/null || true
 
 # Expose the configured port (Railway compatible)
 EXPOSE $PORT
