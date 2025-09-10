@@ -31,7 +31,7 @@ License: MIT License
 Project-URL: Homepage, https://github.com/GaryOcean428/gary-zero
 Project-URL: Repository, https://github.com/GaryOcean428/gary-zero
 Project-URL: Issues, https://github.com/GaryOcean428/gary-zero/issues
-Requires-Python: >=3.13
+Requires-Python: >=3.12
 Description-Content-Type: text/markdown
 License-File: LICENSE
 Requires-Dist: fastapi>=0.115.0
