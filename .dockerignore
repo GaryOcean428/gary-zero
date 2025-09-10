@@ -142,13 +142,16 @@ unit/
 # ======================
 # Scripts & Tools
 # ======================
-scripts/
-!scripts/init_volumes.py
+# Allow critical scripts directory and files
+!scripts/
+!scripts/*.sh
+!scripts/*.py
 tools/
 Makefile
-*.sh
-!start.sh
-!docker-entrypoint.sh
+# Exclude individual scripts that aren't needed (if any)
+# *.sh
+# !start.sh
+# !docker-entrypoint.sh
 
 # ======================
 # Misc
