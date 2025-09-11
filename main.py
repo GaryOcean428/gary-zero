@@ -51,9 +51,10 @@ class HealthResponse(BaseModel):
     environment: str = Field(
         default_factory=lambda: os.getenv("RAILWAY_ENVIRONMENT", "local")
     )
-    memory_usage: str | None = None
-    cpu_usage: str | None = None
-    uptime_seconds: float | None = None
+    uptime_seconds: float = 0.0
+    memory_usage_percent: float = 0.0
+    cpu_usage_percent: float = 0.0
+    railway_service: str = "gary-zero"
 
 
 class MessageRequest(BaseModel):
@@ -323,6 +324,32 @@ async def readiness_check():
     return {"status": "ready", "service": "gary-zero", "timestamp": time.time()}
 
 
+@app.get("/api/health", response_model=HealthResponse)
+async def api_health_check():
+    """API health check endpoint for Railway deployment."""
+    try:
+        memory_percent = psutil.virtual_memory().percent
+        cpu_percent = psutil.cpu_percent()
+        uptime = time.time() - _startup_time
+        
+        return HealthResponse(
+            status="healthy",
+            timestamp=time.time(),
+            version="0.9.0",
+            environment=os.getenv("RAILWAY_ENVIRONMENT", "local"),
+            uptime_seconds=uptime,
+            memory_usage_percent=memory_percent,
+            cpu_usage_percent=cpu_percent,
+            railway_service=os.getenv("RAILWAY_SERVICE_NAME", "gary-zero"),
+        )
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Service unhealthy: {str(e)}",
+        )
+
+
 @app.get("/healthz")
 async def health_check_railway():
     """Railway-specific health check endpoint."""
@@ -563,6 +590,7 @@ async def not_found_handler(request, exc):
             "timestamp": time.time(),
             "available_endpoints": [
                 "/health",
+                "/api/health",
                 "/ready",
                 "/metrics",
                 "/",
@@ -756,6 +784,7 @@ async def catch_all(request: Request, path: str):
             "available_endpoints": [
                 "/",
                 "/health",
+                "/api/health",
                 "/ready",
                 "/metrics",
                 "/api",

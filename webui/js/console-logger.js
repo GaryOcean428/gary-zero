@@ -12,13 +12,29 @@ class Logger {
     }
 
     detectDevelopment() {
-        return (
-            typeof window !== 'undefined' && 
-            (window.location.hostname === 'localhost' || 
-             window.location.hostname === '127.0.0.1' ||
-             window.location.hostname.startsWith('192.168.') ||
-             process?.env?.NODE_ENV === 'development')
-        );
+        // Browser-safe development detection - no process.env usage
+        if (typeof window !== 'undefined') {
+            const hostname = window.location.hostname;
+            const isDevelopmentHost = (
+                hostname === 'localhost' || 
+                hostname === '127.0.0.1' ||
+                hostname.startsWith('192.168.') ||
+                hostname.endsWith('.local') ||
+                hostname.includes('dev') ||
+                hostname.includes('staging')
+            );
+            
+            // Also check for development indicators in URL or window
+            const isDevelopmentMode = (
+                window.location.port !== '' && 
+                ['3000', '3001', '5000', '5675', '8000', '8080'].includes(window.location.port)
+            ) || window.location.search.includes('dev=true');
+            
+            return isDevelopmentHost || isDevelopmentMode;
+        }
+        
+        // Fallback for Node.js environments (build scripts, etc.)
+        return typeof process !== 'undefined' && process.env?.NODE_ENV === 'development';
     }
 
     hasConsoleGroup() {
