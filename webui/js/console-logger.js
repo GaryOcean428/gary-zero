@@ -116,11 +116,18 @@ const logger = new Logger({
     logLevel: 'debug'
 });
 
-// Export for use in modules
+// Export for use in modules (ES6 and CommonJS)
+export { Logger, logger };
+
+// Also support CommonJS for compatibility
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { Logger, logger };
-} else if (typeof window !== 'undefined') {
+}
+
+// Also expose on window for backward compatibility
+if (typeof window !== 'undefined') {
     window.GaryLogger = logger;
+    window.logger = logger;  // Make logger available globally
 }
 
 // For backwards compatibility, provide console replacement
