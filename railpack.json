@@ -31,8 +31,8 @@
     },
     "install-node": {
       "commands": [
-        "yarn install --frozen-lockfile",
-        "yarn cache clean"
+        "yarn install --immutable",
+        "yarn cache clean --all"
       ],
       "caches": ["yarn"]
     },
