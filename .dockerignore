@@ -66,9 +66,14 @@ yarn-debug.log*
 yarn-error.log*
 .pnp*
 .pnp.js
-yarn.lock
+# yarn.lock - KEEP for build reproducibility
 package-lock.json
 pnpm-lock.yaml
+
+# Ensure Yarn 4.x files are included for builds
+!yarn.lock
+!.yarn/
+!.yarnrc.yml
 
 # ======================
 # IDEs and Editors
