@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.railpack.com",
-  "provider": "node",
+  "provider": "multi",
   "packages": {
     "node": "20",
     "python": "3.12"
@@ -46,6 +46,8 @@
     },
     "setup-directories": {
       "commands": [
+        "which python3 && ln -sf $(which python3) /usr/local/bin/python || echo 'Python setup warning'",
+        "which pip3 && ln -sf $(which pip3) /usr/local/bin/pip || echo 'Pip setup warning'",
         "mkdir -p /app/data/{settings,memory,knowledge,prompts,agents,logs}",
         "mkdir -p logs work_dir tmp memory tmp/scheduler",
         "chmod -R 755 /app/data",
@@ -64,7 +66,7 @@
       { "step": "setup-directories" },
       { "local": true, "include": ["."], "exclude": ["node_modules", ".git", "__pycache__", ".yarn/cache", "uv.lock"] }
     ],
-    "startCommand": "npm start || python start_uvicorn.py || python main.py || python simple_health_check.py",
+    "startCommand": "bash scripts/start.sh",
     "variables": {
       "PORT": "${PORT:-8000}",
       "WEB_UI_HOST": "0.0.0.0",
