@@ -2,10 +2,10 @@
   "$schema": "https://schema.railpack.com",
   "provider": "multi",
   "packages": {
-    "node": "20",
+    "node": "22",
     "python": "3.12"
   },
-  "buildAptPackages": ["git", "curl", "build-essential", "postgresql-client"],
+  "buildAptPackages": ["git", "curl", "build-essential", "postgresql-client", "portaudio19-dev", "python3-pyaudio"],
   "caches": {
     "npm": {
       "directory": "/root/.npm",
@@ -24,7 +24,7 @@
     "install-python": {
       "commands": [
         "pip install --upgrade pip setuptools wheel",
-        "pip install -r requirements.txt",
+        "pip install -r requirements_no_audio.txt || pip install -r requirements.txt",
         "pip install watchdog gunicorn uvicorn"
       ],
       "caches": ["pip"]

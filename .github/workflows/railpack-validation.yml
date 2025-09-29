@@ -1,0 +1,192 @@
+# Railpack Validation Workflow
+# Validates Railway deployment configuration and railpack.json
+
+name: Railpack Validation
+
+on:
+  workflow_call:
+  push:
+    paths:
+      - 'railpack.json'
+      - 'railway.toml'
+      - '.env.example'
+      - 'docker/**'
+      - 'Dockerfile'
+  pull_request:
+    paths:
+      - 'railpack.json'
+      - 'railway.toml'
+      - '.env.example'
+      - 'docker/**'
+      - 'Dockerfile'
+
+jobs:
+  validate-railpack:
+    name: Validate Railpack Configuration
+    runs-on: ubuntu-latest
+    
+    outputs:
+      validation-status: ${{ steps.validate.outputs.status }}
+      validation-report: ${{ steps.validate.outputs.report }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        
+    - name: Install dependencies
+      run: |
+        pip install pydantic json-schema
+        
+    - name: Validate railpack.json syntax
+      id: validate-json
+      run: |
+        echo "🔍 Validating railpack.json syntax..."
+        if [ -f "railpack.json" ]; then
+          if python -m json.tool railpack.json > /dev/null 2>&1; then
+            echo "✅ railpack.json syntax is valid"
+          else
+            echo "❌ railpack.json has invalid JSON syntax"
+            exit 1
+          fi
+        else
+          echo "⚠️  No railpack.json found"
+        fi
+        
+    - name: Run railpack validation
+      id: validate
+      run: |
+        echo "🔍 Running comprehensive railpack validation..."
+        
+        if [ -f "validate_railpack.py" ]; then
+          # Run existing validation script
+          python validate_railpack.py
+          VALIDATION_RESULT=$?
+          
+          if [ $VALIDATION_RESULT -eq 0 ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "report=Railpack validation passed" >> $GITHUB_OUTPUT
+            echo "✅ Railpack validation completed successfully"
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT  
+            echo "report=Railpack validation failed" >> $GITHUB_OUTPUT
+            echo "❌ Railpack validation failed"
+            exit 1
+          fi
+        else
+          # Basic validation if script doesn't exist
+          echo "⚠️  validate_railpack.py not found, running basic validation"
+          
+          # Check for conflicting configs
+          CONFLICTS=0
+          if [ -f "Dockerfile" ] && [ -f "railpack.json" ]; then
+            echo "⚠️  Both Dockerfile and railpack.json exist - Railway will use Dockerfile"
+            CONFLICTS=$((CONFLICTS + 1))
+          fi
+          
+          if [ -f "railway.toml" ] && [ -f "railpack.json" ]; then
+            echo "⚠️  Both railway.toml and railpack.json exist - Railway will use railpack.json"
+            CONFLICTS=$((CONFLICTS + 1))
+          fi
+          
+          # Check for required fields in railpack.json
+          if [ -f "railpack.json" ]; then
+            if ! grep -q '"provider"' railpack.json; then
+              echo "❌ railpack.json missing required 'provider' field"
+              exit 1
+            fi
+            
+            if ! grep -q '"startCommand"' railpack.json; then
+              echo "❌ railpack.json missing required 'startCommand' field"  
+              exit 1
+            fi
+          fi
+          
+          if [ $CONFLICTS -eq 0 ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "report=Basic railpack validation passed" >> $GITHUB_OUTPUT
+            echo "✅ Basic railpack validation passed"
+          else
+            echo "status=warning" >> $GITHUB_OUTPUT
+            echo "report=Railpack validation passed with warnings" >> $GITHUB_OUTPUT  
+            echo "⚠️  Railpack validation completed with $CONFLICTS warning(s)"
+          fi
+        fi
+        
+    - name: Check port configuration
+      run: |
+        echo "🔍 Checking port configuration..."
+        
+        # Check for hardcoded ports in source files
+        HARDCODED_PORTS=$(grep -r "localhost:[0-9]" . --include="*.py" --include="*.js" --include="*.ts" --exclude-dir=node_modules --exclude-dir=.git || true)
+        
+        if [ -n "$HARDCODED_PORTS" ]; then
+          echo "⚠️  Found potential hardcoded localhost ports:"
+          echo "$HARDCODED_PORTS"
+          echo ""
+          echo "Consider using environment variables instead:"
+          echo "  - Python: os.environ.get('PORT', 8000)"
+          echo "  - Node.js: process.env.PORT || 3000"
+        fi
+        
+        # Check for proper PORT usage in Python files
+        if grep -r "process.env.PORT" . --include="*.py" > /dev/null; then
+          echo "⚠️  Found Node.js PORT syntax in Python files"
+          echo "Use os.environ.get('PORT') instead of process.env.PORT in Python"
+        fi
+        
+        # Check for proper host binding
+        LOCALHOST_BINDS=$(grep -r "127.0.0.1\|localhost" . --include="*.py" --exclude-dir=node_modules --exclude-dir=.git --exclude="*.md" || true)
+        
+        if [ -n "$LOCALHOST_BINDS" ]; then
+          echo "⚠️  Found localhost bindings that may not work in Railway:"
+          echo "Consider binding to 0.0.0.0 instead of 127.0.0.1 or localhost"
+        fi
+        
+    - name: Validate environment variables
+      run: |
+        echo "🔍 Validating environment variable configuration..."
+        
+        if [ -f ".env.example" ]; then
+          # Check for secrets in .env.example
+          POTENTIAL_SECRETS=$(grep -E "(password|secret|key|token)" .env.example -i || true)
+          
+          if [ -n "$POTENTIAL_SECRETS" ]; then
+            echo "⚠️  Found potential secrets in .env.example:"
+            echo "$POTENTIAL_SECRETS"
+            echo ""
+            echo "Ensure these are placeholder values, not real secrets!"
+          fi
+          
+          # Check for Railway-specific variables
+          if grep -q "RAILWAY_" .env.example; then
+            echo "✅ Railway environment variables documented in .env.example"
+          fi
+          
+          echo "✅ Environment variable validation completed"
+        else
+          echo "⚠️  No .env.example file found - consider creating one for documentation"
+        fi
+        
+    - name: Generate validation report
+      if: always()
+      run: |
+        echo "📋 Railpack Validation Report"
+        echo "============================"
+        echo "Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo "Repository: ${{ github.repository }}"
+        echo "Commit: ${{ github.sha }}"
+        echo ""
+        echo "Configuration Files Found:"
+        echo "-------------------------"
+        [ -f "railpack.json" ] && echo "✓ railpack.json" || echo "✗ railpack.json"
+        [ -f "railway.toml" ] && echo "✓ railway.toml" || echo "✗ railway.toml"  
+        [ -f "Dockerfile" ] && echo "✓ Dockerfile" || echo "✗ Dockerfile"
+        [ -f ".env.example" ] && echo "✓ .env.example" || echo "✗ .env.example"
+        echo ""
+        echo "Validation Status: ${{ steps.validate.outputs.status }}"
+        echo "Report: ${{ steps.validate.outputs.report }}"
