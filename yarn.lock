@@ -498,7 +498,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@modelcontextprotocol/sdk@npm:^1.12.0":
+"@modelcontextprotocol/sdk@npm:^1.12.0, @modelcontextprotocol/sdk@npm:^1.18.2":
   version: 1.18.2
   resolution: "@modelcontextprotocol/sdk@npm:1.18.2"
   dependencies:
@@ -5774,6 +5774,7 @@ __metadata:
   dependencies:
     "@biomejs/biome": "npm:^2.0.5"
     "@eslint/js": "npm:^9.29.0"
+    "@modelcontextprotocol/sdk": "npm:^1.18.2"
     "@openai/agents": "npm:^0.0.13"
     "@testing-library/jest-dom": "npm:^6.6.3"
     "@types/node": "npm:^22.10.5"

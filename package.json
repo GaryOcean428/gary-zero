@@ -9,8 +9,8 @@
     "lib": "lib"
   },
   "scripts": {
-    "build": "echo 'Build handled by Railpack'",
-    "start": "bash scripts/start.sh",
+    "build": "echo 'Frontend build not required - handled by Python backend'",
+    "start": "python start_uvicorn.py",
     "dev": "bash scripts/dev-server.sh --frontend",
     "dev:backend": "bash scripts/dev-server.sh --backend",
     "dev:frontend": "bash scripts/dev-server.sh --frontend",
@@ -98,6 +98,7 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.18.2",
     "@openai/agents": "^0.0.13"
   },
   "packageManager": "yarn@4.9.2"
