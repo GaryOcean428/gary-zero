@@ -286,49 +286,197 @@ class MemoryCacheBackend(CacheBackend):
 
 
 class RedisCacheBackend(CacheBackend):
-    """Redis cache backend (simulated for now)"""
+    """Redis cache backend with actual Redis implementation"""
     
     def __init__(self, host: str = "localhost", port: int = 6379, 
-                 db: int = 0, password: Optional[str] = None):
+                 db: int = 0, password: Optional[str] = None,
+                 max_connections: int = 10, retry_attempts: int = 3):
         self.host = host
         self.port = port
         self.db = db
         self.password = password
+        self.max_connections = max_connections
+        self.retry_attempts = retry_attempts
         
-        # For now, use memory cache as fallback
-        self._fallback = MemoryCacheBackend(max_size=10000)
+        # Redis connection pool
+        self._pool = None
+        self._fallback = MemoryCacheBackend(max_size=1000)
+        self._use_fallback = False
         
-        logger.info(f"Redis cache backend initialized (using fallback)")
+        # Initialize connection pool
+        self._initialize_pool()
+        
+        logger.info(f"Redis cache backend initialized - Host: {host}:{port}, DB: {db}")
+    
+    def _initialize_pool(self):
+        """Initialize Redis connection pool"""
+        try:
+            import redis.asyncio as redis
+            
+            self._pool = redis.ConnectionPool(
+                host=self.host,
+                port=self.port,
+                db=self.db,
+                password=self.password,
+                max_connections=self.max_connections,
+                retry_on_timeout=True,
+                socket_connect_timeout=5,
+                socket_timeout=5
+            )
+            
+            # Test connection
+            asyncio.create_task(self._test_connection())
+            
+        except ImportError:
+            logger.warning("Redis library not available, using memory fallback")
+            self._use_fallback = True
+        except Exception as e:
+            logger.error(f"Failed to initialize Redis pool: {e}")
+            self._use_fallback = True
+    
+    async def _test_connection(self):
+        """Test Redis connection and fallback if needed"""
+        try:
+            import redis.asyncio as redis
+            client = redis.Redis(connection_pool=self._pool)
+            await client.ping()
+            logger.info("Redis connection test successful")
+        except Exception as e:
+            logger.warning(f"Redis connection failed: {e}, using memory fallback")
+            self._use_fallback = True
+    
+    async def _get_client(self):
+        """Get Redis client with fallback handling"""
+        if self._use_fallback:
+            return None
+        
+        try:
+            import redis.asyncio as redis
+            return redis.Redis(connection_pool=self._pool)
+        except Exception as e:
+            logger.error(f"Failed to get Redis client: {e}")
+            self._use_fallback = True
+            return None
+    
+    async def _execute_with_retry(self, operation):
+        """Execute Redis operation with retry and fallback"""
+        client = await self._get_client()
+        if not client:
+            return None
+        
+        for attempt in range(self.retry_attempts):
+            try:
+                return await operation(client)
+            except Exception as e:
+                logger.warning(f"Redis operation failed (attempt {attempt + 1}): {e}")
+                if attempt == self.retry_attempts - 1:
+                    logger.error("Redis operation failed after all retries, using fallback")
+                    self._use_fallback = True
+                    return None
+                await asyncio.sleep(0.1 * (attempt + 1))  # Exponential backoff
+        
+        return None
     
     async def get(self, key: str) -> Optional[Any]:
         """Get value from Redis"""
-        # TODO: Implement actual Redis connection
-        return await self._fallback.get(key)
+        if self._use_fallback:
+            return await self._fallback.get(key)
+        
+        async def _get_operation(client):
+            value = await client.get(key)
+            if value is None:
+                return None
+            try:
+                return pickle.loads(value)
+            except:
+                # Fallback to string if unpickling fails
+                return value.decode('utf-8') if isinstance(value, bytes) else value
+        
+        result = await self._execute_with_retry(_get_operation)
+        if result is None and self._use_fallback:
+            return await self._fallback.get(key)
+        
+        return result
     
     async def set(self, key: str, value: Any, ttl: Optional[float] = None) -> bool:
         """Set value in Redis"""
-        # TODO: Implement actual Redis connection
-        return await self._fallback.set(key, value, ttl)
+        if self._use_fallback:
+            return await self._fallback.set(key, value, ttl)
+        
+        async def _set_operation(client):
+            try:
+                serialized_value = pickle.dumps(value)
+            except:
+                # Fallback to string serialization
+                serialized_value = str(value).encode('utf-8')
+            
+            if ttl:
+                return await client.setex(key, int(ttl), serialized_value)
+            else:
+                return await client.set(key, serialized_value)
+        
+        result = await self._execute_with_retry(_set_operation)
+        if result is None and self._use_fallback:
+            return await self._fallback.set(key, value, ttl)
+        
+        return bool(result)
     
     async def delete(self, key: str) -> bool:
         """Delete key from Redis"""
-        # TODO: Implement actual Redis connection
-        return await self._fallback.delete(key)
+        if self._use_fallback:
+            return await self._fallback.delete(key)
+        
+        async def _del_operation(client):
+            return await client.delete(key)
+        
+        result = await self._execute_with_retry(_del_operation)
+        if result is None and self._use_fallback:
+            return await self._fallback.delete(key)
+        
+        return bool(result)
     
     async def exists(self, key: str) -> bool:
         """Check if key exists in Redis"""
-        # TODO: Implement actual Redis connection
-        return await self._fallback.exists(key)
+        if self._use_fallback:
+            return await self._fallback.exists(key)
+        
+        async def _exists_operation(client):
+            return await client.exists(key)
+        
+        result = await self._execute_with_retry(_exists_operation)
+        if result is None and self._use_fallback:
+            return await self._fallback.exists(key)
+        
+        return bool(result)
     
     async def clear(self) -> bool:
         """Clear all keys from Redis"""
-        # TODO: Implement actual Redis connection
-        return await self._fallback.clear()
+        if self._use_fallback:
+            return await self._fallback.clear()
+        
+        async def _clear_operation(client):
+            return await client.flushdb()
+        
+        result = await self._execute_with_retry(_clear_operation)
+        if result is None and self._use_fallback:
+            return await self._fallback.clear()
+        
+        return bool(result)
     
     async def keys(self) -> List[str]:
         """Get all keys from Redis"""
-        # TODO: Implement actual Redis connection
-        return await self._fallback.keys()
+        if self._use_fallback:
+            return await self._fallback.keys()
+        
+        async def _keys_operation(client):
+            keys = await client.keys('*')
+            return [key.decode('utf-8') if isinstance(key, bytes) else key for key in keys]
+        
+        result = await self._execute_with_retry(_keys_operation)
+        if result is None and self._use_fallback:
+            return await self._fallback.keys()
+        
+        return result or []
 
 
 class MultiLevelCache:
@@ -570,9 +718,39 @@ def _generate_cache_key(func: Callable, args: tuple, kwargs: dict, prefix: str =
 
 async def _invalidate_pattern(cache: MultiLevelCache, pattern: str, args: tuple, kwargs: dict):
     """Invalidate cache entries matching pattern"""
-    # For now, just delete exact key
-    # TODO: Implement pattern matching for wildcard invalidation
-    await cache.delete(pattern)
+    import fnmatch
+    
+    # Replace placeholders with actual values from args/kwargs
+    formatted_pattern = pattern
+    
+    # Try to format with args (positional) and kwargs
+    try:
+        # Simple placeholder replacement for common patterns
+        if "{}" in pattern and args:
+            formatted_pattern = pattern.format(*args)
+        elif any(f"{{{key}}}" in pattern for key in kwargs.keys()):
+            formatted_pattern = pattern.format(**kwargs)
+    except (IndexError, KeyError):
+        # If formatting fails, use pattern as-is
+        pass
+    
+    # Get all keys from cache
+    all_keys = []
+    for level in cache.levels.values():
+        level_keys = await level.keys()
+        all_keys.extend(level_keys)
+    
+    # Find matching keys using fnmatch (supports * and ? wildcards)
+    matching_keys = []
+    for key in all_keys:
+        if fnmatch.fnmatch(key, formatted_pattern):
+            matching_keys.append(key)
+    
+    # Delete all matching keys
+    for key in matching_keys:
+        await cache.delete(key)
+    
+    logger.info(f"Invalidated {len(matching_keys)} cache entries matching pattern: {formatted_pattern}")
 
 
 # Global cache instance

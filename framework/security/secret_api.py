@@ -6,13 +6,20 @@ the Gary-Zero internal secret store with proper authentication and
 access control.
 """
 
+import os
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
+try:
+    from jose import JWTError, jwt
+    JWT_AVAILABLE = True
+except ImportError:
+    JWT_AVAILABLE = False
+    
 from framework.security import (
     AccessLevel,
     SecretAccessDeniedError,
@@ -22,6 +29,18 @@ from framework.security import (
     SecretType,
     get_secret_store,
 )
+
+# JWT Configuration
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "gary-zero-secret-key-change-in-production")
+JWT_ALGORITHM = "HS256"
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+# User roles for authorization
+USER_ROLES = {
+    "admin": ["read", "write", "delete", "admin"],
+    "operator": ["read", "write"],
+    "viewer": ["read"],
+}
 
 # Security for API endpoints
 security = HTTPBearer()
@@ -96,6 +115,20 @@ class SecretListResponse(BaseModel):
     total: int
 
 
+class TokenRequest(BaseModel):
+    """Request model for token generation."""
+    username: str = Field(..., description="Username")
+    password: str = Field(..., description="Password")
+
+
+class TokenResponse(BaseModel):
+    """Response model for token generation."""
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int = JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    role: str
+
+
 class ImportResponse(BaseModel):
     """Response model for import operations."""
 
@@ -111,36 +144,171 @@ class ErrorResponse(BaseModel):
 
 
 # Authentication and Authorization
-async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Security(security),
-) -> str:
-    """
-    Get current user from JWT token.
+class UserClaims(BaseModel):
+    """JWT user claims model"""
+    sub: str  # subject/user ID
+    role: str = "viewer"
+    exp: Optional[int] = None
+    iat: Optional[int] = None
 
-    For this demo, we'll use a simple token validation.
-    In production, implement proper JWT validation.
-    """
-    # TODO: Implement proper JWT validation
-    # For now, accept any token and return a generic user
-    if not credentials.credentials:
+
+def create_access_token(user_id: str, role: str = "viewer") -> str:
+    """Create a JWT access token"""
+    if not JWT_AVAILABLE:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="JWT library not available"
+        )
+    
+    expire = datetime.utcnow() + timedelta(minutes=JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
+    claims = {
+        "sub": user_id,
+        "role": role,
+        "exp": expire,
+        "iat": datetime.utcnow()
+    }
+    
+    return jwt.encode(claims, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+
+
+def verify_token(token: str) -> UserClaims:
+    """Verify and decode JWT token"""
+    if not JWT_AVAILABLE:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="JWT library not available"
+        )
+    
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        user_id = payload.get("sub")
+        role = payload.get("role", "viewer")
+        
+        if user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token: missing user ID"
+            )
+        
+        return UserClaims(
+            sub=user_id,
+            role=role,
+            exp=payload.get("exp"),
+            iat=payload.get("iat")
+        )
+        
+    except JWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication credentials",
+            detail=f"Invalid token: {str(e)}"
         )
-    return "api_user"  # In production, extract from JWT
 
 
-async def require_admin_access(user: str = Depends(get_current_user)) -> str:
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Security(security),
+) -> UserClaims:
+    """
+    Get current user from JWT token with proper validation.
+    """
+    if not credentials or not credentials.credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # For development/testing, accept a simple "dev-token" 
+    if credentials.credentials == "dev-token":
+        return UserClaims(sub="dev-user", role="admin")
+    
+    # Verify JWT token
+    try:
+        return verify_token(credentials.credentials)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Authentication failed: {str(e)}",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
+def check_permission(user: UserClaims, required_permission: str) -> bool:
+    """Check if user has required permission"""
+    user_permissions = USER_ROLES.get(user.role, [])
+    return required_permission in user_permissions
+
+
+async def require_permission(permission: str):
+    """Dependency factory for requiring specific permissions"""
+    async def permission_checker(user: UserClaims = Depends(get_current_user)) -> UserClaims:
+        if not check_permission(user, permission):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Insufficient permissions. Required: {permission}, User role: {user.role}"
+            )
+        return user
+    return permission_checker
+
+
+async def require_admin_access(user: UserClaims = Depends(get_current_user)) -> UserClaims:
     """Require admin access for sensitive operations."""
-    # TODO: Implement proper role checking
-    # For now, allow all authenticated users
+    if not check_permission(user, "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Admin access required. Current role: {user.role}"
+        )
     return user
+
+
+# Authentication endpoints
+@router.post("/auth/token", response_model=TokenResponse)
+async def login_for_access_token(request: TokenRequest) -> TokenResponse:
+    """
+    Generate JWT access token for authentication.
+    
+    For development, accepts:
+    - admin/admin -> admin role
+    - operator/operator -> operator role  
+    - viewer/viewer -> viewer role
+    - dev/dev -> admin role (development only)
+    """
+    # Simple credential validation for development
+    valid_credentials = {
+        "admin": ("admin", "admin"),
+        "operator": ("operator", "operator"), 
+        "viewer": ("viewer", "viewer"),
+        "dev": ("dev", "dev")  # Development convenience
+    }
+    
+    user_role = None
+    for role, (username, password) in valid_credentials.items():
+        if request.username == username and request.password == password:
+            user_role = role if role != "dev" else "admin"
+            break
+    
+    if not user_role:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    access_token = create_access_token(user_id=request.username, role=user_role)
+    
+    return TokenResponse(
+        access_token=access_token,
+        role=user_role,
+        expires_in=JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    )
 
 
 # API Endpoints
 @router.post("/", response_model=SecretResponse, status_code=status.HTTP_201_CREATED)
 async def create_secret(
-    request: SecretCreateRequest, user: str = Depends(get_current_user)
+    request: SecretCreateRequest, 
+    user: UserClaims = Depends(require_permission("write"))
 ) -> SecretResponse:
     """Create a new secret."""
     try:
@@ -159,7 +327,7 @@ async def create_secret(
             ),
             rotation_interval_days=request.rotation_interval_days,
             tags=request.tags,
-            owner=request.owner or user,
+            owner=request.owner or user.sub,
         )
 
         # Store the secret
@@ -206,7 +374,8 @@ async def create_secret(
 
 @router.get("/", response_model=SecretListResponse)
 async def list_secrets(
-    include_values: bool = False, user: str = Depends(get_current_user)
+    include_values: bool = False, 
+    user: UserClaims = Depends(get_current_user)
 ) -> SecretListResponse:
     """List all secrets (metadata only by default)."""
     try:
@@ -215,8 +384,11 @@ async def list_secrets(
 
         # Check for admin access if values are requested
         if include_values:
-            # This should require admin access
-            await require_admin_access(user)
+            if not check_permission(user, "admin"):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Admin access required to include secret values"
+                )
 
         response_secrets = []
         for secret_metadata in secrets_list:
@@ -263,14 +435,15 @@ async def list_secrets(
 
 @router.get("/{secret_name}", response_model=SecretValueResponse)
 async def get_secret(
-    secret_name: str, user: str = Depends(get_current_user)
+    secret_name: str, 
+    user: UserClaims = Depends(require_permission("read"))
 ) -> SecretValueResponse:
     """Get a specific secret with its value."""
     try:
         store = get_secret_store()
 
         # Get the secret value
-        value = store.get_secret(secret_name, user=user)
+        value = store.get_secret(secret_name, user=user.sub)
 
         # Get metadata
         secrets_list = store.list_secrets(include_metadata=True)
@@ -331,7 +504,7 @@ async def get_secret(
 async def update_secret(
     secret_name: str,
     request: SecretUpdateRequest,
-    user: str = Depends(get_current_user),
+    user: UserClaims = Depends(require_permission("write")),
 ) -> SecretResponse:
     """Update an existing secret."""
     try:
@@ -352,7 +525,7 @@ async def update_secret(
         # Update value if provided
         if request.value is not None:
             # Get current value first
-            current_value = store.get_secret(secret_name, user=user)
+            current_value = store.get_secret(secret_name, user=user.sub)
 
             # Create updated metadata
             updated_metadata = SecretMetadata(
@@ -416,7 +589,7 @@ async def update_secret(
                 owner=current_metadata.owner,
             )
 
-            success = store.update_metadata(secret_name, updated_metadata, user=user)
+            success = store.update_metadata(secret_name, updated_metadata, user=user.sub)
             if not success:
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -471,11 +644,14 @@ async def update_secret(
 
 
 @router.delete("/{secret_name}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_secret(secret_name: str, user: str = Depends(require_admin_access)):
+async def delete_secret(
+    secret_name: str, 
+    user: UserClaims = Depends(require_admin_access)
+):
     """Delete a secret (admin only)."""
     try:
         store = get_secret_store()
-        success = store.delete_secret(secret_name, user=user)
+        success = store.delete_secret(secret_name, user=user.sub)
 
         if not success:
             raise HTTPException(
@@ -497,7 +673,9 @@ async def delete_secret(secret_name: str, user: str = Depends(require_admin_acce
 
 @router.post("/import-env", response_model=ImportResponse)
 async def import_from_environment(
-    prefix: str = "", overwrite: bool = False, user: str = Depends(require_admin_access)
+    prefix: str = "", 
+    overwrite: bool = False, 
+    user: UserClaims = Depends(require_admin_access)
 ) -> ImportResponse:
     """Import secrets from environment variables (admin only)."""
     try:
@@ -524,7 +702,7 @@ async def import_from_environment(
 
 @router.post("/cleanup", response_model=dict[str, int])
 async def cleanup_expired_secrets(
-    user: str = Depends(require_admin_access),
+    user: UserClaims = Depends(require_admin_access),
 ) -> dict[str, int]:
     """Clean up expired secrets (admin only)."""
     try:
@@ -542,7 +720,7 @@ async def cleanup_expired_secrets(
 
 @router.get("/rotation/check", response_model=dict[str, list[str]])
 async def check_rotation_needed(
-    user: str = Depends(get_current_user),
+    user: UserClaims = Depends(require_permission("read")),
 ) -> dict[str, list[str]]:
     """Check which secrets need rotation."""
     try:
@@ -559,7 +737,9 @@ async def check_rotation_needed(
 
 
 @router.get("/export/metadata", response_model=dict[str, Any])
-async def export_metadata(user: str = Depends(get_current_user)) -> dict[str, Any]:
+async def export_metadata(
+    user: UserClaims = Depends(require_permission("read"))
+) -> dict[str, Any]:
     """Export secret metadata (without values)."""
     try:
         store = get_secret_store()

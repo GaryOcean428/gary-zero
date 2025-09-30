@@ -322,6 +322,212 @@ class DiskCache(CacheBackend):
                     logger.error(f"Failed to remove cache file {file_path}: {e}")
 
 
+class DistributedCache(CacheBackend):
+    """Redis-based distributed cache backend for AI model responses."""
+    
+    def __init__(self, host: str = "localhost", port: int = 6379, 
+                 db: int = 1, password: Optional[str] = None,
+                 key_prefix: str = "ai_cache:", ttl_seconds: int = 3600):
+        self.host = host
+        self.port = port
+        self.db = db
+        self.password = password
+        self.key_prefix = key_prefix
+        self.default_ttl = ttl_seconds
+        
+        # Connection pool for better performance
+        self._pool = None
+        self._use_fallback = False
+        
+        # Statistics
+        self.hits = 0
+        self.misses = 0
+        
+        # Initialize Redis connection
+        self._init_redis()
+    
+    def _init_redis(self):
+        """Initialize Redis connection with fallback."""
+        try:
+            import redis.asyncio as redis
+            
+            self._pool = redis.ConnectionPool(
+                host=self.host,
+                port=self.port,
+                db=self.db,
+                password=self.password,
+                encoding='utf-8',
+                decode_responses=False,  # Keep binary for pickle
+                max_connections=20
+            )
+            
+            logger.info(f"Distributed cache initialized - Redis {self.host}:{self.port}")
+            
+        except ImportError:
+            logger.warning("Redis library not available, distributed cache disabled")
+            self._use_fallback = True
+        except Exception as e:
+            logger.error(f"Failed to initialize Redis: {e}")
+            self._use_fallback = True
+    
+    async def _get_redis_client(self):
+        """Get Redis client with connection pooling."""
+        if self._use_fallback:
+            return None
+        
+        try:
+            import redis.asyncio as redis
+            return redis.Redis(connection_pool=self._pool)
+        except Exception as e:
+            logger.error(f"Failed to get Redis client: {e}")
+            self._use_fallback = True
+            return None
+    
+    def _make_key(self, key: str) -> str:
+        """Create Redis key with prefix."""
+        return f"{self.key_prefix}{key}"
+    
+    async def get(self, key: str) -> Optional[CacheEntry]:
+        """Get value from distributed cache."""
+        if self._use_fallback:
+            return None
+        
+        client = await self._get_redis_client()
+        if not client:
+            return None
+        
+        try:
+            redis_key = self._make_key(key)
+            data = await client.get(redis_key)
+            
+            if data is None:
+                self.misses += 1
+                return None
+            
+            # Deserialize the cache entry
+            entry = pickle.loads(data)
+            
+            # Check if expired
+            if entry.is_expired():
+                await client.delete(redis_key)
+                self.misses += 1
+                return None
+            
+            self.hits += 1
+            return entry
+            
+        except Exception as e:
+            logger.error(f"Redis get error for key {key}: {e}")
+            self.misses += 1
+            return None
+    
+    async def set(self, key: str, entry: CacheEntry) -> bool:
+        """Set value in distributed cache."""
+        if self._use_fallback:
+            return False
+        
+        client = await self._get_redis_client()
+        if not client:
+            return False
+        
+        try:
+            redis_key = self._make_key(key)
+            data = pickle.dumps(entry)
+            
+            # Use TTL from entry or default
+            ttl = self.default_ttl
+            if entry.ttl and entry.ttl > 0:
+                ttl = int(entry.ttl)
+            
+            await client.setex(redis_key, ttl, data)
+            return True
+            
+        except Exception as e:
+            logger.error(f"Redis set error for key {key}: {e}")
+            return False
+    
+    async def delete(self, key: str) -> bool:
+        """Delete value from distributed cache."""
+        if self._use_fallback:
+            return False
+        
+        client = await self._get_redis_client()
+        if not client:
+            return False
+        
+        try:
+            redis_key = self._make_key(key)
+            result = await client.delete(redis_key)
+            return result > 0
+            
+        except Exception as e:
+            logger.error(f"Redis delete error for key {key}: {e}")
+            return False
+    
+    async def clear(self) -> bool:
+        """Clear all entries with our prefix."""
+        if self._use_fallback:
+            return False
+        
+        client = await self._get_redis_client()
+        if not client:
+            return False
+        
+        try:
+            pattern = f"{self.key_prefix}*"
+            keys = await client.keys(pattern)
+            
+            if keys:
+                await client.delete(*keys)
+            
+            self.hits = 0
+            self.misses = 0
+            return True
+            
+        except Exception as e:
+            logger.error(f"Redis clear error: {e}")
+            return False
+    
+    async def get_stats(self) -> Dict[str, Any]:
+        """Get cache statistics."""
+        if self._use_fallback:
+            return {
+                'backend': 'distributed_redis',
+                'status': 'fallback_mode',
+                'hits': 0,
+                'misses': 0,
+                'hit_rate': 0.0
+            }
+        
+        client = await self._get_redis_client()
+        if not client:
+            return {'backend': 'distributed_redis', 'status': 'unavailable'}
+        
+        try:
+            # Get Redis info
+            info = await client.info('memory')
+            pattern = f"{self.key_prefix}*"
+            keys = await client.keys(pattern)
+            
+            total_requests = self.hits + self.misses
+            hit_rate = self.hits / total_requests if total_requests > 0 else 0
+            
+            return {
+                'backend': 'distributed_redis',
+                'status': 'active',
+                'entries': len(keys),
+                'hits': self.hits,
+                'misses': self.misses,
+                'hit_rate': hit_rate,
+                'redis_memory_used_mb': info.get('used_memory', 0) / 1024 / 1024,
+                'redis_connected_clients': info.get('connected_clients', 0)
+            }
+            
+        except Exception as e:
+            logger.error(f"Redis stats error: {e}")
+            return {'backend': 'distributed_redis', 'status': 'error', 'error': str(e)}
+
+
 class ModelCacheManager:
     """Manages model-specific caching with multiple strategies."""
     
@@ -340,7 +546,10 @@ class ModelCacheManager:
                 self.cache_dir, config.max_size_mb * 2
             )
         
-        # TODO: Add distributed cache backend (Redis, etc.)
+        # Add distributed cache backend (Redis)
+        if CacheLevel.DISTRIBUTED in config.levels:
+            redis_config = getattr(config, 'redis_config', {})
+            self.backends[CacheLevel.DISTRIBUTED] = DistributedCache(**redis_config)
         
         self.warm_up_cache = {}
         if config.warm_up_enabled:
