@@ -187,8 +187,70 @@ class OpenAIOperatorInterceptor(ActionInterceptor):
 
     def hook_into_operator(self):
         """Hook into OpenAI Operator API calls."""
-        # TODO: Implement when OpenAI Operator integration is available
-        Log.log().info("OpenAI Operator interceptor ready for integration")
+        try:
+            # Try to import OpenAI Operator tools when available
+            import openai
+            from framework.tools.openai_operator import OpenAIOperatorTool
+            
+            if not hasattr(OpenAIOperatorTool, "_original_execute"):
+                OpenAIOperatorTool._original_execute = OpenAIOperatorTool.execute
+                
+                async def intercepted_execute(self, **kwargs):
+                    action = AIAction(
+                        provider=AIProvider.OPENAI_OPERATOR,
+                        action_type=self._map_operator_action_type(kwargs.get("action", "operate")),
+                        description=f"OpenAI Operator: {kwargs.get('instruction', 'desktop operation')}",
+                        parameters=kwargs,
+                        agent_name="OpenAI Operator Agent",
+                    )
+                    
+                    await self.intercept_action(action)
+                    
+                    start_time = time.time()
+                    try:
+                        result = await OpenAIOperatorTool._original_execute(self, **kwargs)
+                        action.status = "completed"
+                        action.execution_time = time.time() - start_time
+                        action.result = {
+                            "result": str(result),
+                            "screenshot_taken": kwargs.get("screenshot", False)
+                        }
+                        
+                        # Store screenshot path if available
+                        if hasattr(result, "screenshot_path"):
+                            action.screenshot_path = result.screenshot_path
+                        
+                    except Exception as e:
+                        action.status = "error"
+                        action.execution_time = time.time() - start_time
+                        action.result = {"error": str(e)}
+                        raise
+                    finally:
+                        await self.intercept_action(action)
+                    
+                    return result
+                
+                import types
+                OpenAIOperatorTool.execute = intercepted_execute
+                
+            Log.log().info("OpenAI Operator integration hooked successfully")
+            
+        except ImportError:
+            Log.log().info("OpenAI Operator not available - integration ready for future use")
+        except Exception as e:
+            Log.log().warning(f"Failed to hook OpenAI Operator: {e}")
+    
+    def _map_operator_action_type(self, action: str) -> AIActionType:
+        """Map OpenAI Operator action types to standard action types."""
+        mapping = {
+            "operate": AIActionType.DESKTOP_INTERACTION,
+            "click": AIActionType.MOUSE_ACTION,
+            "type": AIActionType.KEYBOARD_ACTION,
+            "navigate": AIActionType.BROWSER_AUTOMATION,
+            "screenshot": AIActionType.SCREENSHOT,
+            "scroll": AIActionType.MOUSE_ACTION,
+        }
+        return mapping.get(action.lower(), AIActionType.DESKTOP_INTERACTION)
 
 
 class GoogleAIInterceptor(ActionInterceptor):
@@ -199,8 +261,76 @@ class GoogleAIInterceptor(ActionInterceptor):
 
     def hook_into_google_ai(self):
         """Hook into Google AI API calls."""
-        # TODO: Implement when Google AI integration is available
-        Log.log().info("Google AI interceptor ready for integration")
+        try:
+            # Try to import Google AI tools when available
+            import google.generativeai as genai
+            from framework.tools.google_ai_agent import GoogleAIAgentTool
+            
+            if not hasattr(GoogleAIAgentTool, "_original_execute"):
+                GoogleAIAgentTool._original_execute = GoogleAIAgentTool.execute
+                
+                async def intercepted_execute(self, **kwargs):
+                    action = AIAction(
+                        provider=AIProvider.GOOGLE_AI,
+                        action_type=self._map_google_ai_action_type(kwargs.get("action", "generate")),
+                        description=f"Google AI: {kwargs.get('prompt', 'AI generation task')[:100]}...",
+                        parameters={
+                            "model": kwargs.get("model", "gemini-pro"),
+                            "prompt_length": len(kwargs.get("prompt", "")),
+                            "temperature": kwargs.get("temperature", 0.7),
+                        },
+                        agent_name="Google AI Agent",
+                    )
+                    
+                    await self.intercept_action(action)
+                    
+                    start_time = time.time()
+                    try:
+                        result = await GoogleAIAgentTool._original_execute(self, **kwargs)
+                        action.status = "completed"
+                        action.execution_time = time.time() - start_time
+                        action.result = {
+                            "response_length": len(str(result)) if result else 0,
+                            "model_used": kwargs.get("model", "gemini-pro")
+                        }
+                        
+                        # Store usage statistics if available
+                        if hasattr(result, "usage_metadata"):
+                            action.metadata["usage"] = {
+                                "prompt_tokens": result.usage_metadata.prompt_token_count,
+                                "completion_tokens": result.usage_metadata.candidates_token_count,
+                                "total_tokens": result.usage_metadata.total_token_count
+                            }
+                        
+                    except Exception as e:
+                        action.status = "error"
+                        action.execution_time = time.time() - start_time
+                        action.result = {"error": str(e)}
+                        raise
+                    finally:
+                        await self.intercept_action(action)
+                    
+                    return result
+                
+                import types
+                GoogleAIAgentTool.execute = intercepted_execute
+                
+            Log.log().info("Google AI integration hooked successfully")
+            
+        except ImportError:
+            Log.log().info("Google AI not available - integration ready for future use")
+        except Exception as e:
+            Log.log().warning(f"Failed to hook Google AI: {e}")
+    
+    def _map_google_ai_action_type(self, action: str) -> AIActionType:
+        """Map Google AI action types to standard action types."""
+        mapping = {
+            "generate": AIActionType.CODE_EXECUTION,
+            "chat": AIActionType.CODE_EXECUTION,
+            "vision": AIActionType.VISUAL_COMPUTER_TASK,
+            "multimodal": AIActionType.VISUAL_COMPUTER_TASK,
+        }
+        return mapping.get(action.lower(), AIActionType.CODE_EXECUTION)
 
 
 class BrowserUseInterceptor(ActionInterceptor):

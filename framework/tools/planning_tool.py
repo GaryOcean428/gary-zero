@@ -428,8 +428,8 @@ class PlanningTool(Tool if _TOOL_AVAILABLE else object):
             # Mark plan as cancelled
             plan.status = PlanStatus.CANCELLED
 
-            # TODO: Cancel any running tasks in TaskScheduler
-            # This would require integration with TaskScheduler to stop running tasks
+            # Cancel any running tasks in TaskScheduler
+            await self._cancel_plan_tasks(plan_id)
 
             return Response(
                 message=f"🚫 Plan {plan_id} has been cancelled", break_loop=False
@@ -787,8 +787,8 @@ class PlanningTool(Tool if _TOOL_AVAILABLE else object):
             # Mark plan as cancelled
             plan.status = PlanStatus.CANCELLED
 
-            # TODO: Cancel any running tasks in TaskScheduler
-            # This would require integration with TaskScheduler to stop running tasks
+            # Cancel any running tasks in TaskScheduler
+            await self._cancel_plan_tasks(plan_id)
 
             return Response(
                 message=f"Plan {plan_id} has been cancelled", break_loop=False
@@ -799,3 +799,46 @@ class PlanningTool(Tool if _TOOL_AVAILABLE else object):
             return Response(
                 message=f"Failed to cancel plan: {str(e)}", break_loop=False
             )
+
+    async def _cancel_plan_tasks(self, plan_id: str):
+        """Cancel any running tasks associated with a plan."""
+        try:
+            # Try to import TaskScheduler and cancel related tasks
+            from framework.helpers.task_scheduler_backup import TaskScheduler
+            
+            scheduler = TaskScheduler.get()
+            
+            # Get all tasks that might be related to this plan
+            all_tasks = scheduler.get_tasks()
+            
+            # Find tasks related to this plan (by UUID or metadata)  
+            plan_tasks = []
+            for task in all_tasks:
+                # Check if task is related to this plan
+                # This could be by plan_id in task metadata, description, or name
+                if (plan_id in str(task.uuid) or 
+                    plan_id in task.name or 
+                    (hasattr(task, 'metadata') and plan_id in str(task.metadata))):
+                    plan_tasks.append(task)
+            
+            # Cancel/stop running tasks
+            cancelled_count = 0
+            for task in plan_tasks:
+                try:
+                    if hasattr(task, 'state') and task.state == 'RUNNING':
+                        # Try to update task state to cancelled/idle
+                        await scheduler.update_task(task.uuid, state='IDLE')
+                        cancelled_count += 1
+                        logger.info(f"Cancelled running task: {task.name} ({task.uuid})")
+                except Exception as e:
+                    logger.warning(f"Failed to cancel task {task.uuid}: {e}")
+            
+            if cancelled_count > 0:
+                logger.info(f"Cancelled {cancelled_count} running tasks for plan {plan_id}")
+            else:
+                logger.debug(f"No running tasks found for plan {plan_id}")
+                
+        except ImportError:
+            logger.debug("TaskScheduler not available for task cancellation")
+        except Exception as e:
+            logger.error(f"Error cancelling plan tasks: {e}")
