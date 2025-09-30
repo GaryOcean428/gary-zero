@@ -94,29 +94,6 @@ class TemplateEngine:
         variables = re.findall(r'\$\{?(\w+)\}?', content)
         return list(set(variables))
     
-    def _load_built_in_templates(self) -> Dict[str, str]:
-        """Load built-in templates"""
-        return {
-            'python_module': '''"""
-${description}
-
-Generated on ${timestamp}
-Author: ${author}
-"""
-
-import logging
-from typing import Any, Dict, List, Optional
-
-logger = logging.getLogger(__name__)
-
-
-class ${class_name}:
-    """${class_description}"""
-    
-    def __init__(self):
-        self._initialized = True
-        logger.info(f"Initialized {self.__class__.__name__}")
-    
     def process(self, data: Any) -> Any:
         """Process data with intelligent analysis and transformation"""
         try:
@@ -212,6 +189,29 @@ class ${class_name}:
         except:
             # If XML parsing fails, return original
             return xml
+    
+    def _load_built_in_templates(self) -> Dict[str, str]:
+        """Load built-in templates"""
+        return {
+            'python_module': '''"""
+${description}
+
+Generated on ${timestamp}
+Author: ${author}
+"""
+
+import logging
+from typing import Any, Dict, List, Optional
+
+logger = logging.getLogger(__name__)
+
+
+class ${class_name}:
+    """${class_description}"""
+    
+    def __init__(self):
+        self._initialized = True
+        logger.info(f"Initialized {self.__class__.__name__}")
 
 
 def ${function_name}(${parameters}) -> ${return_type}:
