@@ -49,6 +49,16 @@ from framework.helpers.print_style import PrintStyle
 
 from . import files
 
+# Import memory graph components
+try:
+    from framework.helpers.memory_graph import MemoryGraph
+    from framework.helpers.graph_ingestor import GraphIngestor
+    from framework.helpers.graph_planner import GraphPlanner
+    GRAPH_AVAILABLE = True
+except ImportError:
+    GRAPH_AVAILABLE = False
+    MemoryGraph = None
+
 
 class MyFaiss(FAISS):
     """Enhanced FAISS wrapper with ARM64 Python 3.13+ compatibility."""
@@ -86,8 +96,10 @@ class Memory:
         FRAGMENTS = "fragments"
         SOLUTIONS = "solutions"
         INSTRUMENTS = "instruments"
+        GRAPH = "graph"  # New area for structured graph data
 
     index: dict[str, "MyFaiss"] = {}
+    graphs: dict[str, "MemoryGraph"] = {}  # Graph storage by memory_subdir
 
     @staticmethod
     async def get(agent: Agent):
@@ -462,6 +474,63 @@ class Memory:
             text += f"Content: {doc.page_content}"
             result.append(text)
         return result
+
+    def get_memory_graph(self) -> "MemoryGraph":
+        """
+        Get or create the memory graph for this memory instance.
+        
+        Returns:
+            MemoryGraph: The graph instance for structured memory
+        """
+        if not GRAPH_AVAILABLE:
+            raise ImportError("Memory graph functionality not available")
+        
+        if self.memory_subdir not in Memory.graphs:
+            # Initialize new graph
+            graph_path = os.path.join(
+                self._abs_db_dir(self.memory_subdir), 
+                "memory_graph.json"
+            )
+            
+            if os.path.exists(graph_path):
+                # Load existing graph
+                Memory.graphs[self.memory_subdir] = MemoryGraph.load(graph_path)
+            else:
+                # Create new graph
+                Memory.graphs[self.memory_subdir] = MemoryGraph(storage_path=graph_path)
+        
+        return Memory.graphs[self.memory_subdir]
+
+    def get_graph_ingestor(self) -> "GraphIngestor":
+        """
+        Get a graph ingestor for this memory instance.
+        
+        Returns:
+            GraphIngestor: Ingestor agent for extracting entities from text
+        """
+        if not GRAPH_AVAILABLE:
+            raise ImportError("Memory graph functionality not available")
+        
+        return GraphIngestor(self.get_memory_graph())
+
+    def get_graph_planner(self) -> "GraphPlanner":
+        """
+        Get a graph planner for this memory instance.
+        
+        Returns:
+            GraphPlanner: Planner agent for graph-based reasoning
+        """
+        if not GRAPH_AVAILABLE:
+            raise ImportError("Memory graph functionality not available")
+        
+        return GraphPlanner(self.get_memory_graph())
+
+    async def save_graph(self) -> None:
+        """Save the memory graph to persistent storage."""
+        if GRAPH_AVAILABLE and self.memory_subdir in Memory.graphs:
+            graph = Memory.graphs[self.memory_subdir]
+            if graph.storage_path:
+                graph.save()
 
     @staticmethod
     def get_timestamp():
