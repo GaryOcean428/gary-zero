@@ -95,6 +95,47 @@ class AgentContext:
     @staticmethod
     def all():
         return list(AgentContext._contexts.values())
+    
+    @staticmethod
+    def get_contexts() -> dict[str, "AgentContext"]:
+        """
+        Public accessor for all contexts.
+        
+        Returns:
+            dict: Dictionary of context_id -> AgentContext mappings
+        """
+        return AgentContext._contexts.copy()
+    
+    @staticmethod
+    def context_count() -> int:
+        """Get the total number of active contexts."""
+        return len(AgentContext._contexts)
+    
+    @staticmethod
+    def update_all_configs(config: "AgentConfig") -> int:
+        """
+        Update configuration for all active contexts.
+        
+        Args:
+            config: New AgentConfig to apply
+            
+        Returns:
+            int: Number of contexts updated
+        """
+        updated_count = 0
+        for ctx in AgentContext._contexts.values():
+            ctx.config = config
+            
+            # Apply config to all agents in the hierarchy
+            agent = getattr(ctx, "agent0", None)
+            while agent:
+                agent.config = ctx.config
+                agent = agent.get_data(
+                    getattr(agent, "DATA_NAME_SUBORDINATE", None)
+                )
+            updated_count += 1
+        
+        return updated_count
 
     @staticmethod
     def remove(id: str):
