@@ -240,9 +240,9 @@ def check_permission(user: UserClaims, required_permission: str) -> bool:
     return required_permission in user_permissions
 
 
-async def require_permission(permission: str):
+def require_permission(permission: str):
     """Dependency factory for requiring specific permissions"""
-    async def permission_checker(user: UserClaims = Depends(get_current_user)) -> UserClaims:
+    def permission_checker(user: UserClaims = Depends(get_current_user)) -> UserClaims:
         if not check_permission(user, permission):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

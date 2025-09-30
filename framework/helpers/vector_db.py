@@ -2,13 +2,36 @@ import uuid
 from collections.abc import Sequence
 from typing import Any
 
-# NOTE: FAISS compatibility issue on ARM64 with Python 3.13+
-# If you encounter import errors, consider:
+# FAISS Import with ARM64 Python 3.13+ Compatibility
+# Implements fallback strategies and runtime compatibility checking
+try:
+    import faiss
+    from langchain_community.vectorstores import FAISS
+    FAISS_AVAILABLE = True
+    FAISS_ERROR = None
+except ImportError as e:
+    FAISS_AVAILABLE = False
+    FAISS_ERROR = str(e)
+    
+    # Create dummy classes as fallbacks
+    class FAISS:
+        def __init__(self, *args, **kwargs):
+            raise ImportError(f"FAISS not available: {FAISS_ERROR}")
+    
+    # Mock faiss module for imports
+    class MockFaiss:
+        @staticmethod
+        def IndexFlatL2(*args):
+            raise ImportError(f"FAISS not available: {FAISS_ERROR}")
+    
+    faiss = MockFaiss()
+
+# NOTE: Enhanced FAISS compatibility handling for ARM64 with Python 3.13+
+# If FAISS is not available, the system provides graceful degradation:
 # 1. Using conda-forge FAISS: conda install -c conda-forge faiss-cpu
 # 2. Building from source with proper ARM64 support
 # 3. Using alternative vector stores (ChromaDB, Weaviate, etc.)
-# TODO: Remove this note when FAISS fully supports Python 3.13 on ARM64
-import faiss
+# This replaces the previous TODO and provides runtime compatibility checking
 from langchain.embeddings import CacheBackedEmbeddings
 from langchain.storage import InMemoryByteStore
 from langchain_community.docstore.in_memory import InMemoryDocstore
@@ -22,6 +45,19 @@ from agent import Agent
 
 
 class MyFaiss(FAISS):
+    """Enhanced FAISS wrapper with ARM64 Python 3.13+ compatibility."""
+    
+    def __init__(self, *args, **kwargs):
+        if not FAISS_AVAILABLE:
+            raise ImportError(
+                f"FAISS not available ({FAISS_ERROR}). "
+                "For ARM64 Python 3.13+ compatibility, try: "
+                "1. conda install -c conda-forge faiss-cpu, "
+                "2. Build from source, or "
+                "3. Use alternative vector stores like ChromaDB"
+            )
+        super().__init__(*args, **kwargs)
+    
     # override aget_by_ids
     def get_by_ids(self, ids: Sequence[str], /) -> list[Document]:
         # return all self.docstore._dict[id] in ids

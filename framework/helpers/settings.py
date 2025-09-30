@@ -1752,21 +1752,11 @@ def _apply_settings(previous: Settings | None) -> None:
     # Initialize agent configuration with current settings
     config = initialize_agent()
 
-    # Update all agent contexts with the new configuration
-    # TODO: Refactor AgentContext to provide a public accessor for contexts
-    contexts: dict[Any, Any] = getattr(
-        AgentContext, "contexts", getattr(AgentContext, "_contexts", {})
-    )
-    for ctx in contexts.values():
-        ctx.config = config  # type: ignore[attr-defined]  # reinitialize context config
-
-        # Apply config to all agents in the hierarchy
-        agent = getattr(ctx, "agent0", None)
-        while agent:
-            agent.config = ctx.config  # type: ignore[attr-defined]
-            agent = agent.get_data(  # type: ignore[attr-defined]
-                getattr(agent, "DATA_NAME_SUBORDINATE", None)  # type: ignore[attr-defined]
-            )
+    # Update all agent contexts with the new configuration using public accessor
+    updated_count = AgentContext.update_all_configs(config)
+    
+    if updated_count > 0:
+        print(f"Updated configuration for {updated_count} active contexts")
 
         # force memory reload on embedding model change
         if not previous or (

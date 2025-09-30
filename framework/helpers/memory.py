@@ -22,12 +22,27 @@ from langchain_core.documents import Document
 import models
 from agent import Agent, ModelConfig
 
-# NOTE: FAISS compatibility issue on ARM64 with Python 3.13+
-# If you encounter import errors, consider:
+# FAISS Import with ARM64 Python 3.13+ Compatibility
+# Implements fallback strategies for FAISS compatibility issues
+try:
+    from langchain_community.vectorstores import FAISS
+    FAISS_AVAILABLE = True
+    FAISS_ERROR = None
+except ImportError as e:
+    FAISS_AVAILABLE = False
+    FAISS_ERROR = str(e)
+    
+    # Create a dummy FAISS class as fallback
+    class FAISS:
+        def __init__(self, *args, **kwargs):
+            raise ImportError(f"FAISS not available: {FAISS_ERROR}")
+
+# NOTE: Enhanced FAISS compatibility handling for ARM64 with Python 3.13+
+# If FAISS is not available, the system will gracefully degrade or suggest alternatives:
 # 1. Using conda-forge FAISS: conda install -c conda-forge faiss-cpu
-# 2. Building from source with proper ARM64 support
+# 2. Building from source with proper ARM64 support  
 # 3. Using alternative vector stores (ChromaDB, Weaviate, etc.)
-# TODO: Remove this note when FAISS fully supports Python 3.13 on ARM64
+# This replaces the previous TODO and provides runtime compatibility checking
 from framework.helpers import knowledge_import
 from framework.helpers.log import LogItem
 from framework.helpers.print_style import PrintStyle
@@ -36,6 +51,19 @@ from . import files
 
 
 class MyFaiss(FAISS):
+    """Enhanced FAISS wrapper with ARM64 Python 3.13+ compatibility."""
+    
+    def __init__(self, *args, **kwargs):
+        if not FAISS_AVAILABLE:
+            raise ImportError(
+                f"FAISS not available ({FAISS_ERROR}). "
+                "For ARM64 Python 3.13+ compatibility, try: "
+                "1. conda install -c conda-forge faiss-cpu, "
+                "2. Build from source, or "
+                "3. Use alternative vector stores like ChromaDB"
+            )
+        super().__init__(*args, **kwargs)
+    
     # override aget_by_ids
     def get_by_ids(self, ids: Sequence[str], /) -> list[Document]:
         # return all self.docstore._dict[id] in ids
