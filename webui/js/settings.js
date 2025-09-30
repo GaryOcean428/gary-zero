@@ -56,7 +56,7 @@ function debounce(func, wait, options = {}) {
     }
     
     function timerExpired() {
-    // const time = Date.now(); // Unused time variable
+        const time = Date.now();
         if (shouldInvoke(time)) {
             return trailingEdge(time);
         }
@@ -74,7 +74,7 @@ function debounce(func, wait, options = {}) {
     }
     
     function debounced(...args) {
-    // const time = Date.now(); // Unused time variable
+        const time = Date.now();
         const isInvoking = shouldInvoke(time);
         
         lastArgs = args;

@@ -11,6 +11,7 @@ in a Gary-Zero application with:
 """
 
 import asyncio
+import random
 import time
 from fastapi import FastAPI, HTTPException
 from framework.observability import (

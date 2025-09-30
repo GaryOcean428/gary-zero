@@ -4,9 +4,13 @@
  * Prevents race conditions and binding errors
  */
 
-// Setup logger fallback to prevent ReferenceError
-const logger = (typeof window !== 'undefined' && window.Logger) ? 
-    new window.Logger('InitOrchestrator') : {
+// Import unified logger
+const logger = (typeof window !== 'undefined' && window.createLogger) ? 
+    window.createLogger('InitOrchestrator') : 
+    (typeof window !== 'undefined' && window.logger) ? 
+    window.logger :
+    // Fallback for when unified logger isn't loaded yet
+    {
         debug: (...args) => console.log('[InitOrchestrator] DEBUG:', ...args),
         info: (...args) => console.info('[InitOrchestrator] INFO:', ...args),
         warn: (...args) => console.warn('[InitOrchestrator] WARN:', ...args),
