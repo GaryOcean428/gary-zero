@@ -5,6 +5,7 @@ This module creates a centralized event logging system that integrates:
 - framework.security.audit_logger
 - framework.performance.monitor
 - framework.helpers.log
+- Enhanced correlation ID support for structured logging
 """
 
 import asyncio
@@ -19,6 +20,7 @@ from typing import Any
 
 from ..performance.monitor import get_performance_monitor
 from ..security.audit_logger import AuditEvent, AuditEventType, AuditLevel, AuditLogger
+from .correlation import get_current_context, CorrelationContext
 
 
 class LogLevel(Enum):
@@ -69,7 +71,7 @@ class EventType(Enum):
 
 @dataclass
 class LogEvent:
-    """Unified log event structure."""
+    """Unified log event structure with correlation support."""
 
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     timestamp: float = field(default_factory=time.time)
@@ -81,6 +83,13 @@ class LogEvent:
     agent_id: str | None = None
     session_id: str | None = None
     user_id: str | None = None
+
+    # Correlation tracking (enhanced)
+    request_id: str | None = None
+    trace_id: str | None = None
+    span_id: str | None = None
+    parent_span_id: str | None = None
+    operation: str | None = None
 
     # Technical details
     component: str | None = None
@@ -115,6 +124,45 @@ class LogEvent:
     def to_json(self) -> str:
         """Convert to JSON string."""
         return json.dumps(self.to_dict(), default=str, ensure_ascii=False)
+
+    @classmethod
+    def from_correlation_context(
+        cls, 
+        message: str, 
+        event_type: EventType = EventType.SYSTEM_EVENT,
+        level: LogLevel = LogLevel.INFO,
+        **kwargs
+    ) -> "LogEvent":
+        """Create a LogEvent with correlation context automatically populated."""
+        context = get_current_context()
+        
+        event_data = {
+            "message": message,
+            "event_type": event_type,
+            "level": level,
+            **kwargs
+        }
+        
+        if context:
+            event_data.update({
+                "request_id": context.request_id,
+                "session_id": context.session_id,
+                "user_id": context.user_id,
+                "trace_id": context.trace_id,
+                "span_id": context.span_id,
+                "parent_span_id": context.parent_span_id,
+                "operation": context.operation,
+                "component": context.component,
+            })
+            
+            # Merge correlation metadata
+            if context.metadata:
+                if event_data.get("metadata"):
+                    event_data["metadata"].update(context.metadata)
+                else:
+                    event_data["metadata"] = context.metadata.copy()
+        
+        return cls(**event_data)
 
 
 class UnifiedLogger:
@@ -538,6 +586,103 @@ class UnifiedLogger:
             error_details=event.error_message,
             metadata=event.metadata,
         )
+
+    # Enhanced structured logging methods with automatic correlation
+    async def debug(self, message: str, **kwargs) -> str:
+        """Log debug message with correlation context."""
+        event = LogEvent.from_correlation_context(
+            message=message,
+            event_type=EventType.SYSTEM_EVENT,
+            level=LogLevel.DEBUG,
+            **kwargs
+        )
+        await self.log_event(event)
+        return event.event_id
+
+    async def info(self, message: str, **kwargs) -> str:
+        """Log info message with correlation context."""
+        event = LogEvent.from_correlation_context(
+            message=message,
+            event_type=EventType.SYSTEM_EVENT,
+            level=LogLevel.INFO,
+            **kwargs
+        )
+        await self.log_event(event)
+        return event.event_id
+
+    async def warning(self, message: str, **kwargs) -> str:
+        """Log warning message with correlation context."""
+        event = LogEvent.from_correlation_context(
+            message=message,
+            event_type=EventType.SYSTEM_EVENT,
+            level=LogLevel.WARNING,
+            **kwargs
+        )
+        await self.log_event(event)
+        return event.event_id
+
+    async def error(self, message: str, error: Exception = None, **kwargs) -> str:
+        """Log error message with correlation context and exception details."""
+        error_data = kwargs.copy()
+        
+        if error:
+            error_data.update({
+                'error_type': error.__class__.__name__,
+                'error_message': str(error),
+                'stack_trace': str(error.__traceback__) if error.__traceback__ else None
+            })
+        
+        event = LogEvent.from_correlation_context(
+            message=message,
+            event_type=EventType.ERROR,
+            level=LogLevel.ERROR,
+            **error_data
+        )
+        await self.log_event(event)
+        return event.event_id
+
+    async def critical(self, message: str, error: Exception = None, **kwargs) -> str:
+        """Log critical message with correlation context."""
+        error_data = kwargs.copy()
+        
+        if error:
+            error_data.update({
+                'error_type': error.__class__.__name__,
+                'error_message': str(error),
+                'stack_trace': str(error.__traceback__) if error.__traceback__ else None
+            })
+        
+        event = LogEvent.from_correlation_context(
+            message=message,
+            event_type=EventType.ERROR,
+            level=LogLevel.CRITICAL,
+            **error_data
+        )
+        await self.log_event(event)
+        return event.event_id
+
+    async def log_operation(
+        self, 
+        operation: str, 
+        success: bool, 
+        duration_ms: float = None,
+        input_data: dict = None,
+        output_data: dict = None,
+        **kwargs
+    ) -> str:
+        """Log an operation with correlation context."""
+        event = LogEvent.from_correlation_context(
+            message=f"Operation {operation} {'completed' if success else 'failed'}",
+            event_type=EventType.TOOL_EXECUTION,
+            level=LogLevel.INFO if success else LogLevel.ERROR,
+            operation=operation,
+            duration_ms=duration_ms,
+            input_data=input_data,
+            output_data=output_data,
+            **kwargs
+        )
+        await self.log_event(event)
+        return event.event_id
 
 
 # Global unified logger instance

@@ -10,7 +10,7 @@ import json
 from collections import defaultdict, Counter
 from datetime import datetime, timedelta
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Pattern, Union
+from typing import Any, Dict, List, Optional, Pattern, Set, Union
 import logging
 
 logger = logging.getLogger(__name__)

@@ -113,6 +113,12 @@
 
     </script>
 
+    <!-- Unified Logger - Load first for all other components -->
+    <script type="text/javascript" src="js/unified-logger.js"></script>
+    
+    <!-- Unified Error Handler - Load early for error handling -->
+    <script type="text/javascript" src="js/unified-error-handler.js"></script>
+    
     <!-- CSP and Alpine.js compatibility fix - load early -->
     <script type="module" src="js/csp-alpine-fix.js"></script>
     

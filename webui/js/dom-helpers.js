@@ -6,6 +6,17 @@
 (function() {
     'use strict';
     
+    // Get unified logger instance
+    const logger = (typeof window !== 'undefined' && window.createLogger) ? 
+        window.createLogger('DOMHelpers') : 
+        (typeof window !== 'undefined' && window.logger) ? 
+        window.logger :
+        // Fallback if unified logger not available
+        {
+            warn: (...args) => console.warn('[DOMHelpers]', ...args),
+            error: (...args) => console.error('[DOMHelpers]', ...args)
+        };
+    
     /**
      * Wait for an element to appear in the DOM
      * @param {string} selector - CSS selector for the element
@@ -42,12 +53,12 @@
         try {
             const element = document.getElementById(id);
             if (!element) {
-                console.warn(`Element with ID '${id}' not found`);
+                logger.warn(`Element with ID '${id}' not found`);
                 return null;
             }
             return element;
         } catch (error) {
-            console.warn(`Error accessing element with ID '${id}':`, error.message);
+            logger.warn(`Error accessing element with ID '${id}':`, error.message);
             return null;
         }
     }
