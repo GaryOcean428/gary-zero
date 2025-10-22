@@ -2,14 +2,11 @@
   "version": "1",
   "metadata": { "name": "gary-zero" },
   "build": {
-    "provider": "node",
-    "steps": {
-      "install": { "commands": ["yarn install --frozen-lockfile"] },
-      "build": { "commands": ["yarn build"] }
-    }
+    "provider": "docker",
+    "dockerfilePath": "./dockerfile"
   },
   "deploy": {
-    "startCommand": "yarn start",
+    "startCommand": "python run_ui.py --port $PORT --host 0.0.0.0",
     "healthCheckPath": "/api/health",
     "healthCheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
