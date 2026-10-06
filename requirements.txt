@@ -478,9 +478,7 @@ paramiko==3.5.0
 patchright==1.52.5
     # via browser-use
 pillow==11.3.0
-    # via
-    #   newspaper3k
-    #   sentence-transformers
+    # via newspaper3k
 playwright==1.52.0
     # via
     #   -r requirements.in
@@ -665,7 +663,7 @@ scipy==1.16.0
     #   sentence-transformers
 screeninfo==0.8.1
     # via browser-use
-sentence-transformers==3.0.1
+sentence-transformers==5.6.0
     # via
     #   -r requirements.in
     #   langchain-huggingface
@@ -772,6 +770,7 @@ typing-extensions==4.14.1
     #   pyee
     #   python-oxmsg
     #   referencing
+    #   sentence-transformers
     #   sqlalchemy
     #   starlette
     #   torch
@@ -808,10 +807,10 @@ uvicorn==0.35.0
     #   mcp
 uvloop==0.21.0
     # via uvicorn
+watchdog==5.0.3
+    # via -r requirements.in
 watchfiles==1.1.0
     # via uvicorn
-watchdog==5.0.3
-    # via -r requirements.in (file watching for gary-zero)
 webcolors==24.6.0
     # via -r requirements.in
 webencodings==0.5.1
