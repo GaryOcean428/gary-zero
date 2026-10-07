@@ -33,7 +33,7 @@ python-dotenv>=1.0.0,<2.0.0
 websockets>=11.0.0,<16.0.0
 
 # Git operations (needed by main.py)
-GitPython>=3.1.40,<4.0.0
+GitPython>=3.1.62,<4.0.0
 
 # Coverage and reporting tools
 coverage[toml]>=7.0.0,<8.0.0

@@ -162,7 +162,7 @@ fsspec==2025.7.0
     #   torch
 gitdb==4.0.12
     # via gitpython
-gitpython==3.1.43
+gitpython==3.1.62
     # via -r requirements.in
 google-ai-generativelanguage==0.6.18
     # via langchain-google-genai
