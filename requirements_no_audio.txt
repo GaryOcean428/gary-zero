@@ -791,7 +791,7 @@ unstructured-client==0.25.9
     # via
     #   -r requirements.in
     #   unstructured
-urllib3==2.5.0
+urllib3==2.8.0
     # via
     #   botocore
     #   docker
