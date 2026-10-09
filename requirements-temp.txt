@@ -339,7 +339,7 @@ networkx==3.5
     # via torch
 newspaper3k==0.2.8
     # via -r requirements.in
-nltk==3.9.1
+nltk==3.10.3
     # via
     #   newspaper3k
 numpy==1.26.4
