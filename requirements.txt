@@ -101,7 +101,9 @@ dataclasses-json==0.6.7
 deepdiff==8.5.0
     # via unstructured-client
 defusedxml==0.7.1
-    # via langchain-anthropic
+    # via
+    #   langchain-anthropic
+    #   nltk
 distro==1.9.0
     # via
     #   anthropic
@@ -391,7 +393,7 @@ networkx==3.5
     # via torch
 newspaper3k==0.2.8
     # via -r requirements.in
-nltk==3.9.1
+nltk==3.10.3
     # via
     #   newspaper3k
     #   unstructured
@@ -808,10 +810,10 @@ uvicorn==0.35.0
     #   mcp
 uvloop==0.21.0
     # via uvicorn
+watchdog==5.0.3
+    # via -r requirements.in
 watchfiles==1.1.0
     # via uvicorn
-watchdog==5.0.3
-    # via -r requirements.in (file watching for gary-zero)
 webcolors==24.6.0
     # via -r requirements.in
 webencodings==0.5.1
