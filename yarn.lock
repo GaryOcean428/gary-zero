@@ -4648,9 +4648,9 @@ __metadata:
   linkType: hard
 
 "source-map-js@npm:^1.2.1":
-  version: 1.2.1
-  resolution: "source-map-js@npm:1.2.1"
-  checksum: 10c9/2a6ad30165b0158d0552e40a155054453596276b8fd10300d894f893fc520bfc3828a242e8f17480abffb234f06954270923d1dbc8173d4e6f3c39a1df7a67b4
+  version: 1.2.2
+  resolution: "source-map-js@npm:1.2.2"
+  checksum: 10c9/43f8abc553e485609d522a9e96956d9395f34c911199459ec4b061fd20d4014f134f8c6e6e649b200924167750d0f0af3d7cc95d2e8ce9e1262a0c0e1b340d80
   languageName: node
   linkType: hard
 
